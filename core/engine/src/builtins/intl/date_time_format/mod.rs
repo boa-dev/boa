@@ -278,11 +278,6 @@ impl DateTimeFormat {
                         };
 
                         // 5. Return ? FormatDateTime(dtf, x).
-                        // A.O 11.5.6 PartitionDateTimePattern: 1. TimeClip(x). 2. If NaN throw. Then ToLocalTime and format.
-                        let x = time_clip(x);
-                        if x.is_nan() {
-                            return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-                        }
                         format_timestamp_with_dtf(dtf.borrow().data(), x, context)
                     },
                     dtf_clone,
@@ -829,18 +824,15 @@ pub(crate) fn create_date_time_format(
 /// - the bound `format` function created in `get_format`, and
 /// - [`format_date_time_locale`] used by `Date.prototype.toLocaleString` (and friends).
 ///
-/// It corresponds to the *post*-`TimeClip` portion of
-/// [`FormatDateTime(dtf, x)`](https://tc39.es/ecma402/#sec-formatdatetime),
-/// and the `ToLocalTime` / `PartitionDateTimePattern` logic from
+/// It corresponds the `ToLocalTime` / `PartitionDateTimePattern` logic from
 /// [11.5.6](https://tc39.es/ecma402/#sec-partitiondatetimepattern) and
 /// [11.5.12](https://tc39.es/ecma402/#sec-tolocaltime).
 ///
-/// Callers must have already applied `TimeClip` and `NaN` check
-/// (`FormatDateTime` steps 1–2). This helper implements:
+/// This helper implements:
 ///
 /// 11.5.6 `PartitionDateTimePattern` ( dtf, x )
-/// 1. Let x be TimeClip(x). (Done by caller)
-/// 2. If x is `NaN`, throw a `RangeError` exception. (Done by caller)
+/// 1. Let x be TimeClip(x).
+/// 2. If x is `NaN`, throw a `RangeError` exception.
 /// 3. Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
 /// 4. Let timeZone be dtf.[[`TimeZone`]].
 /// 5. Let offsetNs be GetOffsetNanosecondsFor(timeZone, epochNanoseconds).
@@ -853,11 +845,18 @@ pub(crate) fn format_timestamp_with_dtf(
     timestamp: f64,
     context: &mut Context,
 ) -> JsResult<JsValue> {
+    // PartitionDateTimePattern ( dtf, x ) step 1:
+    // 1. Let x be TimeClip(x).
+    let x = time_clip(timestamp);
+
+    // PartitionDateTimePattern ( dtf, x ) step 2:
+    // 2. If x is `NaN`, throw a `RangeError` exception.
+    if x.is_nan() {
+        return Err(js_error!(RangeError: "formatted date cannot be NaN"));
+    }
     // PartitionDateTimePattern ( dtf, x ) step 3:
     // Let epochNanoseconds be ℤ(ℝ(x) × 10^6).
-    //
-    // NOTE: `timestamp` is already `TimeClip`'d by the caller and represents *UTC epoch milliseconds*.
-    let epoch_ns = timestamp as i128 * 1_000_000;
+    let epoch_ns = x as i128 * 1_000_000;
 
     // PartitionDateTimePattern ( dtf, x ) step 4:
     // Let timeZone be dtf.[[`TimeZone`]].
@@ -883,7 +882,7 @@ pub(crate) fn format_timestamp_with_dtf(
 
     // PartitionDateTimePattern ( dtf, x ) step 6:
     // Let tz be 𝔽(ℝ(x) + ℝ(offsetNs) / 10^6).
-    let tz = timestamp + f64::from(time_zone_offset_seconds * 1_000);
+    let tz = x + f64::from(time_zone_offset_seconds * 1_000);
     let fields = ToLocalTime::from_local_epoch_milliseconds(tz)?;
     let dt = fields.to_formattable_datetime()?;
     let tz_info = time_zone.to_time_zone_info();
@@ -1009,27 +1008,3 @@ fn unwrap_date_time_format(
         .with_message("object was not an initialized `Intl.DateTimeFormat` object")
         .into())
 }
-
-// /// Shared helper used by Date.prototype.toLocaleString,
-// /// Date.prototype.toLocaleDateString, and Date.prototype.toLocaleTimeString.
-// /// Applies `ToDateTimeOptions` defaults, calls [`create_date_time_format`], and formats
-// /// the timestamp via [`format_timestamp_with_dtf`] without allocating a JS object.
-// #[allow(clippy::too_many_arguments)]
-// pub(crate) fn format_date_time_locale(
-//     locales: &JsValue,
-//     options: &JsValue,
-//     format_type: FormatType,
-//     defaults: FormatDefaults,
-//     timestamp: f64,
-//     context: &mut Context,
-// ) -> JsResult<JsValue> {
-//     let options = coerce_options_to_object(options, context)?;
-//     let options_value = options.into();
-//     // FormatDateTime steps 1–2: TimeClip and NaN check (format_timestamp_with_dtf does ToLocalTime + format only).
-//     let x = time_clip(timestamp);
-//     if x.is_nan() {
-//         return Err(js_error!(RangeError: "formatted date cannot be NaN"));
-//     }
-//     let result = format_timestamp_with_dtf(&dtf, x, context)?;
-//     Ok(JsValue::from(result))
-// }
