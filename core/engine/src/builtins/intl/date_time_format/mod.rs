@@ -820,10 +820,6 @@ pub(crate) fn create_date_time_format(
 
 /// Formats a timestamp (epoch milliseconds) using the given [`DateTimeFormat`] internals.
 ///
-/// This is the shared implementation used by:
-/// - the bound `format` function created in `get_format`, and
-/// - [`format_date_time_locale`] used by `Date.prototype.toLocaleString` (and friends).
-///
 /// It corresponds the `ToLocalTime` / `PartitionDateTimePattern` logic from
 /// [11.5.6](https://tc39.es/ecma402/#sec-partitiondatetimepattern) and
 /// [11.5.12](https://tc39.es/ecma402/#sec-tolocaltime).
@@ -938,8 +934,7 @@ fn best_fit_date_time_format(format_options: &FormatOptions) -> JsResult<Composi
         .map_err(|e| JsNativeError::range().with_message(e.to_string()).into())
 }
 
-/// Represents the `required` and `defaults` arguments in the abstract operation
-/// `toDateTimeOptions`.
+/// Identifies a specific category of date-time components.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum FormatType {
     Date,
@@ -947,13 +942,11 @@ pub(crate) enum FormatType {
     Any,
 }
 
-/// Indicates which default fields should be applied when `ToDateTimeOptions`
-/// determines defaults are needed. `All` applies both date and time defaults.
+/// Identifies which default values to use when none are specified.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum FormatDefaults {
     Date,
     Time,
-    /// Apply both date and time defaults (e.g. for `toLocaleString`).
     All,
 }
 
