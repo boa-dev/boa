@@ -1685,10 +1685,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaledatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_date_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1700,7 +1696,7 @@ impl Date {
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
@@ -1713,10 +1709,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1728,7 +1720,7 @@ impl Date {
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
@@ -1742,10 +1734,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaletimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleTimeString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_time_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1757,7 +1745,7 @@ impl Date {
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
