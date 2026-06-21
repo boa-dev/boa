@@ -1644,6 +1644,7 @@ impl Date {
     /// Shared implementation of `Date.prototype.toLocaleString`,
     /// `Date.prototype.toLocaleDateString`, and `Date.prototype.toLocaleTimeString`
     /// methods with the corresponding formatting params
+    #[cfg(feature = "intl")]
     #[inline]
     fn to_locale_string_with(
         this: &JsValue,
