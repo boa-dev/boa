@@ -9,6 +9,7 @@ use std::ops::{Deref, DerefMut};
 
 use super::{
     JsPrototype, PROTOTYPE,
+    property_map::OwnDataLookup,
     shape::slot::{Slot, SlotAttributes},
 };
 use crate::{
@@ -709,6 +710,32 @@ pub(crate) fn ordinary_get(
     receiver: JsValue,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
+    // Fast path: read a plain data own-property's value directly, skipping
+    // `PropertyDescriptor` construction. Accessors, indexed keys and exotic objects fall
+    // through to the spec path below.
+    if !matches!(key, PropertyKey::Index(_))
+        && obj.vtable().__get_own_property__ as usize
+            == ordinary_get_own_property as *const () as usize
+    {
+        let lookup = obj
+            .borrow()
+            .properties
+            .get_own_data_named(key, context.slot());
+        match lookup {
+            OwnDataLookup::Data(value) => return Ok(value),
+            OwnDataLookup::Absent => {
+                if let Some(parent) = obj.__get_prototype_of__(context)? {
+                    context.slot().set_not_cacheable_if_already_prototype();
+                    context.slot().attributes |= SlotAttributes::PROTOTYPE;
+                    return parent.__get__(key, receiver, context);
+                }
+                return Ok(JsValue::undefined());
+            }
+            // Accessor: fall through to invoke the getter.
+            OwnDataLookup::Accessor => {}
+        }
+    }
+
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     match obj.__get_own_property__(key, context)? {
