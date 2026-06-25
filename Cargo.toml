@@ -120,7 +120,7 @@ tap = "1.0.1"
 thiserror = { version = "2.0.18", default-features = false }
 dashmap = "6.2.1"
 num_enum = "0.7.6"
-itertools = { version = "0.14.0", default-features = false }
+itertools = { version = "0.15.0", default-features = false }
 portable-atomic = "1.13.1"
 bytemuck = { version = "1.25.0", default-features = false }
 arrayvec = "0.7.6"
