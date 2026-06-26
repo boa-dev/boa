@@ -17,7 +17,9 @@ use crate::{
         },
         intl::{
             Service,
-            date_time_format::options::{DateStyle, FormatMatcher, FormatOptions, TimeStyle},
+            date_time_format::options::{
+                DateStyle, FormatMatcher, FormatOptions, SubsecondDigits, TimeStyle,
+            },
             locale::{canonicalize_locale_list, filter_locales, resolve_locale},
             options::{IntlOptions, coerce_options_to_object},
         },
@@ -87,6 +89,7 @@ pub(crate) struct DateTimeFormat {
     hour_cycle: Option<IcuHourCycle>,
     date_style: Option<DateStyle>,
     time_style: Option<TimeStyle>,
+    fractional_second_digits: Option<SubsecondDigits>,
     time_zone: FormatTimeZone,
     fieldset: CompositeFieldSet,
     formatter: DateTimeFormatter<CompositeFieldSet>,
@@ -413,6 +416,18 @@ impl DateTimeFormat {
                 //h11/h12 -> true, h23/h24 -> false , because its h12 conversion time
                 let hour12 = matches!(hc, IcuHourCycle::H11 | IcuHourCycle::H12);
                 options.property(js_string!("hour12"), hour12, Attribute::all());
+            }
+
+            // Per Table 15, fractionalSecondDigits is only reported when neither
+            // dateStyle nor timeStyle is set; the constructor already guarantees this by
+            // rejecting explicit component options alongside a style, so the value is
+            // `None` whenever a style is present.
+            if let Some(fsd) = dtf.fractional_second_digits {
+                options.property(
+                    js_string!("fractionalSecondDigits"),
+                    fsd.digits(),
+                    Attribute::all(),
+                );
             }
 
             if let Some(ds) = dtf.date_style {
@@ -816,6 +831,7 @@ pub(crate) fn create_date_time_format(
         hour_cycle: intl_options.preferences.hour_cycle,
         date_style,
         time_style,
+        fractional_second_digits: format_options.fractional_second_digits(),
         time_zone,
         fieldset,
         formatter,
