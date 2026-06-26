@@ -820,9 +820,10 @@ pub(crate) fn create_date_time_format(
 
 /// Formats a timestamp (epoch milliseconds) using the given [`DateTimeFormat`] internals.
 ///
-/// It corresponds the `ToLocalTime` / `PartitionDateTimePattern` logic from
-/// [11.5.6](https://tc39.es/ecma402/#sec-partitiondatetimepattern) and
-/// [11.5.12](https://tc39.es/ecma402/#sec-tolocaltime).
+/// It corresponds the logic from [`PartitionDateTimePattern`][11.5.6] and [`ToLocalTime`][11.5.12].
+///
+/// [11.5.6]: https://tc39.es/ecma402/#sec-partitiondatetimepattern
+/// [11.5.12]: https://tc39.es/ecma402/#sec-tolocaltime
 ///
 /// This helper implements:
 ///
