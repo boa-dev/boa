@@ -786,7 +786,7 @@ impl Context {
             global_object.__get_own_property__(&name.clone().into(), &mut self.into())?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
-        let desc = if existing_prop.is_none() || existing_prop.is_some_and(|p| p.configurable()) {
+        let desc = if existing_prop.is_none_or(|p| p.configurable()) {
             // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
             PropertyDescriptor::builder()
                 .value(function.clone())

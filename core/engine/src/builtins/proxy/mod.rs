@@ -853,6 +853,7 @@ pub(crate) fn proxy_exotic_get(
                 }
             }
             // b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
+            #[allow(clippy::collapsible_match)] // NOTE: not collapsed to match the spec.
             CompletePropertyDescriptor::Accessor { get: None, .. } => {
                 // i. If trapResult is not undefined, throw a TypeError exception.
                 if !trap_result.is_undefined() {
