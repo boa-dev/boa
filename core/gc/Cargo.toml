@@ -21,6 +21,9 @@ boa_string = ["dep:boa_string"]
 either = ["dep:either"]
 # Enable default implementations of trace and finalize for the arrayvec crate
 arrayvec = ["dep:arrayvec"]
+default = ["boa_gc_backend"]
+boa_gc_backend = []
+oscars_backend = ["dep:oscars"]
 
 [dependencies]
 boa_macros.workspace = true
@@ -31,6 +34,7 @@ either = { workspace = true, optional = true }
 thin-vec = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
 arrayvec = { workspace = true, optional = true }
+oscars = { git = "https://github.com/boa-dev/oscars.git", branch = "main", features = ["null_collector_branded"], optional = true }
 
 [lints]
 workspace = true
