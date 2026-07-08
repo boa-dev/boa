@@ -80,7 +80,10 @@ impl SpannedSourceText {
         self.source_text.clone()
     }
 
-    /// Test if the span is empty.
+    /// Returns `true` if the span or the source text is empty.
+    ///
+    /// # Returns
+    /// `true` if there is no span or the underlying source text is empty, otherwise `false`.
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
