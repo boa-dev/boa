@@ -779,11 +779,8 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                     }
                 }
                 Segment::Str(s) => {
-                    if let Some(data) = s.as_latin1() {
-                        builder.extend_from_slice(data);
-                    } else {
-                        return None;
-                    }
+                    let data = s.as_latin1()?;
+                    builder.extend_from_slice(data);
                 }
                 Segment::Latin1(b) => {
                     if *b <= 0x7f {

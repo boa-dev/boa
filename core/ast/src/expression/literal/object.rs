@@ -131,27 +131,22 @@ impl ObjectLiteral {
                         }
                         match assign.lhs() {
                             AssignTarget::Identifier(ident) => {
-                                if let Some(name) = name.literal() {
-                                    if name.sym() == ident.sym() {
-                                        if strict && name == Sym::EVAL {
-                                            return None;
-                                        }
-                                        if strict
-                                            && RESERVED_IDENTIFIERS_STRICT.contains(&name.sym())
-                                        {
-                                            return None;
-                                        }
+                                let name = name.literal()?;
+                                if name.sym() == ident.sym() {
+                                    if strict && name == Sym::EVAL {
+                                        return None;
                                     }
-                                    let mut init = assign.rhs().clone();
-                                    init.set_anonymous_function_definition_name(ident);
-                                    bindings.push(ObjectPatternElement::SingleName {
-                                        ident: *ident,
-                                        name: PropertyName::Literal(name),
-                                        default_init: Some(init),
-                                    });
-                                } else {
-                                    return None;
+                                    if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name.sym()) {
+                                        return None;
+                                    }
                                 }
+                                let mut init = assign.rhs().clone();
+                                init.set_anonymous_function_definition_name(ident);
+                                bindings.push(ObjectPatternElement::SingleName {
+                                    ident: *ident,
+                                    name: PropertyName::Literal(name),
+                                    default_init: Some(init),
+                                });
                             }
                             AssignTarget::Pattern(pattern) => {
                                 bindings.push(ObjectPatternElement::Pattern {
