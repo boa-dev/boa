@@ -106,11 +106,11 @@ mod tests {
         let int: i64 = 42;
         let int_or_inf = IntegerOrInfinity::Integer(10);
         assert_ne!(int, int_or_inf);
-        assert!(int_or_inf != int);
+        assert_ne!(int_or_inf, int);
 
         let int: i64 = 10;
-        assert!(int == int_or_inf);
-        assert!(int_or_inf == int);
+        assert_eq!(int, int_or_inf);
+        assert_eq!(int_or_inf, int);
     }
 
     #[test]
