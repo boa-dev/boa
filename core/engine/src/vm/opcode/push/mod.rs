@@ -17,7 +17,7 @@ pub(crate) use literal::*;
 pub(crate) use numbers::*;
 pub(crate) use object::*;
 
-macro_rules! implement_push_generics {
+macro_rules! implement_store_generics {
     ($name:ident, $push_value:expr, $doc_string:literal) => {
         #[doc= concat!("`", stringify!($name), "` implements the `OpCode` Operation for `Opcode::", stringify!($name), "`\n")]
         #[doc= "\n"]
@@ -41,28 +41,24 @@ macro_rules! implement_push_generics {
     };
 }
 
-implement_push_generics!(
-    PushUndefined,
+implement_store_generics!(
+    StoreUndefined,
     JsValue::undefined(),
-    "Push integer `undefined` on the stack."
+    "Store `undefined` in dst."
 );
-implement_push_generics!(
-    PushNull,
-    JsValue::null(),
-    "Push integer `null` on the stack."
-);
-implement_push_generics!(PushTrue, true, "Push integer `true` on the stack.");
-implement_push_generics!(PushFalse, false, "Push integer `false` on the stack.");
-implement_push_generics!(PushZero, 0, "Push integer `0` on the stack.");
-implement_push_generics!(PushOne, 1, "Push integer `1` on the stack.");
-implement_push_generics!(PushNan, JsValue::nan(), "Push integer `NaN` on the stack.");
-implement_push_generics!(
-    PushPositiveInfinity,
+implement_store_generics!(StoreNull, JsValue::null(), "Store `null` in dst.");
+implement_store_generics!(StoreTrue, true, "Store `true` in dst.");
+implement_store_generics!(StoreFalse, false, "Store `false` in dst.");
+implement_store_generics!(StoreZero, 0, "Store integer `0` in dst.");
+implement_store_generics!(StoreOne, 1, "Store integer `1` in dst.");
+implement_store_generics!(StoreNan, JsValue::nan(), "Store `NaN` in dst.");
+implement_store_generics!(
+    StorePositiveInfinity,
     JsValue::positive_infinity(),
-    "Push integer `Infinity` on the stack."
+    "Store `Infinity` in dst."
 );
-implement_push_generics!(
-    PushNegativeInfinity,
+implement_store_generics!(
+    StoreNegativeInfinity,
     JsValue::negative_infinity(),
-    "Push integer `-Infinity` on the stack."
+    "Store `-Infinity` in dst."
 );

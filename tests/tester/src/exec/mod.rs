@@ -1,6 +1,6 @@
 //! Execution module for the test runner.
 
-mod js262;
+use boa_runtime::test262 as js262;
 
 use crate::{
     Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test, TestFlags,
@@ -23,7 +23,7 @@ use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 use std::{cell::RefCell, eprintln, path::Path, rc::Rc};
 
-use self::js262::WorkerHandles;
+use js262::WorkerHandles;
 
 impl TestSuite {
     /// Runs the test suite.
@@ -586,7 +586,7 @@ impl Test {
                 .ok_or_else(|| format!("could not find the {include_name} include file."))?;
             let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
             context.eval(source).map_err(|e| {
-                format!("could not run the harness `{include_name}`:\nUncaught {e}",)
+                format!("could not run the harness `{include_name}`:\nUncaught {e}")
             })?;
         }
 
@@ -597,7 +597,7 @@ impl Test {
 /// Returns `true` if `error` is a `target_type` error.
 fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context) -> bool {
     if let Ok(error) = error.try_native(context) {
-        match &error.kind {
+        match error.kind() {
             JsNativeErrorKind::Syntax if target_type == ErrorType::SyntaxError => {}
             JsNativeErrorKind::Reference if target_type == ErrorType::ReferenceError => {}
             JsNativeErrorKind::Range if target_type == ErrorType::RangeError => {}

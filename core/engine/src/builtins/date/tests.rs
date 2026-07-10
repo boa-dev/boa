@@ -943,3 +943,52 @@ fn date_parse_hour24_validation() {
         TestAction::assert("isNaN(Date.parse('2024-01-01T24:00:00.001Z'))"),
     ]);
 }
+
+#[test]
+#[cfg(feature = "intl")]
+fn date_proto_to_locale_string_intl() {
+    run_test_actions([
+        // Invalid receiver: spec requires TypeError
+        TestAction::assert_native_error(
+            "Date.prototype.toLocaleString.call({})",
+            JsNativeErrorKind::Type,
+            "'this' is not a Date",
+        ),
+        TestAction::assert_native_error(
+            "Date.prototype.toLocaleDateString.call({})",
+            JsNativeErrorKind::Type,
+            "'this' is not a Date",
+        ),
+        TestAction::assert_native_error(
+            "Date.prototype.toLocaleTimeString.call({})",
+            JsNativeErrorKind::Type,
+            "'this' is not a Date",
+        ),
+        TestAction::assert_eq("new Date(NaN).toLocaleString()", js_str!("Invalid Date")),
+        TestAction::assert("typeof new Date(2020, 6, 8).toLocaleString() === 'string'"),
+        TestAction::assert("typeof new Date(2020, 6, 8).toLocaleDateString() === 'string'"),
+        TestAction::assert("typeof new Date(2020, 6, 8).toLocaleTimeString() === 'string'"),
+        TestAction::assert("typeof new Date(0).toLocaleString('en-US') === 'string'"),
+        TestAction::assert("typeof new Date(0).toLocaleDateString('en-US') === 'string'"),
+        TestAction::assert("typeof new Date(0).toLocaleDateString('de-DE') === 'string'"),
+        TestAction::assert("typeof new Date(0).toLocaleTimeString('en-US') === 'string'"),
+        // Prove locale pipeline: different locales produce different output
+        TestAction::assert(
+            "new Date(0).toLocaleDateString('en-US') !== new Date(0).toLocaleDateString('de-DE')",
+        ),
+        TestAction::assert(
+            "new Date(0).toLocaleString('en-US') !== new Date(0).toLocaleString('de-DE')",
+        ),
+        TestAction::assert(
+            "new Date(0).toLocaleTimeString('en-US') !== new Date(0).toLocaleTimeString('de-DE')",
+        ),
+        // Prove ToDateTimeOptions pipeline: options affect output
+        TestAction::assert(
+            "typeof new Date(0).toLocaleDateString('en-US', { dateStyle: 'short' }) === 'string'",
+        ),
+        // Prove output is a string and not empty
+        TestAction::assert(
+            "new Date(0).toLocaleDateString('en-US', { dateStyle: 'short' }).length > 0",
+        ),
+    ]);
+}

@@ -31,6 +31,16 @@ condition = { env_set = [ "BOA_DATA_ROOT" ] }
 command = "cargo"
 args = ["run", "--bin", "boa", "--release", "--", "@@remove-empty(BOA_DATA_ROOT)bench/bench-v8/combined.js"]
 
+[tasks.insta-test]
+install_crate = "cargo-insta"
+command = "cargo"
+args = ["insta", "test", "-p", "insta-bytecode", "--review"]
+
+[tasks.insta-review]
+install_crate = "cargo-insta"
+command = "cargo"
+args = ["insta", "review", "--manifest-path", "./tests/insta-bytecode/Cargo.toml"]
+
 [env.development]
 RELEASE_ARG=""
 

@@ -1,10 +1,10 @@
 use crate::{
-    Context,
+    Context, JsExpect, JsResult,
     builtins::function::OrdinaryFunction,
     js_str, js_string,
     object::{PrivateElement, internal_methods::InternalMethodPropertyContext},
     property::PropertyDescriptor,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`
@@ -21,10 +21,10 @@ impl PushClassPrivateMethod {
             RegisterOperand,
             RegisterOperand,
             RegisterOperand,
-            VaryingOperand,
+            IndexOperand,
         ),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
         let prototype = context.vm.get_register(prototype.into()).clone();
         let value = context.vm.get_register(value.into()).clone();
@@ -34,11 +34,13 @@ impl PushClassPrivateMethod {
             .code_block()
             .constant_string(index.into());
 
-        let value = value.as_callable().expect("method must be callable");
+        let value = value.as_callable().js_expect("method must be callable")?;
         let prototype = prototype
             .as_object()
-            .expect("class_prototype must be function object");
-        let object = object.as_object().expect("class must be function object");
+            .js_expect("class_prototype must be function object")?;
+        let object = object
+            .as_object()
+            .js_expect("class must be function object")?;
 
         let name_string = js_string!(js_str!("#"), &name);
         let desc = PropertyDescriptor::builder()
@@ -53,19 +55,20 @@ impl PushClassPrivateMethod {
                 desc,
                 &mut InternalMethodPropertyContext::new(context),
             )
-            .expect("failed to set name property on private method");
+            .js_expect("failed to set name property on private method")?;
         value
             .downcast_mut::<OrdinaryFunction>()
-            .expect("method must be function object")
+            .js_expect("method must be function object")?
             .set_home_object(prototype.clone());
 
         object
             .downcast_mut::<OrdinaryFunction>()
-            .expect("class must be function object")
+            .js_expect("class must be function object")?
             .push_private_method(
                 object.private_name(name),
                 PrivateElement::Method(value.clone()),
             );
+        Ok(())
     }
 }
 
@@ -85,9 +88,9 @@ pub(crate) struct PushClassPrivateGetter;
 impl PushClassPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let object = context.vm.get_register(object.into());
         let value = context.vm.get_register(value.into());
         let name = context
@@ -96,12 +99,14 @@ impl PushClassPrivateGetter {
             .code_block()
             .constant_string(index.into());
 
-        let value = value.as_callable().expect("getter must be callable");
-        let object = object.as_object().expect("class must be function object");
+        let value = value.as_callable().js_expect("getter must be callable")?;
+        let object = object
+            .as_object()
+            .js_expect("class must be function object")?;
 
         object
             .downcast_mut::<OrdinaryFunction>()
-            .expect("class must be function object")
+            .js_expect("class must be function object")?
             .push_private_method(
                 object.private_name(name),
                 PrivateElement::Accessor {
@@ -109,6 +114,7 @@ impl PushClassPrivateGetter {
                     setter: None,
                 },
             );
+        Ok(())
     }
 }
 
@@ -128,9 +134,9 @@ pub(crate) struct PushClassPrivateSetter;
 impl PushClassPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let object = context.vm.get_register(object.into());
         let value = context.vm.get_register(value.into());
         let name = context
@@ -139,12 +145,14 @@ impl PushClassPrivateSetter {
             .code_block()
             .constant_string(index.into());
 
-        let value = value.as_callable().expect("getter must be callable");
-        let object = object.as_object().expect("class must be function object");
+        let value = value.as_callable().js_expect("getter must be callable")?;
+        let object = object
+            .as_object()
+            .js_expect("class must be function object")?;
 
         object
             .downcast_mut::<OrdinaryFunction>()
-            .expect("class must be function object")
+            .js_expect("class must be function object")?
             .push_private_method(
                 object.private_name(name),
                 PrivateElement::Accessor {
@@ -152,6 +160,7 @@ impl PushClassPrivateSetter {
                     setter: Some(value.clone()),
                 },
             );
+        Ok(())
     }
 }
 

@@ -101,6 +101,18 @@ pub enum LexicalDeclaration {
     ///
     /// [let]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
     Let(VariableList),
+
+    /// A <code>[using]</code> declaration creates a block-scoped resource that is automatically
+    /// disposed when control exits the block.
+    ///
+    /// [using]: https://tc39.es/proposal-explicit-resource-management/
+    Using(VariableList),
+
+    /// An <code>[await using]</code> declaration creates a block-scoped resource that is automatically
+    /// disposed asynchronously when control exits the block.
+    ///
+    /// [await using]: https://tc39.es/proposal-explicit-resource-management/
+    AwaitUsing(VariableList),
 }
 
 impl LexicalDeclaration {
@@ -108,7 +120,9 @@ impl LexicalDeclaration {
     #[must_use]
     pub const fn variable_list(&self) -> &VariableList {
         match self {
-            Self::Const(list) | Self::Let(list) => list,
+            Self::Const(list) | Self::Let(list) | Self::Using(list) | Self::AwaitUsing(list) => {
+                list
+            }
         }
     }
 
@@ -132,6 +146,8 @@ impl ToInternedString for LexicalDeclaration {
             match &self {
                 Self::Let(_) => "let",
                 Self::Const(_) => "const",
+                Self::Using(_) => "using",
+                Self::AwaitUsing(_) => "await using",
             },
             self.variable_list().to_interned_string(interner)
         )
@@ -144,7 +160,9 @@ impl VisitWith for LexicalDeclaration {
         V: Visitor<'a>,
     {
         match self {
-            Self::Const(vars) | Self::Let(vars) => visitor.visit_variable_list(vars),
+            Self::Const(vars) | Self::Let(vars) | Self::Using(vars) | Self::AwaitUsing(vars) => {
+                visitor.visit_variable_list(vars)
+            }
         }
     }
 
@@ -153,7 +171,9 @@ impl VisitWith for LexicalDeclaration {
         V: VisitorMut<'a>,
     {
         match self {
-            Self::Const(vars) | Self::Let(vars) => visitor.visit_variable_list_mut(vars),
+            Self::Const(vars) | Self::Let(vars) | Self::Using(vars) | Self::AwaitUsing(vars) => {
+                visitor.visit_variable_list_mut(vars)
+            }
         }
     }
 }

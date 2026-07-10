@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
 use std::rc::Rc;
 
-use dynify::{Fn, from_fn};
+use dynify::dynify;
 use rustc_hash::FxHashMap;
 
 use boa_gc::GcRefCell;
@@ -62,9 +62,9 @@ pub fn resolve_module_specifier(
 
     // On Windows, also replace `/` with `\`. JavaScript imports use `/` as path separator.
     #[cfg(target_family = "windows")]
-    let specifier = specifier.replace('/', "\\");
+    let specifier = cow_utils::CowUtils::cow_replace(&*specifier, '/', "\\");
 
-    let short_path = Path::new(&specifier);
+    let short_path = Path::new(&*specifier);
 
     // In ECMAScript, a path is considered relative if it starts with
     // `./` or `../`. In Rust it's any path that start with `/`.
@@ -74,18 +74,14 @@ pub fn resolve_module_specifier(
         if let Some(r_path) = referrer_dir {
             base_path.join(r_path).join(short_path)
         } else {
-            return Err(JsError::from_opaque(
-                js_string!("relative path without referrer").into(),
-            ));
+            return Err(js_error!(TypeError: "relative path without referrer"));
         }
     } else {
-        base_path.join(&specifier)
+        base_path.join(&*specifier)
     };
 
     if long_path.is_relative() && base.is_some() {
-        return Err(JsError::from_opaque(
-            js_string!("resolved path is relative").into(),
-        ));
+        return Err(js_error!(TypeError: "resolved path is relative"));
     }
 
     // Normalize the path. We cannot use `canonicalize` here because it will fail
@@ -96,9 +92,7 @@ pub fn resolve_module_specifier(
         .try_fold(PathBuf::new(), |mut acc, c| {
             if c == Component::ParentDir {
                 if acc.as_os_str().is_empty() {
-                    return Err(JsError::from_opaque(
-                        js_string!("path is outside the module root").into(),
-                    ));
+                    return Err(js_error!(TypeError: "path is outside the module root"));
                 }
                 acc.pop();
             } else {
@@ -110,9 +104,7 @@ pub fn resolve_module_specifier(
     if path.starts_with(&base_path) {
         Ok(path)
     } else {
-        Err(JsError::from_opaque(
-            js_string!("path is outside the module root").into(),
-        ))
+        Err(js_error!(TypeError: "path is outside the module root"))
     }
 }
 
@@ -152,6 +144,7 @@ impl From<ActiveRunnable> for Referrer {
 ///
 /// This trait allows to customize the behaviour of the engine on module load requests and
 /// `import.meta` requests.
+#[dynify]
 pub trait ModuleLoader: Any {
     /// Host hook [`HostLoadImportedModule ( referrer, specifier, hostDefined, payload )`][spec].
     ///
@@ -175,7 +168,7 @@ pub trait ModuleLoader: Any {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-HostLoadImportedModule
     /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
-    #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
+    #[allow(async_fn_in_trait, reason = "all our APIs are single-threaded")]
     async fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
@@ -195,58 +188,13 @@ pub trait ModuleLoader: Any {
     ///
     /// [meta]: https://tc39.es/ecma262/#sec-hostgetimportmetaproperties
     /// [final]: https://tc39.es/ecma262/#sec-hostfinalizeimportmeta
-    fn init_import_meta(
-        self: Rc<Self>,
-        _import_meta: &JsObject,
-        _module: &Module,
-        _context: &mut Context,
-    ) {
-    }
-}
-
-/// A dyn-compatible version of [`ModuleLoader`].
-pub(crate) trait DynModuleLoader: Any {
-    /// See [`ModuleLoader::load_imported_module`].
-    fn load_imported_module<'a, 'b, 'fut>(
-        self: Rc<Self>,
-        referrer: Referrer,
-        request: ModuleRequest,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
-    where
-        'a: 'fut,
-        'b: 'fut;
-
-    /// See [`ModuleLoader::init_import_meta`].
-    fn init_import_meta(
-        self: Rc<Self>,
-        import_meta: &JsObject,
-        module: &Module,
-        context: &mut Context,
-    );
-}
-
-impl<T: ModuleLoader> DynModuleLoader for T {
-    fn load_imported_module<'a, 'b, 'fut>(
-        self: Rc<Self>,
-        referrer: Referrer,
-        request: ModuleRequest,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, ModuleRequest, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
-    where
-        'a: 'fut,
-        'b: 'fut,
-    {
-        from_fn!(T::load_imported_module, self, referrer, request, context)
-    }
-
+    #[allow(unused_variables, reason = "this should be overridden by implementors")]
     fn init_import_meta(
         self: Rc<Self>,
         import_meta: &JsObject,
         module: &Module,
         context: &mut Context,
     ) {
-        T::init_import_meta(self, import_meta, module, context);
     }
 }
 
@@ -339,6 +287,23 @@ impl ModuleLoader for MapModuleLoader {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct ModuleCacheKey {
+    path: PathBuf,
+    attributes: Box<[ImportAttribute]>,
+}
+
+impl ModuleCacheKey {
+    fn new(path: PathBuf, attributes: &[ImportAttribute]) -> Self {
+        let mut attributes = attributes.to_vec();
+        attributes.sort_unstable_by(|left, right| left.key().cmp(right.key()));
+        Self {
+            path,
+            attributes: attributes.into_boxed_slice(),
+        }
+    }
+}
+
 /// A simple module loader that loads modules relative to a root path.
 ///
 /// # Note
@@ -349,7 +314,7 @@ impl ModuleLoader for MapModuleLoader {
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
     root: PathBuf,
-    module_map: GcRefCell<FxHashMap<PathBuf, Module>>,
+    module_map: GcRefCell<FxHashMap<ModuleCacheKey, Module>>,
 }
 
 impl SimpleModuleLoader {
@@ -364,7 +329,7 @@ impl SimpleModuleLoader {
         let absolute = root.canonicalize().map_err(|e| {
             JsNativeError::typ()
                 .with_message(format!("could not set module root `{}`", root.display()))
-                .with_cause(JsError::from_opaque(js_string!(e.to_string()).into()))
+                .with_cause(JsError::from_rust(e))
         })?;
         Ok(Self {
             root: absolute,
@@ -375,38 +340,39 @@ impl SimpleModuleLoader {
     /// Inserts a new module onto the module map.
     #[inline]
     pub fn insert(&self, path: PathBuf, module: Module) {
-        self.module_map.borrow_mut().insert(path, module);
+        self.insert_with_attributes(path, &[], module);
     }
 
     /// Inserts a new module onto the module map with the given attributes.
-    ///
-    /// This is an alias for `insert` in this implementation, as it ignores attributes.
     #[inline]
     pub fn insert_with_attributes(
         &self,
         path: PathBuf,
-        _attributes: &[ImportAttribute],
+        attributes: &[ImportAttribute],
         module: Module,
     ) {
-        self.insert(path, module);
+        self.module_map
+            .borrow_mut()
+            .insert(ModuleCacheKey::new(path, attributes), module);
     }
 
     /// Gets a module from its original path.
     #[inline]
     pub fn get(&self, path: &Path) -> Option<Module> {
-        self.module_map.borrow().get(path).cloned()
+        self.get_with_attributes(path, &[])
     }
 
     /// Gets a module from its original path and attributes.
-    ///
-    /// This is an alias for `get` in this implementation, as it ignores attributes.
     #[inline]
     pub fn get_with_attributes(
         &self,
         path: &Path,
-        _attributes: &[ImportAttribute],
+        attributes: &[ImportAttribute],
     ) -> Option<Module> {
-        self.get(path)
+        self.module_map
+            .borrow()
+            .get(&ModuleCacheKey::new(path.to_path_buf(), attributes))
+            .cloned()
     }
 }
 
@@ -460,9 +426,7 @@ impl ModuleLoader for SimpleModuleLoader {
                         let json_content = std::fs::read_to_string(&path).map_err(|err| {
                             JsNativeError::typ()
                                 .with_message(format!("could not open file `{short_path}`"))
-                                .with_cause(JsError::from_opaque(
-                                    js_string!(err.to_string()).into(),
-                                ))
+                                .with_cause(JsError::from_rust(err))
                         })?;
                         let json_string = js_string!(json_content.as_str());
                         Module::parse_json(json_string, &mut context.borrow_mut()).map_err(
@@ -489,7 +453,7 @@ impl ModuleLoader for SimpleModuleLoader {
                 let source = Source::from_filepath(&path).map_err(|err| {
                     JsNativeError::typ()
                         .with_message(format!("could not open file `{short_path}`"))
-                        .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
+                        .with_cause(JsError::from_rust(err))
                 })?;
                 Module::parse(source, None, &mut context.borrow_mut()).map_err(|err| {
                     JsNativeError::syntax()

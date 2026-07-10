@@ -9,21 +9,21 @@ use std::unreachable;
 /// `NewTarget` implements the Opcode Operation for `Opcode::NewTarget`
 ///
 /// Operation:
-///  - Push the current new target to the stack.
+///  - Store the current new target in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct NewTarget;
 
 impl NewTarget {
     #[inline(always)]
     pub(super) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let new_target = if let Some(new_target) = context
-            .vm
-            .frame()
-            .environments
-            .get_this_environment()
-            .as_function()
-            .and_then(|env| env.slots().new_target().cloned())
-        {
+        let new_target = if let Some(new_target) = {
+            let frame = context.vm.frame();
+            frame
+                .environments
+                .get_this_environment(frame.realm.environment())
+                .as_function()
+                .and_then(|env| env.slots().new_target().cloned())
+        } {
             new_target.into()
         } else {
             JsValue::undefined()
@@ -41,7 +41,7 @@ impl Operation for NewTarget {
 /// `ImportMeta` implements the Opcode Operation for `Opcode::ImportMeta`
 ///
 /// Operation:
-///  - Push the current `import.meta` to the stack
+///  - Store the current `import.meta` in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ImportMeta;
 

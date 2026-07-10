@@ -257,6 +257,35 @@ impl JsArrayBuffer {
         GcRef::try_map(self.inner.borrow(), |o| o.data().bytes())
     }
 
+    /// Copies the contents of this [`JsArrayBuffer`] into a new [`Vec<u8>`].
+    ///
+    /// Returns `None` if the buffer has been detached.
+    ///
+    /// See also [`crate::object::builtins::JsUint8Array::to_vec`] and
+    /// [`crate::object::builtins::JsSharedArrayBuffer::to_vec`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use boa_engine::object::builtins::{AlignedVec, JsArrayBuffer};
+    /// # use boa_engine::{Context, JsResult, JsValue};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let data = AlignedVec::from_iter(0, [1u8, 2, 3, 4]);
+    /// let buffer = JsArrayBuffer::from_byte_block(data, context)?;
+    /// assert_eq!(buffer.to_vec(), Some(vec![1u8, 2, 3, 4]));
+    ///
+    /// buffer.detach(&JsValue::undefined())?;
+    /// assert_eq!(buffer.to_vec(), None);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_vec(&self) -> Option<Vec<u8>> {
+        self.data().map(|data| data.to_vec())
+    }
+
     /// Get a mutable reference to the [`JsArrayBuffer`]'s data.
     ///
     /// Returns `None` if detached.
@@ -323,5 +352,34 @@ impl TryFromJs for JsArrayBuffer {
                 .with_message("value is not an ArrayBuffer object")
                 .into())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Context, JsValue};
+
+    #[test]
+    fn array_buffer_to_vec_roundtrip_and_detach() {
+        let context = &mut Context::default();
+
+        let data = AlignedVec::from_iter(0, [1u8, 2, 3, 4, 5]);
+        let buffer = JsArrayBuffer::from_byte_block(data, context).unwrap();
+
+        assert_eq!(buffer.to_vec(), Some(vec![1u8, 2, 3, 4, 5]));
+
+        buffer.detach(&JsValue::undefined()).unwrap();
+        assert_eq!(buffer.to_vec(), None);
+    }
+
+    #[test]
+    fn array_buffer_to_vec_empty() {
+        let context = &mut Context::default();
+
+        let data = AlignedVec::from_iter(0, []);
+        let buffer = JsArrayBuffer::from_byte_block(data, context).unwrap();
+
+        assert_eq!(buffer.to_vec(), Some(Vec::new()));
     }
 }

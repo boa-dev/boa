@@ -1,0 +1,23 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/basic-loop.js
+---
+-------------------------- Compiled Output: '<main>' ---------------------------
+Location     Handler      Opcode                            Operands
+  000000                    StoreZero                         dst:r02
+  000005                    StoreInt8                         value:100, dst:r03
+  00000b                    Jump                              address:00001a
+  000010                    IncrementLoopIteration            
+  000011                    Inc                               src:r02, dst:r02
+  00001a                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:00002c
+  000027                    Jump                              address:000010
+  00002c                    CheckReturn                       
+  00002d                    Return                            
+
+Register Count: 5, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants: <empty>
+Bindings: <empty>
+Handlers: <empty>
+Source Map:
+    0000: 17..26: (1, 26)

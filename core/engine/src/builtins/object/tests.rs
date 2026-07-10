@@ -17,7 +17,7 @@ fn object_create_with_undefined() {
     run_test_actions([TestAction::assert_native_error(
         "Object.create()",
         JsNativeErrorKind::Type,
-        "Object prototype may only be an Object or null: undefined",
+        "Object.create: expected 'proto' to be an Object or null, got `undefined`",
     )]);
 }
 
@@ -26,7 +26,7 @@ fn object_create_with_number() {
     run_test_actions([TestAction::assert_native_error(
         "Object.create(5)",
         JsNativeErrorKind::Type,
-        "Object prototype may only be an Object or null: 5",
+        "Object.create: expected 'proto' to be an Object or null, got `number`",
     )]);
 }
 

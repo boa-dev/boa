@@ -68,12 +68,6 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.cap
     }
 
-    /// Returns the allocated byte of inner `RawJsString`'s data.
-    #[must_use]
-    const fn allocated_data_byte_len(&self) -> usize {
-        self.len() * Self::DATA_SIZE
-    }
-
     /// Returns the capacity calculated from given layout.
     #[must_use]
     const fn capacity_from_layout(layout: Layout) -> usize {
@@ -119,7 +113,9 @@ impl<D: InternalStringType> JsStringBuilder<D> {
     #[must_use]
     unsafe fn current_layout(&self) -> Layout {
         // SAFETY:
-        // Caller should ensure that the inner is allocated.
+        // 1. Caller should ensure that the inner is allocated.
+        // 2. `unwrap_unchecked` is safe because this layout was successfully
+        //    allocated previously with the same capacity, so it cannot overflow.
         unsafe {
             Layout::for_value(self.inner.as_ref())
                 .extend(Layout::array::<D::Byte>(self.capacity()).unwrap_unchecked())
@@ -202,7 +198,10 @@ impl<D: InternalStringType> JsStringBuilder<D> {
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
     pub const unsafe fn extend_from_slice_unchecked(&mut self, v: &[D::Byte]) {
-        // SAFETY: Caller should ensure the capacity is large enough to hold elements.
+        // SAFETY:
+        // 1. Caller must ensure `self.len() + v.len() <= self.capacity()` so the destination pointer is in-bounds.
+        // 2. Pointers are aligned: `v` is aligned by Rust's slice guarantee; `self.data()` is aligned because the allocation layout was padded to `D::Byte`'s alignment.
+        // 3. Regions do not overlap because `v` is an immutable reference and `self` is an exclusive mutable reference.
         unsafe {
             ptr::copy_nonoverlapping(v.as_ptr(), self.data().add(self.len()), v.len());
         }
@@ -303,19 +302,6 @@ impl<D: InternalStringType> JsStringBuilder<D> {
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
-    }
-
-    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
-    #[inline]
-    #[must_use]
-    pub fn is_ascii(&self) -> bool {
-        // SAFETY:
-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
-        // meaning we can read to its pointed memory.
-        let data = unsafe {
-            std::slice::from_raw_parts(self.data().cast::<u8>(), self.allocated_data_byte_len())
-        };
-        data.is_ascii()
     }
 
     /// Extracts a slice containing the elements in the inner `RawJsString`.
@@ -522,6 +508,24 @@ impl<D: InternalStringType> Clone for JsStringBuilder<D> {
     }
 }
 
+impl JsStringBuilder<Latin1> {
+    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
+    #[inline]
+    #[must_use]
+    pub fn is_ascii(&self) -> bool {
+        self.as_slice().is_ascii()
+    }
+}
+
+impl JsStringBuilder<Utf16> {
+    /// Checks if all u16 in inner `RawJsString`'s data are ascii (<= 0x7F).
+    #[inline]
+    #[must_use]
+    pub fn is_ascii(&self) -> bool {
+        self.as_slice().iter().all(|&c| c <= 0x7F)
+    }
+}
+
 /// **`Latin1`** encoded `JsStringBuilder`
 /// # Warning
 /// If you are not sure the characters that will be added and don't want to preprocess them,
@@ -613,15 +617,15 @@ pub enum Segment<'a> {
 }
 
 impl Segment<'_> {
-    /// Checks if the segment consists solely of `ASCII` characters.
+    /// Checks if the segment can be represented as `Latin1` characters.
     #[inline]
     #[must_use]
-    fn is_ascii(&self) -> bool {
+    fn can_be_latin1(&self) -> bool {
         match self {
             Segment::String(s) => s.as_str().is_latin1(),
             Segment::Str(s) => s.is_latin1(),
-            Segment::Latin1(b) => *b <= 0x7f,
-            Segment::CodePoint(ch) => *ch as u32 <= 0x7F,
+            Segment::Latin1(_) => true,
+            Segment::CodePoint(ch) => *ch as u32 <= 0xFF,
         }
     }
 }
@@ -726,11 +730,11 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.segments.push(seg.into());
     }
 
-    /// Checks if all string segments contains only `ASCII` bytes.
+    /// Checks if all string segments can be represented as `Latin1` characters.
     #[inline]
     #[must_use]
-    pub fn is_ascii(&self) -> bool {
-        self.segments.iter().all(Segment::is_ascii)
+    pub fn can_be_latin1(&self) -> bool {
+        self.segments.iter().all(Segment::can_be_latin1)
     }
 
     /// Returns the number of string segment in inner vector.
@@ -832,16 +836,16 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     ///
     /// This function first checks if the instance is empty:
     /// - If it is empty, it returns the default `JsString`.
-    /// - If it contains only ASCII characters, it safely encodes it as `Latin1`.
-    /// - If it contains non-ASCII characters, it falls back to encoding using `UTF-16`.
+    /// - If it can be represented as Latin1 characters, it safely encodes it as `Latin1`.
+    /// - Otherwise, it falls back to encoding using `UTF-16`.
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
         if self.is_empty() {
             JsString::default()
-        } else if self.is_ascii() {
+        } else if self.can_be_latin1() {
             // SAFETY:
-            // All string segment contains only ascii byte, so this can be encoded as `Latin1`.
+            // All string segments can be represented as Latin1, so this can be encoded as `Latin1`.
             unsafe { self.build_as_latin1() }
         } else {
             self.build_from_utf16()

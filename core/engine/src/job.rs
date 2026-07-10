@@ -55,7 +55,7 @@ use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin:
 /// This is basically a synchronous task that needs to be run to progress [`Promise`] objects,
 /// or unblock threads waiting on [`Atomics.waitAsync`].
 ///
-/// [Job]: https://tc39.es/ecma262/#sec-jobs
+/// [Job Abstract Closure]: https://tc39.es/ecma262/#sec-jobs
 /// [`Promise`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 /// [`Atomics.waitAsync`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/waitAsync
 pub struct NativeJob {
@@ -127,24 +127,137 @@ impl NativeJob {
     }
 }
 
-/// Flag that can only be set once.
-#[derive(Debug, Clone)]
-pub(crate) struct OnceFlag(Rc<Cell<bool>>);
+/// An ECMAScript [Job Abstract Closure] that can be called multiple times.
+///
+/// This is basically a synchronous task that needs to be run to progress [`Promise`] objects,
+/// or unblock threads waiting on [`Atomics.waitAsync`].
+///
+/// [Job Abstract Closure]: https://tc39.es/ecma262/#sec-jobs
+/// [`Promise`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+/// [`Atomics.waitAsync`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/waitAsync
+pub struct NativeJobFn {
+    #[allow(clippy::type_complexity)]
+    f: Box<dyn Fn(&mut Context) -> JsResult<JsValue>>,
+    realm: Option<Realm>,
+}
 
-impl OnceFlag {
-    /// Creates a new `OnceFlag`.
+impl Debug for NativeJobFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NativeJobFn").finish_non_exhaustive()
+    }
+}
+
+impl NativeJobFn {
+    /// Creates a new `NativeJobFn` from a closure.
+    pub fn new<F>(f: F) -> Self
+    where
+        F: Fn(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self {
+            f: Box::new(f),
+            realm: None,
+        }
+    }
+
+    /// Creates a new `NativeJob` from a closure and an execution realm.
+    pub fn with_realm<F>(f: F, realm: Realm) -> Self
+    where
+        F: Fn(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self {
+            f: Box::new(f),
+            realm: Some(realm),
+        }
+    }
+
+    /// Gets a reference to the execution realm of the job.
+    #[must_use]
+    pub const fn realm(&self) -> Option<&Realm> {
+        self.realm.as_ref()
+    }
+
+    /// Calls the native job with the specified [`Context`].
+    ///
+    /// # Note
+    ///
+    /// If the native job has an execution realm defined, this sets the running execution
+    /// context to the realm's before calling the inner closure, and resets it after execution.
+    pub fn call(&self, context: &mut Context) -> JsResult<JsValue> {
+        // If realm is not null, each time job is invoked the implementation must perform
+        // implementation-defined steps such that execution is prepared to evaluate ECMAScript
+        // code at the time of job's invocation.
+        if let Some(realm) = self.realm.clone() {
+            let old_realm = context.enter_realm(realm);
+
+            // Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
+            // invoked. If realm is not null, each time job is invoked the implementation must
+            // perform implementation-defined steps such that scriptOrModule is the active script or
+            // module at the time of job's invocation.
+            let result = (self.f)(context);
+
+            context.enter_realm(old_realm);
+
+            result
+        } else {
+            (self.f)(context)
+        }
+    }
+}
+
+type Callback = Box<dyn FnOnce(&mut Context)>;
+
+/// Token to cancel a [`TimeoutJob`] and [`IntervalJob`].
+#[derive(Clone)]
+pub struct CancellationToken(Rc<Cell<Vec<Callback>>>);
+
+impl Debug for CancellationToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CancellationToken")
+            .field("cancelled", &self.revoked())
+            .finish_non_exhaustive()
+    }
+}
+
+impl CancellationToken {
+    /// Creates a new cancellation token.
     pub(crate) fn new() -> Self {
-        Self(Rc::new(Cell::new(false)))
+        Self(Rc::new(Cell::new(vec![Box::new(|_| {})])))
     }
 
-    /// Sets this `OnceFlag` to `true`.
-    pub(crate) fn set(&self) {
-        self.0.set(true);
+    /// Sets a callback to run when the cancellation token gets used.
+    ///
+    /// On debug builds, this will panic if the cancellation token was already
+    /// used.
+    pub fn push_callback(&self, f: impl FnOnce(&mut Context) + 'static) {
+        let mut vec = self.0.take();
+        debug_assert!(
+            !vec.is_empty(),
+            "setting a callback on an already used cancellation token"
+        );
+        vec.push(Box::new(f));
+        self.0.set(vec);
     }
 
-    /// Returns `true` if this `OnceFlag` has been set, or `false` otherwise.
-    pub(crate) fn is_set(&self) -> bool {
-        self.0.get()
+    /// Cancels the [`TimeoutJob`] or [`IntervalJob`] associated with this cancellation token.
+    pub fn cancel(&self, context: &mut Context) {
+        for job in self.0.take() {
+            job(context);
+        }
+    }
+
+    /// Revokes this cancellation token, making it unusable to cancel its associated job.
+    pub(crate) fn revoke(&self) {
+        self.0.take();
+    }
+
+    /// Returns `true` if this cancellation token has been revoked, either because
+    /// `cancel` was called or because its associated job has completed.
+    #[must_use]
+    pub fn revoked(&self) -> bool {
+        let callbacks = self.0.take();
+        let cancelled = callbacks.is_empty();
+        self.0.set(callbacks);
+        cancelled
     }
 }
 
@@ -158,14 +271,16 @@ pub struct TimeoutJob {
     /// The distance in milliseconds in the future when the job should run.
     /// This will be added to the current time when the job is enqueued.
     timeout: JsDuration,
-    /// The job to run after the time has passed.
-    job: NativeJob,
+    /// The job to run after the specified timeout.
+    job: Option<NativeJob>,
     /// Signals if the timeout job was cancelled.
-    cancelled: OnceFlag,
-    /// Signals that this job is recurring. A recurring job shouldn't be
-    /// awaited for when considering whether a run of the event loop is
-    /// done.
-    recurring: bool,
+    cancellation_token: CancellationToken,
+}
+
+impl Drop for TimeoutJob {
+    fn drop(&mut self) {
+        self.cancellation_token.revoke();
+    }
 }
 
 impl TimeoutJob {
@@ -174,20 +289,8 @@ impl TimeoutJob {
     pub fn new(job: NativeJob, timeout_in_millis: u64) -> Self {
         Self {
             timeout: JsDuration::from_millis(timeout_in_millis),
-            job,
-            cancelled: OnceFlag::new(),
-            recurring: false,
-        }
-    }
-
-    /// Create a new `TimeoutJob` that is marked as recurring.
-    #[must_use]
-    pub fn recurring(job: NativeJob, timeout_in_millis: u64) -> Self {
-        Self {
-            timeout: JsDuration::from_millis(timeout_in_millis),
-            job,
-            cancelled: OnceFlag::new(),
-            recurring: true,
+            job: Some(job),
+            cancellation_token: CancellationToken::new(),
         }
     }
 
@@ -215,8 +318,13 @@ impl TimeoutJob {
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
-        self.job.call(context)
+    pub fn call(mut self, context: &mut Context) -> JsResult<JsValue> {
+        let result = self
+            .job
+            .take()
+            .map_or_else(|| Ok(JsValue::undefined()), |job| job.call(context));
+        self.cancellation_token.revoke();
+        result
     }
 
     /// Returns the timeout value in milliseconds since epoch.
@@ -229,19 +337,99 @@ impl TimeoutJob {
     /// Returns `true` if the timeout was cancelled, and its execution can be skipped.
     #[inline]
     #[must_use]
-    pub fn is_cancelled(&self) -> bool {
-        self.cancelled.is_set()
+    pub fn cancelled(&self) -> bool {
+        self.cancellation_token.revoked()
     }
 
-    /// Returns the `OnceFlag` to cancel this timeout job.
-    pub(crate) fn cancelled_flag(&self) -> OnceFlag {
-        self.cancelled.clone()
-    }
-
-    /// Returns `true` if the job is recurring (meaning it happens regularly).
+    /// Returns the [`CancellationToken`] for this timeout job.
     #[must_use]
-    pub fn is_recurring(&self) -> bool {
-        self.recurring
+    pub fn cancellation_token(&self) -> &CancellationToken {
+        &self.cancellation_token
+    }
+}
+
+/// An ECMAScript [Job] that runs at a certain interval of time.
+///
+/// This represents jobs enqueued by APIs such as [`setInterval`].
+///
+/// [`setInterval`]: https://developer.mozilla.org/en-US/docs/Web/API/Window/setInterval
+#[derive(Debug)]
+pub struct IntervalJob {
+    /// The distance in milliseconds in the future when the job should run.
+    /// This will be added to the current time when the job is enqueued.
+    interval: JsDuration,
+    /// The job to run after every interval of time.
+    job: NativeJobFn,
+    /// Signals if the timeout job was cancelled.
+    cancellation_token: CancellationToken,
+}
+
+impl Drop for IntervalJob {
+    fn drop(&mut self) {
+        self.cancellation_token.revoke();
+    }
+}
+
+impl IntervalJob {
+    /// Create a new `IntervalJob` with an interval and a job.
+    #[must_use]
+    pub fn new(job: NativeJobFn, interval_in_millis: u64) -> Self {
+        Self {
+            interval: JsDuration::from_millis(interval_in_millis),
+            job,
+            cancellation_token: CancellationToken::new(),
+        }
+    }
+
+    /// Creates a new `IntervalJob` from a closure and an interval as [`std::time::Duration`].
+    #[must_use]
+    pub fn from_duration<F>(f: F, interval: impl Into<JsDuration>) -> Self
+    where
+        F: Fn(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self::new(NativeJobFn::new(f), interval.into().as_millis())
+    }
+
+    /// Creates a new `TimeoutJob` from a closure, an interval, and an execution realm.
+    #[must_use]
+    pub fn with_realm<F>(f: F, realm: Realm, interval: time::Duration) -> Self
+    where
+        F: Fn(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self::new(
+            NativeJobFn::with_realm(f, realm),
+            interval.as_millis() as u64,
+        )
+    }
+
+    /// Calls the interval job with the specified [`Context`].
+    ///
+    /// # Note
+    ///
+    /// If the interval job has an execution realm defined, this sets the running execution
+    /// context to the realm's before calling the inner closure, and resets it after execution.
+    pub fn call(&self, context: &mut Context) -> JsResult<JsValue> {
+        self.job.call(context)
+    }
+
+    /// Returns the interval value in milliseconds.
+    #[inline]
+    #[must_use]
+    pub fn interval(&self) -> JsDuration {
+        self.interval
+    }
+
+    /// Returns `true` if the interval job was cancelled, and its execution can be skipped.
+    #[inline]
+    #[must_use]
+    pub fn cancelled(&self) -> bool {
+        self.cancellation_token.revoked()
+    }
+
+    /// Returns the [`CancellationToken`] for this interval job.
+    #[must_use]
+    pub fn cancellation_token(&self) -> &CancellationToken {
+        &self.cancellation_token
     }
 }
 
@@ -531,10 +719,42 @@ pub enum Job {
     ///
     /// See [`TimeoutJob`] for more information.
     TimeoutJob(TimeoutJob),
+    /// A generic job that is to be executed after intervals of a number of milliseconds.
+    ///
+    /// See [`TimeoutJob`] for more information.
+    IntervalJob(IntervalJob),
     /// A generic job.
     ///
     /// See [`GenericJob`] for more information.
     GenericJob(GenericJob),
+    /// A job that will eventually cleanup a `FinalizationRegistry`.
+    ///
+    /// This job differs slightly from the [spec]; originally it's defined
+    /// as being enqueued exactly when a `FinalizationRegistry` needs to call
+    /// `FinalizationRegistry::cleanup`, but here it's defined as an async
+    /// job that suspends execution until it receives a signal from the engine
+    /// that the `FinalizationRegistry` needs to be cleaned up.
+    ///
+    /// # Execution
+    ///
+    /// As described on the [spec's section about execution][execution],
+    ///
+    /// > Because calling `HostEnqueueFinalizationRegistryCleanupJob` is optional,
+    /// > registered objects in a `FinalizationRegistry` do not necessarily hold
+    /// > that `FinalizationRegistry` live. Implementations may omit `FinalizationRegistry`
+    /// > callbacks for any reason, e.g., if the `FinalizationRegistry` itself becomes
+    /// > dead, or if the application is shutting down.
+    ///
+    /// For this reason, it is recommended to exclude `FinalizationRegistry` cleanup
+    /// jobs from any condition that exits from [`JobExecutor::run_jobs`].
+    ///
+    /// By the same token, it is recommended to execute `FinalizationRegistry` cleanup
+    /// jobs separately from all other enqueued [`NativeAsyncJob`]s, prioritizing the
+    /// execution of all other jobs if possible.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weakref-host-hooks
+    /// [execution]: https://tc39.es/ecma262/#sec-weakref-execution
+    FinalizationRegistryCleanupJob(NativeAsyncJob),
 }
 
 impl From<NativeAsyncJob> for Job {
@@ -552,6 +772,12 @@ impl From<PromiseJob> for Job {
 impl From<TimeoutJob> for Job {
     fn from(job: TimeoutJob) -> Self {
         Job::TimeoutJob(job)
+    }
+}
+
+impl From<IntervalJob> for Job {
+    fn from(job: IntervalJob) -> Self {
+        Job::IntervalJob(job)
     }
 }
 
@@ -583,10 +809,6 @@ pub trait JobExecutor: Any {
     /// By default forwards to [`JobExecutor::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
     #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
-    #[allow(
-        clippy::unused_async,
-        reason = "this must be overridden by proper async runtimes"
-    )]
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
     where
         Self: Sized,
@@ -623,6 +845,21 @@ impl JobExecutor for IdleJobExecutor {
     }
 }
 
+#[derive(Debug)]
+enum ClockJob {
+    Timeout(TimeoutJob),
+    Interval(IntervalJob),
+}
+
+impl ClockJob {
+    fn cancelled(&self) -> bool {
+        match self {
+            ClockJob::Timeout(t) => t.cancelled(),
+            ClockJob::Interval(i) => i.cancelled(),
+        }
+    }
+}
+
 /// A simple FIFO executor that bails on the first error.
 ///
 /// This is the default job executor for the [`Context`], but it is mostly pretty limited
@@ -633,7 +870,8 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<BTreeMap<JsInstant, Vec<TimeoutJob>>>,
+    finalization_registry_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    clock_jobs: RefCell<BTreeMap<JsInstant, Vec<ClockJob>>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
     stop: Arc<AtomicBool>,
 }
@@ -642,7 +880,7 @@ impl SimpleJobExecutor {
     fn clear(&self) {
         self.promise_jobs.borrow_mut().clear();
         self.async_jobs.borrow_mut().clear();
-        self.timeout_jobs.borrow_mut().clear();
+        self.clock_jobs.borrow_mut().clear();
         self.generic_jobs.borrow_mut().clear();
     }
 }
@@ -672,7 +910,7 @@ impl SimpleJobExecutor {
         self.promise_jobs.borrow().is_empty()
             && self.async_jobs.borrow().is_empty()
             && self.generic_jobs.borrow().is_empty()
-            && self.timeout_jobs.borrow().is_empty()
+            && self.clock_jobs.borrow().is_empty()
     }
 }
 
@@ -683,13 +921,24 @@ impl JobExecutor for SimpleJobExecutor {
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
             Job::TimeoutJob(t) => {
                 let now = context.clock().now();
-                self.timeout_jobs
+                self.clock_jobs
                     .borrow_mut()
                     .entry(now + t.timeout())
                     .or_default()
-                    .push(t);
+                    .push(ClockJob::Timeout(t));
+            }
+            Job::IntervalJob(i) => {
+                let now = context.clock().now();
+                self.clock_jobs
+                    .borrow_mut()
+                    .entry(now + i.interval())
+                    .or_default()
+                    .push(ClockJob::Interval(i));
             }
             Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
+            Job::FinalizationRegistryCleanupJob(fr) => {
+                self.finalization_registry_jobs.borrow_mut().push_back(fr);
+            }
         }
     }
 
@@ -702,6 +951,7 @@ impl JobExecutor for SimpleJobExecutor {
         Self: Sized,
     {
         let mut group = FutureGroup::new();
+        let mut fr_group = FutureGroup::new();
         loop {
             if self.stop.load(Ordering::Relaxed) {
                 self.stop.store(false, Ordering::Relaxed);
@@ -713,14 +963,18 @@ impl JobExecutor for SimpleJobExecutor {
                 group.insert(job.call(context));
             }
 
+            for job in mem::take(&mut *self.finalization_registry_jobs.borrow_mut()) {
+                fr_group.insert(job.call(context));
+            }
+
             // Dispatch all past-due timeout jobs before the termination check.
             {
                 let now = context.borrow().clock().now();
                 let jobs_to_run = {
-                    let mut timeout_jobs = self.timeout_jobs.borrow_mut();
+                    let mut timeout_jobs = self.clock_jobs.borrow_mut();
                     let mut jobs_to_keep = timeout_jobs.split_off(&now);
                     jobs_to_keep.retain(|_, jobs| {
-                        jobs.retain(|job| !job.is_cancelled());
+                        jobs.retain(|job| !job.cancelled());
                         !jobs.is_empty()
                     });
                     mem::replace(&mut *timeout_jobs, jobs_to_keep)
@@ -728,18 +982,42 @@ impl JobExecutor for SimpleJobExecutor {
 
                 for jobs in jobs_to_run.into_values() {
                     for job in jobs {
-                        if !job.is_cancelled()
-                            && let Err(err) = job.call(&mut context.borrow_mut())
-                        {
-                            self.clear();
-                            return Err(err);
+                        if !job.cancelled() {
+                            match job {
+                                ClockJob::Timeout(job) => {
+                                    if let Err(err) = job.call(&mut context.borrow_mut()) {
+                                        self.clear();
+                                        return Err(err);
+                                    }
+                                }
+                                ClockJob::Interval(job) => {
+                                    let context = &mut context.borrow_mut();
+                                    let now = context.clock().now();
+                                    if let Err(err) = job.call(context) {
+                                        self.clear();
+                                        return Err(err);
+                                    }
+                                    self.clock_jobs
+                                        .borrow_mut()
+                                        .entry(now + job.interval())
+                                        .or_default()
+                                        .push(ClockJob::Interval(job));
+                                }
+                            }
                         }
                     }
                 }
             }
 
             if self.is_empty() && group.is_empty() {
-                break;
+                match future::poll_once(fr_group.next()).await.flatten() {
+                    Some(Err(err)) => {
+                        self.clear();
+                        return Err(err);
+                    }
+                    _ if !self.is_empty() => {}
+                    _ => break,
+                }
             }
 
             if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {

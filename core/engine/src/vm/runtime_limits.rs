@@ -29,7 +29,7 @@ impl Default for RuntimeLimits {
 impl RuntimeLimits {
     /// Return the loop iteration limit.
     ///
-    /// If the limit is exceeded in a loop it will throw and error.
+    /// If the limit is exceeded in a loop it will throw an error.
     ///
     /// The limit value [`u64::MAX`] means that there is no limit.
     #[inline]
@@ -40,7 +40,7 @@ impl RuntimeLimits {
 
     /// Set the loop iteration limit.
     ///
-    /// If the limit is exceeded in a loop it will throw and error.
+    /// If the limit is exceeded in a loop it will throw an error.
     ///
     /// Setting the limit to [`u64::MAX`] means that there is no limit.
     #[inline]

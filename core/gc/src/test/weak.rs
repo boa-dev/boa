@@ -76,12 +76,12 @@ mod miri {
                 drop(cloned_gc);
                 force_collect();
                 assert_eq!(wrap.upgrade().as_deref().map(String::as_str), Some("foo"));
-                assert_eq!(eph.value(), Some(3));
+                assert_eq!(&*eph.value().unwrap(), &3);
 
                 drop(gc_value);
                 force_collect();
                 assert!(wrap.upgrade().is_none());
-                assert_eq!(eph.value(), Some(3));
+                assert_eq!(&*eph.value().unwrap(), &3);
 
                 drop(wrap);
                 force_collect();
@@ -99,7 +99,7 @@ mod miri {
             let eph = Ephemeron::new(&gc_value, 4);
             let _fourth = Gc::new("tail");
 
-            assert_eq!(eph.value(), Some(4));
+            assert_eq!(&*eph.value().unwrap(), &4);
         });
     }
 
@@ -161,12 +161,13 @@ mod miri {
             Harness::assert_exact_bytes_allocated(root_size);
 
             {
+                let eph_size = size_of::<EphemeronBox<InnerCell, TestCell>>();
                 // Generate a self-referential ephemeron
                 let eph = Ephemeron::new(&root.inner, root.clone());
                 *root.inner.inner.borrow_mut() = Some(eph.clone());
 
                 assert!(eph.value().is_some());
-                Harness::assert_exact_bytes_allocated(56);
+                Harness::assert_exact_bytes_allocated(root_size + eph_size);
             }
 
             *root.inner.inner.borrow_mut() = None;
@@ -190,8 +191,10 @@ mod miri {
             Harness::assert_exact_bytes_allocated(root_size);
 
             let watched = Gc::new(0);
+            let watched_size = size_of::<GcBox<u8>>();
 
             {
+                let eph_size = size_of::<EphemeronBox<u8, TestCell>>();
                 // Generate a self-referential loop of weak and non-weak pointers
                 let chain1 = TestCell {
                     inner: Gc::new(GcRefCell::new(None)),
@@ -212,7 +215,7 @@ mod miri {
 
                 assert!(eph_start.value().is_some());
                 assert!(eph_chain2.value().is_some());
-                Harness::assert_exact_bytes_allocated(168);
+                Harness::assert_exact_bytes_allocated(watched_size + 3 * root_size + 2 * eph_size);
             }
 
             *root.borrow_mut() = None;

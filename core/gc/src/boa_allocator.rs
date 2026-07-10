@@ -127,7 +127,7 @@ impl Allocator {
         })
     }
 
-    pub(crate) fn alloc_weak_map<K: Trace + ?Sized, V: Trace + Clone>() -> WeakMap<K, V> {
+    pub(crate) fn alloc_weak_map<K: Trace + ?Sized, V: Trace>() -> WeakMap<K, V> {
         let weak_map = WeakMap {
             inner: Gc::new(GcRefCell::new(RawWeakMap::new())),
         };

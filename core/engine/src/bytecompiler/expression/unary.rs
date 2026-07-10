@@ -14,7 +14,7 @@ impl ByteCompiler<'_> {
                     compiler.compile_optional_delete(opt, dst);
                 } else {
                     compiler.compile_expr(unary.target(), dst);
-                    compiler.bytecode.emit_push_true(dst.variable());
+                    compiler.bytecode.emit_store_true(dst.variable());
                 }
             }
             UnaryOp::Minus => {
@@ -51,7 +51,7 @@ impl ByteCompiler<'_> {
             }
             UnaryOp::Void => {
                 self.compile_expr(unary.target(), dst);
-                self.bytecode.emit_push_undefined(dst.variable());
+                self.bytecode.emit_store_undefined(dst.variable());
             }
         }
     }

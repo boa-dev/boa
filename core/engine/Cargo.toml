@@ -118,7 +118,7 @@ ryu-js.workspace = true
 fast-float2.workspace = true
 tap.workspace = true
 small_btree.workspace = true
-paste.workspace = true
+pastey.workspace = true
 thiserror.workspace = true
 dashmap.workspace = true
 num_enum.workspace = true
@@ -137,8 +137,11 @@ time.workspace = true
 hashbrown.workspace = true
 either = { workspace = true, optional = true }
 static_assertions.workspace = true
-futures-channel.workspace = true
 aligned-vec.workspace = true
+dynify = { workspace = true, features = ["macros"] }
+futures-concurrency.workspace = true
+oneshot = { workspace = true, features = ["async"] }
+async-channel.workspace = true
 
 # intl deps
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }
@@ -159,7 +162,7 @@ icu_collator = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_plurals = { workspace = true, default-features = false, features = [
     "serde",
-    "experimental",
+    "unstable",
 ], optional = true }
 icu_list = { workspace = true, default-features = false, features = [
     "serde",
@@ -173,7 +176,7 @@ icu_segmenter = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 icu_decimal = { workspace = true, default-features = false, features = [
-    "serde",
+    "serde", "unstable"
 ], optional = true }
 writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }
@@ -182,13 +185,11 @@ fixed_decimal = { workspace = true, features = [
     "ryu",
 ], optional = true }
 tinystr = { workspace = true, optional = true }
-dynify.workspace = true
-futures-concurrency.workspace = true
 
 # temporal deps
 temporal_rs = { workspace = true, optional = true }
 timezone_provider = { workspace = true, optional = true }
-iana-time-zone = { version = "0.1.65", optional = true }
+iana-time-zone = { workspace = true, optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { workspace = true, optional = true }
@@ -201,6 +202,7 @@ float-cmp.workspace = true
 indoc.workspace = true
 textwrap.workspace = true
 test-case.workspace = true
+husky-rs.workspace = true
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator.workspace = true

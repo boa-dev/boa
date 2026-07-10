@@ -46,6 +46,7 @@ impl crate::fetch::Fetcher for E2eFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        _signal: Option<boa_engine::JsObject>,
         context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
         match request.uri().path() {

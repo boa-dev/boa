@@ -1226,8 +1226,10 @@ impl JsPromise {
             builtins::{async_generator::AsyncGenerator, generator::GeneratorContext},
             js_string,
             object::FunctionObjectBuilder,
+            vm::CompletionRecord,
         };
         use std::cell::Cell;
+        use std::ops::ControlFlow;
 
         // Clone the stack since we split it.
         let stack = context.vm.stack.clone();
@@ -1244,11 +1246,12 @@ impl JsPromise {
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
+
                     let continuation = &captures.0;
                     let mut r#gen = captures.1.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
                     let frame = r#gen
@@ -1261,11 +1264,14 @@ impl JsPromise {
                     context.vm.frame_mut().fp = fp;
                     context.vm.frame_mut().rp = rp;
 
-                    if let crate::native_function::CoroutineState::Yielded(value) =
-                        continuation.call(Ok(args.get_or_undefined(0).clone()), context)?
-                    {
-                        JsPromise::resolve(value, context)?
-                            .await_native(continuation.clone(), context);
+                    match continuation.call(
+                        CompletionRecord::Normal(args.get_or_undefined(0).clone()),
+                        context,
+                    ) {
+                        ControlFlow::Continue(value) => JsPromise::resolve(value, context)?
+                            .await_native(continuation.clone(), context),
+                        ControlFlow::Break(Err(err)) => return Err(err),
+                        ControlFlow::Break(Ok(())) => {}
                     }
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
@@ -1306,11 +1312,12 @@ impl JsPromise {
                     // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
+
                     let continuation = &captures.0;
                     let mut r#gen = captures.1.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
                     let frame = r#gen
@@ -1323,14 +1330,16 @@ impl JsPromise {
                     context.vm.frame_mut().fp = fp;
                     context.vm.frame_mut().rp = rp;
 
-                    if let crate::native_function::CoroutineState::Yielded(value) = continuation
-                        .call(
-                            Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
-                            context,
-                        )?
-                    {
-                        JsPromise::resolve(value, context)?
-                            .await_native(continuation.clone(), context);
+                    match continuation.call(
+                        CompletionRecord::Throw(JsError::from_opaque(
+                            args.get_or_undefined(0).clone(),
+                        )),
+                        context,
+                    ) {
+                        ControlFlow::Continue(value) => JsPromise::resolve(value, context)?
+                            .await_native(continuation.clone(), context),
+                        ControlFlow::Break(Err(err)) => return Err(err),
+                        ControlFlow::Break(Ok(())) => {}
                     }
 
                     std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);

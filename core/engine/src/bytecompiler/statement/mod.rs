@@ -65,34 +65,37 @@ impl ByteCompiler<'_> {
                 self.compile_switch(switch, use_expr);
             }
             Statement::Return(ret) => {
-                let value = self.register_allocator.alloc();
                 if let Some(expr) = ret.target() {
-                    self.compile_expr(expr, &value);
-
                     if self.is_async_generator() {
+                        let value = self.register_allocator.alloc();
+                        self.compile_expr(expr, &value);
                         self.bytecode.emit_await(value.variable());
                         let resume_kind = self.register_allocator.alloc();
                         self.pop_into_register(&resume_kind);
                         self.pop_into_register(&value);
                         self.generator_next(&value, &resume_kind);
                         self.register_allocator.dealloc(resume_kind);
+                        self.push_from_register(&value);
+                        self.register_allocator.dealloc(value);
+                    } else {
+                        self.compile_expr_to_stack(expr);
                     }
                 } else {
-                    self.bytecode.emit_push_undefined(value.variable());
+                    self.push_from_register(&CallFrame::undefined_register());
                 }
 
-                self.push_from_register(&value);
-                self.register_allocator.dealloc(value);
                 self.r#return(true);
             }
             Statement::Try(t) => self.compile_try(t, use_expr),
             Statement::Expression(expr) => {
-                let value = self.register_allocator.alloc();
-                self.compile_expr(expr, &value);
                 if use_expr {
+                    let value = self.register_allocator.alloc();
+                    self.compile_expr(expr, &value);
                     self.bytecode.emit_set_accumulator(value.variable());
+                    self.register_allocator.dealloc(value);
+                } else {
+                    self.compile_expr_for_side_effects(expr);
                 }
-                self.register_allocator.dealloc(value);
             }
             Statement::With(with) => self.compile_with(with, use_expr),
             Statement::Empty | Statement::Debugger => {}

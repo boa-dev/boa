@@ -8,7 +8,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 
 use crate::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         date::utils::{
@@ -50,7 +50,35 @@ impl Date {
 
     /// Creates a new `Date` from the current UTC time of the host.
     pub(crate) fn utc_now(context: &mut Context) -> Self {
-        Self(context.clock().now().millis_since_epoch() as f64)
+        Self(context.clock().system_time_millis() as f64)
+    }
+
+    /// Formats this date as an ISO 8601 string for display purposes.
+    ///
+    /// Returns `None` if the date value is not finite (i.e. `Invalid Date`).
+    pub(crate) fn to_iso_display(self) -> Option<String> {
+        let tv = self.0;
+        if !tv.is_finite() {
+            return None;
+        }
+        let year = year_from_time(tv);
+        let year_str = if year.is_positive() && year >= 10000 {
+            format!("+{year:06}")
+        } else if year >= 0 {
+            format!("{year:04}")
+        } else {
+            format!("-{:06}", year.unsigned_abs())
+        };
+        Some(format!(
+            "{}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+            year_str,
+            month_from_time(tv) + 1,
+            date_from_time(tv),
+            hour_from_time(tv),
+            min_from_time(tv),
+            sec_from_time(tv),
+            ms_from_time(tv),
+        ))
     }
 }
 
@@ -210,7 +238,7 @@ impl BuiltInConstructor for Date {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Let now be the time value (UTC) identifying the current time.
-            let now = context.clock().now().millis_since_epoch();
+            let now = context.clock().system_time_millis();
 
             // b. Return ToDateString(now).
             return Ok(JsValue::from(to_date_string_t(
@@ -328,7 +356,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::new(context.clock().now().millis_since_epoch()))
+        Ok(JsValue::new(context.clock().system_time_millis()))
     }
 
     /// `Date.parse()`
@@ -1616,16 +1644,51 @@ impl Date {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tolocaledatestring
+    /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaledatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString
+    #[allow(
+        unused_variables,
+        reason = "`args` and `context` are used when the `intl` feature is enabled"
+    )]
     pub(crate) fn to_locale_date_string(
-        _this: &JsValue,
-        _args: &[JsValue],
-        _context: &mut Context,
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        Err(JsError::from_opaque(JsValue::new(js_string!(
-            "Function Unimplemented"
-        ))))
+        #[cfg(feature = "intl")]
+        {
+            use crate::builtins::intl::date_time_format::{
+                FormatDefaults, FormatType, format_date_time_locale,
+            };
+            // 1. Let dateObject be the this value.
+            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+            // 3. Let x be dateObject.[[DateValue]].
+            let t = this
+                .as_object()
+                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+                .0;
+            // 4. If x is NaN, return "Invalid Date".
+            if t.is_nan() {
+                return Ok(JsValue::new(js_string!("Invalid Date")));
+            }
+            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
+            // 6. Return ! FormatDateTime(dateFormat, x).
+            let locales = args.get_or_undefined(0);
+            let options = args.get_or_undefined(1);
+            format_date_time_locale(
+                locales,
+                options,
+                FormatType::Date,
+                FormatDefaults::Date,
+                t,
+                context,
+            )
+        }
+        #[cfg(not(feature = "intl"))]
+        {
+            Self::to_string(this, &[], context)
+        }
     }
 
     /// [`Date.prototype.toLocaleString()`][spec].
@@ -1635,16 +1698,51 @@ impl Date {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tolocalestring
+    /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
+    #[allow(
+        unused_variables,
+        reason = "`args` and `context` are used when the `intl` feature is enabled"
+    )]
     pub(crate) fn to_locale_string(
-        _this: &JsValue,
-        _: &[JsValue],
-        _context: &mut Context,
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        Err(JsError::from_opaque(JsValue::new(js_string!(
-            "Function Unimplemented]"
-        ))))
+        #[cfg(feature = "intl")]
+        {
+            use crate::builtins::intl::date_time_format::{
+                FormatDefaults, FormatType, format_date_time_locale,
+            };
+            // 1. Let dateObject be the this value.
+            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+            // 3. Let x be dateObject.[[DateValue]].
+            let t = this
+                .as_object()
+                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+                .0;
+            // 4. If x is NaN, return "Invalid Date".
+            if t.is_nan() {
+                return Ok(JsValue::new(js_string!("Invalid Date")));
+            }
+            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all).
+            // 6. Return ! FormatDateTime(dateFormat, x).
+            let locales = args.get_or_undefined(0);
+            let options = args.get_or_undefined(1);
+            format_date_time_locale(
+                locales,
+                options,
+                FormatType::Any,
+                FormatDefaults::All,
+                t,
+                context,
+            )
+        }
+        #[cfg(not(feature = "intl"))]
+        {
+            Self::to_string(this, &[], context)
+        }
     }
 
     /// [`Date.prototype.toLocaleTimeString()`][spec].
@@ -1655,16 +1753,51 @@ impl Date {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tolocaletimestring
+    /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaletimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleTimeString
+    #[allow(
+        unused_variables,
+        reason = "`args` and `context` are used when the `intl` feature is enabled"
+    )]
     pub(crate) fn to_locale_time_string(
-        _this: &JsValue,
-        _args: &[JsValue],
-        _context: &mut Context,
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        Err(JsError::from_opaque(JsValue::new(js_string!(
-            "Function Unimplemented]"
-        ))))
+        #[cfg(feature = "intl")]
+        {
+            use crate::builtins::intl::date_time_format::{
+                FormatDefaults, FormatType, format_date_time_locale,
+            };
+            // 1. Let dateObject be the this value.
+            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+            // 3. Let x be dateObject.[[DateValue]].
+            let t = this
+                .as_object()
+                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+                .0;
+            // 4. If x is NaN, return "Invalid Date".
+            if t.is_nan() {
+                return Ok(JsValue::new(js_string!("Invalid Date")));
+            }
+            // 5. Let timeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, time, time).
+            // 6. Return ! FormatDateTime(timeFormat, x).
+            let locales = args.get_or_undefined(0);
+            let options = args.get_or_undefined(1);
+            format_date_time_locale(
+                locales,
+                options,
+                FormatType::Time,
+                FormatDefaults::Time,
+                t,
+                context,
+            )
+        }
+        #[cfg(not(feature = "intl"))]
+        {
+            Self::to_string(this, &[], context)
+        }
     }
 
     /// [`Date.prototype.toString()`][spec].

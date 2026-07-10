@@ -94,6 +94,7 @@ pub mod job;
 pub mod module;
 pub mod native_function;
 pub mod object;
+/// ECMAScript Abstract Syntax Tree (AST) optimizer.
 pub mod optimizer;
 pub mod property;
 pub mod realm;
@@ -498,7 +499,7 @@ fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context:
                     ),
                 };
 
-                assert_eq!(&native.kind, &kind, "{}", fmt_test(&source, i));
+                assert_eq!(native.kind(), &kind, "{}", fmt_test(&source, i));
                 assert_eq!(native.message(), message, "{}", fmt_test(&source, i));
                 i += 1;
             }

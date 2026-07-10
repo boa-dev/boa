@@ -2,7 +2,7 @@ use crate::{
     Context, JsNativeError, JsResult,
     object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`
@@ -15,7 +15,7 @@ pub(crate) struct DefineOwnPropertyByName;
 impl DefineOwnPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (object, value, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (object, value, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();

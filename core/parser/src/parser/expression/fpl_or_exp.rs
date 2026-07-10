@@ -10,15 +10,6 @@ pub(crate) enum FormalParameterListOrExpression {
 }
 
 impl FormalParameterListOrExpression {
-    pub(crate) fn expect_expression(self) -> ast::Expression {
-        match self {
-            FormalParameterListOrExpression::Expression(expr) => expr,
-            FormalParameterListOrExpression::FormalParameterList { .. } => {
-                panic!("Unexpected arrow-function arguments");
-            }
-        }
-    }
-
     pub(crate) fn try_into_expression(self) -> ParseResult<ast::Expression> {
         match self {
             FormalParameterListOrExpression::Expression(expr) => Ok(expr),

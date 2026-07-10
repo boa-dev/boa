@@ -22,15 +22,7 @@ pub(crate) mod utf8 {
 }
 
 pub(crate) mod utf16le {
-    use boa_engine::string::JsStrVariant;
     use boa_engine::{JsString, js_string};
-
-    pub(crate) fn encode(input: &JsString) -> Vec<u8> {
-        match input.as_str().variant() {
-            JsStrVariant::Latin1(l) => l.iter().flat_map(|c| [*c, 0]).collect(),
-            JsStrVariant::Utf16(s) => bytemuck::cast_slice(s).to_vec(),
-        }
-    }
 
     pub(crate) fn decode(mut input: &[u8], strip_bom: bool) -> JsString {
         if strip_bom {
@@ -56,15 +48,7 @@ pub(crate) mod utf16le {
 }
 
 pub(crate) mod utf16be {
-    use boa_engine::string::JsStrVariant;
     use boa_engine::{JsString, js_string};
-
-    pub(crate) fn encode(input: &JsString) -> Vec<u8> {
-        match input.as_str().variant() {
-            JsStrVariant::Latin1(l) => l.iter().flat_map(|c| [0, *c]).collect(),
-            JsStrVariant::Utf16(s) => s.iter().flat_map(|b| b.to_be_bytes()).collect::<Vec<_>>(),
-        }
-    }
 
     pub(crate) fn decode(mut input: Vec<u8>, strip_bom: bool) -> JsString {
         if strip_bom && input.starts_with(&[0xFE, 0xFF]) {

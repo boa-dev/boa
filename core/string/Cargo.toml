@@ -17,7 +17,7 @@ rustc-hash = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
 
 static_assertions.workspace = true
-paste.workspace = true
+pastey.workspace = true
 fast-float2.workspace = true
 
 [lints]

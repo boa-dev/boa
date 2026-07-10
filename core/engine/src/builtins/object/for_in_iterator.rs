@@ -59,11 +59,7 @@ impl ForInIterator {
     ) -> (JsObject, JsValue) {
         let iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            context
-                .intrinsics()
-                .objects()
-                .iterator_prototypes()
-                .iterator(),
+            context.intrinsics().constructors().iterator().prototype(),
             Self::new(object),
         )
         .upcast();

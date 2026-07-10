@@ -1,8 +1,8 @@
 use crate::{
-    Context, JsResult,
+    Context, JsExpect, JsResult,
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 use boa_gc::Gc;
 use thin_vec::ThinVec;
@@ -16,13 +16,13 @@ pub(crate) struct PushScope;
 
 impl PushScope {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(index: IndexOperand, context: &mut Context) {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
-        context
-            .vm
-            .frame_mut()
+        let frame = context.vm.frame_mut();
+        let global = frame.realm.environment();
+        frame
             .environments
-            .push_lexical(scope.num_bindings_non_local());
+            .push_lexical(scope.num_bindings_non_local(), global);
     }
 }
 
@@ -67,9 +67,9 @@ impl PushPrivateEnvironment {
     pub(crate) fn operation(
         (class, name_indices): (RegisterOperand, ThinVec<u32>),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let class = context.vm.get_register(class.into());
-        let class = class.as_object().expect("should be a object");
+        let class = class.as_object().js_expect("should be a object")?;
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
             let name = context
@@ -85,13 +85,14 @@ impl PushPrivateEnvironment {
 
         class
             .downcast_mut::<OrdinaryFunction>()
-            .expect("class object must be function")
+            .js_expect("class object must be function")?
             .push_private_environment(environment.clone());
         context
             .vm
             .frame_mut()
             .environments
             .push_private(environment);
+        Ok(())
     }
 }
 

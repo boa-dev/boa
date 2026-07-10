@@ -106,6 +106,8 @@
 //! with regular NAN should happen.
 #![allow(clippy::inline_always)]
 
+#[cfg(feature = "annex-b")]
+use crate::builtins::is_html_dda::IsHTMLDDA;
 use crate::{
     JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, object::ErasedVTableObject,
     symbol::RawJsSymbol, value::Type,
@@ -756,8 +758,19 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) fn to_boolean(&self) -> bool {
         match self.value() & bits::MASK_KIND {
-            // Objects and Symbols are always truthy.
-            bits::MASK_OBJECT | bits::MASK_SYMBOL => true,
+            // Symbols are always truthy.
+            bits::MASK_SYMBOL => true,
+            // Objects are truthy, unless they have [[IsHTMLDDA]] (Annex B §B.3.6.1).
+            bits::MASK_OBJECT => {
+                #[cfg(feature = "annex-b")]
+                {
+                    // SAFETY: tag confirmed this is an Object.
+                    if unsafe { self.as_object_unchecked().is::<IsHTMLDDA>() } {
+                        return false;
+                    }
+                }
+                true
+            }
             // Null and Undefined are always falsy.
             bits::MASK_OTHER => false,
             bits::MASK_INT32 => bits::untag_i32(self.value()) != 0,

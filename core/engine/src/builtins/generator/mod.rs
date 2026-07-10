@@ -10,10 +10,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
 
 use crate::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
+    Context, JsArgs, JsData, JsError, JsExpect, JsResult, JsString,
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    error::PanicError,
     js_string,
     object::{CONSTRUCTOR, JsObject},
     property::Attribute,
@@ -101,7 +102,9 @@ impl GeneratorContext {
         context: &mut Context,
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        let frame = self.call_frame.take().expect("should have a call frame");
+        let Some(frame) = self.call_frame.take() else {
+            return CompletionRecord::Throw(PanicError::new("should have a call frame").into());
+        };
         let fp = frame.fp;
         let rp = frame.rp;
         context.vm.push_frame(frame);
@@ -125,16 +128,21 @@ impl GeneratorContext {
     }
 
     /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
-    pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        let frame = self.call_frame.as_ref()?;
+    pub(crate) fn async_generator_object(&self) -> JsResult<Option<JsObject>> {
+        let Some(frame) = self.call_frame.as_ref() else {
+            return Ok(None);
+        };
+
         if !frame.code_block().is_async_generator() {
-            return None;
+            return Ok(None);
         }
 
-        self.stack
+        let val = self
+            .stack
             .get_register(frame, CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
-            .expect("registers must have an async generator object")
-            .as_object()
+            .js_expect("registers must have an async generator object")?;
+
+        Ok(val.as_object())
     }
 }
 
@@ -148,13 +156,7 @@ pub struct Generator {
 impl IntrinsicObject for Generator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            )
+            .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 1)
             .static_method(Self::r#return, js_string!("return"), 1)
             .static_method(Self::throw, js_string!("throw"), 1)
@@ -306,20 +308,20 @@ impl Generator {
 
         let mut r#gen = generator_obj
             .downcast_mut::<Self>()
-            .expect("already checked this object type");
+            .js_expect("already checked this object type")?;
 
         // 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 11. Return Completion(result).
         match record {
-            CompletionRecord::Return(value) => {
+            CompletionRecord::Normal(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {
                     context: generator_context,
                 };
                 Ok(value)
             }
-            CompletionRecord::Normal(value) => {
+            CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }
@@ -404,13 +406,13 @@ impl Generator {
         })?;
 
         match record {
-            CompletionRecord::Return(value) => {
+            CompletionRecord::Normal(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {
                     context: generator_context,
                 };
                 Ok(value)
             }
-            CompletionRecord::Normal(value) => {
+            CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }

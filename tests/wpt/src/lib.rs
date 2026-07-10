@@ -118,31 +118,19 @@ impl TestSuiteSource {
 
     fn scripts(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let mut scripts: Vec<String> = Vec::new();
-        let dir = self
-            .path
-            .parent()
-            .expect("Could not get the parent directory");
 
         'outer: for script in self.meta()?.get("script").unwrap_or(&Vec::new()) {
             let script = script
                 .split_once('?')
                 .map_or(script.to_string(), |(s, _)| s.to_string());
 
-            // Resolve the source path relative to the script path, but under the wpt_path.
-            let script_path = Path::new(&script);
-            let path = if script_path.is_relative() {
-                dir.join(script_path)
-            } else {
-                script_path.to_path_buf()
-            };
-
             for (from, to) in REWRITE_RULES {
-                if path.to_string_lossy().as_ref() == *from {
+                if script == *from {
                     scripts.push((*to).to_string());
                     continue 'outer;
                 }
             }
-            scripts.push(path.to_string_lossy().to_string());
+            scripts.push(script);
         }
         Ok(scripts)
     }
@@ -259,8 +247,13 @@ fn result_callback__(
 }
 
 #[track_caller]
-fn complete_callback__(ContextData(test_done): ContextData<TestCompletion>) {
+fn complete_callback__(ContextData(test_done): ContextData<TestCompletion>, context: &mut Context) {
     test_done.done();
+    // Cancel only timers/intervals, leaving unrelated PromiseJob / NativeAsyncJob
+    // work intact. `run_jobs_async` will then exit naturally once the timer
+    // queue drains. If anything else keeps it alive, that's a real bug worth
+    // surfacing rather than masking by wholesale cancelling all queued jobs.
+    boa_runtime::interval::clear_all(context);
 }
 
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -285,6 +278,10 @@ impl TestCompletion {
 // in clippy.
 #[allow(unused)]
 fn execute_test_file(path: &Path) {
+    // Workspace `reqwest` uses `rustls-no-provider`; install ring as the
+    // process-wide CryptoProvider so `BlockingReqwestFetcher` construction
+    // in `create_context` doesn't panic with `No provider set`.
+    rustls::crypto::ring::default_provider().install_default().ok();
     let dir = path.parent().unwrap();
     let wpt_path = PathBuf::from(
         std::env::var("WPT_ROOT").expect("Could not find the WPT_ROOT environment variable"),
@@ -333,13 +330,10 @@ fn execute_test_file(path: &Path) {
     let source = TestSuiteSource::new(path);
     for script in source.scripts().expect("Could not get scripts") {
         // Resolve the source path relative to the script path, but under the wpt_path.
-        let script_path = Path::new(&script);
-        let path = if script_path.is_relative() {
-            dir.join(script_path)
-        } else if script_path.starts_with(&wpt_path) {
-            script_path.to_path_buf()
+        let path = if script.starts_with('/') {
+            wpt_path.join(script.strip_prefix('/').unwrap())
         } else {
-            wpt_path.join(script_path.strip_prefix("/").unwrap())
+            dir.join(&script)
         };
 
         let path = path.canonicalize().expect("Could not canonicalize path");
@@ -398,6 +392,7 @@ fn console(
 fn encoding(
     #[base_dir = "${WPT_ROOT}"]
     #[files("encoding/api-*.any.js")]
+    #[files("encoding/textencoder-constructor-non-utf.any.js")]
     // TODO: re-enable those when better encoding and options are supported.
     // #[files("encoding/textdecoder-*.any.js")]
     // #[files("encoding/textencoder-*.any.js")]
@@ -435,6 +430,20 @@ fn fetch(
     #[base_dir = "${WPT_ROOT}"]
     #[files("fetch/api/**/*.any.js")]
     #[exclude("idlharness")]
+    path: PathBuf,
+) {
+    execute_test_file(&path);
+}
+
+/// Test the timers with the WPT test suite.
+#[cfg(not(clippy))]
+#[rstest::rstest]
+fn timers(
+    #[base_dir = "${WPT_ROOT}"]
+    #[files("html/webappapis/timers/*.any.js")]
+    #[exclude("idlharness")]
+    // String-eval form of setTimeout is not implemented in boa_runtime.
+    #[exclude("evil-spec-example")]
     path: PathBuf,
 ) {
     execute_test_file(&path);

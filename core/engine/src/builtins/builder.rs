@@ -189,7 +189,7 @@ impl BuiltInConstructorWithPrototype<'_> {
     const OWN_CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
 
     /// The number of storage slots properties that are always present in a
-    /// standard constructor's prototype object.
+    /// standard constructor's prototype object when `constructor` is a **data** property.
     ///
     /// See [`BuiltInConstructorWithPrototype::build`].
     const OWN_PROTOTYPE_STORAGE_SLOTS: usize = 1;
@@ -390,29 +390,27 @@ impl BuiltInConstructorWithPrototype<'_> {
         let attributes = self.attributes;
         let object = self.constructor.clone();
         self = self.property(CONSTRUCTOR, object, attributes);
+        #[cfg(debug_assertions)]
+        assert!(
+            self.prototype_storage.len()
+                <= self.prototype_storage_slots_expected + Self::OWN_PROTOTYPE_STORAGE_SLOTS,
+            "expected to allocate at most {} prototype storage slots, got {}. \
+                constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
+            self.prototype_storage_slots_expected,
+            self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS,
+            self.name.display_escaped(),
+        );
 
         #[cfg(debug_assertions)]
-        {
-            assert!(
-                self.prototype_storage.len()
-                    <= self.prototype_storage_slots_expected + Self::OWN_PROTOTYPE_STORAGE_SLOTS,
-                "expected to allocate at most {} prototype storage slots, got {}. \
-                constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
-                self.prototype_storage_slots_expected,
-                self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS,
-                self.name.display_escaped(),
-            );
-            assert!(
-                self.constructor_storage.len()
-                    <= self.constructor_storage_slots_expected
-                        + Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
-                "expected to allocate at most {} constructor storage slots, got {}. \
-                constant {}::CONSTRUCTOR_STORAGE_SLOTS may need to be adjusted",
-                self.constructor_storage_slots_expected,
-                self.constructor_storage.len() - Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
-                self.name.display_escaped(),
-            );
-        }
+        assert!(
+            self.constructor_storage.len()
+                <= self.constructor_storage_slots_expected + Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            "expected to allocate at most {} constructor storage slots, got {}. \
+            constant {}::CONSTRUCTOR_STORAGE_SLOTS may need to be adjusted",
+            self.constructor_storage_slots_expected,
+            self.constructor_storage.len() - Self::OWN_CONSTRUCTOR_STORAGE_SLOTS,
+            self.name.display_escaped(),
+        );
 
         {
             let mut prototype = self.prototype.borrow_mut();
@@ -664,6 +662,36 @@ impl<T> BuiltInBuilder<'_, T> {
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
         self.object.insert(key, property);
+        self
+    }
+
+    /// Adds a new accessor property to the builtin object.
+    pub(crate) fn static_accessor<K>(
+        self,
+        key: K,
+        get: Option<JsFunction>,
+        set: Option<JsFunction>,
+        attribute: Attribute,
+    ) -> Self
+    where
+        K: Into<PropertyKey>,
+    {
+        let mut property = PropertyDescriptor::builder()
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
+
+        if let Some(get) = get {
+            property = property.get(get);
+        }
+
+        if let Some(set) = set {
+            property = property.set(set);
+        }
+
+        let key = key.into();
+
+        self.object.insert(key, property);
+
         self
     }
 

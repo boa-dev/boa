@@ -160,3 +160,152 @@ fn sort_negative_zero() {
         TestAction::assert("cmp(infinities[1], [-Infinity, 1, 2, 3, 4, Infinity])"),
     ]);
 }
+
+/// Tests `SharedArrayBuffer.prototype.slice` which triggers `copy_shared_to_shared`
+/// (the `batched_atomic_copy_forward` path).
+#[test]
+fn shared_array_buffer_slice() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var sab = new SharedArrayBuffer(16);
+            var view = new Uint8Array(sab);
+            for (var i = 0; i < 16; i++) view[i] = i + 1;
+            var sliced = sab.slice(0);
+            var result = new Uint8Array(sliced);
+        "#,
+        ),
+        // Verify all 16 bytes copied correctly (exercises u64 batch + head/tail)
+        TestAction::assert("result[0] === 1"),
+        TestAction::assert("result[7] === 8"),
+        TestAction::assert("result[15] === 16"),
+        TestAction::assert("result.length === 16"),
+    ]);
+}
+
+/// Tests `SharedArrayBuffer.prototype.slice` with a partial range and odd sizes
+/// to exercise alignment edge cases in the batched copy.
+#[test]
+fn shared_array_buffer_slice_partial() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var sab = new SharedArrayBuffer(20);
+            var view = new Uint8Array(sab);
+            for (var i = 0; i < 20; i++) view[i] = i * 3;
+
+            // Slice with odd offset and size to hit unaligned head/tail
+            var sliced = sab.slice(3, 14);
+            var result = new Uint8Array(sliced);
+        "#,
+        ),
+        TestAction::assert("result.length === 11"),
+        TestAction::assert("result[0] === 9"),
+        TestAction::assert("result[10] === 39"),
+    ]);
+}
+
+/// Tests TypedArray.set from a SharedArrayBuffer-backed array to a regular
+/// ArrayBuffer-backed array, triggering `batched_copy_atomic_to_bytes`.
+#[test]
+fn shared_to_regular_typed_array_set() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var sab = new SharedArrayBuffer(16);
+            var src = new Uint8Array(sab);
+            for (var i = 0; i < 16; i++) src[i] = 100 + i;
+
+            var ab = new ArrayBuffer(16);
+            var dest = new Uint8Array(ab);
+            dest.set(src);
+        "#,
+        ),
+        TestAction::assert("dest[0] === 100"),
+        TestAction::assert("dest[7] === 107"),
+        TestAction::assert("dest[15] === 115"),
+    ]);
+}
+
+/// Tests TypedArray.set from a regular ArrayBuffer-backed array to a
+/// SharedArrayBuffer-backed array, triggering `batched_copy_bytes_to_atomic`.
+#[test]
+fn regular_to_shared_typed_array_set() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var ab = new ArrayBuffer(16);
+            var src = new Uint8Array(ab);
+            for (var i = 0; i < 16; i++) src[i] = 200 + i;
+
+            var sab = new SharedArrayBuffer(16);
+            var dest = new Uint8Array(sab);
+            dest.set(src);
+        "#,
+        ),
+        TestAction::assert("dest[0] === 200"),
+        TestAction::assert("dest[7] === 207"),
+        TestAction::assert("dest[15] === 215"),
+    ]);
+}
+
+/// Tests forward `copyWithin` on a SharedArrayBuffer-backed typed array,
+/// triggering `copy_shared_to_shared` via `memmove`.
+#[test]
+fn shared_typed_array_copy_within() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var sab = new SharedArrayBuffer(16);
+            var arr = new Uint8Array(sab);
+            for (var i = 0; i < 16; i++) arr[i] = i + 1;
+
+            // Forward copy: copies bytes 4..12 to offset 0
+            arr.copyWithin(0, 4, 12);
+        "#,
+        ),
+        TestAction::assert("arr[0] === 5"),
+        TestAction::assert("arr[7] === 12"),
+        TestAction::assert("arr[8] === 9"),
+    ]);
+}
+
+/// Tests backward `copyWithin` on a SharedArrayBuffer-backed typed array,
+/// triggering `copy_shared_to_shared_backwards` when source and dest overlap.
+#[test]
+fn shared_typed_array_copy_within_backward() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var sab = new SharedArrayBuffer(16);
+            var arr = new Uint8Array(sab);
+            for (var i = 0; i < 16; i++) arr[i] = i + 1;
+
+            // Backward copy: copies bytes 0..8 to offset 4 (overlapping)
+            arr.copyWithin(4, 0, 8);
+        "#,
+        ),
+        TestAction::assert("arr[0] === 1"),
+        TestAction::assert("arr[3] === 4"),
+        TestAction::assert("arr[4] === 1"),
+        TestAction::assert("arr[11] === 8"),
+        TestAction::assert("arr[12] === 13"),
+    ]);
+}
+
+/// Tests zero-length slice to exercise the `count == 0` early return.
+#[test]
+fn shared_array_buffer_slice_empty() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var sab = new SharedArrayBuffer(16);
+            var view = new Uint8Array(sab);
+            for (var i = 0; i < 16; i++) view[i] = i + 1;
+            var sliced = sab.slice(5, 5);
+            var result = new Uint8Array(sliced);
+        "#,
+        ),
+        TestAction::assert("result.length === 0"),
+    ]);
+}

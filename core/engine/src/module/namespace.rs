@@ -1,7 +1,7 @@
-use std::{collections::HashSet, hash::BuildHasherDefault};
+use std::hash::BuildHasherDefault;
 
 use indexmap::IndexSet;
-use rustc_hash::FxHasher;
+use rustc_hash::{FxHashMap, FxHasher};
 
 use boa_gc::{Finalize, Trace};
 
@@ -13,10 +13,10 @@ use crate::object::internal_methods::{
 };
 use crate::object::{JsData, JsPrototype};
 use crate::property::{PropertyDescriptor, PropertyKey};
-use crate::{Context, JsResult, JsString, JsValue, js_string, object::JsObject};
+use crate::{Context, JsExpect, JsResult, JsString, JsValue, js_string, object::JsObject};
 use crate::{JsNativeError, Module};
 
-use super::BindingName;
+use super::{BindingName, ResolvedBinding};
 
 /// Module namespace exotic object.
 ///
@@ -26,6 +26,18 @@ pub struct ModuleNamespace {
     module: Module,
     #[unsafe_ignore_trace]
     exports: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
+    /// Cached binding resolutions for each export name.
+    /// Populated once during namespace creation; bindings are immutable after linking.
+    ///
+    /// SAFETY: Every `Module` inside a `ResolvedBinding` is a transitive dependency
+    /// of the parent `module` field (which IS traced). Those modules are reachable
+    /// through `SourceTextModule::loaded_modules` / `SyntheticModule`, so tracing
+    /// them again here would be redundant. Skipping the trace avoids walking the
+    /// entire hashmap on every GC cycle. This is a performance optimization:
+    /// our GC already ignores pointers that were already traced, but this avoids
+    /// a lookup to check if the pointer is alive. The logic is correct either way.
+    #[unsafe_ignore_trace]
+    resolved_bindings: FxHashMap<JsString, ResolvedBinding>,
 }
 
 impl JsData for ModuleNamespace {
@@ -62,6 +74,20 @@ impl ModuleNamespace {
         let mut exports = names.into_iter().collect::<IndexSet<_, _>>();
         exports.sort();
 
+        // Pre-resolve all export bindings and cache them.
+        // After linking, ResolveExport results are stable (per spec),
+        // so we can safely cache them to avoid repeated graph traversals.
+        let mut resolved_bindings = FxHashMap::default();
+        for name in &exports {
+            if let Ok(binding) = module.resolve_export(
+                name,
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            ) {
+                resolved_bindings.insert(name.clone(), binding);
+            }
+        }
+
         // 2. Let internalSlotsList be the internal slots listed in Table 32.
         // 3. Let M be MakeBasicObject(internalSlotsList).
         // 4. Set M's essential internal methods to the definitions specified in 10.4.6.
@@ -73,11 +99,14 @@ impl ModuleNamespace {
         // Ignored because this is done by `Module::namespace`
 
         // 10. Return M.
-        context
-            .intrinsics()
-            .templates()
-            .namespace()
-            .create(Self { module, exports }, vec![js_string!("Module").into()])
+        context.intrinsics().templates().namespace().create(
+            Self {
+                module,
+                exports,
+                resolved_bindings,
+            },
+            vec![js_string!("Module").into()],
+        )
     }
 
     /// Gets the export names of the Module Namespace object.
@@ -85,9 +114,14 @@ impl ModuleNamespace {
         &self.exports
     }
 
-    /// Gest the module associated with this Module Namespace object.
+    /// Gets the module associated with this namespace.
     pub(crate) const fn module(&self) -> &Module {
         &self.module
+    }
+
+    /// Gets a cached resolved binding for the given export name.
+    pub(crate) fn get_resolved_binding(&self, name: &JsString) -> Option<&ResolvedBinding> {
+        self.resolved_bindings.get(name)
     }
 }
 
@@ -115,7 +149,7 @@ fn module_namespace_exotic_set_prototype_of(
     // 1. Return ! SetImmutablePrototype(O, V).
     Ok(
         immutable_prototype_exotic_set_prototype_of(obj, val, context)
-            .expect("this must not fail per the spec"),
+            .js_expect("this must not fail per the spec")?,
     )
 }
 
@@ -154,7 +188,7 @@ fn module_namespace_exotic_get_own_property(
     {
         let obj = obj
             .downcast_ref::<ModuleNamespace>()
-            .expect("internal method can only be called on module namespace objects");
+            .js_expect("internal method can only be called on module namespace objects")?;
         // 2. Let exports be O.[[Exports]].
         let exports = obj.exports();
 
@@ -232,7 +266,7 @@ fn module_namespace_exotic_has_property(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -268,7 +302,7 @@ fn module_namespace_exotic_try_get(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -279,22 +313,30 @@ fn module_namespace_exotic_try_get(
     };
 
     // 4. Let m be O.[[Module]].
-    let m = obj.module();
+    let module = obj.module();
 
     // 5. Let binding be m.ResolveExport(P).
-    let binding = m
-        .resolve_export(
-            export_name.clone(),
-            &mut HashSet::default(),
-            context.interner(),
-        )
-        .expect("6. Assert: binding is a ResolvedBinding Record.");
+    // 6. Assert: binding is a ResolvedBinding Record.
+    // Use the pre-resolved cache when available; fall back to a fresh
+    // ResolveExport call on cache miss for robustness.
+    let fallback;
+    let binding = if let Some(b) = obj.get_resolved_binding(&export_name) {
+        b
+    } else {
+        fallback = module
+            .resolve_export(
+                &export_name,
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            )
+            .expect("6. Assert: binding is a ResolvedBinding Record.");
+        &fallback
+    };
 
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
 
-    // TODO: cache binding resolution instead of doing the whole process on every access.
     if let BindingName::Name(name) = binding.binding_name() {
         // 10. Let targetEnv be targetModule.[[Environment]].
         let Some(env) = target_module.environment() else {
@@ -310,10 +352,10 @@ fn module_namespace_exotic_try_get(
         let locator = env
             .kind()
             .as_module()
-            .expect("must be module environment")
+            .js_expect("must be module environment")?
             .compile()
-            .get_binding(&name)
-            .expect("checked before that the name was reachable");
+            .get_binding(name)
+            .js_expect("checked before that the name was reachable")?;
 
         // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
         env.get(locator.binding_index()).map(Some).ok_or_else(|| {
@@ -349,7 +391,7 @@ fn module_namespace_exotic_get(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -359,22 +401,30 @@ fn module_namespace_exotic_get(
     };
 
     // 4. Let m be O.[[Module]].
-    let m = obj.module();
+    let module = obj.module();
 
     // 5. Let binding be m.ResolveExport(P).
-    let binding = m
-        .resolve_export(
-            export_name.clone(),
-            &mut HashSet::default(),
-            context.interner(),
-        )
-        .expect("6. Assert: binding is a ResolvedBinding Record.");
+    // 6. Assert: binding is a ResolvedBinding Record.
+    // Use the pre-resolved cache when available; fall back to a fresh
+    // ResolveExport call on cache miss for robustness.
+    let fallback;
+    let binding = if let Some(b) = obj.get_resolved_binding(&export_name) {
+        b
+    } else {
+        fallback = module
+            .resolve_export(
+                &export_name,
+                &mut rustc_hash::FxHashSet::default(),
+                context.interner(),
+            )
+            .expect("6. Assert: binding is a ResolvedBinding Record.");
+        &fallback
+    };
 
     // 7. Let targetModule be binding.[[Module]].
     // 8. Assert: targetModule is not undefined.
     let target_module = binding.module();
 
-    // TODO: cache binding resolution instead of doing the whole process on every access.
     if let BindingName::Name(name) = binding.binding_name() {
         // 10. Let targetEnv be targetModule.[[Environment]].
         let Some(env) = target_module.environment() else {
@@ -390,10 +440,10 @@ fn module_namespace_exotic_get(
         let locator = env
             .kind()
             .as_module()
-            .expect("must be module environment")
+            .js_expect("must be module environment")?
             .compile()
-            .get_binding(&name)
-            .expect("checked before that the name was reachable");
+            .get_binding(name)
+            .js_expect("checked before that the name was reachable")?;
 
         // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
         env.get(locator.binding_index()).ok_or_else(|| {
@@ -443,7 +493,7 @@ fn module_namespace_exotic_delete(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 2. Let exports be O.[[Exports]].
     let exports = obj.exports();
@@ -465,7 +515,7 @@ fn module_namespace_exotic_own_property_keys(
 
     let obj = obj
         .downcast_ref::<ModuleNamespace>()
-        .expect("internal method can only be called on module namespace objects");
+        .js_expect("internal method can only be called on module namespace objects")?;
 
     // 1. Let exports be O.[[Exports]].
     let exports = obj.exports();

@@ -1,0 +1,57 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/new.js
+---
+-------------------------- Compiled Output: '<main>' ---------------------------
+Location     Handler      Opcode                            Operands
+  000000                    PushScope                         scope_index:1
+  000005                    GetFunction                       index:2, dst:r01
+  00000e                    StoreUndefined                    dst:r02
+  000013                    SetClassPrototype                 dst:r03, prototype:r02, class:r01
+  000020                    PushPrivateEnvironment            class:r01, names:[]
+  000029                    PutLexicalValue                   src:r01, binding_index:0
+  000032                    PopEnvironment                    
+  000033                    PopPrivateEnvironment             
+  000034                    DefInitVar                        src:r01, binding_index:1
+  00003d                    StoreNewArray                     dst:r02
+  000042                    GetNameGlobal                     dst:r06, binding_index:2, ic_index:0
+  00004f                    PushFromRegister                  src:r00
+  000054                    PushFromRegister                  src:r06
+  000059                    StoreInt32                        value:100000, dst:r06
+  000062                    PushFromRegister                  src:r06
+  000067                    New                               argument_count:1
+  00006c                    PopIntoRegister                   dst:r04
+  000071                    GetPropertyByName                 dst:r05, value:r04, ic:(name:map entries:())
+  00007e                    PushFromRegister                  src:r04
+  000083                    PushFromRegister                  src:r05
+  000088                    GetFunction                       index:4, dst:r04
+  000091                    PushFromRegister                  src:r04
+  000096                    Call                              argument_count:1
+  00009b                    PopIntoRegister                   dst:r03
+  0000a0                    GetIterator                       src:r03
+  0000a5                    PushIteratorToArray               array:r02
+  0000aa                    GetLengthProperty                 dst:r01, value:r02, ic:(name:length entries:())
+  0000b7                    SetAccumulator                    src:r01
+  0000bc                    CheckReturn                       
+  0000bd                    Return                            
+
+Register Count: 7, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "SomeClass"
+    0001: [SCOPE] index: 1, bindings: 1
+    0002: [FUNCTION] name: 'SomeClass' (length: 0)
+    0003: [STRING] "map"
+    0004: [FUNCTION] name: '' (length: 0)
+    0005: [STRING] "length"
+Bindings:
+    0000: SomeClass, scope: Stack(0)
+    0001: SomeClass, scope: GlobalDeclarative
+    0002: Array, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 61..89: (3, 52)
+    0001: 89..113: (3, 5)
+    0002: 113..136: (3, 52)
+    0003: 136..160: (3, 27)
+    0004: 160..183: (3, 52)

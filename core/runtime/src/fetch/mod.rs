@@ -8,11 +8,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 
 use crate::fetch::headers::JsHeaders;
+use crate::fetch::headers_iterator::{HeadersIterator, IterationKind};
 use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
 use boa_engine::object::FunctionObjectBuilder;
-use boa_engine::object::builtins::JsArray;
 use boa_engine::property::PropertyDescriptor;
 use boa_engine::realm::Realm;
 use boa_engine::{
@@ -25,6 +25,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 pub mod headers;
+pub mod headers_iterator;
 pub mod request;
 pub mod response;
 pub mod tests;
@@ -57,6 +58,7 @@ pub trait Fetcher: NativeObject {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        signal: Option<JsObject>,
         context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse>;
 }
@@ -91,6 +93,16 @@ fn get_fetcher<T: Fetcher>(context: &mut Context) -> JsResult<Rc<T>> {
     Ok(fetcher.0.clone())
 }
 
+fn check_abort(signal: Option<&JsObject>, context: &mut Context) -> JsResult<()> {
+    if let Some(signal_obj) = signal
+        && let Some(signal_ref) = signal_obj.downcast_ref::<crate::abort::JsAbortSignal>()
+        && signal_ref.is_aborted()
+    {
+        return Err(JsError::from_opaque(signal_ref.abort_reason(context)));
+    }
+    Ok(())
+}
+
 /// The `fetch` function internals.
 async fn fetch_inner<T: Fetcher>(
     resource: Either<JsString, JsObject>,
@@ -99,8 +111,20 @@ async fn fetch_inner<T: Fetcher>(
 ) -> JsResult<JsValue> {
     let fetcher = get_fetcher::<T>(&mut context.borrow_mut())?;
 
+    let (options, signal) = match options {
+        Some(mut opts) => {
+            let sig = opts.take_signal();
+            (Some(opts), sig)
+        }
+        None => (None, None),
+    };
+
+    check_abort(signal.as_ref(), &mut context.borrow_mut())?;
+
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
+    let mut signal = signal;
+
     let request: Request<Vec<u8>> = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
@@ -120,9 +144,12 @@ async fn fetch_inner<T: Fetcher>(
                 return Err(js_error!(TypeError: "Request object is already in use"));
             };
 
+            signal = signal.or_else(|| request_ref.data().signal());
             request_ref.data().inner().clone()
         }
     };
+
+    check_abort(signal.as_ref(), &mut context.borrow_mut())?;
 
     let mut request = if let Some(options) = options {
         options.into_request_builder(Some(request))?
@@ -140,7 +167,12 @@ async fn fetch_inner<T: Fetcher>(
         request.headers_mut().append("Accept-Language", lang);
     }
 
-    let response = fetcher.fetch(JsRequest::from(request), context).await?;
+    let response = fetcher
+        .fetch(JsRequest::from(request), signal.clone(), context)
+        .await?;
+
+    check_abort(signal.as_ref(), &mut context.borrow_mut())?;
+
     let result = Class::from_data(response, &mut context.borrow_mut())?;
     Ok(result.into())
 }
@@ -157,6 +189,7 @@ pub mod js_module {
     type JsHeaders = super::JsHeaders;
     type JsRequest = super::JsRequest;
     type JsResponse = super::JsResponse;
+    type HeadersIterator = super::headers_iterator::HeadersIterator;
 
     /// The `fetch` function.
     ///
@@ -176,21 +209,22 @@ pub mod js_module {
     }
 }
 
-#[doc(inline)]
-pub use js_module::fetch;
+fn headers_symbol_iterator(
+    this: &JsValue,
+    _: &[JsValue],
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let this_object = this.as_object().ok_or_else(
+        || js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+    )?;
 
-fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    let this_object = this.as_object();
-    let headers = this_object
-        .as_ref()
-        .and_then(JsObject::downcast_ref::<JsHeaders>)
-        .ok_or_else(|| {
-            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object")
-        })?;
+    let Ok(headers) = this_object.clone().downcast::<JsHeaders>() else {
+        return Err(
+            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+        );
+    };
 
-    let entries = headers.entries(context);
-    let entries_array = JsArray::from_object(entries.to_object(context)?)?;
-    entries_array.values(context)
+    HeadersIterator::create_headers_iterator(headers, IterationKind::KeyAndValue, context)
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
@@ -221,7 +255,7 @@ pub fn register<F: Fetcher>(
 
     let iterator = FunctionObjectBuilder::new(
         context.realm(),
-        NativeFunction::from_fn_ptr(headers_iterator),
+        NativeFunction::from_fn_ptr(headers_symbol_iterator),
     )
     .name(js_string!("[Symbol.iterator]"))
     .length(0)

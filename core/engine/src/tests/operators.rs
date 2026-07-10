@@ -791,3 +791,162 @@ mod in_operator {
         )]);
     }
 }
+
+/// `NaN` comparison, both via numeric literals (fast path) and
+/// via `Number` object properties (slow path through `abstract_relation`).
+///
+#[test]
+fn nan_comparisons() {
+    run_test_actions([
+        TestAction::assert("!(NaN == NaN)"),
+        TestAction::assert("NaN != NaN"),
+        TestAction::assert("!(NaN === NaN)"),
+        TestAction::assert("NaN !== NaN"),
+        TestAction::assert("!(NaN < 1)"),
+        TestAction::assert("!(NaN > 1)"),
+        TestAction::assert("!(NaN <= 1)"),
+        TestAction::assert("!(NaN >= 1)"),
+        TestAction::assert("!(1 < NaN)"),
+        TestAction::assert("!(1 > NaN)"),
+        TestAction::assert("!(1 <= NaN)"),
+        TestAction::assert("!(1 >= NaN)"),
+        TestAction::assert("!(NaN < NaN)"),
+        TestAction::assert("!(NaN > NaN)"),
+        TestAction::assert("!(NaN <= NaN)"),
+        TestAction::assert("!(NaN >= NaN)"),
+        TestAction::assert("!(NaN < Infinity)"),
+        TestAction::assert("!(NaN > -Infinity)"),
+        TestAction::assert("!(NaN < -Infinity)"),
+        TestAction::assert("!(NaN > Infinity)"),
+        TestAction::assert("!(new Number(NaN) < 1)"),
+        TestAction::assert("!(new Number(NaN) > 1)"),
+        TestAction::assert("!(new Number(NaN) <= 1)"),
+        TestAction::assert("!(new Number(NaN) >= 1)"),
+        TestAction::assert("!(1 < new Number(NaN))"),
+        TestAction::assert("!(1 > new Number(NaN))"),
+        TestAction::assert("!(1 <= new Number(NaN))"),
+        TestAction::assert("!(1 >= new Number(NaN))"),
+        TestAction::assert("Number.isNaN(NaN)"),
+        TestAction::assert("Number.isNaN(0/0)"),
+        TestAction::assert("!Number.isNaN(undefined)"),
+        TestAction::assert("!Number.isNaN('NaN')"),
+    ]);
+}
+
+#[test]
+fn bigint_mixed_type_operations() {
+    const MIXED_MSG: &str = "cannot mix BigInt and other types, use explicit conversions";
+    run_test_actions([
+        TestAction::assert_native_error("1n + 1", JsNativeErrorKind::Type, MIXED_MSG),
+        TestAction::assert_native_error("1n - 1", JsNativeErrorKind::Type, MIXED_MSG),
+        TestAction::assert_native_error("1n * 2", JsNativeErrorKind::Type, MIXED_MSG),
+        TestAction::assert_native_error("4n / 2", JsNativeErrorKind::Type, MIXED_MSG),
+        TestAction::assert_native_error("5n % 2", JsNativeErrorKind::Type, MIXED_MSG),
+        TestAction::assert_native_error("2n ** 3", JsNativeErrorKind::Type, MIXED_MSG),
+        TestAction::assert_native_error("1 + 1n", JsNativeErrorKind::Type, MIXED_MSG),
+        TestAction::assert_eq("'hello' + 1n", js_str!("hello1")),
+        TestAction::assert_eq("1n + 'hello'", js_str!("1hello")),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                let numObj = { valueOf() { return 42; }, toString() { return "42"; } };
+                1n + numObj
+            "#},
+            JsNativeErrorKind::Type,
+            MIXED_MSG,
+        ),
+        TestAction::assert("1n < 2"),
+        TestAction::assert("!(1n > 2)"),
+        TestAction::assert("1n <= 1"),
+        TestAction::assert("2n >= 2"),
+        TestAction::assert("(2n + 3n) === 5n"),
+        TestAction::assert("(10n - 4n) === 6n"),
+        TestAction::assert("(3n * 4n) === 12n"),
+        TestAction::assert("(10n / 3n) === 3n"),
+        TestAction::assert("(10n % 3n) === 1n"),
+        TestAction::assert("(2n ** 10n) === 1024n"),
+    ]);
+}
+
+#[test]
+fn ushr_bigint_type_error() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "1n >>> 0n",
+            JsNativeErrorKind::Type,
+            "BigInts have no unsigned right shift, use >> instead",
+        ),
+        TestAction::assert_native_error(
+            "255n >>> 4n",
+            JsNativeErrorKind::Type,
+            "BigInts have no unsigned right shift, use >> instead",
+        ),
+        TestAction::assert("(8n >> 2n) === 2n"),
+        TestAction::assert("(-1n >> 63n) === -1n"),
+        TestAction::assert("(1n << 4n) === 16n"),
+    ]);
+}
+
+#[test]
+fn instanceof_custom_has_instance() {
+    run_test_actions([
+        TestAction::assert(indoc! {r#"
+            class AlwaysTrue {
+                static [Symbol.hasInstance](_instance) {
+                    return true;
+                }
+            }
+            ({} instanceof AlwaysTrue)
+        "#}),
+        TestAction::assert(indoc! {r#"
+            class AlwaysFalse {
+                static [Symbol.hasInstance](_instance) {
+                    return false;
+                }
+            }
+            let obj = new AlwaysFalse();
+            !(obj instanceof AlwaysFalse)
+        "#}),
+        TestAction::assert(indoc! {r#"
+            const EvenNumber = {
+                [Symbol.hasInstance](value) {
+                    return typeof value === 'number' && value % 2 === 0;
+                }
+            };
+            (2 instanceof EvenNumber) && !(3 instanceof EvenNumber)
+        "#}),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                class Throws {
+                    static [Symbol.hasInstance](_instance) {
+                        throw new TypeError("hasInstance threw");
+                    }
+                }
+                ({} instanceof Throws)
+            "#},
+            JsNativeErrorKind::Type,
+            "hasInstance threw",
+        ),
+        TestAction::assert_native_error(
+            "let s = new String(); s instanceof {}",
+            JsNativeErrorKind::Type,
+            "right-hand side of 'instanceof' is not callable",
+        ),
+        TestAction::assert_native_error(
+            "42 instanceof 'not-a-constructor'",
+            JsNativeErrorKind::Type,
+            "right-hand side of 'instanceof' should be an object, got `string`",
+        ),
+        TestAction::assert(indoc! {r#"
+            const Truthy = {
+                [Symbol.hasInstance]() { return 1; }
+            };
+            ({} instanceof Truthy)
+        "#}),
+        TestAction::assert(indoc! {r#"
+            const Falsy = {
+                [Symbol.hasInstance]() { return 0; }
+            };
+            !({} instanceof Falsy)
+        "#}),
+    ]);
+}

@@ -121,15 +121,13 @@ pub(crate) trait ToJsString {
 impl ToJsString for Sym {
     #[allow(clippy::cast_possible_truncation)]
     fn to_js_string(&self, interner: &Interner) -> JsString {
-        // TODO: Identify latin1 encodeable strings during parsing to avoid this check.
-        let string = interner.resolve_expect(*self).utf16();
-        for c in string {
-            if u8::try_from(*c).is_err() {
-                return JsString::from(string);
-            }
+        let utf16 = interner.resolve_expect(*self).utf16();
+        if interner.is_latin1(*self) {
+            let bytes: Vec<u8> = utf16.iter().map(|&c| c as u8).collect();
+            JsString::from(JsStr::latin1(&bytes))
+        } else {
+            JsString::from(utf16)
         }
-        let string = string.iter().map(|c| *c as u8).collect::<Vec<_>>();
-        JsString::from(JsStr::latin1(&string))
     }
 }
 

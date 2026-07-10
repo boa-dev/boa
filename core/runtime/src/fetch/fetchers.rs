@@ -3,7 +3,7 @@
 use crate::fetch::Fetcher;
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use boa_engine::{Context, Finalize, JsData, JsResult, Trace, js_error};
+use boa_engine::{Context, Finalize, JsData, JsObject, JsResult, Trace, js_error};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -15,6 +15,7 @@ impl Fetcher for ErrorFetcher {
     async fn fetch(
         self: Rc<Self>,
         _request: JsRequest,
+        _signal: Option<JsObject>,
         _context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
         Err(js_error!(ReferenceError: "ErrorFetcher used in fetch API."))
@@ -34,9 +35,19 @@ impl Fetcher for BlockingReqwestFetcher {
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        signal: Option<JsObject>,
         _context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
         use boa_engine::{JsError, JsString};
+
+        if let Some(ref sig) = signal
+            && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
+            && sig_ref.is_aborted()
+        {
+            return Err(JsError::from_opaque(
+                boa_engine::js_string!("AbortError").into(),
+            ));
+        }
 
         let request = request.into_inner();
         let url = request.uri().to_string();
@@ -51,6 +62,15 @@ impl Fetcher for BlockingReqwestFetcher {
             .map_err(JsError::from_rust)?;
 
         let resp = self.client.execute(req).map_err(JsError::from_rust)?;
+
+        if let Some(ref sig) = signal
+            && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
+            && sig_ref.is_aborted()
+        {
+            return Err(JsError::from_opaque(
+                boa_engine::js_string!("AbortError").into(),
+            ));
+        }
 
         let status = resp.status();
         let headers = resp.headers().clone();

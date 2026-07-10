@@ -1,0 +1,63 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/loop-hoisting.js
+---
+-------------------------- Compiled Output: '<main>' ---------------------------
+Location     Handler      Opcode                            Operands
+  000000                    StoreZero                         dst:r02
+  000005                    StoreInt8                         value:100, dst:r03
+  00000b                    Jump                              address:00001a
+  000010                    IncrementLoopIteration            
+  000011                    Inc                               src:r02, dst:r02
+  00001a                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:00002c
+  000027                    Jump                              address:000010
+  00002c                    StoreInt8                         value:100, dst:r03
+  000032                    PutLexicalValue                   src:r03, binding_index:0
+  00003b                    Move                              src:r03, dst:r04
+  000044                    StoreZero                         dst:r05
+  000049                    Jump                              address:000058
+  00004e                    IncrementLoopIteration            
+  00004f                    Inc                               src:r05, dst:r05
+  000058                    JumpIfNotLessThan                 lhs:r05, rhs:r04, address:00006a
+  000065                    Jump                              address:00004e
+  00006a                    StoreInt8                         value:100, dst:r06
+  000070                    PutLexicalValue                   src:r06, binding_index:1
+  000079                    Move                              src:r06, dst:r07
+  000082                    PushFromRegister                  src:r00
+  000087                    GetNameGlobal                     dst:r06, binding_index:2, ic_index:0
+  000094                    PushFromRegister                  src:r06
+  000099                    Call                              argument_count:0
+  00009e                    Pop                               
+  00009f                    StoreInt8                         value:100, dst:r06
+  0000a5                    PutLexicalValue                   src:r06, binding_index:3
+  0000ae                    PushFromRegister                  src:r00
+  0000b3                    GetNameGlobal                     dst:r08, binding_index:4, ic_index:1
+  0000c0                    PushFromRegister                  src:r08
+  0000c5                    Call                              argument_count:0
+  0000ca                    PopIntoRegister                   dst:r06
+  0000cf                    SetAccumulator                    src:r06
+  0000d4                    CheckReturn                       
+  0000d5                    Return                            
+
+Register Count: 9, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "n"
+    0001: [STRING] "z"
+    0002: [STRING] "x"
+    0003: [STRING] "bar"
+    0004: [FUNCTION] name: 'bar' (length: 0)
+    0005: [STRING] "foo"
+    0006: [FUNCTION] name: 'foo' (length: 0)
+Bindings:
+    0000: n, scope: GlobalDeclarative
+    0001: z, scope: GlobalDeclarative
+    0002: bar, scope: GlobalObject
+    0003: x, scope: GlobalDeclarative
+    0004: foo, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 17..79: (2, 26)
+    0001: 79..153: (5, 24)
+    0002: 153..197: (14, 4)
+    0003: 197..207: (23, 4)

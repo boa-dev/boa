@@ -1,6 +1,12 @@
+//! Encoding and decoding helpers for opcode operands.
+//!
+//! The VM only decodes bytecode emitted and patched by Boa. Because of that, these helpers rely on
+//! internal invariants instead of returning recoverable errors for malformed operand layouts. If
+//! decoding fails, it points to a compiler or bytecode management bug.
+
 use thin_vec::ThinVec;
 
-use super::{Address, RegisterOperand, VaryingOperand};
+use super::{Address, IndexOperand, RegisterOperand};
 
 /// A trait for types that can be read from a byte slice.
 ///
@@ -38,6 +44,8 @@ unsafe impl Readable for (u32, u32, u32, u32, u32) {}
 pub(super) fn read<T: Readable>(bytes: &[u8], offset: usize) -> (T, usize) {
     let new_offset = offset + size_of::<T>();
 
+    // The VM only executes bytecode emitted and patched by Boa, so a short operand stream means an
+    // internal invariant was broken earlier in compilation or patching.
     assert!(bytes.len() >= new_offset, "buffer too small to read type T");
 
     // Safety: The assertion above ensures that the slice is large enough to read T.
@@ -138,9 +146,9 @@ impl Argument for () {
     }
 }
 
-impl Argument for VaryingOperand {
+impl Argument for IndexOperand {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.value);
+        write_u32(bytes, self.0);
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
@@ -151,7 +159,7 @@ impl Argument for VaryingOperand {
 
 impl Argument for RegisterOperand {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.value);
+        write_u32(bytes, self.0);
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
@@ -163,7 +171,7 @@ impl Argument for RegisterOperand {
 impl Argument for Address {
     #[inline(always)]
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.value);
+        write_u32(bytes, self.0);
     }
 
     #[inline(always)]
@@ -203,7 +211,7 @@ macro_rules! impl_argument_for_int {
         impl Argument for $t {
             #[inline(always)]
             fn encode(self, bytes: &mut Vec<u8>) {
-                paste::paste! {
+                pastey::paste! {
                     [<write_ $t>](bytes, self);
                 }
             }
@@ -221,7 +229,7 @@ impl_argument_for_int!(u8 u16 u32 u64 i8 i16 i32 f32 f64);
 
 #[cfg(test)]
 mod tests {
-    use super::{Address, Argument, RegisterOperand, VaryingOperand};
+    use super::{Address, Argument, IndexOperand, RegisterOperand};
     use std::mem::size_of;
     use thin_vec::ThinVec;
 
@@ -266,10 +274,8 @@ mod tests {
 
     #[test]
     fn test_varying_operand_round_trip() {
-        round_trip_eq(&VaryingOperand::new(0), |a, b| {
-            u32::from(*a) == u32::from(*b)
-        });
-        round_trip_eq(&VaryingOperand::new(0xFFFF_FFFF), |a, b| {
+        round_trip_eq(&IndexOperand::new(0), |a, b| u32::from(*a) == u32::from(*b));
+        round_trip_eq(&IndexOperand::new(0xFFFF_FFFF), |a, b| {
             u32::from(*a) == u32::from(*b)
         });
     }

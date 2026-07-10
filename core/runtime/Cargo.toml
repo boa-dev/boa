@@ -12,13 +12,16 @@ rust-version.workspace = true
 
 [dependencies]
 boa_engine.workspace = true
+base64.workspace = true
 boa_gc.workspace = true
+bus = { workspace = true, optional = true }
 bytemuck.workspace = true
 either = { workspace = true, optional = true }
 futures = "0.3.32"
 futures-lite.workspace = true
 http = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
+comfy-table.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 serde_json = { workspace = true, optional = true }
 url = { workspace = true, optional = true }
@@ -56,3 +59,5 @@ fetch = [
 ]
 reqwest-blocking = ["dep:reqwest", "reqwest/blocking"]
 process = []
+annex-b = ["boa_engine/annex-b"]
+test262 = ["dep:bus"]

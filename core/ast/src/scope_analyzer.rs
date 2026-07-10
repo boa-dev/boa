@@ -2255,6 +2255,18 @@ fn module_instantiation(module: &Module, env: &Scope, interner: &Interner) {
                     drop(env.create_mutable_binding(name, false));
                 }
             }
+            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Using(u)) => {
+                for name in bound_names(u) {
+                    let name = name.to_js_string(interner);
+                    drop(env.create_mutable_binding(name, false));
+                }
+            }
+            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::AwaitUsing(au)) => {
+                for name in bound_names(au) {
+                    let name = name.to_js_string(interner);
+                    drop(env.create_mutable_binding(name, false));
+                }
+            }
             LexicallyScopedDeclaration::AssignmentExpression(expr) => {
                 for name in bound_names(expr) {
                     let name = name.to_js_string(interner);
@@ -2272,10 +2284,10 @@ pub struct EvalDeclarationBindings {
     pub new_annex_b_function_names: Vec<IdentifierReference>,
 
     /// New function names created during the declaration of an eval ast node.
-    pub new_function_names: FxHashMap<Identifier, (IdentifierReference, bool)>,
+    pub new_function_names: FxHashMap<Identifier, IdentifierReference>,
 
-    /// New variable names created during the declaration of an eval ast node.
-    pub new_var_names: Vec<IdentifierReference>,
+    /// Variable names declared during the declaration of an eval ast node.
+    pub declared_var_names: Vec<IdentifierReference>,
 }
 
 /// `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
@@ -2326,7 +2338,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
         }
 
         // b. Let thisEnv be lexEnv.
-        let mut this_env = lex_env.clone();
+        let mut this_env = lex_env;
 
         // c. Assert: The following loop will terminate.
         // d. Repeat, while thisEnv is not varEnv,
@@ -2520,10 +2532,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 let binding = var_env.set_mutable_binding(n).expect("must not fail");
                 result.new_function_names.insert(
                     name,
-                    (
-                        IdentifierReference::new(binding.locator(), !var_env.is_function(), true),
-                        true,
-                    ),
+                    IdentifierReference::new(binding.locator(), !var_env.is_function(), true),
                 );
             } else {
                 // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
@@ -2532,10 +2541,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 let binding = var_env.create_mutable_binding(n, !strict);
                 result.new_function_names.insert(
                     name,
-                    (
-                        IdentifierReference::new(binding, !var_env.is_function(), true),
-                        false,
-                    ),
+                    IdentifierReference::new(binding, !var_env.is_function(), true),
                 );
             }
         }
@@ -2556,13 +2562,17 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                 // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
                 // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
-                let binding = var_env.create_mutable_binding(name, true);
-                result.new_var_names.push(IdentifierReference::new(
-                    binding,
-                    !var_env.is_function(),
-                    true,
-                ));
+                drop(var_env.create_mutable_binding(name.clone(), true));
             }
+
+            let binding = var_env
+                .get_binding_reference(&name)
+                .expect("binding must exist");
+            result.declared_var_names.push(IdentifierReference::new(
+                binding.locator(),
+                !var_env.is_function(),
+                true,
+            ));
         }
     }
 

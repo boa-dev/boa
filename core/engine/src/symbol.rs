@@ -76,6 +76,8 @@ enum WellKnown {
     ToPrimitive,
     ToStringTag,
     Unscopables,
+    Dispose,
+    AsyncDispose,
 }
 
 impl WellKnown {
@@ -94,6 +96,8 @@ impl WellKnown {
             Self::ToPrimitive => StaticJsStrings::SYMBOL_TO_PRIMITIVE,
             Self::ToStringTag => StaticJsStrings::SYMBOL_TO_STRING_TAG,
             Self::Unscopables => StaticJsStrings::SYMBOL_UNSCOPABLES,
+            Self::Dispose => StaticJsStrings::SYMBOL_DISPOSE,
+            Self::AsyncDispose => StaticJsStrings::SYMBOL_ASYNC_DISPOSE,
         }
     }
 
@@ -112,6 +116,8 @@ impl WellKnown {
             Self::ToPrimitive => StaticJsStrings::FN_SYMBOL_TO_PRIMITIVE,
             Self::ToStringTag => StaticJsStrings::FN_SYMBOL_TO_STRING_TAG,
             Self::Unscopables => StaticJsStrings::FN_SYMBOL_UNSCOPABLES,
+            Self::Dispose => StaticJsStrings::FN_SYMBOL_DISPOSE,
+            Self::AsyncDispose => StaticJsStrings::FN_SYMBOL_ASYNC_DISPOSE,
         }
     }
 
@@ -306,6 +312,10 @@ impl JsSymbol {
         (to_string_tag, WellKnown::ToStringTag),
         /// Gets the static `JsSymbol` for `"Symbol.unscopables"`.
         (unscopables, WellKnown::Unscopables),
+        /// Gets the static `JsSymbol` for `"Symbol.dispose"`.
+        (dispose, WellKnown::Dispose),
+        /// Gets the static `JsSymbol` for `"Symbol.asyncDispose"`.
+        (async_dispose, WellKnown::AsyncDispose),
     }
 }
 

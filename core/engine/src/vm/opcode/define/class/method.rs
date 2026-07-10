@@ -1,9 +1,9 @@
 use crate::{
-    Context, JsResult,
+    Context, JsExpect, JsResult,
     builtins::function::{OrdinaryFunction, set_function_name},
     object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
-    vm::opcode::{Operation, RegisterOperand, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 /// `DefineClassStaticMethodByName` implements the Opcode Operation for `Opcode::DefineClassStaticMethodByName`
@@ -16,12 +16,12 @@ pub(crate) struct DefineClassStaticMethodByName;
 impl DefineClassStaticMethodByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
         let class = context.vm.get_register(class.into()).clone();
-        let class = class.as_object().expect("class must be object");
+        let class = class.as_object().js_expect("class must be object")?;
         let key = context
             .vm
             .frame()
@@ -31,22 +31,17 @@ impl DefineClassStaticMethodByName {
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+                .js_expect("method must be function object")?;
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class.clone());
         }
 
-        class.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function.clone())
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
+        class.define_method_property(
+            key,
+            function.clone(),
             &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
@@ -69,12 +64,12 @@ pub(crate) struct DefineClassMethodByName;
 impl DefineClassMethodByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (function, class_proto, index): (RegisterOperand, RegisterOperand, VaryingOperand),
+        (function, class_proto, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
         let class_proto = context.vm.get_register(class_proto.into()).clone();
-        let class_proto = class_proto.as_object().expect("class must be object");
+        let class_proto = class_proto.as_object().js_expect("class must be object")?;
         let key = context
             .vm
             .frame()
@@ -84,22 +79,17 @@ impl DefineClassMethodByName {
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+                .js_expect("method must be function object")?;
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class_proto.clone());
         }
 
-        class_proto.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function.clone())
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
+        class_proto.define_method_property(
+            key,
+            function.clone(),
             &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
@@ -128,18 +118,16 @@ impl DefineClassStaticMethodByValue {
         let function = context.vm.get_register(function.into()).clone();
         let key = context.vm.get_register(key.into()).clone();
         let class = context.vm.get_register(class.into()).clone();
-        let class = class.as_object().expect("class must be object");
-        let key = key
-            .to_property_key(context)
-            .expect("property key must already be valid");
+        let class = class.as_object().js_expect("class must be object")?;
+        let key = key.to_property_key(context)?;
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+                .js_expect("method must be function object")?;
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class.clone());
         }
 
@@ -179,29 +167,22 @@ impl DefineClassMethodByValue {
         let function = context.vm.get_register(function.into()).clone();
         let key = context.vm.get_register(key.into()).clone();
         let class_proto = context.vm.get_register(class_proto.into()).clone();
-        let class_proto = class_proto.as_object().expect("class must be object");
-        let key = key
-            .to_property_key(context)
-            .expect("property key must already be valid");
+        let class_proto = class_proto.as_object().js_expect("class must be object")?;
+        let key = key.to_property_key(context)?;
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
-            set_function_name(&function_object, &key, None, context);
+                .js_expect("method must be function object")?;
+            set_function_name(&function_object, &key, None, context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class_proto.clone());
         }
 
-        class_proto.__define_own_property__(
-            &key,
-            PropertyDescriptor::builder()
-                .value(function.clone())
-                .writable(true)
-                .enumerable(false)
-                .configurable(true)
-                .build(),
+        class_proto.define_method_property(
+            key,
+            function.clone(),
             &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
