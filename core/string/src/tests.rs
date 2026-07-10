@@ -402,7 +402,7 @@ fn clone_builder() {
     // clone_from(empty) == origin(empty)
     let mut cloned_from = Latin1JsStringBuilder::new();
     cloned_from.clone_from(&empty_origin);
-    assert!(cloned_from.capacity() == 0);
+    assert_eq!(cloned_from.capacity(), 0);
     assert_eq!(empty_origin, cloned_from);
 
     // utf16 builder -- test
@@ -432,7 +432,7 @@ fn clone_builder() {
     // clone_from(empty) == origin(empty)
     let mut cloned_from = Utf16JsStringBuilder::new();
     cloned_from.clone_from(&empty_origin);
-    assert!(cloned_from.capacity() == 0);
+    assert_eq!(cloned_from.capacity(), 0);
     assert_eq!(empty_origin, cloned_from);
 }
 
