@@ -339,6 +339,7 @@ dependencies = [
  "boa_runtime",
  "criterion",
  "jemallocator",
+ "regex",
  "walkdir",
 ]
 
