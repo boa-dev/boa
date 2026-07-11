@@ -267,6 +267,3 @@ complexity = { level = "warn", priority = -1 }
 perf = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 
-[patch."https://github.com/boa-dev/oscars.git"]
-oscars = { path = "../oscars/oscars" }
-oscars_derive = { path = "../oscars/oscars_derive" }
