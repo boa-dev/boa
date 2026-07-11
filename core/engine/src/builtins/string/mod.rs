@@ -659,8 +659,10 @@ impl String {
         // 4. For each element next of args, do
         for arg in args {
             // a. Let nextString be ? ToString(next).
+            let next_string = arg.to_string(context)?;
             // b. Set R to the string-concatenation of R and nextString.
-            string = js_string!(&string, &arg.to_string(context)?);
+            string = JsString::concat(string.as_str(), next_string.as_str())
+                .map_err(|_| JsNativeError::range().with_message("Invalid string length"))?;
         }
 
         // 5. Return R.
@@ -741,7 +743,9 @@ impl String {
         }
 
         // 6. Return the String value that is made from n copies of S appended together.
-        Ok(JsString::concat_array(&result).into())
+        Ok(JsString::concat_array(&result)
+            .map_err(|_| JsNativeError::range().with_message("Invalid string length"))?
+            .into())
     }
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`

@@ -62,10 +62,10 @@ macro_rules! js_string {
         $crate::string::JsString::from($s)
     };
     ( $x:expr, $y:expr ) => {
-        $crate::string::JsString::concat($crate::string::JsStr::from($x), $crate::string::JsStr::from($y))
+        $crate::string::JsString::concat($crate::string::JsStr::from($x), $crate::string::JsStr::from($y)).expect("string concatenation overflow")
     };
     ( $( $s:expr ),+ ) => {
-        $crate::string::JsString::concat_array(&[ $( $crate::string::JsStr::from($s) ),+ ])
+        $crate::string::JsString::concat_array(&[ $( $crate::string::JsStr::from($s) ),+ ]).expect("string concatenation overflow")
     };
 }
 
