@@ -849,11 +849,9 @@ fn console_exception_is_alias_for_error() {
     Console::register_with_logger(logger.clone(), &mut context).unwrap();
 
     run_test_actions_with(
-        [
-            TestAction::run(indoc! {r#"
+        [TestAction::run(indoc! {r#"
                 console.exception("hello world");
-            "#}),
-        ],
+            "#})],
         &mut context,
     );
 
