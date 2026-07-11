@@ -374,22 +374,42 @@ impl PlainMonthDay {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toLocaleString
-    pub(crate) fn to_locale_string(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
-        let object = this.as_object();
-        let month_day = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
+/// 10.3.9 `Temporal.PlainMonthDay.prototype.toLocaleString ( [ locales [ , options ] ] )`
+///
+/// More information:
+///
+/// - [ECMAScript Temporal proposal][spec]
+/// - [MDN reference][mdn]
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tolocalestring
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toLocaleString
+pub(crate) fn to_locale_string(
+    this: &JsValue,
+    args: &[JsValue],
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    // 1. Let monthDay be the this value.
+    // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
+    let object = this.as_object();
+    let month_day = object
+        .as_ref()
+        .and_then(JsObject::downcast_ref::<Self>)
+        .ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+        })?;
 
-        Ok(JsString::from(month_day.inner.to_string()).into())
-    }
+    // 3. Return ? FormatDateTimeLocaleString(monthDay, locales, options).
+    let locales = args.get_or_undefined(0);
+    let options = args.get_or_undefined(1);
+
+    crate::builtins::intl::date_time_format::format_plain_month_day_locale(
+        locales,
+        options,
+        month_day.inner.month(),
+        month_day.inner.day(),
+        context,
+    )
+}
 
     /// 10.3.10 `Temporal.PlainMonthDay.prototype.toJSON ( )`
     ///
