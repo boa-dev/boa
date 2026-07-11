@@ -41,9 +41,11 @@ impl RequestInit {
         request: Option<HttpRequest<Vec<u8>>>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
-        let mut request_body = Vec::new();
+        let mut inherited_body = None;
         if let Some(r) = request {
             let (parts, body) = r.into_parts();
+            // https://fetch.spec.whatwg.org/#dom-request - "Let inputBody be input's request's body if input is a Request object; otherwise null."
+            inherited_body = Some(body);
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -52,7 +54,6 @@ impl RequestInit {
             for (key, value) in &parts.headers {
                 builder = builder.header(key, value);
             }
-            request_body = body;
         }
 
         if let Some(headers) = self.headers.take() {
@@ -65,7 +66,6 @@ impl RequestInit {
             let method = method.to_std_string().map_err(
                 |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
             )?;
-
             // 25. If init["method"] exists, then:
             //     1. Let method be init["method"].
             //     2. If method is not a method or method is a forbidden method, throw a TypeError.
@@ -82,26 +82,39 @@ impl RequestInit {
                 ));
             }
 
+            let is_get_or_head_method =
+                method.eq_ignore_ascii_case("GET") || method.eq_ignore_ascii_case("HEAD");
+
+            // Fetch Standard §5.4 Request constructor:
+            // If either init["body"] exists and is non-null or inputBody is non-null,
+            // and request's method is GET or HEAD, then throw a TypeError.
+            // https://fetch.spec.whatwg.org/#dom-request
+            if is_get_or_head_method && (self.body.is_some() || inherited_body.is_some()) {
+                return Err(js_error!(TypeError: "Request with GET/HEAD method cannot have body."));
+            }
             builder = builder.method(method.as_str());
         }
 
-        if let Some(body) = &self.body {
+        let request_body = if let Some(body) = &self.body {
             // TODO: add more support types.
             if let Some(body) = body.as_string() {
                 let body = body.to_std_string().map_err(
                     |_| js_error!(TypeError: "Request constructor: body is not a valid string"),
                 )?;
-                request_body = body.into_bytes();
+                body.into_bytes()
             } else {
                 return Err(
                     js_error!(TypeError: "Request constructor: body is not a supported type"),
                 );
             }
-        }
+        } else {
+            inherited_body.unwrap_or_default()
+        };
 
-        builder
+        let request = builder
             .body(request_body)
-            .map_err(|_| js_error!(Error: "Cannot construct request"))
+            .map_err(|_| js_error!(Error: "Cannot construct request"))?;
+        Ok(request)
     }
 }
 
