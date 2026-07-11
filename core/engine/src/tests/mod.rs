@@ -480,6 +480,15 @@ fn strict_mode_reserved_name() {
 }
 
 #[test]
+fn issue5357() {
+    run_test_actions([TestAction::assert_native_error(
+        "foo(); @",
+        JsNativeErrorKind::Syntax,
+        "unexpected '@' at line 1, col 8",
+    )]);
+}
+
+#[test]
 fn empty_statement() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"
