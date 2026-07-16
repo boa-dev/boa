@@ -65,11 +65,11 @@ use jemallocator as _;
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-#[cfg(all(target_os = "windows", feature = "dhat"))]
+#[cfg(all(any(target_os = "windows", target_os = "macos"), feature = "dhat"))]
 use mimalloc_safe as _;
 
 #[cfg(all(
-    target_os = "windows",
+    any(target_os = "windows", target_os = "macos"),
     feature = "fast-allocator",
     not(feature = "dhat")
 ))]
