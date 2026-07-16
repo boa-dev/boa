@@ -46,7 +46,7 @@ fn escape(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVa
         };
 
         // 4. Let unescapedSet be the string-concatenation of the ASCII word characters and "@*+-./".
-        cp.is_ascii_alphanumeric() || [b'_', b'@', b'*', b'+', b'-', b'.', b'/'].contains(&cp)
+        cp.is_ascii_alphanumeric() || b"_@*+-./".contains(&cp)
     }
 
     // 1. Set string to ? ToString(string).

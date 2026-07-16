@@ -772,11 +772,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         for seg in &self.segments {
             match seg {
                 Segment::String(s) => {
-                    if let Some(data) = s.as_str().as_latin1() {
-                        builder.extend_from_slice(data);
-                    } else {
-                        return None;
-                    }
+                    builder.extend_from_slice(s.as_str().as_latin1()?);
                 }
                 Segment::Str(s) => {
                     let data = s.as_latin1()?;
