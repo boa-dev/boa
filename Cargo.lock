@@ -480,6 +480,7 @@ dependencies = [
  "either",
  "hashbrown 0.17.1",
  "icu_locale_core",
+ "oscars",
  "thin-vec",
 ]
 
@@ -2840,6 +2841,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68f19d67e5a2795c94e73e0bb1cc1a7edeb2e28efd39e2e1c9b7a40c1108b11c"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "oscars"
+version = "0.1.0"
+source = "git+https://github.com/boa-dev/oscars.git?branch=main#592903ff2bec29ae3f4be7fecf4baded74674be2"
+dependencies = [
+ "hashbrown 0.16.1",
+ "oscars_derive",
+ "rustc-hash 2.1.2",
+]
+
+[[package]]
+name = "oscars_derive"
+version = "0.1.0"
+source = "git+https://github.com/boa-dev/oscars.git?branch=main#592903ff2bec29ae3f4be7fecf4baded74674be2"
+dependencies = [
+ "cfg-if",
+ "proc-macro2",
+ "quote",
+ "syn",
+ "synstructure",
 ]
 
 [[package]]
