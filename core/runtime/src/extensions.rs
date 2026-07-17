@@ -64,7 +64,7 @@ pub struct Base64Extension;
 
 impl RuntimeExtension for Base64Extension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::base64::register(realm, context)
+        boa_wintertc::base64::register(realm, context)
     }
 }
 

@@ -565,9 +565,9 @@ dependencies = [
 name = "boa_runtime"
 version = "1.0.0-dev"
 dependencies = [
- "base64",
  "boa_engine",
  "boa_gc",
+ "boa_wintertc",
  "bus",
  "bytemuck",
  "comfy-table",
@@ -634,7 +634,11 @@ dependencies = [
 name = "boa_wintertc"
 version = "1.0.0-dev"
 dependencies = [
+ "base64",
  "boa_engine",
+ "futures-lite",
+ "indoc",
+ "textwrap",
 ]
 
 [[package]]
