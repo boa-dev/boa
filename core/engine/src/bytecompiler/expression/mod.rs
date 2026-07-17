@@ -52,9 +52,8 @@ impl ByteCompiler<'_> {
     }
 
     fn compile_conditional(&mut self, op: &Conditional, dst: &Register) {
-        self.compile_expr(op.condition(), dst);
-        self.if_else(
-            dst,
+        self.compile_if_else(
+            op.condition(),
             |compiler| compiler.compile_expr(op.if_true(), dst),
             |compiler| compiler.compile_expr(op.if_false(), dst),
         );
