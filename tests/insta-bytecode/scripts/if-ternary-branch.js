@@ -18,7 +18,7 @@ if (a < b) {
 
 // Parenthesized ternary with `>` -> fused `JumpIfNotGreaterThan`
 // (also exercises `Expression::flatten` stripping the parentheses).
-r = (a > b) ? 10 : 20;
+r = a > b ? 10 : 20;
 
 // Non-relational condition -> `JumpIfFalse` fallback is preserved.
 if (r) {
