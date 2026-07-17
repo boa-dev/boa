@@ -32,6 +32,11 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
+#[cfg(feature = "intl")]
+use crate::builtins::intl::date_time_format::{
+    FormatDefaults, FormatType, create_date_time_format, format_timestamp_with_dtf,
+};
+
 pub(crate) mod utils;
 
 #[cfg(test)]
@@ -1636,6 +1641,40 @@ impl Date {
         func.call(this, &[], context)
     }
 
+    /// Shared implementation of `Date.prototype.toLocaleString`,
+    /// `Date.prototype.toLocaleDateString`, and `Date.prototype.toLocaleTimeString`
+    /// methods with the corresponding formatting params
+    #[cfg(feature = "intl")]
+    #[inline]
+    fn to_locale_string_with(
+        this: &JsValue,
+        args: &[JsValue],
+        required: FormatType,
+        defaults: FormatDefaults,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let dateObject be the this value.
+        // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+        // 3. Let x be dateObject.[[DateValue]].
+        let x = this
+            .as_object()
+            .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
+            .0;
+
+        // 4. If x is NaN, return "Invalid Date".
+        if x.is_nan() {
+            return Ok(JsValue::new(js_string!("Invalid Date")));
+        }
+
+        // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, required, defaults).
+        // 6. Return ! FormatDateTime(dateFormat, x).
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+        let dtf = create_date_time_format(locales, options, required, defaults, context)?;
+        format_timestamp_with_dtf(&dtf, x, context)
+    }
+
     /// [`Date.prototype.toLocaleDateString()`][spec].
     ///
     /// The `toLocaleDateString()` method returns the date portion of the given Date instance according
@@ -1646,10 +1685,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaledatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_date_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1657,37 +1692,11 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
-            // 1. Let dateObject be the this value.
-            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-            // 3. Let x be dateObject.[[DateValue]].
-            let t = this
-                .as_object()
-                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-                .0;
-            // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
-                return Ok(JsValue::new(js_string!("Invalid Date")));
-            }
-            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
-            // 6. Return ! FormatDateTime(dateFormat, x).
-            let locales = args.get_or_undefined(0);
-            let options = args.get_or_undefined(1);
-            format_date_time_locale(
-                locales,
-                options,
-                FormatType::Date,
-                FormatDefaults::Date,
-                t,
-                context,
-            )
+            Self::to_locale_string_with(this, args, FormatType::Date, FormatDefaults::Date, context)
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
@@ -1700,10 +1709,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1711,37 +1716,11 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
-            // 1. Let dateObject be the this value.
-            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-            // 3. Let x be dateObject.[[DateValue]].
-            let t = this
-                .as_object()
-                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-                .0;
-            // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
-                return Ok(JsValue::new(js_string!("Invalid Date")));
-            }
-            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all).
-            // 6. Return ! FormatDateTime(dateFormat, x).
-            let locales = args.get_or_undefined(0);
-            let options = args.get_or_undefined(1);
-            format_date_time_locale(
-                locales,
-                options,
-                FormatType::Any,
-                FormatDefaults::All,
-                t,
-                context,
-            )
+            Self::to_locale_string_with(this, args, FormatType::Any, FormatDefaults::All, context)
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
@@ -1755,10 +1734,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaletimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleTimeString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_time_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1766,37 +1741,11 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
-            // 1. Let dateObject be the this value.
-            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-            // 3. Let x be dateObject.[[DateValue]].
-            let t = this
-                .as_object()
-                .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
-                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
-                .0;
-            // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
-                return Ok(JsValue::new(js_string!("Invalid Date")));
-            }
-            // 5. Let timeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, time, time).
-            // 6. Return ! FormatDateTime(timeFormat, x).
-            let locales = args.get_or_undefined(0);
-            let options = args.get_or_undefined(1);
-            format_date_time_locale(
-                locales,
-                options,
-                FormatType::Time,
-                FormatDefaults::Time,
-                t,
-                context,
-            )
+            Self::to_locale_string_with(this, args, FormatType::Time, FormatDefaults::Time, context)
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
