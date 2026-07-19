@@ -5,10 +5,7 @@
 
 use super::{ErasedObjectData, JsObject, NativeObject, jsobject::VTableObject};
 use boa_gc::{Finalize, Trace, WeakGc};
-use std::{
-    fmt::{self, Debug},
-    hash::{Hash, Hasher},
-};
+use std::fmt::{self, Debug};
 
 /// A weak reference to a [`JsObject`].
 ///
@@ -72,19 +69,12 @@ impl<T: NativeObject> Clone for WeakJsObject<T> {
     }
 }
 
-impl<T: NativeObject> PartialEq for WeakJsObject<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.inner == other.inner
-    }
-}
-
-impl<T: NativeObject> Eq for WeakJsObject<T> {}
-
-impl<T: NativeObject> Hash for WeakJsObject<T> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.inner.hash(state);
-    }
-}
+// `PartialEq`/`Eq`/`Hash` are intentionally not implemented. The natural forwarding to `WeakGc`
+// would compare and hash by the *live* referent, so two references to the same object would stop
+// comparing equal (and change their hash) once that object is collected, breaking `Eq`'s
+// reflexivity and the `Hash`/`Eq` invariant for a collected key. To compare two weak references,
+// upgrade them first and compare the resulting `JsObject`s. These impls can be added later, without
+// a breaking change, if a collection-stable identity is designed.
 
 // `VTableObject` deliberately does not implement `Debug` to avoid recursing into the object graph
 // (which could overflow the stack), so we cannot derive `Debug` here. We provide a minimal,
@@ -134,7 +124,6 @@ mod tests {
         let weak = WeakJsObject::new(&object);
         let cloned = weak.clone();
 
-        assert_eq!(weak, cloned);
         assert_eq!(
             weak.upgrade().expect("live"),
             cloned.upgrade().expect("live")
@@ -142,16 +131,57 @@ mod tests {
     }
 
     #[test]
-    fn equality_is_by_referent_identity() {
-        let a = JsObject::with_null_proto();
-        let b = JsObject::with_null_proto();
+    fn upgraded_handle_keeps_referent_alive_across_collection() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+        let strong = weak.upgrade().expect("referent is still alive");
 
-        let weak_a1 = WeakJsObject::new(&a);
-        let weak_a2 = WeakJsObject::new(&a);
-        let weak_b = WeakJsObject::new(&b);
+        // Drop the original binding; only the upgraded handle roots the referent now.
+        drop(object);
+        force_collect();
+        assert!(weak.is_upgradable());
+        assert_eq!(
+            weak.upgrade().expect("kept alive by the upgraded handle"),
+            strong
+        );
 
-        assert_eq!(weak_a1, weak_a2);
-        assert_ne!(weak_a1, weak_b);
+        // Once the upgraded handle is gone too, the referent can be collected.
+        drop(strong);
+        force_collect();
+        assert!(!weak.is_upgradable());
+        assert!(weak.upgrade().is_none());
+    }
+
+    #[test]
+    fn all_weaks_to_same_referent_die_together() {
+        let object = JsObject::with_null_proto();
+        let first = WeakJsObject::new(&object);
+        let cloned = first.clone();
+        let second = WeakJsObject::new(&object);
+
+        drop(object);
+        force_collect();
+
+        assert!(!first.is_upgradable());
+        assert!(!cloned.is_upgradable());
+        assert!(!second.is_upgradable());
+    }
+
+    #[test]
+    fn works_with_a_typed_object() {
+        use crate::builtins::OrdinaryObject;
+
+        let object: JsObject<OrdinaryObject> = JsObject::new_unique(None, OrdinaryObject);
+        let weak: WeakJsObject<OrdinaryObject> = WeakJsObject::new(&object);
+
+        let upgraded: JsObject<OrdinaryObject> = weak.upgrade().expect("referent is still alive");
+        assert_eq!(upgraded, object);
+
+        drop(object);
+        drop(upgraded);
+        force_collect();
+        assert!(!weak.is_upgradable());
+        assert!(weak.upgrade().is_none());
     }
 
     #[test]
