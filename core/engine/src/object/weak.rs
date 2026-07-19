@@ -94,3 +94,71 @@ impl<T: NativeObject> Debug for WeakJsObject<T> {
         f.debug_struct("WeakJsObject").finish_non_exhaustive()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{JsObject, WeakJsObject};
+    use boa_gc::force_collect;
+
+    #[test]
+    fn upgrade_while_referent_is_live() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+
+        assert!(weak.is_upgradable());
+        let upgraded = weak.upgrade().expect("referent is still alive");
+        assert_eq!(upgraded, object);
+    }
+
+    #[test]
+    fn upgrade_returns_none_after_referent_is_collected() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+
+        // While the strong reference is alive the weak one can be upgraded, even across a collection.
+        force_collect();
+        assert!(weak.is_upgradable());
+        assert!(weak.upgrade().is_some());
+
+        // Once the last strong reference is gone the referent can be collected.
+        drop(object);
+        force_collect();
+
+        assert!(!weak.is_upgradable());
+        assert!(weak.upgrade().is_none());
+    }
+
+    #[test]
+    fn clone_points_to_the_same_referent() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+        let cloned = weak.clone();
+
+        assert_eq!(weak, cloned);
+        assert_eq!(
+            weak.upgrade().expect("live"),
+            cloned.upgrade().expect("live")
+        );
+    }
+
+    #[test]
+    fn equality_is_by_referent_identity() {
+        let a = JsObject::with_null_proto();
+        let b = JsObject::with_null_proto();
+
+        let weak_a1 = WeakJsObject::new(&a);
+        let weak_a2 = WeakJsObject::new(&a);
+        let weak_b = WeakJsObject::new(&b);
+
+        assert_eq!(weak_a1, weak_a2);
+        assert_ne!(weak_a1, weak_b);
+    }
+
+    #[test]
+    fn built_from_reference_via_conversion() {
+        let object = JsObject::with_null_proto();
+        let weak: WeakJsObject = (&object).into();
+
+        assert_eq!(weak.upgrade().expect("live"), object);
+    }
+}
