@@ -23,7 +23,7 @@ pub struct TimeoutExtension;
 
 impl RuntimeExtension for TimeoutExtension {
     fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::interval::register(context)
+        boa_wintertc::timers::register(context)
     }
 }
 

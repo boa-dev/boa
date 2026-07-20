@@ -130,7 +130,14 @@ pub use boa_wintertc::clone;
 pub mod extensions;
 #[cfg(feature = "fetch")]
 pub mod fetch;
-pub mod interval;
+/// Timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
+/// re-exported from [`boa_wintertc`].
+///
+/// These APIs are part of the `WinterTC` (TC55) Minimum Common Web API and are implemented in
+/// `boa_wintertc::timers`. The module is re-exported under its historical `interval` name so
+/// `boa_runtime` users keep a single, unchanged import path.
+#[doc(inline)]
+pub use boa_wintertc::timers as interval;
 pub mod message;
 
 /// `queueMicrotask`, re-exported from [`boa_wintertc`].
@@ -284,6 +291,7 @@ pub(crate) mod test {
         }
 
         /// Executes `op` with the currently active context in an async environment.
+        #[allow(unused)]
         pub(crate) fn inspect_context_async(op: impl AsyncFnOnce(&mut Context) + 'static) -> Self {
             Self(Inner::InspectContextAsync {
                 op: Box::new(move |ctx| Box::pin(op(ctx))),
