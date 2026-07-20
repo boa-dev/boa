@@ -90,6 +90,17 @@
 //!     }
 //! };
 //! ```
+//!
+//! # `WinterTC` (TC55) re-exports
+//!
+//! Several platform APIs are part of the `WinterTC` (TC55) Minimum Common Web API and live in the
+//! [`boa_wintertc`] crate. They are re-exported from `boa_runtime` so existing users keep a single,
+//! unchanged import path:
+//!
+//! - [`console`] — the `console` object
+//! - [`base64`] — `atob` and `btoa`
+//!
+//! See each re-exported module for its full API documentation.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
@@ -105,12 +116,9 @@
     clippy::let_unit_value
 )]
 
-pub mod console;
+#[doc(inline)]
+pub use boa_wintertc::console;
 
-/// Base64 utility methods (`atob` and `btoa`), re-exported from [`boa_wintertc`].
-///
-/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
-/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
 #[doc(inline)]
 pub use boa_wintertc::base64;
 
@@ -272,7 +280,11 @@ pub(crate) mod test {
     }
 
     /// Executes a list of test actions on a new, default context.
+    ///
+    /// Only used by feature-gated tests (`fetch`, `url`, `abort`), so it is dead code under
+    /// `--no-default-features`.
     #[track_caller]
+    #[allow(unused)]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
         register(ConsoleExtension::default(), None, context)

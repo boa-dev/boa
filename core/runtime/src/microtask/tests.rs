@@ -1,8 +1,34 @@
-use crate::RuntimeExtension;
-use crate::console::tests::RecordingLogger;
 use crate::test::{TestAction, run_test_actions_with};
-use boa_engine::Context;
+use crate::{ConsoleState, Logger, RuntimeExtension};
+use boa_engine::{Context, JsError, JsResult};
+use boa_gc::{Gc, GcRefCell};
 use indoc::indoc;
+
+/// A logger that records all log messages, used to observe job ordering.
+#[derive(Clone, Debug, Default, boa_engine::Trace, boa_engine::Finalize)]
+struct RecordingLogger {
+    log: Gc<GcRefCell<String>>,
+}
+
+impl Logger for RecordingLogger {
+    fn log(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        use std::fmt::Write;
+        let indent = state.indent();
+        writeln!(self.log.borrow_mut(), "{msg:>indent$}").map_err(JsError::from_rust)
+    }
+
+    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
+    }
+
+    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
+    }
+
+    fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
+    }
+}
 
 #[test]
 fn queue_microtask() {
