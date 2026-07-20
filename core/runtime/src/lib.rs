@@ -132,7 +132,13 @@ pub mod extensions;
 pub mod fetch;
 pub mod interval;
 pub mod message;
-pub mod microtask;
+
+/// `queueMicrotask`, re-exported from [`boa_wintertc`].
+///
+/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
+/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
+#[doc(inline)]
+pub use boa_wintertc::microtask;
 #[cfg(feature = "process")]
 pub mod process;
 /// [`JsValueStore`](boa_wintertc::store::JsValueStore) and related structured-data types,

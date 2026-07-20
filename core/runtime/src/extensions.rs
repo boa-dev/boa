@@ -33,7 +33,7 @@ pub struct MicrotaskExtension;
 
 impl RuntimeExtension for MicrotaskExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::microtask::register(realm, context)
+        boa_wintertc::microtask::register(realm, context)
     }
 }
 
