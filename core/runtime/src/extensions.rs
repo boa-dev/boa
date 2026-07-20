@@ -93,7 +93,7 @@ impl Default for ConsoleExtension<DefaultLogger> {
 
 impl<L: Logger + Debug + 'static> RuntimeExtension for ConsoleExtension<L> {
     fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::console::Console::register_with_logger(self.0, context)
+        boa_wintertc::console::Console::register_with_logger(self.0, context)
     }
 }
 
