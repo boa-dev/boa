@@ -44,6 +44,7 @@ pub mod events;
 #[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod microtask;
+pub mod store;
 pub mod timers;
 #[cfg(feature = "url")]
 pub mod url;

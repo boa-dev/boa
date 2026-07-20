@@ -119,7 +119,14 @@ pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 #[cfg(feature = "fetch")]
 pub mod abort;
-pub mod clone;
+
+/// `structuredClone`, re-exported from [`boa_wintertc`].
+///
+/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
+/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
+#[doc(inline)]
+pub use boa_wintertc::clone;
+
 pub mod extensions;
 #[cfg(feature = "fetch")]
 pub mod fetch;
@@ -128,7 +135,14 @@ pub mod message;
 pub mod microtask;
 #[cfg(feature = "process")]
 pub mod process;
-pub mod store;
+/// [`JsValueStore`](boa_wintertc::store::JsValueStore) and related structured-data types,
+/// re-exported from [`boa_wintertc`].
+///
+/// This is the serialization core backing `structuredClone` (and, in the future, messaging).
+/// It lives in `boa_wintertc` and is re-exported here so `boa_runtime` internals (e.g. `message`)
+/// keep a single import path.
+#[doc(inline)]
+pub use boa_wintertc::store;
 /// Support for the `$262` test262 harness object.
 #[cfg(feature = "test262")]
 pub mod test262;
