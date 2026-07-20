@@ -86,6 +86,20 @@ impl GlobalSymbolRegistry {
 
         None
     }
+
+    fn contains(&self, sym: &JsSymbol) -> bool {
+        self.symbols.contains_key(sym)
+    }
+}
+
+/// Checks if `sym` is a `Symbol` registered in the global symbol registry.
+///
+/// Equivalent to checking if the abstract operation [`KeyForSymbol ( sym )`][spec] returns
+/// a string.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-keyforsymbol
+pub(crate) fn is_registered_symbol(sym: &JsSymbol) -> bool {
+    GLOBAL_SYMBOL_REGISTRY.contains(sym)
 }
 
 /// The internal representation of a `Symbol` object.

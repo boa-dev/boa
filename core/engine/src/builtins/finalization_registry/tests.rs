@@ -2,7 +2,7 @@ mod miri {
 
     use indoc::indoc;
 
-    use crate::{TestAction, run_test_actions};
+    use crate::{JsNativeErrorKind, TestAction, run_test_actions};
 
     #[test]
     fn finalization_registry_simple() {
@@ -63,6 +63,50 @@ mod miri {
             TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
             // Registry should handover the held value as argument
             TestAction::assert_eq("counter", 5),
+        ]);
+    }
+
+    #[test]
+    fn finalization_registry_symbol_unregister_token() {
+        run_test_actions([
+            TestAction::run(indoc! {r#"
+            let counter = 0;
+            const registry = new FinalizationRegistry(() => {
+                counter++;
+            });
+            const token = Symbol("token");
+
+            {
+                let array = ["foo"];
+                registry.register(array, undefined, token);
+            }
+        "#}),
+            // An unrelated symbol should not unregister the cell
+            TestAction::assert_eq("registry.unregister(Symbol('token'))", false),
+            TestAction::assert_eq("registry.unregister(token)", true),
+            TestAction::inspect_context(|_| boa_gc::force_collect()),
+            TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
+            // Callback shouldn't run
+            TestAction::assert_eq("counter", 0),
+        ]);
+    }
+
+    #[test]
+    fn finalization_registry_registered_symbol_unregister_token_throws() {
+        run_test_actions([
+            TestAction::run("const registry = new FinalizationRegistry(() => {});"),
+            TestAction::assert_native_error(
+                "registry.register({}, undefined, Symbol.for('token'))",
+                JsNativeErrorKind::Type,
+                "FinalizationRegistry.prototype.register: `unregisterToken` must be \
+                an Object, a non-registered Symbol, or undefined",
+            ),
+            TestAction::assert_native_error(
+                "registry.unregister(Symbol.for('token'))",
+                JsNativeErrorKind::Type,
+                "FinalizationRegistry.prototype.unregister: `unregisterToken` must be \
+                an Object or a non-registered Symbol.",
+            ),
         ]);
     }
 
