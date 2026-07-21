@@ -1,0 +1,194 @@
+//! This module implements the [`WeakJsObject`] structure.
+//!
+//! A [`WeakJsObject`] is a weak reference to a [`JsObject`], allowing an embedder to hold a
+//! reference to an object without keeping it alive across garbage collections.
+
+use super::{ErasedObjectData, JsObject, NativeObject, jsobject::VTableObject};
+use boa_gc::{Finalize, Trace, WeakGc};
+use std::fmt::{self, Debug};
+
+/// A weak reference to a [`JsObject`].
+///
+/// This is the object-level counterpart of [`boa_gc::WeakGc`]. It lets embedders keep a handle to a
+/// [`JsObject`] without preventing it from being collected. Because the referenced object may be
+/// collected at any point, [`WeakJsObject::upgrade`] returns an `Option<JsObject<T>>` that is `None`
+/// once the object is gone.
+///
+/// # Examples
+///
+/// ```
+/// # use boa_engine::object::{JsObject, WeakJsObject};
+/// let object = JsObject::with_null_proto();
+/// let weak = WeakJsObject::new(&object);
+///
+/// // While `object` is alive, the weak reference can be upgraded.
+/// assert!(weak.upgrade().is_some());
+/// ```
+#[derive(Trace, Finalize)]
+pub struct WeakJsObject<T: NativeObject = ErasedObjectData> {
+    inner: WeakGc<VTableObject<T>>,
+}
+
+impl<T: NativeObject> WeakJsObject<T> {
+    /// Creates a new weak reference to the given [`JsObject`].
+    #[inline]
+    #[must_use]
+    pub fn new(object: &JsObject<T>) -> Self {
+        Self {
+            inner: WeakGc::new(object.inner()),
+        }
+    }
+
+    /// Upgrades the weak reference to a strong [`JsObject`] if the referenced object is still live,
+    /// or returns `None` if it was already garbage collected.
+    #[inline]
+    #[must_use]
+    pub fn upgrade(&self) -> Option<JsObject<T>> {
+        self.inner.upgrade().map(JsObject::from_inner)
+    }
+
+    /// Checks whether this weak reference can still be upgraded to a live [`JsObject`].
+    #[inline]
+    #[must_use]
+    pub fn is_upgradable(&self) -> bool {
+        self.inner.is_upgradable()
+    }
+}
+
+impl<T: NativeObject> From<&JsObject<T>> for WeakJsObject<T> {
+    fn from(object: &JsObject<T>) -> Self {
+        Self::new(object)
+    }
+}
+
+impl<T: NativeObject> Clone for WeakJsObject<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+// `PartialEq`/`Eq`/`Hash` are intentionally not implemented. The natural forwarding to `WeakGc`
+// would compare and hash by the *live* referent, so two references to the same object would stop
+// comparing equal (and change their hash) once that object is collected, breaking `Eq`'s
+// reflexivity and the `Hash`/`Eq` invariant for a collected key. To compare two weak references,
+// upgrade them first and compare the resulting `JsObject`s. These impls can be added later, without
+// a breaking change, if a collection-stable identity is designed.
+
+// `VTableObject` deliberately does not implement `Debug` to avoid recursing into the object graph
+// (which could overflow the stack), so we cannot derive `Debug` here. We provide a minimal,
+// non-recursive implementation instead.
+impl<T: NativeObject> Debug for WeakJsObject<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("WeakJsObject").finish_non_exhaustive()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{JsObject, WeakJsObject};
+    use boa_gc::force_collect;
+
+    #[test]
+    fn upgrade_while_referent_is_live() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+
+        assert!(weak.is_upgradable());
+        let upgraded = weak.upgrade().expect("referent is still alive");
+        assert_eq!(upgraded, object);
+    }
+
+    #[test]
+    fn upgrade_returns_none_after_referent_is_collected() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+
+        // While the strong reference is alive the weak one can be upgraded, even across a collection.
+        force_collect();
+        assert!(weak.is_upgradable());
+        assert!(weak.upgrade().is_some());
+
+        // Once the last strong reference is gone the referent can be collected.
+        drop(object);
+        force_collect();
+
+        assert!(!weak.is_upgradable());
+        assert!(weak.upgrade().is_none());
+    }
+
+    #[test]
+    fn clone_points_to_the_same_referent() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+        let cloned = weak.clone();
+
+        assert_eq!(
+            weak.upgrade().expect("live"),
+            cloned.upgrade().expect("live")
+        );
+    }
+
+    #[test]
+    fn upgraded_handle_keeps_referent_alive_across_collection() {
+        let object = JsObject::with_null_proto();
+        let weak = WeakJsObject::new(&object);
+        let strong = weak.upgrade().expect("referent is still alive");
+
+        // Drop the original binding; only the upgraded handle roots the referent now.
+        drop(object);
+        force_collect();
+        assert!(weak.is_upgradable());
+        assert_eq!(
+            weak.upgrade().expect("kept alive by the upgraded handle"),
+            strong
+        );
+
+        // Once the upgraded handle is gone too, the referent can be collected.
+        drop(strong);
+        force_collect();
+        assert!(!weak.is_upgradable());
+        assert!(weak.upgrade().is_none());
+    }
+
+    #[test]
+    fn all_weaks_to_same_referent_die_together() {
+        let object = JsObject::with_null_proto();
+        let first = WeakJsObject::new(&object);
+        let cloned = first.clone();
+        let second = WeakJsObject::new(&object);
+
+        drop(object);
+        force_collect();
+
+        assert!(!first.is_upgradable());
+        assert!(!cloned.is_upgradable());
+        assert!(!second.is_upgradable());
+    }
+
+    #[test]
+    fn works_with_a_typed_object() {
+        use crate::builtins::OrdinaryObject;
+
+        let object: JsObject<OrdinaryObject> = JsObject::new_unique(None, OrdinaryObject);
+        let weak: WeakJsObject<OrdinaryObject> = WeakJsObject::new(&object);
+
+        let upgraded: JsObject<OrdinaryObject> = weak.upgrade().expect("referent is still alive");
+        assert_eq!(upgraded, object);
+
+        drop(object);
+        drop(upgraded);
+        force_collect();
+        assert!(!weak.is_upgradable());
+        assert!(weak.upgrade().is_none());
+    }
+
+    #[test]
+    fn built_from_reference_via_conversion() {
+        let object = JsObject::with_null_proto();
+        let weak: WeakJsObject = (&object).into();
+
+        assert_eq!(weak.upgrade().expect("live"), object);
+    }
+}
