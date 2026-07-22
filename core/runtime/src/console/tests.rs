@@ -841,6 +841,24 @@ fn console_table_map_ignores_properties_filter() {
     assert!(logs.contains("Values"));
 }
 
+/// exception should be an alias for error.
+#[test]
+fn console_exception_is_alias_for_error() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                console.exception("hello world");
+            "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(logs, "hello world\n");
+}
+
 /// Set should ignore the properties filter and keep its fixed column layout.
 #[test]
 fn console_table_set_ignores_properties_filter() {

@@ -397,6 +397,11 @@ impl Console {
             0,
         )
         .function(
+            console_method(Self::error, state.clone(), logger.clone()),
+            js_string!("exception"),
+            0,
+        )
+        .function(
             console_method(Self::info, state.clone(), logger.clone()),
             js_string!("info"),
             0,
