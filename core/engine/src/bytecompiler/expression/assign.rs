@@ -6,7 +6,7 @@ use boa_ast::{
     Expression,
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::{Assign, assign::AssignOp},
+        operator::{Assign, assign::{AssignOp, AssignTarget}},
     },
     scope::BindingLocatorError,
 };
@@ -14,6 +14,14 @@ use boa_ast::{
 impl ByteCompiler<'_> {
     pub(crate) fn compile_assign(&mut self, assign: &Assign, dst: &Register) {
         let mut compiler = self.position_guard(assign);
+
+        // Annex B: a CallExpression as LHS is always a runtime ReferenceError.
+        // Evaluate the call (side effects), then throw — never evaluate the RHS.
+        #[cfg(feature = "annex-b")]
+        if let AssignTarget::Call(call) = assign.lhs() {
+            compiler.compile_call_as_invalid_lhs(call, dst);
+            return;
+        }
 
         if assign.op() == AssignOp::Assign {
             match Access::from_assign_target(assign.lhs()) {

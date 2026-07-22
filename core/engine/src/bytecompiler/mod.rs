@@ -416,6 +416,9 @@ impl Access<'_> {
             AssignTarget::Identifier(ident) => Ok(Access::Variable { name: *ident }),
             AssignTarget::Access(access) => Ok(Access::Property { access }),
             AssignTarget::Pattern(pat) => Err(pat),
+            // Annex B: handled before this function is called (compile_call_as_invalid_lhs).
+            #[cfg(feature = "annex-b")]
+            AssignTarget::Call(_) => unreachable!(),
         }
     }
 
@@ -433,6 +436,9 @@ impl Access<'_> {
         match target {
             UpdateTarget::Identifier(name) => Access::Variable { name: *name },
             UpdateTarget::PropertyAccess(access) => Access::Property { access },
+            // Annex B: handled before this function is called (compile_call_as_invalid_lhs).
+            #[cfg(feature = "annex-b")]
+            UpdateTarget::Call(_) => unreachable!(),
         }
     }
 }
@@ -1736,6 +1742,27 @@ impl<'ctx> ByteCompiler<'ctx> {
     #[inline]
     pub(crate) fn compile_expr(&mut self, expr: &Expression, dst: &'_ Register) {
         self.compile_expr_impl(expr, dst);
+    }
+
+    /// Annex B: compile a [`Call`] that appears as an invalid assignment target.
+    ///
+    /// Evaluates the call expression for its side effects (so `f()` runs),
+    /// then unconditionally throws a `ReferenceError` at runtime — without
+    /// evaluating the RHS or performing the assignment/update.
+    ///
+    /// See: <https://tc39.es/ecma262/#sec-runtime-errors-for-function-call-assignment-targets>
+    #[cfg(feature = "annex-b")]
+    pub(crate) fn compile_call_as_invalid_lhs(
+        &mut self,
+        call: &Call,
+        dst: &Register,
+    ) {
+        self.call(Callable::Call(call), CallResultDest::Register(dst));
+        let error_msg = self.get_or_insert_literal(Literal::String(js_string!(
+            "Invalid left-hand side in assignment"
+        )));
+        self.bytecode
+            .emit_throw_new_reference_error(error_msg.into());
     }
 
     /// Compile an expression purely for its side effects, discarding the result.
