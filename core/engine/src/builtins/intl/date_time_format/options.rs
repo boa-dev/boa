@@ -207,6 +207,10 @@ impl FormatOptions {
         })
     }
 
+    pub(super) fn fractional_second_digits(&self) -> Option<SubsecondDigits> {
+        self.fractional_second_digits
+    }
+
     pub(super) fn set_date_defaults(&mut self) {
         self.year = Some(Year::Numeric);
         self.month = Some(Month::Numeric);
@@ -534,6 +538,14 @@ impl SubsecondDigits {
             2 => SubsecondDigits::S2,
             3 => SubsecondDigits::S3,
             _ => unreachable!("subSecondDigits must be previously constrained."),
+        }
+    }
+
+    pub(super) fn digits(self) -> u8 {
+        match self {
+            SubsecondDigits::S1 => 1,
+            SubsecondDigits::S2 => 2,
+            SubsecondDigits::S3 => 3,
         }
     }
 }
