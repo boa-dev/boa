@@ -1351,7 +1351,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 });
             }
             None => {
-                self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
+                self.compile_expr_operand_snapshot(binary.lhs(), |compiler, lhs| {
                     compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
                         label_index = compiler.next_opcode_location();
                         emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
@@ -1823,6 +1823,40 @@ impl<'ctx> ByteCompiler<'ctx> {
         let op = reg.variable();
         inner_fn(self, op);
         self.register_allocator.dealloc(reg);
+    }
+
+    /// Compile an expression operand while preserving the value of mutable local identifiers.
+    ///
+    /// Mutable locals live in persistent registers. If compiling a later operand can mutate the
+    /// local, using that persistent register directly would observe the later value instead of the
+    /// value produced by the earlier expression. Snapshot mutable locals into a temporary register
+    /// before invoking the callback; immutable locals and cached constants remain on the fast path.
+    pub(crate) fn compile_expr_operand_snapshot(
+        &mut self,
+        expr: &Expression,
+        inner_fn: impl FnOnce(&mut Self, RegisterOperand),
+    ) {
+        if let Expression::Identifier(name) = expr {
+            let name = self.resolve_identifier_expect(*name);
+            let binding = self.lexical_scope.get_identifier_reference(name.clone());
+            let index = self.get_binding(&binding);
+            if let BindingKind::Local(Some(local_reg)) = &index {
+                if !matches!(self.lexical_scope.is_binding_mutable(&name), Some(false)) {
+                    let snapshot = self.register_allocator.alloc();
+                    self.bytecode
+                        .emit_move(snapshot.variable(), (*local_reg).into());
+                    let op = snapshot.variable();
+                    inner_fn(self, op);
+                    self.register_allocator.dealloc(snapshot);
+                    return;
+                }
+
+                inner_fn(self, (*local_reg).into());
+                return;
+            }
+        }
+
+        self.compile_expr_operand(expr, inner_fn);
     }
 
     /// Compile a property access expression, prepending `this` to the property value in the stack.

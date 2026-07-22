@@ -14,17 +14,17 @@ impl ByteCompiler<'_> {
     pub(crate) fn compile_binary(&mut self, binary: &Binary, dst: &Register) {
         match binary.op() {
             BinaryOp::Arithmetic(op) => {
-                self.compile_expr_operand(binary.lhs(), |self_, lhs| {
+                self.compile_expr_operand_snapshot(binary.lhs(), |self_, lhs| {
                     self_.compile_binary_arithmetic(op, binary.rhs(), dst, lhs);
                 });
             }
             BinaryOp::Bitwise(op) => {
-                self.compile_expr_operand(binary.lhs(), |self_, lhs| {
+                self.compile_expr_operand_snapshot(binary.lhs(), |self_, lhs| {
                     self_.compile_binary_bitwise(op, binary.rhs(), dst, lhs);
                 });
             }
             BinaryOp::Relational(op) => {
-                self.compile_expr_operand(binary.lhs(), |self_, lhs| {
+                self.compile_expr_operand_snapshot(binary.lhs(), |self_, lhs| {
                     self_.compile_binary_relational(op, binary.rhs(), dst, lhs);
                 });
             }
