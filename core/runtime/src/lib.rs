@@ -90,6 +90,21 @@
 //!     }
 //! };
 //! ```
+//!
+//! # `WinterTC` (TC55) re-exports
+//!
+//! Several platform APIs are part of the `WinterTC` (TC55) Minimum Common Web API and live in the
+//! [`boa_wintertc`] crate. They are re-exported from `boa_runtime` so existing users keep a single,
+//! unchanged import path:
+//!
+//! - [`base64`] — `atob` and `btoa`
+//! - [`clone`] — `structuredClone`
+//! - [`microtask`] — `queueMicrotask`
+//! - [`interval`] — the timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
+//!   kept under their historical `interval` name
+//!
+//! The [`store`] module holds the serialization core backing `structuredClone`. See each
+//! re-exported module for its full API documentation.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
@@ -107,10 +122,6 @@
 
 pub mod console;
 
-/// Base64 utility methods (`atob` and `btoa`), re-exported from [`boa_wintertc`].
-///
-/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
-/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
 #[doc(inline)]
 pub use boa_wintertc::base64;
 
@@ -120,40 +131,20 @@ pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 #[cfg(feature = "fetch")]
 pub mod abort;
 
-/// `structuredClone`, re-exported from [`boa_wintertc`].
-///
-/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
-/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
 #[doc(inline)]
 pub use boa_wintertc::clone;
 
 pub mod extensions;
 #[cfg(feature = "fetch")]
 pub mod fetch;
-/// Timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
-/// re-exported from [`boa_wintertc`].
-///
-/// These APIs are part of the `WinterTC` (TC55) Minimum Common Web API and are implemented in
-/// `boa_wintertc::timers`. The module is re-exported under its historical `interval` name so
-/// `boa_runtime` users keep a single, unchanged import path.
 #[doc(inline)]
 pub use boa_wintertc::timers as interval;
 pub mod message;
 
-/// `queueMicrotask`, re-exported from [`boa_wintertc`].
-///
-/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
-/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
 #[doc(inline)]
 pub use boa_wintertc::microtask;
 #[cfg(feature = "process")]
 pub mod process;
-/// [`JsValueStore`](boa_wintertc::store::JsValueStore) and related structured-data types,
-/// re-exported from [`boa_wintertc`].
-///
-/// This is the serialization core backing `structuredClone` (and, in the future, messaging).
-/// It lives in `boa_wintertc` and is re-exported here so `boa_runtime` internals (e.g. `message`)
-/// keep a single import path.
 #[doc(inline)]
 pub use boa_wintertc::store;
 /// Support for the `$262` test262 harness object.
