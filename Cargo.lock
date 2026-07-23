@@ -639,6 +639,7 @@ dependencies = [
  "boa_engine",
  "futures-lite",
  "indoc",
+ "rustc-hash 2.1.3",
  "textwrap",
 ]
 

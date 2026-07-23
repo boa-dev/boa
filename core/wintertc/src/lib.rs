@@ -29,6 +29,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+#![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![allow(
     clippy::module_name_repetitions,
     clippy::redundant_pub_crate,
@@ -44,6 +45,7 @@ pub mod events;
 #[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod microtask;
+pub mod store;
 pub mod timers;
 #[cfg(feature = "url")]
 pub mod url;
@@ -63,7 +65,9 @@ pub fn register(
     ctx: &mut boa_engine::Context,
 ) -> boa_engine::JsResult<()> {
     console::register(realm.clone(), ctx)?;
-    timers::register(realm.clone(), ctx)?;
+    // `timers` mirrors `boa_runtime::interval::register`, which does not take a
+    // realm (timer globals are registered directly on the context).
+    timers::register(ctx)?;
     encoding::register(realm.clone(), ctx)?;
     microtask::register(realm.clone(), ctx)?;
     clone::register(realm.clone(), ctx)?;

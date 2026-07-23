@@ -1,5 +1,5 @@
-use crate::interval;
 use crate::test::{TestAction, run_test_actions_with};
+use crate::timers as interval;
 use boa_engine::context::time::FixedClock;
 use boa_engine::context::{Clock, ContextBuilder};
 use boa_engine::job::{JobExecutor, SimpleJobExecutor};

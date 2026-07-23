@@ -90,6 +90,21 @@
 //!     }
 //! };
 //! ```
+//!
+//! # `WinterTC` (TC55) re-exports
+//!
+//! Several platform APIs are part of the `WinterTC` (TC55) Minimum Common Web API and live in the
+//! [`boa_wintertc`] crate. They are re-exported from `boa_runtime` so existing users keep a single,
+//! unchanged import path:
+//!
+//! - [`base64`] — `atob` and `btoa`
+//! - [`clone`] — `structuredClone`
+//! - [`microtask`] — `queueMicrotask`
+//! - [`interval`] — the timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
+//!   kept under their historical `interval` name
+//!
+//! The [`store`] module holds the serialization core backing `structuredClone`. See each
+//! re-exported module for its full API documentation.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
@@ -107,10 +122,6 @@
 
 pub mod console;
 
-/// Base64 utility methods (`atob` and `btoa`), re-exported from [`boa_wintertc`].
-///
-/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
-/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
 #[doc(inline)]
 pub use boa_wintertc::base64;
 
@@ -119,16 +130,23 @@ pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 #[cfg(feature = "fetch")]
 pub mod abort;
-pub mod clone;
+
+#[doc(inline)]
+pub use boa_wintertc::clone;
+
 pub mod extensions;
 #[cfg(feature = "fetch")]
 pub mod fetch;
-pub mod interval;
+#[doc(inline)]
+pub use boa_wintertc::timers as interval;
 pub mod message;
-pub mod microtask;
+
+#[doc(inline)]
+pub use boa_wintertc::microtask;
 #[cfg(feature = "process")]
 pub mod process;
-pub mod store;
+#[doc(inline)]
+pub use boa_wintertc::store;
 /// Support for the `$262` test262 harness object.
 #[cfg(feature = "test262")]
 pub mod test262;
@@ -264,6 +282,7 @@ pub(crate) mod test {
         }
 
         /// Executes `op` with the currently active context in an async environment.
+        #[allow(unused)]
         pub(crate) fn inspect_context_async(op: impl AsyncFnOnce(&mut Context) + 'static) -> Self {
             Self(Inner::InspectContextAsync {
                 op: Box::new(move |ctx| Box::pin(op(ctx))),
