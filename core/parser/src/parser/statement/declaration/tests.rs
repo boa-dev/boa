@@ -663,6 +663,22 @@ fn import_non_string_attribute_value() {
     );
 }
 
+/// Checks async arrow functions in default exports.
+#[test]
+fn default_export_async_arrow_function() {
+    let scope = boa_ast::scope::Scope::new_global();
+
+    for source in [
+        "export default async () => 1;",
+        "export default async x => x;",
+        "export default async (a, b) => a + b;",
+    ] {
+        Parser::new(Source::from_bytes(source))
+            .parse_module(&scope, &mut Interner::default())
+            .expect("async arrow function should parse as a default export");
+    }
+}
+
 /// Checks `using` declaration parsing.
 #[test]
 fn using_declaration() {
