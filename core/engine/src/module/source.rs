@@ -68,17 +68,17 @@ enum ModuleStatus {
         ancestor_index: usize,
     },
     PreLinked {
-        environment: Gc<DeclarativeEnvironment>,
+        environment: Gc<'static, DeclarativeEnvironment>,
         context: SourceTextContext,
         ancestor_index: usize,
     },
     Linked {
-        environment: Gc<DeclarativeEnvironment>,
+        environment: Gc<'static, DeclarativeEnvironment>,
         context: SourceTextContext,
         ancestor_index: usize,
     },
     Evaluating {
-        environment: Gc<DeclarativeEnvironment>,
+        environment: Gc<'static, DeclarativeEnvironment>,
         context: SourceTextContext,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
@@ -86,7 +86,7 @@ enum ModuleStatus {
         async_evaluation_order: Option<usize>,
     },
     EvaluatingAsync {
-        environment: Gc<DeclarativeEnvironment>,
+        environment: Gc<'static, DeclarativeEnvironment>,
         context: SourceTextContext,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
@@ -94,7 +94,7 @@ enum ModuleStatus {
         pending_async_dependencies: usize,
     },
     Evaluated {
-        environment: Gc<DeclarativeEnvironment>,
+        environment: Gc<'static, DeclarativeEnvironment>,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
         error: Option<JsError>,
@@ -196,7 +196,7 @@ impl ModuleStatus {
     }
 
     /// Gets the declarative environment from the module status.
-    fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
+    fn environment(&self) -> Option<Gc<'static, DeclarativeEnvironment>> {
         match self {
             ModuleStatus::Unlinked { .. } | ModuleStatus::Linking { .. } => None,
             ModuleStatus::PreLinked { environment, .. }
@@ -231,7 +231,7 @@ impl ModuleStatus {
 #[derive(Clone, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 struct SourceTextContext {
-    codeblock: Gc<CodeBlock>,
+    codeblock: Gc<'static, CodeBlock>,
     environments: EnvironmentStack,
     realm: Realm,
 }
@@ -2031,7 +2031,7 @@ impl SourceTextModule {
     }
 
     /// Gets the declarative environment of this module.
-    pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
+    pub(crate) fn environment(&self) -> Option<Gc<'static, DeclarativeEnvironment>> {
         self.status.borrow().environment()
     }
 }

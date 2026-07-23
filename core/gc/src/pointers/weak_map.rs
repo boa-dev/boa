@@ -12,7 +12,7 @@ use std::{fmt, hash::BuildHasher, marker::PhantomData};
 /// A map that holds weak references to its keys and is traced by the garbage collector.
 #[derive(Clone, Debug, Default, Finalize)]
 pub struct WeakMap<K: Trace + ?Sized + 'static, V: Trace + 'static> {
-    pub(crate) inner: Gc<GcRefCell<RawWeakMap<K, V>>>,
+    pub(crate) inner: Gc<'static, GcRefCell<RawWeakMap<K, V>>>,
 }
 
 unsafe impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Trace for WeakMap<K, V> {
@@ -21,7 +21,7 @@ unsafe impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Trace for WeakMap<K
     });
 }
 
-impl<K: Trace + ?Sized, V: Trace> WeakMap<K, V> {
+impl<K: Trace + ?Sized + 'static, V: Trace + 'static> WeakMap<K, V> {
     /// Creates a new `WeakMap`.
     #[must_use]
     #[inline]
@@ -31,28 +31,28 @@ impl<K: Trace + ?Sized, V: Trace> WeakMap<K, V> {
 
     /// Inserts a key-value pair into the map.
     #[inline]
-    pub fn insert(&mut self, key: &Gc<K>, value: V) {
+    pub fn insert(&mut self, key: &Gc<'_, K>, value: V) {
         self.inner.borrow_mut().insert(key, value);
     }
 
     /// Removes a key from the map, returning `true` if the key was previously in
     /// the map.
     #[inline]
-    pub fn remove(&mut self, key: &Gc<K>) -> bool {
+    pub fn remove(&mut self, key: &Gc<'_, K>) -> bool {
         self.inner.borrow_mut().remove(key)
     }
 
     /// Returns `true` if the map contains a value for the specified key.
     #[must_use]
     #[inline]
-    pub fn contains_key(&self, key: &Gc<K>) -> bool {
+    pub fn contains_key(&self, key: &Gc<'_, K>) -> bool {
         self.inner.borrow().contains_key(key)
     }
 
     /// Returns a reference to the ephemeron corresponding to the key.
     #[must_use]
     #[inline]
-    pub fn get<'a>(&'a self, key: &Gc<K>) -> Option<GcRef<'a, Ephemeron<K, V>>> {
+    pub fn get<'a>(&'a self, key: &Gc<'_, K>) -> Option<GcRef<'a, Ephemeron<K, V>>> {
         GcRef::try_map(self.inner.borrow(), |inner| inner.get(key))
     }
 }
@@ -277,7 +277,7 @@ where
     }
 
     /// Returns the ephemeron corresponding to the supplied key.
-    pub(crate) fn get(&self, k: &Gc<K>) -> Option<&Ephemeron<K, V>> {
+    pub(crate) fn get(&self, k: &Gc<'_, K>) -> Option<&Ephemeron<K, V>> {
         if self.table.is_empty() {
             None
         } else {
@@ -287,7 +287,7 @@ where
     }
 
     /// Returns `true` if the map contains a value for the specified key.
-    pub(crate) fn contains_key(&self, k: &Gc<K>) -> bool {
+    pub(crate) fn contains_key(&self, k: &Gc<'_, K>) -> bool {
         self.get(k).is_some()
     }
 
@@ -297,7 +297,7 @@ where
     ///
     /// If the map did have this key present, the value is updated, and the old
     /// value is returned. The key is not updated.
-    pub(crate) fn insert(&mut self, k: &Gc<K>, v: V) -> Option<Ephemeron<K, V>> {
+    pub(crate) fn insert(&mut self, k: &Gc<'_, K>, v: V) -> Option<Ephemeron<K, V>> {
         let hash = make_hash_from_gc(&self.hash_builder, k);
         let hasher = make_hasher(&self.hash_builder);
         let entry = self.table.entry(hash, equivalent_key(k), hasher);
@@ -315,7 +315,7 @@ where
 
     /// Removes a key from the map, returning `true` if the key
     /// was previously in the map. Keeps the allocated memory for reuse.
-    pub(crate) fn remove(&mut self, k: &Gc<K>) -> bool {
+    pub(crate) fn remove(&mut self, k: &Gc<'_, K>) -> bool {
         let hash = make_hash_from_gc(&self.hash_builder, k);
         if let Ok(entry) = self.table.find_entry(hash, equivalent_key(k)) {
             entry.remove();
@@ -424,7 +424,7 @@ where
     state.finish()
 }
 
-fn make_hash_from_gc<K, S>(hash_builder: &S, gc: &Gc<K>) -> u64
+fn make_hash_from_gc<K, S>(hash_builder: &S, gc: &Gc<'_, K>) -> u64
 where
     S: BuildHasher,
     K: Trace + ?Sized + 'static,
@@ -435,7 +435,7 @@ where
     state.finish()
 }
 
-fn equivalent_key<K, V>(k: &Gc<K>) -> impl Fn(&Ephemeron<K, V>) -> bool + '_
+fn equivalent_key<'a, K, V>(k: &'a Gc<'a, K>) -> impl Fn(&Ephemeron<K, V>) -> bool + 'a
 where
     K: Trace + ?Sized + 'static,
     V: Trace + 'static,

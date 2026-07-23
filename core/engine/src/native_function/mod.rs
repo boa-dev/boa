@@ -134,7 +134,7 @@ pub struct NativeFunction {
 #[derive(Clone)]
 enum Inner {
     PointerFn(NativeFunctionPointer),
-    Closure(Gc<dyn TraceableClosure>),
+    Closure(Gc<'static, dyn TraceableClosure>),
 }
 
 // Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.

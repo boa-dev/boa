@@ -316,7 +316,7 @@ fn set_internal_method() {
     assert_eq!(context.slot().index, slot.index);
 }
 
-fn get_codeblock(value: &JsValue) -> Option<(JsObject, Gc<CodeBlock>)> {
+fn get_codeblock(value: &JsValue) -> Option<(JsObject, Gc<'static, CodeBlock>)> {
     let object = value.as_object()?.clone();
     let code = object.downcast_ref::<OrdinaryFunction>()?.code.clone();
 

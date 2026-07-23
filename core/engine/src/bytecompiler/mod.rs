@@ -812,7 +812,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     #[inline]
     #[must_use]
-    pub(crate) fn push_function_to_constants(&mut self, function: Gc<CodeBlock>) -> u32 {
+    pub(crate) fn push_function_to_constants(&mut self, function: Gc<'static, CodeBlock>) -> u32 {
         let index = self.constants.len() as u32;
         self.constants.push(Constant::Function(function));
         index

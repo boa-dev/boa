@@ -201,7 +201,7 @@ impl<T> JsData for Cell<Option<T>> {}
 #[cfg(feature = "intl")]
 default_impls!(icu_locale::Locale);
 
-impl<T: Trace + ?Sized> JsData for Gc<T> {}
+impl<T: Trace + ?Sized> JsData for Gc<'static, T> {}
 
 impl<T: Trace + ?Sized> JsData for WeakGc<T> {}
 

@@ -30,7 +30,7 @@ use crate::{
 /// [spec]: https://tc39.es/ecma262/#sec-script-records
 #[derive(Clone, Trace, Finalize)]
 pub struct Script {
-    inner: Gc<Inner>,
+    inner: Gc<'static, Inner>,
 }
 
 impl std::fmt::Debug for Script {
@@ -46,7 +46,7 @@ impl std::fmt::Debug for Script {
 #[derive(Trace, Debug, Finalize)]
 enum ScriptPhase {
     Ast(#[unsafe_ignore_trace] boa_ast::Script),
-    Codeblock(Gc<CodeBlock>),
+    Codeblock(Gc<'static, CodeBlock>),
 }
 
 #[derive(Trace, Finalize)]
@@ -118,7 +118,7 @@ impl Script {
     /// Compiles the codeblock of this script.
     ///
     /// This is a no-op if this has been called previously.
-    pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<CodeBlock>> {
+    pub fn codeblock(&self, context: &mut Context) -> JsResult<Gc<'static, CodeBlock>> {
         let cb = {
             let phase = self.inner.phase.borrow();
             let source = match &*phase {

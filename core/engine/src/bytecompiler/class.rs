@@ -20,11 +20,11 @@ use thin_vec::ThinVec;
 // Static class elements that are initialized at a later time in the class creation.
 enum StaticElement {
     // A static class block with it's function code.
-    StaticBlock(Gc<CodeBlock>),
+    StaticBlock(Gc<'static, CodeBlock>),
 
     // A static class field with it's function code, an optional name index and the information if the function is an anonymous function.
     StaticField {
-        code: Gc<CodeBlock>,
+        code: Gc<'static, CodeBlock>,
         name_index: StaticFieldName,
         is_anonymous_function: bool,
     },

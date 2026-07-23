@@ -100,7 +100,7 @@ impl Handler {
 pub(crate) enum Constant {
     /// Property field names and private names `[[description]]`s.
     String(JsString),
-    Function(Gc<CodeBlock>),
+    Function(Gc<'static, CodeBlock>),
     BigInt(#[unsafe_ignore_trace] JsBigInt),
 
     /// Declarative or function scope.
@@ -324,13 +324,13 @@ impl CodeBlock {
         panic!("expected string constant at index {index}")
     }
 
-    /// Get the function ([`Gc<CodeBlock>`]) constant from the [`CodeBlock`].
+    /// Get the function ([`Gc<'static, CodeBlock>`]) constant from the [`CodeBlock`].
     ///
     /// # Panics
     ///
     /// If the type of the [`Constant`] is not [`Constant::Function`].
     /// Or `index` is greater or equal to length of `constants`.
-    pub(crate) fn constant_function(&self, index: usize) -> Gc<Self> {
+    pub(crate) fn constant_function(&self, index: usize) -> Gc<'static, Self> {
         if let Some(Constant::Function(value)) = self.constants.get(index) {
             return value.clone();
         }
@@ -1092,7 +1092,7 @@ impl Display for CodeBlock {
 ///
 /// This is slower than direct object template construction that is done in [`create_function_object_fast`].
 pub(crate) fn create_function_object(
-    code: Gc<CodeBlock>,
+    code: Gc<'static, CodeBlock>,
     prototype: JsObject,
     context: &mut Context,
 ) -> JsObject {
@@ -1163,7 +1163,10 @@ pub(crate) fn create_function_object(
 /// This is preferred over [`create_function_object`] if prototype is [`None`],
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
-pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
+pub(crate) fn create_function_object_fast(
+    code: Gc<'static, CodeBlock>,
+    context: &mut Context,
+) -> JsObject {
     let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 

@@ -46,7 +46,7 @@ pub struct CallFrameLocation {
 /// A `CallFrame` holds the state of a function call.
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
-    pub(crate) code_block: Gc<CodeBlock>,
+    pub(crate) code_block: Gc<'static, CodeBlock>,
     pub(crate) pc: u32,
     /// The frame pointer, points to the start of this frame's data in the stack
     /// (i.e., the `this` value position).
@@ -87,7 +87,7 @@ impl CallFrame {
     /// Retrieves the [`CodeBlock`] of this call frame.
     #[inline]
     #[must_use]
-    pub const fn code_block(&self) -> &Gc<CodeBlock> {
+    pub const fn code_block(&self) -> &Gc<'static, CodeBlock> {
         &self.code_block
     }
 
@@ -136,7 +136,7 @@ impl CallFrame {
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
-        code_block: Gc<CodeBlock>,
+        code_block: Gc<'static, CodeBlock>,
         active_runnable: Option<ActiveRunnable>,
         environments: EnvironmentStack,
         realm: Realm,

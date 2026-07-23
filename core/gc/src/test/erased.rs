@@ -33,7 +33,7 @@ mod miri {
         #[derive(Debug, Trace, Finalize)]
         struct List {
             value: i32,
-            next: Option<GcErased>,
+            next: Option<GcErased<'static>>,
         }
 
         run_test(|| {

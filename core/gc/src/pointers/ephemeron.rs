@@ -15,7 +15,7 @@ use std::{ops::Deref, ptr::NonNull};
 #[derive(Debug)]
 pub struct EphemeronValueRef<'a, K: Trace + ?Sized + 'static, V> {
     // Only required to maintain the reference `&V` alive.
-    _key: Gc<K>,
+    _key: Gc<'a, K>,
     value: &'a V,
 }
 
@@ -45,7 +45,7 @@ pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + 'static> {
 impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     /// Creates a new `Ephemeron`.
     #[must_use]
-    pub fn new(key: &Gc<K>, value: V) -> Self {
+    pub fn new(key: &Gc<'_, K>, value: V) -> Self {
         let inner_ptr = Allocator::alloc_ephemeron(EphemeronBox::new(key, value));
         Self { inner_ptr }
     }
@@ -53,7 +53,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     /// Gets the stored key of this `Ephemeron`, or `None` if the key was already garbage collected.
     #[inline]
     #[must_use]
-    pub fn key(&self) -> Option<Gc<K>> {
+    pub fn key(&self) -> Option<Gc<'static, K>> {
         // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
         // `inner_ptr`.
         let key_ptr = unsafe { self.inner_ptr.as_ref().key_ptr() }?;

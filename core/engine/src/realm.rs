@@ -30,7 +30,7 @@ use rustc_hash::FxHashMap;
 /// In the specification these are called Realm Records.
 #[derive(Clone, Trace, Finalize)]
 pub struct Realm {
-    inner: Gc<Inner>,
+    inner: Gc<'static, Inner>,
 }
 
 impl Eq for Realm {}
@@ -57,7 +57,7 @@ struct Inner {
     intrinsics: Intrinsics,
 
     /// The global declarative environment of this realm.
-    environment: Gc<DeclarativeEnvironment>,
+    environment: Gc<'static, DeclarativeEnvironment>,
 
     /// The global scope of this realm.
     /// This is directly related to the global declarative environment.
@@ -162,7 +162,7 @@ impl Realm {
             .cloned()
     }
 
-    pub(crate) fn environment(&self) -> &Gc<DeclarativeEnvironment> {
+    pub(crate) fn environment(&self) -> &Gc<'static, DeclarativeEnvironment> {
         &self.inner.environment
     }
 

@@ -15,7 +15,7 @@ impl<T: Trace + ?Sized> WeakGc<T> {
     /// Creates a new weak pointer for a garbage collected value.
     #[inline]
     #[must_use]
-    pub fn new(value: &Gc<T>) -> Self {
+    pub fn new(value: &Gc<'_, T>) -> Self {
         Self {
             inner: Ephemeron::new(value, ()),
         }
@@ -25,7 +25,7 @@ impl<T: Trace + ?Sized> WeakGc<T> {
     /// if the value was already garbage collected.
     #[inline]
     #[must_use]
-    pub fn upgrade(&self) -> Option<Gc<T>> {
+    pub fn upgrade(&self) -> Option<Gc<'static, T>> {
         self.inner.key()
     }
 
