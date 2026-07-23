@@ -646,7 +646,7 @@ impl Promise {
             #[unsafe_ignore_trace]
             already_called: Rc<Cell<bool>>,
             index: usize,
-            values: Gc<GcRefCell<Vec<JsValue>>>,
+            values: Gc<'static, GcRefCell<Vec<JsValue>>>,
             capability_resolve: JsFunction,
             #[unsafe_ignore_trace]
             remaining_elements_count: Rc<Cell<i32>>,
@@ -861,7 +861,7 @@ impl Promise {
             #[unsafe_ignore_trace]
             already_called: Rc<Cell<bool>>,
             index: usize,
-            values: Gc<GcRefCell<Vec<JsValue>>>,
+            values: Gc<'static, GcRefCell<Vec<JsValue>>>,
             capability: JsFunction,
             #[unsafe_ignore_trace]
             remaining_elements: Rc<Cell<i32>>,
@@ -1222,7 +1222,7 @@ impl Promise {
             variant: KeyedVariant,
             #[unsafe_ignore_trace]
             keys: Rc<RefCell<Vec<PropertyKey>>>,
-            values: Gc<GcRefCell<Vec<JsValue>>>,
+            values: Gc<'static, GcRefCell<Vec<JsValue>>>,
             capability: JsFunction,
             #[unsafe_ignore_trace]
             remaining_elements: Rc<Cell<i32>>,
@@ -1538,7 +1538,7 @@ impl Promise {
             #[unsafe_ignore_trace]
             already_called: Rc<Cell<bool>>,
             index: usize,
-            errors: Gc<GcRefCell<Vec<JsValue>>>,
+            errors: Gc<'static, GcRefCell<Vec<JsValue>>>,
             capability_reject: JsFunction,
             #[unsafe_ignore_trace]
             remaining_elements_count: Rc<Cell<i32>>,

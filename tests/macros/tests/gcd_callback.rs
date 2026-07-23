@@ -8,7 +8,7 @@ use boa_gc::Gc;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-fn callback_from_js(ContextData(r): ContextData<Gc<AtomicUsize>>, result: usize) {
+fn callback_from_js(ContextData(r): ContextData<Gc<'static, AtomicUsize>>, result: usize) {
     r.store(result, Ordering::Relaxed);
 }
 

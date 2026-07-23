@@ -53,7 +53,7 @@ where
 /// **Undefined Behaviour**.
 #[derive(Clone, Trace, Finalize)]
 pub struct SyntheticModuleInitializer {
-    inner: Gc<dyn TraceableCallback>,
+    inner: Gc<'static, dyn TraceableCallback>,
 }
 
 impl std::fmt::Debug for SyntheticModuleInitializer {
@@ -147,11 +147,11 @@ enum ModuleStatus {
     #[default]
     Unlinked,
     Linked {
-        environment: Gc<DeclarativeEnvironment>,
-        eval_context: (EnvironmentStack, Gc<CodeBlock>),
+        environment: Gc<'static, DeclarativeEnvironment>,
+        eval_context: (EnvironmentStack, Gc<'static, CodeBlock>),
     },
     Evaluated {
-        environment: Gc<DeclarativeEnvironment>,
+        environment: Gc<'static, DeclarativeEnvironment>,
         promise: JsPromise,
     },
 }
@@ -450,7 +450,7 @@ impl SyntheticModule {
         Ok(promise)
     }
 
-    pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
+    pub(crate) fn environment(&self) -> Option<Gc<'static, DeclarativeEnvironment>> {
         match &*self.state.borrow() {
             ModuleStatus::Unlinked => None,
             ModuleStatus::Linked { environment, .. }

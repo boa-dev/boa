@@ -170,7 +170,7 @@ impl ModuleRequest {
 /// [spec]: https://tc39.es/ecma262/#sec-abstract-module-records
 #[derive(Clone, Trace, Finalize)]
 pub struct Module {
-    inner: Gc<ModuleRepr>,
+    inner: Gc<'static, ModuleRepr>,
 }
 
 impl std::fmt::Debug for Module {
@@ -382,7 +382,7 @@ impl Module {
     }
 
     /// Gets the declarative environment of this `Module`.
-    pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
+    pub(crate) fn environment(&self) -> Option<Gc<'static, DeclarativeEnvironment>> {
         match self.kind() {
             ModuleKind::SourceText(src) => src.environment(),
             ModuleKind::Synthetic(syn) => syn.environment(),
@@ -808,7 +808,7 @@ fn into_js_module() {
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    type ResultType = Gc<GcRefCell<JsValue>>;
+    type ResultType = Gc<'static, GcRefCell<JsValue>>;
 
     let loader = Rc::new(MapModuleLoader::default());
     let mut context = Context::builder()

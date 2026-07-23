@@ -54,7 +54,11 @@ pub(super) struct ForwardTransition {
 
 impl ForwardTransition {
     /// Insert a property transition.
-    pub(super) fn insert_property(&self, key: TransitionKey, value: &Gc<SharedShapeInner>) {
+    pub(super) fn insert_property(
+        &self,
+        key: TransitionKey,
+        value: &Gc<'static, SharedShapeInner>,
+    ) {
         let mut this = self.inner.borrow_mut();
         let properties = this.properties.get_or_insert_with(Box::default);
 
@@ -66,7 +70,7 @@ impl ForwardTransition {
     }
 
     /// Insert a prototype transition.
-    pub(super) fn insert_prototype(&self, key: JsPrototype, value: &Gc<SharedShapeInner>) {
+    pub(super) fn insert_prototype(&self, key: JsPrototype, value: &Gc<'static, SharedShapeInner>) {
         let mut this = self.inner.borrow_mut();
         let prototypes = this.prototypes.get_or_insert_with(Box::default);
 

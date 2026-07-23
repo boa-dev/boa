@@ -16,7 +16,7 @@ struct Data<K: Trace + ?Sized + 'static, V: Trace + 'static> {
 
 impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     /// Creates a new `EphemeronBox` that tracks `key` and has `value` as its inner data.
-    pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
+    pub(crate) fn new(key: &Gc<'_, K>, value: V) -> Self {
         Self {
             header: GcHeader::new(),
             data: UnsafeCell::new(Some(Data {
@@ -88,7 +88,7 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     ///
     /// The caller must ensure there are no live mutable references to the ephemeron box's data
     /// before calling this method.
-    pub(crate) unsafe fn set(&self, key: &Gc<K>, value: V) {
+    pub(crate) unsafe fn set(&self, key: &Gc<'_, K>, value: V) {
         // SAFETY: The caller must ensure setting the key and value of the ephemeron box is safe.
         unsafe {
             *self.data.get() = Some(Data {

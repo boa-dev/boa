@@ -41,7 +41,7 @@ mod miri {
             #[derive(Debug, Finalize, Trace)]
             struct S {
                 i: usize,
-                next: Option<Gc<S>>,
+                next: Option<Gc<'static, S>>,
             }
 
             const SIZE: usize = size_of::<GcBox<S>>();
