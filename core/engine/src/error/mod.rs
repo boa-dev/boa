@@ -1310,6 +1310,13 @@ impl JsNativeError {
     ///     js_string!("error!").into()
     /// )
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the error's `cause` or any of the errors in an [`AggregateError`][JsNativeErrorKind::Aggregate]
+    /// is an engine error, as engine errors cannot be converted to opaque JS values.
+    /// Also panics if defining the `errors` property on an `AggregateError` object fails,
+    /// which cannot happen on a newly created object.
     #[inline]
     pub fn into_opaque(self, context: &mut Context) -> JsObject {
         let Self {
