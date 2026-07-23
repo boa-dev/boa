@@ -176,6 +176,33 @@ impl TryFromJs for f64 {
     }
 }
 
+impl TryFromJs for f32 {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+        if let Some(i) = value.0.as_integer32() {
+            Ok(i as Self)
+        } else if let Some(f) = value.0.as_float64() {
+            Ok(f as Self)
+        } else {
+            Err(JsNativeError::typ()
+                .with_message("cannot convert value to a f32")
+                .into())
+        }
+    }
+}
+
+#[test]
+fn numeric_js_value_to_f32() {
+    let context = &mut Context::default();
+
+    assert_eq!(f32::try_from_js(&JsValue::from(4), context), Ok(4.0));
+    assert_eq!(f32::try_from_js(&JsValue::from(1.5), context), Ok(1.5));
+    assert_eq!(
+        f32::try_from_js(&JsValue::positive_infinity(), context),
+        Ok(f32::INFINITY)
+    );
+    assert!(f32::try_from_js(&JsValue::from(JsString::from("not a number")), context).is_err());
+}
+
 fn from_f64<T>(v: f64) -> Option<T>
 where
     T: AsPrimitive<f64>,
