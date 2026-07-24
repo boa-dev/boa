@@ -110,7 +110,7 @@ struct Inner {
 /// Represents a shared object shape.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct SharedShape {
-    inner: Gc<Inner>,
+    inner: Gc<'static, Inner>,
 }
 
 impl SharedShape {

@@ -1,4 +1,7 @@
-use super::*;
+use super::{
+    Cell, EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, Gc, GcBox, GcRefCell, NonNull,
+    NonTraceable, RawWeakMap, RefCell, Trace, Tracer, WeakGc, WeakMap, WeakMapBox, mem,
+};
 
 pub(crate) type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 pub(crate) type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;

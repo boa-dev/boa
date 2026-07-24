@@ -166,7 +166,7 @@ unsafe impl Trace for ClassFieldDefinition {
 #[derive(Debug, Trace, Finalize)]
 pub struct OrdinaryFunction {
     /// The code block containing the compiled function.
-    pub(crate) code: Gc<CodeBlock>,
+    pub(crate) code: Gc<'static, CodeBlock>,
 
     /// The `[[Environment]]` internal slot.
     pub(crate) environments: EnvironmentStack,
@@ -210,7 +210,7 @@ impl JsData for OrdinaryFunction {
 
 impl OrdinaryFunction {
     pub(crate) fn new(
-        code: Gc<CodeBlock>,
+        code: Gc<'static, CodeBlock>,
         environments: EnvironmentStack,
         script_or_module: Option<ActiveRunnable>,
         realm: Realm,
@@ -233,7 +233,10 @@ impl OrdinaryFunction {
     }
 
     /// Push a private environment to the function.
-    pub(crate) fn push_private_environment(&mut self, environment: Gc<PrivateEnvironment>) {
+    pub(crate) fn push_private_environment(
+        &mut self,
+        environment: Gc<'static, PrivateEnvironment>,
+    ) {
         self.environments.push_private(environment);
     }
 

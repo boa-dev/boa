@@ -148,7 +148,7 @@ mod miri {
         }
         #[derive(Trace, Finalize, Clone)]
         struct TestCell {
-            inner: Gc<InnerCell>,
+            inner: Gc<'static, InnerCell>,
         }
         run_test(|| {
             let root = TestCell {
@@ -182,7 +182,7 @@ mod miri {
     fn eph_self_referential_chain() {
         #[derive(Trace, Finalize, Clone)]
         struct TestCell {
-            inner: Gc<GcRefCell<Option<Ephemeron<u8, TestCell>>>>,
+            inner: Gc<'static, GcRefCell<Option<Ephemeron<u8, TestCell>>>>,
         }
         run_test(|| {
             let root = Gc::new(GcRefCell::new(None));
@@ -301,7 +301,7 @@ mod miri {
         type Inner = GcRefCell<(Option<TestCell>, Option<TestCell>)>;
         #[derive(Trace, Finalize, Clone)]
         struct TestCell {
-            inner: Gc<Inner>,
+            inner: Gc<'static, Inner>,
         }
         run_test(|| {
             let root = TestCell {

@@ -1427,7 +1427,7 @@ impl TryIntoJs for JsPromise {
 ///
 /// The only way to construct an instance of `JsFuture` is by calling [`JsPromise::into_js_future`].
 pub struct JsFuture {
-    inner: Gc<GcRefCell<Inner>>,
+    inner: Gc<'static, GcRefCell<Inner>>,
 }
 
 impl std::fmt::Debug for JsFuture {

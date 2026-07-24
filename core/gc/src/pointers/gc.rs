@@ -49,15 +49,15 @@ impl Drop for NonTraceable {
 
 /// A type erased [`Gc<T>`] pointer type.
 #[repr(transparent)]
-pub struct GcErased {
-    inner: Gc<NonTraceable>,
+pub struct GcErased<'gc> {
+    inner: Gc<'gc, NonTraceable>,
 }
 
-impl GcErased {
+impl<'gc> GcErased<'gc> {
     /// Convert a [`Gc<T>`] into a type erased [`GcErased`].
     #[inline]
     #[must_use]
-    pub fn new<T: Trace>(gc: Gc<T>) -> Self {
+    pub fn new<T: Trace>(gc: Gc<'gc, T>) -> Self {
         let inner_ptr = gc.inner_ptr;
         std::mem::forget(gc);
 
@@ -79,21 +79,25 @@ impl GcErased {
     #[inline]
     #[must_use]
     pub fn type_id(&self) -> TypeId {
-        Gc::type_id(&self.inner)
+        self.inner.vtable().type_id()
     }
 
     /// Returns true if the inner type is the same as `T`.
     #[inline]
     #[must_use]
     pub fn is<T: Trace + 'static>(&self) -> bool {
-        Gc::is::<T>(&self.inner)
+        self.type_id() == TypeId::of::<T>()
     }
 
-    /// Returns [`Some`] `Gc<T>` if it is of type `T`, or [`None`] if it isn’t.
+    /// Returns [`Some`] `Gc<T>` if it is of type `T`, or [`None`] if it isn't.
     #[inline]
     #[must_use]
-    pub fn downcast<T: Trace + 'static>(self) -> Option<Gc<T>> {
-        Gc::downcast::<T>(self.inner)
+    pub fn downcast<T: Trace + 'static>(self) -> Option<Gc<'gc, T>> {
+        if !self.is::<T>() {
+            return None;
+        }
+        // SAFETY: verified the type above
+        Some(unsafe { Gc::cast_unchecked::<T>(self.inner) })
     }
 
     /// Downcast the inner value of type `T`.
@@ -103,7 +107,7 @@ impl GcErased {
     /// The caller must ensure that the cast is valid.
     #[inline]
     #[must_use]
-    pub unsafe fn downcast_unchecked<T: Trace + 'static>(self) -> Gc<T> {
+    pub unsafe fn downcast_unchecked<T: Trace + 'static>(self) -> Gc<'gc, T> {
         // SAFETY: It's the callers responsibility to make sure this is valid.
         unsafe { Gc::cast_unchecked::<T>(self.inner) }
     }
@@ -115,13 +119,13 @@ impl GcErased {
     /// The caller must ensure that the cast is valid.
     #[inline]
     #[must_use]
-    pub unsafe fn downcast_ref_unchecked<T: Trace + 'static>(&self) -> &Gc<T> {
+    pub unsafe fn downcast_ref_unchecked<T: Trace + 'static>(&self) -> &Gc<'gc, T> {
         // SAFETY: It's the callers responsibility to make sure this is valid.
         unsafe { Gc::cast_ref_unchecked::<T>(&self.inner) }
     }
 }
 
-impl Debug for GcErased {
+impl Debug for GcErased<'_> {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("GcErased")
@@ -130,19 +134,19 @@ impl Debug for GcErased {
     }
 }
 
-impl Finalize for GcErased {
+impl Finalize for GcErased<'_> {
     fn finalize(&self) {}
 }
 
 // SAFETY: We only have one transparent field in GcErased that needs trace,
 //         so this is safe.
-unsafe impl Trace for GcErased {
+unsafe impl Trace for GcErased<'_> {
     custom_trace!(this, mark, {
         mark(&this.inner);
     });
 }
 
-impl Clone for GcErased {
+impl Clone for GcErased<'_> {
     #[inline]
     fn clone(&self) -> Self {
         Self {
@@ -152,12 +156,14 @@ impl Clone for GcErased {
 }
 
 /// A garbage-collected pointer type over an immutable value.
-pub struct Gc<T: Trace + ?Sized + 'static> {
+pub struct Gc<'gc, T: Trace + ?Sized + 'static> {
     pub(crate) inner_ptr: NonNull<GcBox<T>>,
-    pub(crate) marker: PhantomData<Rc<T>>,
+    // `Rc<T>` makes `Gc` invariant over `T` and non-`Send`/non-`Sync`,
+    // `&'gc ()` brands the pointer to a specific gc arena lifetime
+    pub(crate) marker: PhantomData<(Rc<T>, PhantomData<&'gc ()>)>,
 }
 
-impl<T: Trace + ?Sized> Gc<T> {
+impl<'gc, T: Trace + ?Sized + 'static> Gc<'gc, T> {
     /// Constructs a new `Gc<T>` with the given value.
     #[must_use]
     pub fn new(value: T) -> Self
@@ -217,7 +223,7 @@ impl<T: Trace + ?Sized> Gc<T> {
 
     /// Returns `true` if the two `Gc`s point to the same allocation.
     #[must_use]
-    pub fn ptr_eq<U: Trace + ?Sized>(this: &Self, other: &Gc<U>) -> bool {
+    pub fn ptr_eq<U: Trace + ?Sized + 'static>(this: &Self, other: &Gc<'_, U>) -> bool {
         std::ptr::addr_eq(this.inner(), other.inner())
     }
 
@@ -259,7 +265,7 @@ impl<T: Trace + ?Sized> Gc<T> {
     /// Returns [`Some`] reference to the inner value if it is of type `T`, or [`None`] if it isn’t.
     #[inline]
     #[must_use]
-    pub fn downcast<U: Trace + 'static>(this: Self) -> Option<Gc<U>> {
+    pub fn downcast<U: Trace + 'static>(this: Self) -> Option<Gc<'gc, U>> {
         if !Gc::is::<U>(&this) {
             return None;
         }
@@ -275,7 +281,7 @@ impl<T: Trace + ?Sized> Gc<T> {
     /// The caller must ensure that the cast is valid.
     #[inline]
     #[must_use]
-    pub unsafe fn cast_unchecked<U: Trace + 'static>(this: Self) -> Gc<U> {
+    pub unsafe fn cast_unchecked<U: Trace + 'static>(this: Self) -> Gc<'gc, U> {
         let inner_ptr = this.inner_ptr.cast::<U>();
         core::mem::forget(this); // Prevents double free.
         Gc {
@@ -291,14 +297,14 @@ impl<T: Trace + ?Sized> Gc<T> {
     /// The caller must ensure that the cast is valid.
     #[inline]
     #[must_use]
-    pub unsafe fn cast_ref_unchecked<U: Trace + 'static>(this: &Self) -> &Gc<U> {
+    pub unsafe fn cast_ref_unchecked<U: Trace + 'static>(this: &Self) -> &Gc<'gc, U> {
         // SAFETY: Casting a Gc<T> to a Gc<U> of any type is safe, as long as you don’t actually access it as a U.
         //         The correct functions for T will still be called during tracing, finalization, and dropping.
-        unsafe { &(*(&raw const *this).cast::<Gc<U>>()) }
+        unsafe { &(*(&raw const *this).cast::<Gc<'_, U>>()) }
     }
 }
 
-impl<T: Trace + ?Sized> Gc<T> {
+impl<T: Trace + ?Sized + 'static> Gc<'_, T> {
     pub(crate) fn vtable(&self) -> &'static VTable {
         // SAFETY: The inner pointer is valid at all times.
         unsafe { self.inner_ptr.as_ref() }.vtable
@@ -317,7 +323,7 @@ impl<T: Trace + ?Sized> Gc<T> {
     }
 }
 
-impl<T: Trace + ?Sized> Finalize for Gc<T> {
+impl<T: Trace + ?Sized + 'static> Finalize for Gc<'_, T> {
     fn finalize(&self) {
         // SAFETY: inner_ptr should be alive when calling finalize.
         // We don't call inner_ptr() to avoid overhead of calling finalizer_safe().
@@ -329,7 +335,7 @@ impl<T: Trace + ?Sized> Finalize for Gc<T> {
 
 // SAFETY: `Gc` maintains it's own rootedness and implements all methods of
 // Trace. It is not possible to root an already rooted `Gc` and vice versa.
-unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
+unsafe impl<T: Trace + ?Sized + 'static> Trace for Gc<'_, T> {
     unsafe fn trace(&self, tracer: &mut Tracer) {
         tracer.enqueue(self.as_erased_pointer());
     }
@@ -343,7 +349,7 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     }
 }
 
-impl<T: Trace + ?Sized> Clone for Gc<T> {
+impl<T: Trace + ?Sized + 'static> Clone for Gc<'_, T> {
     fn clone(&self) -> Self {
         let ptr = self.inner_ptr();
         // SAFETY: though `ptr` doesn't come from a `into_raw` call, it essentially does the same,
@@ -356,7 +362,7 @@ impl<T: Trace + ?Sized> Clone for Gc<T> {
     }
 }
 
-impl<T: Trace + ?Sized> Deref for Gc<T> {
+impl<T: Trace + ?Sized + 'static> Deref for Gc<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &T {
@@ -364,7 +370,7 @@ impl<T: Trace + ?Sized> Deref for Gc<T> {
     }
 }
 
-impl<T: Trace + ?Sized> Drop for Gc<T> {
+impl<T: Trace + ?Sized + 'static> Drop for Gc<'_, T> {
     fn drop(&mut self) {
         if finalizer_safe() {
             Finalize::finalize(self);
@@ -372,24 +378,24 @@ impl<T: Trace + ?Sized> Drop for Gc<T> {
     }
 }
 
-impl<T: Trace + Default> Default for Gc<T> {
+impl<T: Trace + Default + 'static> Default for Gc<'_, T> {
     fn default() -> Self {
         Self::new(Default::default())
     }
 }
 
 #[allow(clippy::inline_always)]
-impl<T: Trace + ?Sized + PartialEq> PartialEq for Gc<T> {
+impl<T: Trace + ?Sized + PartialEq + 'static> PartialEq for Gc<'_, T> {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         **self == **other
     }
 }
 
-impl<T: Trace + ?Sized + Eq> Eq for Gc<T> {}
+impl<T: Trace + ?Sized + Eq + 'static> Eq for Gc<'_, T> {}
 
 #[allow(clippy::inline_always)]
-impl<T: Trace + ?Sized + PartialOrd> PartialOrd for Gc<T> {
+impl<T: Trace + ?Sized + PartialOrd + 'static> PartialOrd for Gc<'_, T> {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         (**self).partial_cmp(&**other)
@@ -416,43 +422,43 @@ impl<T: Trace + ?Sized + PartialOrd> PartialOrd for Gc<T> {
     }
 }
 
-impl<T: Trace + ?Sized + Ord> Ord for Gc<T> {
+impl<T: Trace + ?Sized + Ord + 'static> Ord for Gc<'_, T> {
     fn cmp(&self, other: &Self) -> Ordering {
         (**self).cmp(&**other)
     }
 }
 
-impl<T: Trace + ?Sized + Hash> Hash for Gc<T> {
+impl<T: Trace + ?Sized + Hash + 'static> Hash for Gc<'_, T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         (**self).hash(state);
     }
 }
 
-impl<T: Trace + ?Sized + Display> Display for Gc<T> {
+impl<T: Trace + ?Sized + Display + 'static> Display for Gc<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(&**self, f)
     }
 }
 
-impl<T: Trace + ?Sized + Debug> Debug for Gc<T> {
+impl<T: Trace + ?Sized + Debug + 'static> Debug for Gc<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Debug::fmt(&**self, f)
     }
 }
 
-impl<T: Trace + ?Sized> fmt::Pointer for Gc<T> {
+impl<T: Trace + ?Sized + 'static> fmt::Pointer for Gc<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Pointer::fmt(&self.inner(), f)
     }
 }
 
-impl<T: Trace + ?Sized> std::borrow::Borrow<T> for Gc<T> {
+impl<T: Trace + ?Sized + 'static> std::borrow::Borrow<T> for Gc<'_, T> {
     fn borrow(&self) -> &T {
         self
     }
 }
 
-impl<T: Trace + ?Sized> AsRef<T> for Gc<T> {
+impl<T: Trace + ?Sized + 'static> AsRef<T> for Gc<'_, T> {
     fn as_ref(&self) -> &T {
         self
     }

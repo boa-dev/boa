@@ -60,7 +60,7 @@ impl JsData for ErasedObjectData {}
 #[derive(Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 pub struct JsObject<T: NativeObject = ErasedObjectData> {
-    inner: Gc<VTableObject<T>>,
+    inner: Gc<'static, VTableObject<T>>,
 }
 
 impl<T: NativeObject> Clone for JsObject<T> {
@@ -1038,11 +1038,11 @@ impl<T: NativeObject> JsObject<T> {
         self.inner.vtable
     }
 
-    pub(crate) fn inner(&self) -> &Gc<VTableObject<T>> {
+    pub(crate) fn inner(&self) -> &Gc<'static, VTableObject<T>> {
         &self.inner
     }
 
-    pub(crate) fn from_inner(inner: Gc<VTableObject<T>>) -> Self {
+    pub(crate) fn from_inner(inner: Gc<'static, VTableObject<T>>) -> Self {
         Self { inner }
     }
 
@@ -1158,9 +1158,9 @@ impl<T: NativeObject> AsRef<GcRefCell<Object<T>>> for JsObject<T> {
     }
 }
 
-impl<T: NativeObject> From<Gc<VTableObject<T>>> for JsObject<T> {
+impl<T: NativeObject> From<Gc<'static, VTableObject<T>>> for JsObject<T> {
     #[inline]
-    fn from(inner: Gc<VTableObject<T>>) -> Self {
+    fn from(inner: Gc<'static, VTableObject<T>>) -> Self {
         Self { inner }
     }
 }

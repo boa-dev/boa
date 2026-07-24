@@ -122,7 +122,7 @@ impl FunctionCompiler {
         scopes: &FunctionScopes,
         contains_direct_eval: bool,
         interner: &mut Interner,
-    ) -> Gc<CodeBlock> {
+    ) -> Gc<'static, CodeBlock> {
         self.strict = self.strict || body.strict();
 
         let length = parameters.length();

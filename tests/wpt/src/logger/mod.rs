@@ -35,7 +35,7 @@ struct RecordingLoggerInner {
 #[derive(Clone, Trace, Finalize, JsData)]
 pub(crate) struct RecordingLogger {
     /// Also send logs to this logger.
-    tee: Gc<Box<dyn Logger>>,
+    tee: Gc<'static, Box<dyn Logger>>,
 
     #[unsafe_ignore_trace]
     inner: Rc<RefCell<RecordingLoggerInner>>,

@@ -72,7 +72,7 @@ where
 /// **Undefined Behaviour**.
 #[derive(Clone, Trace, Finalize)]
 pub(crate) struct NativeCoroutine {
-    inner: Gc<dyn TraceableCoroutine>,
+    inner: Gc<'static, dyn TraceableCoroutine>,
 }
 
 impl std::fmt::Debug for NativeCoroutine {

@@ -30,7 +30,7 @@ struct Inner {
 /// Cloning this does a shallow clone.
 #[derive(Default, Debug, Clone, Trace, Finalize)]
 pub(crate) struct UniqueShape {
-    inner: Gc<Inner>,
+    inner: Gc<'static, Inner>,
 }
 
 impl UniqueShape {

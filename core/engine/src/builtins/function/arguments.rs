@@ -83,7 +83,7 @@ impl UnmappedArguments {
 pub(crate) struct MappedArguments {
     #[unsafe_ignore_trace]
     binding_indices: Vec<Option<u32>>,
-    environment: Gc<DeclarativeEnvironment>,
+    environment: Gc<'static, DeclarativeEnvironment>,
 }
 
 impl JsData for MappedArguments {
@@ -215,7 +215,7 @@ impl MappedArguments {
         func: &JsObject,
         binding_indices: &[Option<u32>],
         arguments_list: &[JsValue],
-        env: &Gc<DeclarativeEnvironment>,
+        env: &Gc<'static, DeclarativeEnvironment>,
         context: &Context,
     ) -> JsObject {
         // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
