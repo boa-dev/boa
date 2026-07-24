@@ -105,8 +105,14 @@
     clippy::let_unit_value
 )]
 
-pub mod base64;
 pub mod console;
+
+/// Base64 utility methods (`atob` and `btoa`), re-exported from [`boa_wintertc`].
+///
+/// This API is part of the `WinterTC` (TC55) Minimum Common Web API and is implemented in
+/// `boa_wintertc`. It is re-exported here so `boa_runtime` users keep a single import path.
+#[doc(inline)]
+pub use boa_wintertc::base64;
 
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
