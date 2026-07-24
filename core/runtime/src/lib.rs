@@ -99,6 +99,7 @@
 //!
 //! - [`base64`] — `atob` and `btoa`
 //! - [`clone`] — `structuredClone`
+//! - [`console`] — the `console` object
 //! - [`microtask`] — `queueMicrotask`
 //! - [`interval`] — the timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
 //!   kept under their historical `interval` name
@@ -120,7 +121,8 @@
     clippy::let_unit_value
 )]
 
-pub mod console;
+#[doc(inline)]
+pub use boa_wintertc::console;
 
 #[doc(inline)]
 pub use boa_wintertc::base64;
@@ -291,7 +293,11 @@ pub(crate) mod test {
     }
 
     /// Executes a list of test actions on a new, default context.
+    ///
+    /// Only used by feature-gated tests (`fetch`, `url`, `abort`), so it is dead code under
+    /// `--no-default-features`.
     #[track_caller]
+    #[allow(unused)]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
         register(ConsoleExtension::default(), None, context)
