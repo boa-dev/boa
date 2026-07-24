@@ -23,7 +23,7 @@ pub struct TimeoutExtension;
 
 impl RuntimeExtension for TimeoutExtension {
     fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::interval::register(context)
+        boa_wintertc::timers::register(context)
     }
 }
 
@@ -33,7 +33,7 @@ pub struct MicrotaskExtension;
 
 impl RuntimeExtension for MicrotaskExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::microtask::register(realm, context)
+        boa_wintertc::microtask::register(realm, context)
     }
 }
 
@@ -54,7 +54,7 @@ pub struct StructuredCloneExtension;
 
 impl RuntimeExtension for StructuredCloneExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::clone::register(realm, context)
+        boa_wintertc::clone::register(realm, context)
     }
 }
 
