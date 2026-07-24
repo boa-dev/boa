@@ -6,7 +6,7 @@ use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::value::TryIntoJs;
 use boa_engine::{Context, JsError, JsResult, JsString, JsValue, JsVariant, js_error};
 use rustc_hash::FxHashSet;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 mod from;
 mod to;
@@ -50,11 +50,6 @@ impl From<StringStore> for JsString {
 /// Inner value for [`JsValueStore`].
 #[derive(Debug)]
 enum ValueStoreInner {
-    /// An Empty value that will be filled later. This is only used during
-    /// construction, and if encountered at other points will result
-    /// in an error.
-    Empty,
-
     /// Primitive values - `null`.
     Null,
 
@@ -147,7 +142,7 @@ enum ValueStoreInner {
 ///
 /// [sca]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
 #[derive(Debug, Clone)]
-pub struct JsValueStore(Arc<ValueStoreInner>);
+pub struct JsValueStore(Arc<OnceLock<ValueStoreInner>>);
 
 impl TryIntoJs for JsValueStore {
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
@@ -162,33 +157,19 @@ impl JsValueStore {
     /// (to allow for recursive data). Therefore, the pattern is to create the
     /// store with an empty inner, then create the sub-content, and replace the
     /// empty inner with the new inner.
-    ///
-    /// # SAFETY
-    /// This should only be done if the inner content is [`ValueStoreInner::Empty`],
-    /// and only by the creator of the current [`JsValueStore`]. We enforce the first
-    /// rule at runtime (and will panic), and the second rule by requiring a mutable
-    /// reference. This is still unsafe and relies on unsafe pointer access.
-    unsafe fn replace(&mut self, other: ValueStoreInner) {
-        let ptr = Arc::as_ptr(&self.0).cast_mut();
-
-        assert!(!ptr.is_null());
-        unsafe {
-            assert!(
-                matches!(*ptr, ValueStoreInner::Empty),
-                "ValueStoreInner must be empty."
-            );
-
-            *ptr = other;
-        }
+    fn replace(&self, other: ValueStoreInner) {
+        self.0.set(other).expect("ValueStoreInner must be empty.");
     }
 
     /// A still-being-constructed value.
     fn empty() -> Self {
-        Self(Arc::new(ValueStoreInner::Empty))
+        Self(Arc::new(OnceLock::new()))
     }
 
     fn new(inner: ValueStoreInner) -> Self {
-        Self(Arc::new(inner))
+        let cell = OnceLock::new();
+        cell.set(inner).expect("ValueStoreInner must be empty.");
+        Self(Arc::new(cell))
     }
 
     /// Create a context-free [`JsValue`] equivalent from an existing `JsValue` and the
