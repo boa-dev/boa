@@ -2,6 +2,8 @@
 
 mod ephemeron;
 mod gc;
+mod mutation_context;
+pub use mutation_context::MutationContext;
 mod weak;
 mod weak_map;
 

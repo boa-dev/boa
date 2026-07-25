@@ -127,10 +127,13 @@ impl JsObject {
         object: Object<T>,
         vtable: &'static InternalObjectMethods,
     ) -> Self {
-        let inner = Gc::new(VTableObject {
-            object: GcRefCell::new(object),
-            vtable,
-        });
+        let inner = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            VTableObject {
+                object: GcRefCell::new(object),
+                vtable,
+            },
+        );
 
         JsObject { inner }.upcast()
     }
@@ -213,15 +216,18 @@ impl JsObject {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(VTableObject {
-            object: GcRefCell::new(Object {
-                data: ObjectData::new(data),
-                properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
-                extensible: true,
-                private_elements: ThinVec::new(),
-            }),
-            vtable: internal_methods,
-        });
+        let inner = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            VTableObject {
+                object: GcRefCell::new(Object {
+                    data: ObjectData::new(data),
+                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: internal_methods,
+            },
+        );
 
         JsObject { inner }.upcast()
     }
@@ -239,18 +245,21 @@ impl JsObject {
         data: T,
     ) -> JsObject<T> {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(VTableObject {
-            object: GcRefCell::new(Object {
-                data: ObjectData::new(data),
-                properties: PropertyMap::from_prototype_with_shared_shape(
-                    root_shape,
-                    prototype.into(),
-                ),
-                extensible: true,
-                private_elements: ThinVec::new(),
-            }),
-            vtable: internal_methods,
-        });
+        let inner = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            VTableObject {
+                object: GcRefCell::new(Object {
+                    data: ObjectData::new(data),
+                    properties: PropertyMap::from_prototype_with_shared_shape(
+                        root_shape,
+                        prototype.into(),
+                    ),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: internal_methods,
+            },
+        );
 
         JsObject { inner }
     }
@@ -1078,18 +1087,21 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(VTableObject {
-            object: GcRefCell::new(Object {
-                data: ObjectData::new(data),
-                properties: PropertyMap::from_prototype_with_shared_shape(
-                    root_shape,
-                    prototype.into(),
-                ),
-                extensible: true,
-                private_elements: ThinVec::new(),
-            }),
-            vtable: internal_methods,
-        });
+        let inner = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            VTableObject {
+                object: GcRefCell::new(Object {
+                    data: ObjectData::new(data),
+                    properties: PropertyMap::from_prototype_with_shared_shape(
+                        root_shape,
+                        prototype.into(),
+                    ),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: internal_methods,
+            },
+        );
 
         Self { inner }
     }
@@ -1113,15 +1125,18 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(VTableObject {
-            object: GcRefCell::new(Object {
-                data: ObjectData::new(data),
-                properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
-                extensible: true,
-                private_elements: ThinVec::new(),
-            }),
-            vtable: internal_methods,
-        });
+        let inner = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            VTableObject {
+                object: GcRefCell::new(Object {
+                    data: ObjectData::new(data),
+                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: internal_methods,
+            },
+        );
 
         Self { inner }
     }

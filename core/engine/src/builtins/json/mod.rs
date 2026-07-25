@@ -307,7 +307,10 @@ impl Json {
                 SourcePath::Json,
             );
             compiler.compile_statement_list(script.statements(), true, false);
-            Gc::new(compiler.finish())
+            Gc::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
+                compiler.finish(),
+            )
         };
 
         let realm = context.realm().clone();

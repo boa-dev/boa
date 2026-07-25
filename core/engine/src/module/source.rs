@@ -1823,7 +1823,13 @@ impl SourceTextModule {
 
             compiler.compile_module_item_list(source.items());
 
-            (Gc::new(compiler.finish()), functions)
+            (
+                Gc::new(
+                    &unsafe { boa_gc::MutationContext::dummy() },
+                    compiler.finish(),
+                ),
+                functions,
+            )
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.

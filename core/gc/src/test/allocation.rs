@@ -7,7 +7,10 @@ mod miri {
     #[test]
     fn gc_basic_cell_allocation() {
         run_test(|| {
-            let gc_cell = Gc::new(GcRefCell::new(16_u16));
+            let gc_cell = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                GcRefCell::new(16_u16),
+            );
 
             force_collect();
             Harness::assert_collections(1);
@@ -19,7 +22,7 @@ mod miri {
     #[test]
     fn gc_basic_pointer_alloc() {
         run_test(|| {
-            let gc = Gc::new(16_u8);
+            let gc = Gc::new(&unsafe { crate::MutationContext::dummy() }, 16_u8);
 
             force_collect();
             Harness::assert_collections(1);
@@ -47,12 +50,18 @@ mod miri {
             const SIZE: usize = size_of::<GcBox<S>>();
             const COUNT: usize = 1_000_000;
 
-            let mut root = Gc::new(S { i: 0, next: None });
+            let mut root = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                S { i: 0, next: None },
+            );
             for i in 1..COUNT {
-                root = Gc::new(S {
-                    i,
-                    next: Some(root),
-                });
+                root = Gc::new(
+                    &unsafe { crate::MutationContext::dummy() },
+                    S {
+                        i,
+                        next: Some(root),
+                    },
+                );
             }
 
             Harness::assert_bytes_allocated();

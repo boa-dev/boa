@@ -107,10 +107,13 @@ impl NativeCoroutine {
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
-        let ptr = Gc::into_raw(Gc::new(Coroutine {
-            f: closure,
-            captures,
-        }));
+        let ptr = Gc::into_raw(Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            Coroutine {
+                f: closure,
+                captures,
+            },
+        ));
         // SAFETY: The pointer returned by `into_raw` is only used to coerce to a trait object,
         // meaning this is safe.
         unsafe {

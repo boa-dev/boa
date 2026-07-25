@@ -132,9 +132,12 @@ impl Allocator {
 
     pub(crate) fn alloc_weak_map<K: Trace + ?Sized, V: Trace>() -> WeakMap<K, V> {
         let weak_map = WeakMap {
-            inner: Gc::new(GcRefCell::new(RawWeakMap::new())),
+            inner: Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                GcRefCell::new(RawWeakMap::new()),
+            ),
         };
-        let weak = WeakGc::new(&weak_map.inner);
+        let weak = WeakGc::new(&unsafe { crate::MutationContext::dummy() }, &weak_map.inner);
 
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();

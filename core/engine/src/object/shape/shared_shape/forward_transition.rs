@@ -66,7 +66,10 @@ impl ForwardTransition {
             properties.map.retain(|_, v| v.is_upgradable());
         }
 
-        properties.map.insert(key, WeakGc::new(value));
+        properties.map.insert(
+            key,
+            WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, value),
+        );
     }
 
     /// Insert a prototype transition.
@@ -78,7 +81,10 @@ impl ForwardTransition {
             prototypes.map.retain(|_, v| v.is_upgradable());
         }
 
-        prototypes.map.insert(key, WeakGc::new(value));
+        prototypes.map.insert(
+            key,
+            WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, value),
+        );
     }
 
     /// Get a property transition, return [`None`] otherwise.

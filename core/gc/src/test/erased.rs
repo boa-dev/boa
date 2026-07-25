@@ -10,7 +10,7 @@ mod miri {
     fn erased_gc() {
         run_test(|| {
             let value = vec![1, 2, 3];
-            let gc = Gc::new(value.clone());
+            let gc = Gc::new(&unsafe { crate::MutationContext::dummy() }, value.clone());
 
             assert_eq!(Gc::type_id(&gc), TypeId::of::<Vec<i32>>());
 
@@ -37,16 +37,22 @@ mod miri {
         }
 
         run_test(|| {
-            let mut root = GcErased::new(Gc::new(List {
-                value: 0,
-                next: None,
-            }));
+            let mut root = GcErased::new(Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                List {
+                    value: 0,
+                    next: None,
+                },
+            ));
 
             for value in 1..100 {
-                root = GcErased::new(Gc::new(List {
-                    value,
-                    next: Some(root),
-                }));
+                root = GcErased::new(Gc::new(
+                    &unsafe { crate::MutationContext::dummy() },
+                    List {
+                        value,
+                        next: Some(root),
+                    },
+                ));
             }
 
             Harness::assert_exact_bytes_allocated(100 * size_of::<GcBox<List>>());
@@ -84,12 +90,15 @@ mod miri {
 
         run_test(|| {
             let value = vec![1, 2, 3];
-            let derived = Gc::new(Derived {
-                base: Base {
-                    base_field: value.clone(),
+            let derived = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                Derived {
+                    base: Base {
+                        base_field: value.clone(),
+                    },
+                    derived_field: vec![4, 5, 6],
                 },
-                derived_field: vec![4, 5, 6],
-            });
+            );
 
             assert_eq!(Gc::type_id(&derived), TypeId::of::<Derived>());
             assert!(Gc::is::<Derived>(&derived));

@@ -97,7 +97,7 @@ impl BuiltInConstructor for WeakMap {
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            NativeWeakMap::new(),
+            NativeWeakMap::new(&unsafe { boa_gc::MutationContext::dummy() }),
         )
         .upcast();
 
@@ -194,7 +194,7 @@ impl WeakMap {
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
         if let Some(entry) = map.get(key.inner())
-            && let Some(val) = entry.value()
+            && let Some(val) = entry.value(&unsafe { boa_gc::MutationContext::dummy() })
         {
             Ok(val.clone())
         } else {
@@ -325,7 +325,7 @@ impl WeakMap {
 
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
         if let Some(existing) = map.borrow().data().get(key.inner())
-            && let Some(value) = existing.value()
+            && let Some(value) = existing.value(&unsafe { boa_gc::MutationContext::dummy() })
         {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(value.clone());
@@ -387,7 +387,7 @@ impl WeakMap {
 
         // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
         if let Some(existing) = map.borrow().data().get(key_obj.inner())
-            && let Some(value) = existing.value()
+            && let Some(value) = existing.value(&unsafe { boa_gc::MutationContext::dummy() })
         {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(value.clone());

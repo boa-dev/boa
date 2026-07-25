@@ -37,10 +37,13 @@ impl UniqueShape {
     /// Create a new [`UniqueShape`].
     pub(crate) fn new(prototype: JsPrototype, property_table: PropertyTableInner) -> Self {
         Self {
-            inner: Gc::new(Inner {
-                property_table: RefCell::new(property_table),
-                prototype: GcRefCell::new(prototype),
-            }),
+            inner: Gc::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
+                Inner {
+                    property_table: RefCell::new(property_table),
+                    prototype: GcRefCell::new(prototype),
+                },
+            ),
         }
     }
 
@@ -253,7 +256,9 @@ impl WeakUniqueShape {
     #[must_use]
     pub(crate) fn upgrade(&self) -> Option<UniqueShape> {
         Some(UniqueShape {
-            inner: self.inner.upgrade()?,
+            inner: self
+                .inner
+                .upgrade(&unsafe { boa_gc::MutationContext::dummy() })?,
         })
     }
 }
@@ -261,7 +266,7 @@ impl WeakUniqueShape {
 impl From<&UniqueShape> for WeakUniqueShape {
     fn from(value: &UniqueShape) -> Self {
         WeakUniqueShape {
-            inner: WeakGc::new(&value.inner),
+            inner: WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, &value.inner),
         }
     }
 }
