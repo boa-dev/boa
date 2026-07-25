@@ -146,7 +146,7 @@ aligned-vec = "0.6.4"
 temp-env = "0.3.6"
 strum = { version = "0.28", features = ["derive"] }
 unsend = { version = "0.2.1", default-features = false }
-husky-rs = "0.3.3"
+husky-rs = "0.4.0"
 async-channel = "2.5.0"
 
 # ICU4X core
