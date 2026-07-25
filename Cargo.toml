@@ -53,7 +53,7 @@ small_btree = { version = "~0.1.0", path = "utils/small_btree" }
 
 # Shared deps
 arbitrary = "1"
-base64 = "0.22.1"
+base64 = "0.23.0"
 bitflags = "2.13.0"
 clap = "4.6.1"
 colored = "3.1.1"
