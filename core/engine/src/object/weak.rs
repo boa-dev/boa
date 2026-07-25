@@ -76,12 +76,14 @@ impl<T: NativeObject> Clone for WeakJsObject<T> {
 // upgrade them first and compare the resulting `JsObject`s. These impls can be added later, without
 // a breaking change, if a collection-stable identity is designed.
 
-// `VTableObject` deliberately does not implement `Debug` to avoid recursing into the object graph
-// (which could overflow the stack), so we cannot derive `Debug` here. We provide a minimal,
-// non-recursive implementation instead.
+// We can't derive `Debug` because `VTableObject` deliberately doesn't implement it. Instead we
+// upgrade and delegate to `JsObject`'s own `Debug`, which uses a `RecursionLimiter` to avoid
+// overflowing the stack on cyclic object graphs. A collected referent prints as `None`.
 impl<T: NativeObject> Debug for WeakJsObject<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("WeakJsObject").finish_non_exhaustive()
+        f.debug_tuple("WeakJsObject")
+            .field(&self.upgrade())
+            .finish()
     }
 }
 
