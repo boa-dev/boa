@@ -15,9 +15,9 @@ impl<T: Trace + ?Sized> WeakGc<T> {
     /// Creates a new weak pointer for a garbage collected value.
     #[inline]
     #[must_use]
-    pub fn new(value: &Gc<'_, T>) -> Self {
+    pub fn new(_mc: &crate::MutationContext<'_, '_>, value: &Gc<'_, T>) -> Self {
         Self {
-            inner: Ephemeron::new(value, ()),
+            inner: Ephemeron::new(&unsafe { crate::MutationContext::dummy() }, value, ()),
         }
     }
 
@@ -25,8 +25,8 @@ impl<T: Trace + ?Sized> WeakGc<T> {
     /// if the value was already garbage collected.
     #[inline]
     #[must_use]
-    pub fn upgrade(&self) -> Option<Gc<'static, T>> {
-        self.inner.key()
+    pub fn upgrade<'gc>(&self, _mc: &crate::MutationContext<'gc, '_>) -> Option<Gc<'gc, T>> {
+        self.inner.key(&unsafe { crate::MutationContext::dummy() })
     }
 
     /// Check if the [`WeakGc`] can be upgraded.
@@ -58,7 +58,10 @@ impl<T: Trace> From<Ephemeron<T, ()>> for WeakGc<T> {
 
 impl<T: Trace> PartialEq for WeakGc<T> {
     fn eq(&self, other: &Self) -> bool {
-        match (self.upgrade(), other.upgrade()) {
+        match (
+            self.upgrade(&unsafe { crate::MutationContext::dummy() }),
+            other.upgrade(&unsafe { crate::MutationContext::dummy() }),
+        ) {
             (Some(a), Some(b)) => std::ptr::eq(a.as_ref(), b.as_ref()),
             _ => false,
         }
@@ -69,7 +72,7 @@ impl<T: Trace> Eq for WeakGc<T> {}
 
 impl<T: Trace> Hash for WeakGc<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        if let Some(obj) = self.upgrade() {
+        if let Some(obj) = self.upgrade(&unsafe { crate::MutationContext::dummy() }) {
             std::ptr::hash(obj.as_ref(), state);
         } else {
             std::ptr::hash(self, state);

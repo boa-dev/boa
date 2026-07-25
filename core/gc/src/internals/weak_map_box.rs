@@ -19,7 +19,9 @@ pub(crate) trait ErasedWeakMapBox {
 
 impl<K: Trace + ?Sized, V: Trace> ErasedWeakMapBox for WeakMapBox<K, V> {
     fn clear_dead_entries(&self) {
-        if let Some(map) = self.map.upgrade()
+        if let Some(map) = self
+            .map
+            .upgrade(&unsafe { crate::MutationContext::dummy() })
             && let Ok(mut map) = map.try_borrow_mut()
         {
             map.clear_expired();
@@ -27,11 +29,17 @@ impl<K: Trace + ?Sized, V: Trace> ErasedWeakMapBox for WeakMapBox<K, V> {
     }
 
     fn is_live(&self) -> bool {
-        self.map.upgrade().is_some()
+        self.map
+            .upgrade(&unsafe { crate::MutationContext::dummy() })
+            .is_some()
     }
 
     unsafe fn trace(&self, tracer: &mut Tracer) {
-        if self.map.upgrade().is_some() {
+        if self
+            .map
+            .upgrade(&unsafe { crate::MutationContext::dummy() })
+            .is_some()
+        {
             // SAFETY: When the weak map is live, the weak reference should be traced.
             unsafe { self.map.trace(tracer) }
         }

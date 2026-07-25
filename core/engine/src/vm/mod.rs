@@ -407,7 +407,10 @@ impl Vm {
     pub(crate) fn new(realm: Realm) -> Self {
         let mut frames = Vec::with_capacity(16);
         frames.push(CallFrame::new(
-            Gc::new(CodeBlock::new(JsString::default(), 0, true)),
+            Gc::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
+                CodeBlock::new(JsString::default(), 0, true),
+            ),
             None,
             EnvironmentStack::new(),
             realm,

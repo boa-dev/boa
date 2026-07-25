@@ -156,7 +156,10 @@ impl ByteCompiler<'_> {
             class.super_ref.is_some(),
         );
 
-        let code = Gc::new(compiler.finish());
+        let code = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            compiler.finish(),
+        );
         let index = self.push_function_to_constants(code);
 
         let class_register = self.register_allocator.alloc();
@@ -440,7 +443,10 @@ impl ByteCompiler<'_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = Gc::new(field_compiler.finish());
+                    let code = Gc::new(
+                        &unsafe { boa_gc::MutationContext::dummy() },
+                        field_compiler.finish(),
+                    );
                     let index = self.push_function_to_constants(code);
 
                     let dst = self.register_allocator.alloc();
@@ -486,7 +492,10 @@ impl ByteCompiler<'_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = Gc::new(field_compiler.finish());
+                    let code = Gc::new(
+                        &unsafe { boa_gc::MutationContext::dummy() },
+                        field_compiler.finish(),
+                    );
                     let index = self.push_function_to_constants(code);
                     let dst = self.register_allocator.alloc();
                     self.emit_get_function(&dst, index);
@@ -542,7 +551,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(code);
+                    let code = Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -586,7 +595,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(code);
+                    let code = Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -629,7 +638,10 @@ impl ByteCompiler<'_> {
                         );
                     }
 
-                    let code = Gc::new(compiler.finish());
+                    let code = Gc::new(
+                        &unsafe { boa_gc::MutationContext::dummy() },
+                        compiler.finish(),
+                    );
                     static_elements.push(StaticElement::StaticBlock(code));
                 }
             }

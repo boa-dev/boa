@@ -86,21 +86,27 @@ impl Realm {
         let global_this = hooks
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
-        let environment = Gc::new(DeclarativeEnvironment::global());
+        let environment = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            DeclarativeEnvironment::global(),
+        );
         let scope = Scope::new_global();
 
         let realm = Self {
-            inner: Gc::new(Inner {
-                intrinsics,
-                environment,
-                scope,
-                global_object,
-                global_this,
-                template_map: GcRefCell::default(),
-                loaded_modules: GcRefCell::default(),
-                host_classes: GcRefCell::default(),
-                host_defined: GcRefCell::default(),
-            }),
+            inner: Gc::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
+                Inner {
+                    intrinsics,
+                    environment,
+                    scope,
+                    global_object,
+                    global_this,
+                    template_map: GcRefCell::default(),
+                    loaded_modules: GcRefCell::default(),
+                    host_classes: GcRefCell::default(),
+                    host_defined: GcRefCell::default(),
+                },
+            ),
         };
 
         realm.initialize();

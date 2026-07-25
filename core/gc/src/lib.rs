@@ -46,7 +46,7 @@ pub use cell::{GcRef, GcRefCell, GcRefMut};
 #[cfg(not(feature = "oscars_backend"))]
 pub use internals::GcBox;
 #[cfg(not(feature = "oscars_backend"))]
-pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
+pub use pointers::{Ephemeron, Gc, GcErased, MutationContext, WeakGc, WeakMap};
 
 #[cfg(feature = "oscars_backend")]
 pub use oscars::null_collector_branded::{

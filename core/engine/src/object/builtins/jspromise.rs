@@ -1093,10 +1093,13 @@ impl JsPromise {
             }
         }
 
-        let state = Gc::new(GcRefCell::new(Inner {
-            result: None,
-            task: None,
-        }));
+        let state = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            GcRefCell::new(Inner {
+                result: None,
+                task: None,
+            }),
+        );
 
         let resolve = {
             let state = state.clone();

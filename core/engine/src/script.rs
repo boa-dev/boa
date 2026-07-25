@@ -104,14 +104,17 @@ impl Script {
         let source_text = SourceText::new(source);
 
         Ok(Self {
-            inner: Gc::new(Inner {
-                realm: realm.unwrap_or_else(|| context.realm().clone()),
-                phase: GcRefCell::new(ScriptPhase::Ast(code)),
-                source_text,
-                loaded_modules: GcRefCell::default(),
-                host_defined: HostDefined::default(),
-                path,
-            }),
+            inner: Gc::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
+                Inner {
+                    realm: realm.unwrap_or_else(|| context.realm().clone()),
+                    phase: GcRefCell::new(ScriptPhase::Ast(code)),
+                    source_text,
+                    loaded_modules: GcRefCell::default(),
+                    host_defined: HostDefined::default(),
+                    path,
+                },
+            ),
         })
     }
 
@@ -159,7 +162,10 @@ impl Script {
             compiler.global_declaration_instantiation(source);
             compiler.compile_statement_list(source.statements(), true, false);
 
-            Gc::new(compiler.finish())
+            Gc::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
+                compiler.finish(),
+            )
         };
 
         *self.inner.phase.borrow_mut() = ScriptPhase::Codeblock(cb.clone());

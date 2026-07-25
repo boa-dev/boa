@@ -158,7 +158,10 @@ impl BuiltInConstructor for FinalizationRegistry {
             },
         );
 
-        let weak_registry = WeakGc::new(registry.inner());
+        let weak_registry = WeakGc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            registry.inner(),
+        );
 
         {
             async fn inner_cleanup(
@@ -170,7 +173,10 @@ impl BuiltInConstructor for FinalizationRegistry {
                     return Ok(JsValue::undefined());
                 };
 
-                let Some(registry) = weak_registry.upgrade().map(JsObject::from_inner) else {
+                let Some(registry) = weak_registry
+                    .upgrade(&unsafe { boa_gc::MutationContext::dummy() })
+                    .map(JsObject::from_inner)
+                else {
                     return Ok(JsValue::undefined());
                 };
 
@@ -251,7 +257,10 @@ impl FinalizationRegistry {
         //
         // TODO: support Symbols
         let unregister_token = match unregister_token.variant() {
-            JsVariant::Object(obj) => Some(WeakGc::new(obj.inner())),
+            JsVariant::Object(obj) => Some(WeakGc::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
+                obj.inner(),
+            )),
             // b. Set unregisterToken to empty.
             JsVariant::Undefined => None,
             // a. If unregisterToken is not undefined, throw a TypeError exception.
@@ -266,6 +275,7 @@ impl FinalizationRegistry {
         // 6. Let cell be the Record { [[WeakRefTarget]]: target, [[HeldValue]]: heldValue, [[UnregisterToken]]: unregisterToken }.
         let cell = RegistryCell {
             target: Ephemeron::new(
+                &unsafe { boa_gc::MutationContext::dummy() },
                 target_obj.inner(),
                 CleanupSignaler(Cell::new(Some(
                     registry.cleanup_notifier.clone().downgrade(),
@@ -328,15 +338,20 @@ impl FinalizationRegistry {
 
             // a. If cell.[[UnregisterToken]] is not empty and SameValue(cell.[[UnregisterToken]], unregisterToken) is true, then
             if let Some(tok) = cell.unregister_token.as_ref()
-                && let Some(tok) = tok.upgrade()
+                && let Some(tok) = tok.upgrade(&unsafe { boa_gc::MutationContext::dummy() })
                 && Gc::ptr_eq(&tok, unregister_token)
             {
                 // i. Remove cell from finalizationRegistry.[[Cells]].
                 let cell = registry.cells.swap_remove(i);
-                let _key = cell.target.key();
+                let _key = cell
+                    .target
+                    .key(&unsafe { boa_gc::MutationContext::dummy() });
+
                 // TODO: it might be better to add a special ref for the value that
                 // also preserves the original key instead.
-                cell.target.value().and_then(|v| v.0.take());
+                cell.target
+                    .value(&unsafe { boa_gc::MutationContext::dummy() })
+                    .and_then(|v| v.0.take());
 
                 // ii. Set removed to true.
                 removed = true;

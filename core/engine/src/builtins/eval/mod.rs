@@ -320,7 +320,10 @@ impl Eval {
 
         compiler.compile_statement_list(body.statements(), true, false);
 
-        let code_block = Gc::new(compiler.finish());
+        let code_block = Gc::new(
+            &unsafe { boa_gc::MutationContext::dummy() },
+            compiler.finish(),
+        );
 
         // Strict calls don't need extensions, since all strict eval calls push a new
         // function environment before evaluating.

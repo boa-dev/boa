@@ -92,7 +92,10 @@ fn main() -> JsResult<()> {
 
     // forEach
     let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
-    let num_to_modify = Gc::new(GcRefCell::new(0u8));
+    let num_to_modify = Gc::new(
+        &unsafe { boa_gc::MutationContext::dummy() },
+        GcRefCell::new(0u8),
+    );
 
     let js_function = FunctionObjectBuilder::new(
         context.realm(),

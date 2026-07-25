@@ -5,13 +5,22 @@ mod miri {
     #[test]
     fn weak_map_basic() {
         run_test(|| {
-            let key1 = Gc::new(String::from("key1"));
-            let key2 = Gc::new(String::from("key2"));
-            let key3 = Gc::new(String::from("key3"));
+            let key1 = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                String::from("key1"),
+            );
+            let key2 = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                String::from("key2"),
+            );
+            let key3 = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                String::from("key3"),
+            );
 
             assert!(!has_weak_maps());
 
-            let mut map = WeakMap::new();
+            let mut map = WeakMap::new(&unsafe { crate::MutationContext::dummy() });
 
             assert!(has_weak_maps());
 
@@ -59,14 +68,23 @@ mod miri {
     #[test]
     fn weak_map_multiple() {
         run_test(|| {
-            let key1 = Gc::new(String::from("key1"));
-            let key2 = Gc::new(String::from("key2"));
-            let key3 = Gc::new(String::from("key3"));
+            let key1 = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                String::from("key1"),
+            );
+            let key2 = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                String::from("key2"),
+            );
+            let key3 = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                String::from("key3"),
+            );
 
             assert!(!has_weak_maps());
 
-            let mut map_1 = WeakMap::new();
-            let mut map_2 = WeakMap::new();
+            let mut map_1 = WeakMap::new(&unsafe { crate::MutationContext::dummy() });
+            let mut map_2 = WeakMap::new(&unsafe { crate::MutationContext::dummy() });
 
             assert!(has_weak_maps());
 
@@ -116,10 +134,13 @@ mod miri {
     #[test]
     fn weak_map_key_live() {
         run_test(|| {
-            let key = Gc::new(String::from("key"));
+            let key = Gc::new(
+                &unsafe { crate::MutationContext::dummy() },
+                String::from("key"),
+            );
             let key_copy = key.clone();
 
-            let mut map = WeakMap::new();
+            let mut map = WeakMap::new(&unsafe { crate::MutationContext::dummy() });
 
             map.insert(&key, ());
 

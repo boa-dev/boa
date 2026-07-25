@@ -166,7 +166,7 @@ pub struct Gc<'gc, T: Trace + ?Sized + 'static> {
 impl<'gc, T: Trace + ?Sized + 'static> Gc<'gc, T> {
     /// Constructs a new `Gc<T>` with the given value.
     #[must_use]
-    pub fn new(value: T) -> Self
+    pub fn new(_mc: &crate::MutationContext<'gc, '_>, value: T) -> Self
     where
         T: Sized,
     {
@@ -188,7 +188,7 @@ impl<'gc, T: Trace + ?Sized + 'static> Gc<'gc, T> {
     /// [`upgrade`][WeakGc::upgrade]  on the weak reference inside the closure will fail and result
     /// in a `None` value.
     #[must_use]
-    pub fn new_cyclic<F>(data_fn: F) -> Self
+    pub fn new_cyclic<F>(_mc: &crate::MutationContext<'gc, '_>, data_fn: F) -> Self
     where
         F: FnOnce(&WeakGc<T>) -> T,
         T: Sized,
@@ -199,7 +199,7 @@ impl<'gc, T: Trace + ?Sized + 'static> Gc<'gc, T> {
             Ephemeron::from_raw(Allocator::alloc_ephemeron(EphemeronBox::new_empty())).into()
         };
 
-        let gc = Self::new(data_fn(&weak));
+        let gc = Self::new(&unsafe { crate::MutationContext::dummy() }, data_fn(&weak));
 
         // SAFETY:
         // - `as_mut`: `weak` is properly initialized by `alloc_ephemeron` and cannot escape the
@@ -380,7 +380,10 @@ impl<T: Trace + ?Sized + 'static> Drop for Gc<'_, T> {
 
 impl<T: Trace + Default + 'static> Default for Gc<'_, T> {
     fn default() -> Self {
-        Self::new(Default::default())
+        Self::new(
+            &unsafe { crate::MutationContext::dummy() },
+            Default::default(),
+        )
     }
 }
 

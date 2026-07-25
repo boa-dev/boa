@@ -25,7 +25,7 @@ impl<K: Trace + ?Sized + 'static, V: Trace + 'static> WeakMap<K, V> {
     /// Creates a new `WeakMap`.
     #[must_use]
     #[inline]
-    pub fn new() -> Self {
+    pub fn new(_mc: &crate::MutationContext<'_, '_>) -> Self {
         Allocator::alloc_weak_map()
     }
 
@@ -309,7 +309,11 @@ where
             RawEntry::Vacant(vacant_entry) => (None, vacant_entry),
         };
 
-        slot.insert(Ephemeron::new(k, v));
+        slot.insert(Ephemeron::new(
+            &unsafe { crate::MutationContext::dummy() },
+            k,
+            v,
+        ));
         old
     }
 
@@ -327,7 +331,10 @@ where
 
     /// Clears all the expired keys in the map.
     pub(crate) fn clear_expired(&mut self) {
-        self.retain(|eph| eph.value().is_some());
+        self.retain(|eph| {
+            eph.value(&unsafe { crate::MutationContext::dummy() })
+                .is_some()
+        });
     }
 }
 
