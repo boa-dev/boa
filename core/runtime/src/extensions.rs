@@ -43,7 +43,7 @@ pub struct EncodingExtension;
 
 impl RuntimeExtension for EncodingExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::text::register(realm, context)?;
+        boa_wintertc::encoding::register(realm, context)?;
         Ok(())
     }
 }

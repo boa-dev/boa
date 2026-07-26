@@ -101,9 +101,10 @@
 //! - [`base64`] — `atob` and `btoa`
 //! - [`clone`] — `structuredClone`
 //! - [`console`] — the `console` object
-//! - [`microtask`] — `queueMicrotask`
 //! - [`interval`] — the timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
 //!   kept under their historical `interval` name
+//! - [`microtask`] — `queueMicrotask`
+//! - [`text`] — `TextEncoder` and `TextDecoder`, kept under their historical `text` name
 //!
 //! The [`store`] module holds the serialization core backing `structuredClone`. See each
 //! re-exported module for its full API documentation.
@@ -154,7 +155,8 @@ pub use boa_wintertc::store;
 /// Support for the `$262` test262 harness object.
 #[cfg(feature = "test262")]
 pub mod test262;
-pub mod text;
+#[doc(inline)]
+pub use boa_wintertc::encoding as text;
 #[cfg(feature = "url")]
 pub mod url;
 
