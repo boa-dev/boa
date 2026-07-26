@@ -47,7 +47,7 @@ default = [
 ]
 
 all = ["default", "reqwest-blocking"]
-url = ["dep:url"]
+url = ["boa_wintertc/url"]
 fetch = [
     "dep:url",
     "dep:either",
