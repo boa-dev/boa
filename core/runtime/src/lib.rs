@@ -97,6 +97,7 @@
 //! [`boa_wintertc`] crate. They are re-exported from `boa_runtime` so existing users keep a single,
 //! unchanged import path:
 //!
+//! - `abort` — `AbortController` and `AbortSignal` (requires the `fetch` feature)
 //! - [`base64`] — `atob` and `btoa`
 //! - [`clone`] — `structuredClone`
 //! - [`console`] — the `console` object
@@ -131,7 +132,8 @@ pub use boa_wintertc::base64;
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 #[cfg(feature = "fetch")]
-pub mod abort;
+#[doc(inline)]
+pub use boa_wintertc::abort;
 
 #[doc(inline)]
 pub use boa_wintertc::clone;
