@@ -17,6 +17,7 @@ base64.workspace = true
 bytemuck.workspace = true
 comfy-table.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
+url = { workspace = true, optional = true }
 
 [dev-dependencies]
 indoc.workspace = true
@@ -32,5 +33,5 @@ all-features = true
 
 [features]
 default = []
-url = []
+url = ["dep:url"]
 fetch = []

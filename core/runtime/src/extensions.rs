@@ -76,7 +76,7 @@ pub struct UrlExtension;
 #[cfg(feature = "url")]
 impl RuntimeExtension for UrlExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::url::Url::register(realm, context)
+        boa_wintertc::url::Url::register(realm, context)
     }
 }
 

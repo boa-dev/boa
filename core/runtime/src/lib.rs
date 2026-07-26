@@ -105,6 +105,7 @@
 //!   kept under their historical `interval` name
 //! - [`microtask`] — `queueMicrotask`
 //! - [`text`] — `TextEncoder` and `TextDecoder`, kept under their historical `text` name
+//! - `url` — the `URL` class (requires the `url` feature)
 //!
 //! The [`store`] module holds the serialization core backing `structuredClone`. See each
 //! re-exported module for its full API documentation.
@@ -158,7 +159,8 @@ pub mod test262;
 #[doc(inline)]
 pub use boa_wintertc::encoding as text;
 #[cfg(feature = "url")]
-pub mod url;
+#[doc(inline)]
+pub use boa_wintertc::url;
 
 #[cfg(feature = "process")]
 use crate::extensions::ProcessExtension;
