@@ -463,6 +463,10 @@ fn binary_operands_preserve_left_to_right_evaluation() {
             "(function() { let x = 1; return x < (x = 2) ? 1 : 0; })()",
             1,
         ),
+        TestAction::assert_eq(
+            "(function() { const x = 1; let y = 0; return x + (y = 2); })()",
+            3,
+        ),
     ]);
 }
 
