@@ -129,7 +129,7 @@ pub struct AbortControllerExtension;
 #[cfg(feature = "fetch")]
 impl RuntimeExtension for AbortControllerExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::abort::register(realm, context)
+        boa_wintertc::abort::register(realm, context)
     }
 }
 
