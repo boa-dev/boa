@@ -63,7 +63,7 @@ fn file_uncaught_error_exits_non_zero() {
         .status()
         .expect("boa should run");
 
-    let _ = fs::remove_file(&script_path);
+    drop(fs::remove_file(&script_path));
 
     assert!(
         !status.success(),
