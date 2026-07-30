@@ -7,6 +7,7 @@ permissions:
   contents: read
 jobs:
   audit:
+    if: github.repository == 'boa-dev/boa'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
