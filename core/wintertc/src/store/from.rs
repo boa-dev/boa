@@ -118,7 +118,8 @@ fn try_from_array_buffer_clone(
     buffer: &JsArrayBuffer,
     seen: &mut SeenMap,
 ) -> JsResult<JsValueStore> {
-    let data = buffer.data().ok_or_else(unsupported_type)?;
+    // `to_vec` works for both Boa-owned and externally-backed buffers.
+    let data = buffer.to_vec().ok_or_else(unsupported_type)?;
     let data = AlignedVec::from_slice(0, &data);
     let new_value = JsValueStore::new(ValueStoreInner::ArrayBuffer(data));
     seen.insert(original, new_value.clone());

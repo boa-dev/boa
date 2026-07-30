@@ -16,9 +16,13 @@ pub(crate) mod utils;
 #[cfg(test)]
 mod tests;
 
-use std::ops::{Deref, DerefMut};
+use std::{
+    ops::{Deref, DerefMut},
+    slice,
+};
 
 use aligned_vec::{ABox, AVec, ConstAlign};
+pub use portable_atomic::AtomicU8;
 pub use shared::SharedArrayBuffer;
 use std::sync::atomic::Ordering;
 
@@ -36,7 +40,7 @@ use crate::{
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 
-use self::utils::{SliceRef, SliceRefMut};
+use self::utils::{SliceRef, SliceRefMut, memcpy};
 
 use super::{
     Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject, typed_array::TypedArray,
@@ -45,6 +49,32 @@ use super::{
 /// `Vec`, but aligned to a 64-bit memory address.
 pub type AlignedVec<T> = AVec<T, ConstAlign<64>>;
 pub(crate) type AlignedBox<T> = ABox<T, ConstAlign<64>>;
+
+/// Minimum alignment required for a region of embedder-owned memory backing an
+/// [`ArrayBuffer`] or a [`SharedArrayBuffer`].
+///
+/// Typed array views (`Float64Array`, `BigInt64Array`, ...) and the batched copy
+/// routines perform aligned accesses of up to 8 bytes on the backing memory, so the
+/// base address of an external region must satisfy the largest of those alignments.
+pub(crate) const EXTERNAL_MEMORY_ALIGNMENT: usize = 8;
+
+/// Asserts that `data` is properly aligned to back an `ArrayBuffer` or a
+/// `SharedArrayBuffer`.
+///
+/// # Panics
+///
+/// Panics if the region is non-empty and its base address is not aligned to
+/// [`EXTERNAL_MEMORY_ALIGNMENT`] bytes.
+pub(crate) fn assert_external_memory_alignment(data: &[AtomicU8]) {
+    assert!(
+        data.is_empty()
+            || data
+                .as_ptr()
+                .addr()
+                .is_multiple_of(EXTERNAL_MEMORY_ALIGNMENT),
+        "external buffer memory must be aligned to {EXTERNAL_MEMORY_ALIGNMENT} bytes",
+    );
+}
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum BufferRef<B, S> {
@@ -60,7 +90,7 @@ where
     /// Gets the inner data of the buffer.
     pub(crate) fn bytes(&self, ordering: Ordering) -> Option<SliceRef<'_>> {
         match self {
-            Self::Buffer(buf) => buf.deref().bytes().map(SliceRef::Slice),
+            Self::Buffer(buf) => buf.deref().slice_ref(),
             Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.deref().bytes(ordering))),
         }
     }
@@ -72,7 +102,7 @@ where
     #[track_caller]
     pub(crate) fn bytes_with_len(&self, len: usize) -> Option<SliceRef<'_>> {
         match self {
-            Self::Buffer(buf) => buf.deref().bytes_with_len(len).map(SliceRef::Slice),
+            Self::Buffer(buf) => buf.deref().slice_ref_with_len(len),
             Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.deref().bytes_with_len(len))),
         }
     }
@@ -98,7 +128,7 @@ where
 {
     pub(crate) fn bytes(&mut self, ordering: Ordering) -> Option<SliceRefMut<'_>> {
         match self {
-            Self::Buffer(buf) => buf.deref_mut().bytes_mut().map(SliceRefMut::Slice),
+            Self::Buffer(buf) => buf.deref_mut().slice_ref_mut(),
             Self::SharedBuffer(buf) => {
                 Some(SliceRefMut::AtomicSlice(buf.deref_mut().bytes(ordering)))
             }
@@ -111,10 +141,7 @@ where
     /// the allocated buffer.
     pub(crate) fn bytes_with_len(&mut self, len: usize) -> Option<SliceRefMut<'_>> {
         match self {
-            Self::Buffer(buf) => buf
-                .deref_mut()
-                .bytes_with_len_mut(len)
-                .map(SliceRefMut::Slice),
+            Self::Buffer(buf) => buf.deref_mut().slice_ref_with_len_mut(len),
             Self::SharedBuffer(buf) => Some(SliceRefMut::AtomicSlice(
                 buf.deref_mut().bytes_with_len(len),
             )),
@@ -197,12 +224,65 @@ impl BufferObject {
     }
 }
 
+/// The backing memory of an [`ArrayBuffer`].
+#[derive(Debug)]
+pub(crate) enum BufferData {
+    /// Memory allocated and owned by Boa.
+    Owned(AlignedVec<u8>),
+    /// A region of embedder-owned memory. See [`ArrayBuffer::from_external_data`].
+    ///
+    /// The engine only ever accesses this region through the atomic operations of
+    /// [`SliceRef::AtomicSlice`]/[`SliceRefMut::AtomicSlice`], and never materializes
+    /// `&[u8]` or `&mut [u8]` references into memory it does not own. This makes it
+    /// sound for the embedder to concurrently access the region from the same thread,
+    /// even while the engine holds a reference into the buffer.
+    External(&'static [AtomicU8]),
+}
+
+impl Clone for BufferData {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Owned(vec) => Self::Owned(vec.clone()),
+            // Deep-copy external regions into a Boa-owned allocation so that a cloned
+            // buffer is always independent of the original one; a bitwise clone would
+            // make two `ArrayBuffer`s alias the same external region.
+            Self::External(data) => Self::Owned(AlignedVec::from_iter(
+                0,
+                SliceRef::AtomicSlice(data).to_vec(),
+            )),
+        }
+    }
+}
+
+impl BufferData {
+    fn slice_ref(&self) -> SliceRef<'_> {
+        match self {
+            Self::Owned(vec) => SliceRef::Slice(vec),
+            Self::External(data) => SliceRef::AtomicSlice(data),
+        }
+    }
+
+    fn slice_ref_mut(&mut self) -> SliceRefMut<'_> {
+        match self {
+            Self::Owned(vec) => SliceRefMut::Slice(vec),
+            Self::External(data) => SliceRefMut::AtomicSlice(data),
+        }
+    }
+
+    fn len(&self) -> usize {
+        match self {
+            Self::Owned(vec) => vec.len(),
+            Self::External(data) => data.len(),
+        }
+    }
+}
+
 /// The internal representation of an `ArrayBuffer` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct ArrayBuffer {
     /// The `[[ArrayBufferData]]` internal slot.
     #[unsafe_ignore_trace]
-    data: Option<AlignedVec<u8>>,
+    data: Option<BufferData>,
 
     /// The `[[ArrayBufferMaxByteLength]]` internal slot.
     max_byte_len: Option<u64>,
@@ -214,26 +294,135 @@ pub struct ArrayBuffer {
 impl ArrayBuffer {
     pub(crate) fn from_data(data: AlignedVec<u8>, detach_key: JsValue) -> Self {
         Self {
-            data: Some(data),
+            data: Some(BufferData::Owned(data)),
             max_byte_len: None,
             detach_key,
         }
     }
 
+    /// Creates a new `ArrayBuffer` over an embedder-owned memory region.
+    ///
+    /// The bytes of the buffer alias the provided region directly; writes done through
+    /// JavaScript are immediately visible to the embedder and vice versa. Boa never
+    /// allocates, grows nor frees the region, and only ever accesses it with atomic
+    /// operations, so the embedder can soundly access the region from the same thread
+    /// at any time — even while the engine holds a reference into the buffer. Accesses
+    /// from other threads must be synchronized with the JavaScript code that may access
+    /// the buffer (e.g. with a mutex or another happens-before relationship).
+    ///
+    /// Externally-backed buffers are always fixed-length and cannot be resized nor
+    /// transferred, but they can be detached; detaching is the way for an embedder to
+    /// guarantee that the engine can no longer access the region (e.g. before unmapping
+    /// or freeing it). See [`ArrayBuffer::detach`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if the region is non-empty and its base address is not aligned to 8
+    /// bytes. Typed array views perform aligned accesses of up to 8 bytes on the
+    /// backing memory, so the base address must satisfy the largest alignment those
+    /// accesses need.
+    #[must_use]
+    pub fn from_external_data(data: &'static [AtomicU8]) -> Self {
+        assert_external_memory_alignment(data);
+        Self {
+            data: Some(BufferData::External(data)),
+            max_byte_len: None,
+            detach_key: JsValue::undefined(),
+        }
+    }
+
+    /// Creates a new `ArrayBuffer` over the embedder-owned memory region starting at
+    /// `ptr` with `len` bytes.
+    ///
+    /// This is a convenience wrapper that builds the `&'static [AtomicU8]` slice from
+    /// its raw parts and delegates to [`ArrayBuffer::from_external_data`]; see that
+    /// method for the aliasing and threading guarantees of the returned buffer.
+    ///
+    /// # Safety
+    ///
+    /// The caller must guarantee that:
+    ///
+    /// - `ptr` is valid for reads and writes of `len` bytes, and the region stays
+    ///   valid **and unmoved** at the same address for the whole lifetime of the
+    ///   returned buffer and of every object that shares its data (e.g. typed arrays
+    ///   or `DataView`s constructed over it). Note that regions that can relocate,
+    ///   like a growable `WebAssembly` linear memory that moves its base address on
+    ///   `memory.grow`, silently invalidate the buffer unless the embedder guarantees
+    ///   that no relocation happens while the buffer is alive.
+    /// - The region is not written to non-atomically from another thread while
+    ///   JavaScript code that may access the buffer is executing.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `ptr` is null, if `len` is bigger than `isize::MAX`, or if the region
+    /// is non-empty and `ptr` is not aligned to 8 bytes.
+    #[must_use]
+    pub unsafe fn from_external_ptr(ptr: *mut u8, len: usize) -> Self {
+        assert!(!ptr.is_null(), "`ptr` must be non-null");
+        assert!(
+            isize::try_from(len).is_ok(),
+            "`len` must not exceed `isize::MAX`"
+        );
+        // SAFETY: `AtomicU8` is guaranteed to have the same layout as `u8`, and the
+        // caller guarantees that the region is valid for reads and writes of `len`
+        // bytes for the whole lifetime of the buffer.
+        let data = unsafe { slice::from_raw_parts(ptr.cast_const().cast::<AtomicU8>(), len) };
+        Self::from_external_data(data)
+    }
+
+    /// Returns `true` if this buffer is backed by embedder-owned memory.
+    #[must_use]
+    pub fn is_external(&self) -> bool {
+        matches!(self.data, Some(BufferData::External(_)))
+    }
+
     pub(crate) fn len(&self) -> usize {
-        self.data.as_ref().map_or(0, AlignedVec::len)
+        self.data.as_ref().map_or(0, BufferData::len)
     }
 
+    /// Gets the bytes of the buffer if the buffer is backed by Boa-owned memory.
+    ///
+    /// Returns `None` if the buffer is detached or backed by embedder-owned memory;
+    /// use [`ArrayBuffer::slice_ref`] to access both kinds of backing memory.
     pub(crate) fn bytes(&self) -> Option<&[u8]> {
-        self.data.as_deref()
+        match self.data.as_ref() {
+            Some(BufferData::Owned(vec)) => Some(vec),
+            _ => None,
+        }
     }
 
+    /// Gets the mutable bytes of the buffer if the buffer is backed by Boa-owned memory.
+    ///
+    /// Returns `None` if the buffer is detached or backed by embedder-owned memory;
+    /// use [`ArrayBuffer::slice_ref_mut`] to access both kinds of backing memory.
     pub(crate) fn bytes_mut(&mut self) -> Option<&mut [u8]> {
-        self.data.as_deref_mut()
+        match self.data.as_mut() {
+            Some(BufferData::Owned(vec)) => Some(vec),
+            _ => None,
+        }
+    }
+
+    /// Gets the inner data of the buffer, abstracting over owned and external backing
+    /// memory.
+    ///
+    /// Returns `None` if the buffer is detached.
+    pub(crate) fn slice_ref(&self) -> Option<SliceRef<'_>> {
+        self.data.as_ref().map(BufferData::slice_ref)
+    }
+
+    /// Gets the mutable inner data of the buffer, abstracting over owned and external
+    /// backing memory.
+    ///
+    /// Returns `None` if the buffer is detached.
+    pub(crate) fn slice_ref_mut(&mut self) -> Option<SliceRefMut<'_>> {
+        self.data.as_mut().map(BufferData::slice_ref_mut)
     }
 
     pub(crate) fn vec_mut(&mut self) -> Option<&mut AlignedVec<u8>> {
-        self.data.as_mut()
+        match self.data.as_mut() {
+            Some(BufferData::Owned(vec)) => Some(vec),
+            _ => None,
+        }
     }
 
     /// Sets the maximum byte length of the buffer, returning the previous value if present.
@@ -241,34 +430,45 @@ impl ArrayBuffer {
         self.max_byte_len.replace(max_byte_len)
     }
 
-    /// Gets the inner bytes of the buffer without accessing the current atomic length.
+    /// Gets the inner data of the buffer without accessing the current atomic length.
     #[track_caller]
-    pub(crate) fn bytes_with_len(&self, len: usize) -> Option<&[u8]> {
-        if let Some(s) = self.data.as_deref() {
-            Some(&s[..len])
-        } else {
-            None
-        }
+    pub(crate) fn slice_ref_with_len(&self, len: usize) -> Option<SliceRef<'_>> {
+        self.slice_ref().map(|s| match s {
+            SliceRef::Slice(s) => SliceRef::Slice(&s[..len]),
+            SliceRef::AtomicSlice(s) => SliceRef::AtomicSlice(&s[..len]),
+        })
     }
 
-    /// Gets the mutable inner bytes of the buffer without accessing the current atomic length.
+    /// Gets the mutable inner data of the buffer without accessing the current atomic length.
     #[track_caller]
-    pub(crate) fn bytes_with_len_mut(&mut self, len: usize) -> Option<&mut [u8]> {
-        if let Some(s) = self.data.as_deref_mut() {
-            Some(&mut s[..len])
-        } else {
-            None
-        }
+    pub(crate) fn slice_ref_with_len_mut(&mut self, len: usize) -> Option<SliceRefMut<'_>> {
+        self.slice_ref_mut().map(|s| match s {
+            SliceRefMut::Slice(s) => SliceRefMut::Slice(&mut s[..len]),
+            SliceRefMut::AtomicSlice(s) => SliceRefMut::AtomicSlice(&s[..len]),
+        })
     }
 
-    /// Gets the underlying vector for this buffer.
+    /// Gets the underlying bytes of this buffer if the buffer is backed by Boa-owned
+    /// memory.
+    ///
+    /// Returns `None` if the buffer is detached or backed by embedder-owned memory
+    /// (see [`ArrayBuffer::from_external_data`]); the embedder already owns an
+    /// externally-backed region and can read it directly.
     #[must_use]
     pub fn data(&self) -> Option<&[u8]> {
-        self.data.as_deref()
+        self.bytes()
     }
 
     /// Resizes the buffer to the new size, clamped to the maximum byte length if present.
     pub fn resize(&mut self, new_byte_length: u64) -> JsResult<()> {
+        if self.is_external() {
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "ArrayBuffer.resize: cannot resize a buffer backed by embedder-owned memory",
+                )
+                .into());
+        }
+
         let Some(max_byte_len) = self.max_byte_len else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer.resize: cannot resize a fixed-length buffer")
@@ -296,6 +496,12 @@ impl ArrayBuffer {
     /// Detaches the inner data of this `ArrayBuffer`, returning the original buffer if still
     /// present.
     ///
+    /// For a buffer backed by embedder-owned memory (see
+    /// [`ArrayBuffer::from_external_data`]), this returns a copy of the region's contents
+    /// and drops the engine's reference into the region; the embedder remains the owner
+    /// of the region itself. This is the way for an embedder to guarantee that the
+    /// engine can no longer access the region, e.g. before unmapping or freeing it.
+    ///
     /// # Errors
     ///
     /// Throws an error if the provided detach key is invalid.
@@ -306,7 +512,12 @@ impl ArrayBuffer {
                 .into());
         }
 
-        Ok(self.data.take())
+        Ok(self.data.take().map(|data| match data {
+            BufferData::Owned(vec) => vec,
+            BufferData::External(data) => {
+                AlignedVec::from_iter(0, SliceRef::AtomicSlice(data).to_vec())
+            }
+        }))
     }
 
     /// `IsDetachedBuffer ( arrayBuffer )`
@@ -533,16 +744,16 @@ impl ArrayBuffer {
             })?;
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
-        let Some(data) = buf.bytes() else {
+        if buf.is_detached() {
             return Ok(JsValue::from(0));
-        };
+        }
 
         // 5. If IsFixedLengthArrayBuffer(O) is true, then
         //     a. Let length be O.[[ArrayBufferByteLength]].
         // 6. Else,
         //     a. Let length be O.[[ArrayBufferMaxByteLength]].
         // 7. Return 𝔽(length).
-        Ok(buf.max_byte_len.unwrap_or(data.len() as u64).into())
+        Ok(buf.max_byte_len.unwrap_or(buf.len() as u64).into())
     }
 
     /// [`get ArrayBuffer.prototype.resizable`][spec].
@@ -712,7 +923,7 @@ impl ArrayBuffer {
             // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
             // 25. Let toBuf be new.[[ArrayBufferData]].
             let mut new = new.borrow_mut();
-            let Some(to_buf) = new.data_mut().bytes_mut() else {
+            let Some(mut to_buf) = new.data_mut().slice_ref_mut() else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer constructor returned detached ArrayBuffer")
                     .into());
@@ -729,7 +940,7 @@ impl ArrayBuffer {
             // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
             // 24. Let fromBuf be O.[[ArrayBufferData]].
             let buf = buf.borrow();
-            let Some(from_buf) = buf.data().bytes() else {
+            let Some(from_buf) = buf.data().slice_ref() else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer detached while ArrayBuffer.slice was running")
                     .into());
@@ -738,7 +949,17 @@ impl ArrayBuffer {
             // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
             let first = first as usize;
             let new_len = new_len as usize;
-            to_buf[..new_len].copy_from_slice(&from_buf[first..first + new_len]);
+
+            // SAFETY: The bounds checks above guarantee that both buffers have at least
+            // `new_len` bytes at the given offsets, and `new` is a different buffer
+            // object than `buf`, so their owned allocations cannot overlap.
+            unsafe {
+                memcpy(
+                    from_buf.subslice(first..first + new_len).as_ptr(),
+                    to_buf.subslice_mut(..new_len).as_ptr(),
+                    new_len,
+                );
+            }
         }
 
         // 27. Return new.
@@ -788,10 +1009,20 @@ impl ArrayBuffer {
         };
 
         // 5. If IsDetachedBuffer(arrayBuffer) is true, throw a TypeError exception.
-        let Some(mut bytes) = buf.borrow_mut().data_mut().data.take() else {
+        let Some(data) = buf.borrow_mut().data_mut().data.take() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot transfer a detached buffer")
                 .into());
+        };
+
+        let mut bytes = match data {
+            BufferData::Owned(bytes) => bytes,
+            data @ BufferData::External(_) => {
+                buf.borrow_mut().data_mut().data = Some(data);
+                return Err(JsNativeError::typ()
+                    .with_message("cannot transfer an ArrayBuffer backed by embedder-owned memory")
+                    .into());
+            }
         };
 
         // 6. If preserveResizability is preserve-resizability and IsResizableArrayBuffer(arrayBuffer)
@@ -807,7 +1038,7 @@ impl ArrayBuffer {
 
         // 8. If arrayBuffer.[[ArrayBufferDetachKey]] is not undefined, throw a TypeError exception.
         if !buf.borrow().data().detach_key.is_undefined() {
-            buf.borrow_mut().data_mut().data = Some(bytes);
+            buf.borrow_mut().data_mut().data = Some(BufferData::Owned(bytes));
             return Err(JsNativeError::typ()
                 .with_message("cannot transfer a buffer with a detach key")
                 .into());
@@ -827,7 +1058,7 @@ impl ArrayBuffer {
         // 16. Return newBuffer.
         if let Some(new_max_len) = new_max_len {
             if new_len > new_max_len {
-                buf.borrow_mut().data_mut().data = Some(bytes);
+                buf.borrow_mut().data_mut().data = Some(BufferData::Owned(bytes));
                 return Err(JsNativeError::range()
                     .with_message("`length` cannot be bigger than `maxByteLength`")
                     .into());
@@ -851,7 +1082,7 @@ impl ArrayBuffer {
             context.root_shape(),
             prototype,
             ArrayBuffer {
-                data: Some(bytes),
+                data: Some(BufferData::Owned(bytes)),
                 max_byte_len: new_max_len,
                 detach_key: JsValue::undefined(),
             },
@@ -904,7 +1135,7 @@ impl ArrayBuffer {
             Self {
                 // 6. Set obj.[[ArrayBufferData]] to block.
                 // 7. Set obj.[[ArrayBufferByteLength]] to byteLength.
-                data: Some(block),
+                data: Some(BufferData::Owned(block)),
                 // 8. If allocatingResizableBuffer is true, then
                 //    c. Set obj.[[ArrayBufferMaxByteLength]] to maxByteLength.
                 max_byte_len,
