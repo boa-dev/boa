@@ -424,15 +424,22 @@ fn evaluate_expr(
                     let result = script.evaluate(context);
                     if let Err(err) = context.run_jobs() {
                         printer.print(uncaught_job_error(&err));
+                        return Err(eyre!("execution failed"));
                     }
                     result
                 };
                 match result {
                     Ok(v) => printer.print(format!("{}\n", v.display())),
-                    Err(ref v) => printer.print(uncaught_error(v)),
+                    Err(v) => {
+                        printer.print(uncaught_error(&v));
+                        return Err(eyre!("execution failed"));
+                    }
                 }
             }
-            Err(ref v) => printer.print(uncaught_error(v)),
+            Err(v) => {
+                printer.print(uncaught_error(&v));
+                return Err(eyre!("parsing failed"));
+            }
         }
     }
 
@@ -519,7 +526,10 @@ fn evaluate_file(
                 println!("{}", v.display());
             }
         }
-        Err(v) => printer.print(uncaught_error(&v)),
+        Err(v) => {
+            printer.print(uncaught_error(&v));
+            return Err(eyre!("execution failed"));
+        }
     }
 
     Ok(())
