@@ -111,7 +111,7 @@ dhat = "0.3.3"
 quote = "1.0.45"
 syn = { version = "2.0.116", default-features = false }
 proc-macro2 = "1.0"
-synstructure = "0.13"
+synstructure = "0.14"
 measureme = "12.0.3"
 pastey = "0.2.3"
 rand = "0.10.1"
