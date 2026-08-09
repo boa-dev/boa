@@ -13,8 +13,9 @@ use crate::{
     script::Script,
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
+use portable_atomic::AtomicBool;
 use shadow_stack::ShadowStack;
-use std::{future::Future, ops::ControlFlow, pin::Pin, task};
+use std::{future::Future, ops::ControlFlow, pin::Pin, sync::Arc, sync::atomic::Ordering, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
@@ -86,6 +87,12 @@ pub struct Vm {
     pub(crate) pending_exception: Option<JsError>,
     pub(crate) environments: EnvironmentStack,
     pub(crate) runtime_limits: RuntimeLimits,
+
+    /// Flag used to interrupt the currently executing bytecode.
+    ///
+    /// When set to `true` from another thread, the next loop iteration or function
+    /// call throws a non-catchable runtime limit error, terminating the evaluation.
+    pub(crate) interrupt: Arc<AtomicBool>,
 
     /// This is used to assign a native (rust) function as the active function,
     /// because we don't push a frame for them.
@@ -425,6 +432,7 @@ impl Vm {
             environments: EnvironmentStack::new(realm.environment().clone()),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
+            interrupt: Arc::new(AtomicBool::new(false)),
             native_active_function: None,
             realm,
             shadow_stack: ShadowStack::default(),
@@ -866,6 +874,13 @@ impl Context {
 
     /// Checks if we haven't exceeded the defined runtime limits.
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
+        // Must throw if the execution has been interrupted by an external request.
+        if self.vm.interrupt.load(Ordering::Relaxed) {
+            return Err(JsNativeError::runtime_limit()
+                .with_message("execution was interrupted by an external request")
+                .into());
+        }
+
         // Must throw if the number of recursive calls exceeds the defined limit.
         if self.vm.runtime_limits.recursion_limit() <= self.vm.frames.len() {
             return Err(JsNativeError::runtime_limit()

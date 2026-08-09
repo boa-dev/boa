@@ -1,6 +1,8 @@
 //! The ECMAScript context.
 
-use std::{cell::Cell, path::Path, rc::Rc};
+use std::{cell::Cell, path::Path, rc::Rc, sync::Arc};
+
+use portable_atomic::AtomicBool;
 
 use boa_ast::StatementList;
 use boa_interner::Interner;
@@ -590,6 +592,21 @@ impl Context {
     #[inline]
     pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
         &mut self.vm.runtime_limits
+    }
+
+    /// Returns a clone of the context's interrupt flag.
+    ///
+    /// Setting the flag to `true` with [`AtomicBool::store`] from any thread will
+    /// interrupt the currently executing bytecode at the next loop iteration or
+    /// function call, throwing a non-catchable runtime limit error that terminates
+    /// the evaluation.
+    ///
+    /// The flag is sticky: once set, it stays `true` until explicitly cleared. Reset
+    /// it with `flag.store(false, Ordering::Relaxed)` before evaluating again.
+    #[inline]
+    #[must_use]
+    pub fn interrupt_flag(&self) -> Arc<AtomicBool> {
+        self.vm.interrupt.clone()
     }
 
     /// Returns `true` if this context can be suspended by an `Atomics.wait` call.
