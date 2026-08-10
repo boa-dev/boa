@@ -454,6 +454,23 @@ fn super_construction_with_parameter_expression() {
 }
 
 #[test]
+fn binary_operands_preserve_left_to_right_evaluation() {
+    run_test_actions([
+        TestAction::assert_eq("(function() { let x = 1; return x + (x = 2); })()", 3),
+        TestAction::assert_eq("(function() { let x = 1; return x | (x = 2); })()", 3),
+        TestAction::assert_eq("(function() { let x = 1; return x === (x = 2); })()", false),
+        TestAction::assert_eq(
+            "(function() { let x = 1; return x < (x = 2) ? 1 : 0; })()",
+            1,
+        ),
+        TestAction::assert_eq(
+            "(function() { const x = 1; let y = 0; return x + (y = 2); })()",
+            3,
+        ),
+    ]);
+}
+
+#[test]
 fn cross_context_function_call() {
     let context1 = &mut Context::default();
     let result = context1.eval(Source::from_bytes(indoc! {r"
