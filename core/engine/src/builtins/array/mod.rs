@@ -1291,6 +1291,48 @@ impl Array {
                     .with_message("length + number of arguments exceeds the max safe integer limit")
                     .into());
             }
+
+            if o.is_array() {
+                let mut o_borrow = o.borrow_mut();
+                let props = &mut o_borrow.properties_mut().indexed_properties;
+
+                let fast_path = match props {
+                    IndexedProperties::DenseI32(dense) if dense.len() as u64 == len => {
+                        let all_i32: Option<ThinVec<i32>> =
+                            args.iter().map(JsValue::as_i32).collect();
+                        if let Some(items) = all_i32 {
+                            dense.splice(0..0, items);
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    IndexedProperties::DenseF64(dense) if dense.len() as u64 == len => {
+                        let all_f64: Option<ThinVec<f64>> =
+                            args.iter().map(JsValue::as_number).collect();
+                        if let Some(items) = all_f64 {
+                            dense.splice(0..0, items);
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    IndexedProperties::DenseElement(dense) if dense.len() as u64 == len => {
+                        dense.splice(0..0, args.iter().cloned());
+                        true
+                    }
+                    _ => false,
+                };
+
+                drop(o_borrow);
+
+                if fast_path {
+                    let new_len = len + arg_count;
+                    Self::set_length(&o, new_len, context)?;
+                    return Ok(new_len.into());
+                }
+            }
+
             // b. Let k be len.
             let mut k = len;
             // c. Repeat, while k > 0,
