@@ -2,7 +2,6 @@ use arrayvec::ArrayVec;
 use itertools::Itertools;
 use std::{cell::Cell, fmt};
 
-use boa_gc::GcRefCell;
 use boa_macros::{Finalize, Trace};
 
 use crate::{
@@ -25,17 +24,48 @@ pub(crate) struct CacheEntry {
 }
 
 /// An inline cache entry for a property access.
-#[derive(Clone, Debug, Trace, Finalize)]
+#[repr(C)]
+#[derive(Trace, Finalize)]
 pub(crate) struct InlineCache {
+    /// Whether this access site has seen too many shapes and should no longer be cached.
+    #[unsafe_ignore_trace]
+    pub(crate) megamorphic: Cell<bool>,
+
     /// The property that is accessed.
     pub(crate) name: JsString,
 
     /// Multiple cached shape-to-slot entries.
-    pub(crate) entries: GcRefCell<ArrayVec<CacheEntry, PIC_CAPACITY>>,
+    pub(crate) entries: Cell<ArrayVec<CacheEntry, PIC_CAPACITY>>,
+}
 
-    /// Whether this access site has seen too many shapes and should no longer be cached.
-    #[unsafe_ignore_trace]
-    pub(crate) megamorphic: Cell<bool>,
+impl Clone for InlineCache {
+    fn clone(&self) -> Self {
+        // SAFETY: `entries` is only ever accessed through `&self`/`&mut self`
+        // on this single-threaded cache, and cloning `CacheEntry` doesn't
+        // reenter this `Cell`, so it's safe to read through the raw pointer
+        // for the duration of this borrow without disturbing the cell's contents.
+        let cloned_entries = unsafe { (*self.entries.as_ptr()).clone() };
+
+        Self {
+            megamorphic: self.megamorphic.clone(),
+            name: self.name.clone(),
+            entries: Cell::new(cloned_entries),
+        }
+    }
+}
+
+impl fmt::Debug for InlineCache {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // SAFETY: `entries` is only ever accessed through `&self`/`&mut self`
+        // on this single-threaded cache, and printing doesn't reenter this `Cell`,
+        // so it's safe to read through the raw pointer.
+        let entries = unsafe { &*self.entries.as_ptr() };
+        f.debug_struct("InlineCache")
+            .field("name", &self.name)
+            .field("entries", entries)
+            .field("megamorphic", &self.megamorphic)
+            .finish()
+    }
 }
 
 impl fmt::Display for InlineCache {
@@ -46,20 +76,29 @@ impl fmt::Display for InlineCache {
             return write!(f, "(megamorphic))");
         }
 
-        let entries = self.entries.borrow();
-        let entries = entries.iter().map(|e| e.shape.to_addr_usize()).format(", ");
-
-        write!(f, "({entries:#x}))")
+        // SAFETY: `entries` is only ever accessed through `&self`/`&mut self`
+        // on this single-threaded cache, and printing doesn't reenter this `Cell`,
+        // so it's safe to read through the raw pointer.
+        let entries = unsafe { &*self.entries.as_ptr() };
+        let formatted = entries.iter().map(|e| e.shape.to_addr_usize()).format(", ");
+        write!(f, "({formatted:#x}))")
     }
 }
 
 impl InlineCache {
     pub(crate) fn new(name: JsString) -> Self {
         Self {
-            name,
-            entries: GcRefCell::new(ArrayVec::new()),
             megamorphic: Cell::new(false),
+            name,
+            entries: Cell::new(ArrayVec::new()),
         }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn entries(&self) -> ArrayVec<CacheEntry, PIC_CAPACITY> {
+        // SAFETY: `entries` is only ever accessed through `&self`/`&mut self`
+        // on this single-threaded cache, so it's safe to clone through the raw pointer.
+        unsafe { (*self.entries.as_ptr()).clone() }
     }
 
     pub(crate) fn set(&self, shape: &Shape, slot: Slot) {
@@ -67,7 +106,11 @@ impl InlineCache {
             return;
         }
 
-        let mut entries = self.entries.borrow_mut();
+        // SAFETY: `entries` is only ever accessed through `&self`/`&mut self`
+        // on this single-threaded cache, and updating doesn't call user-code that
+        // could re-entrantly access or mutate `entries`, so it's safe to obtain
+        // a mutable reference to the cell's contents.
+        let entries = unsafe { &mut *self.entries.as_ptr() };
 
         // Add a new entry if there's space.
         if entries
@@ -91,7 +134,11 @@ impl InlineCache {
             return None;
         }
 
-        let mut entries = self.entries.borrow_mut();
+        // SAFETY: `entries` is only ever accessed through `&self`/`&mut self`
+        // on this single-threaded cache, and looking up/upgrading weak shapes
+        // doesn't call user-code that could re-entrantly access or mutate `entries`,
+        // so it's safe to obtain a mutable reference to the cell's contents.
+        let entries = unsafe { &mut *self.entries.as_ptr() };
         let mut i = 0;
         let mut result = None;
         let shape_addr = shape.to_addr_usize();
