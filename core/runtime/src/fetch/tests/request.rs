@@ -354,3 +354,47 @@ fn request_clone_signal_override() {
         }),
     ]);
 }
+
+#[test]
+fn request_getters() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            globalThis.done = (async () => {
+                const request = new Request("http://unit.test/api?x=1", {
+                    method: "POST",
+                    headers: { "content-type": "application/json", "x-test": "yes" },
+                    body: '{"a":1,"b":[2,3]}',
+                });
+                assertEq(request.method, "POST");
+                assertEq(request.url, "http://unit.test/api?x=1");
+                assertEq(request.headers.get("content-type"), "application/json");
+                assertEq(request.headers.get("x-test"), "yes");
+                assertEq(await request.text(), '{"a":1,"b":[2,3]}');
+                const json = await request.json();
+                assertEq(json.a, 1);
+                assertEq(json.b[1], 3);
+
+                const form = new Request("http://unit.test/form", {
+                    method: "POST",
+                    headers: { "content-type": "application/x-www-form-urlencoded" },
+                    body: "a=1&b=two",
+                });
+                const fields = await form.formData();
+                assertEq(fields.a, "1");
+                assertEq(fields.b, "two");
+            })();
+        "#}),
+        TestAction::inspect_context(|ctx| {
+            let done = ctx.global_object().get(js_str!("done"), ctx).unwrap();
+            done.as_promise()
+                .unwrap()
+                .await_blocking(ctx)
+                .expect("request getter assertions should pass");
+        }),
+    ]);
+}

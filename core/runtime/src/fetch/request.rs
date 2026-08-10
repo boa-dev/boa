@@ -5,9 +5,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
 use super::headers::JsHeaders;
+use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
-    Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
+    Context, Finalize, JsData, JsNativeError, JsObject, JsResult, JsString, JsValue, Trace,
+    boa_class, js_error,
 };
 use either::Either;
 use std::mem;
@@ -26,6 +28,12 @@ pub struct RequestInit {
 }
 
 impl RequestInit {
+    /// Returns `true` if a `body` field was explicitly provided in the init object.
+    #[must_use]
+    pub fn has_body(&self) -> bool {
+        self.body.is_some()
+    }
+
     /// Takes the abort signal from the options, if present.
     pub fn take_signal(&mut self) -> Option<JsObject> {
         self.signal.take()
@@ -221,5 +229,114 @@ impl JsRequest {
     #[boa(rename = "clone")]
     fn clone_request(&self) -> Self {
         self.clone()
+    }
+
+    /// Returns the HTTP method of the request.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-request-method>
+    #[boa(getter)]
+    fn method(&self) -> JsString {
+        JsString::from(self.inner.method().as_str())
+    }
+
+    /// Returns the URL of the request.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-request-url>
+    #[boa(getter)]
+    fn url(&self) -> JsString {
+        JsString::from(self.inner.uri().to_string().as_str())
+    }
+
+    /// Returns the headers associated with the request.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-request-headers>
+    #[boa(getter)]
+    fn headers(&self) -> JsHeaders {
+        JsHeaders::from_http(self.inner.headers().clone())
+    }
+
+    /// Reads the request body as a UTF-8 string.
+    ///
+    /// Returns a `Promise` that resolves to a string.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-body-text>
+    fn text(&self, context: &mut Context) -> JsPromise {
+        let body = self.inner.body().clone();
+        JsPromise::from_async_fn(
+            async move |_| {
+                let text = String::from_utf8_lossy(&body);
+                Ok(JsString::from(text.as_ref()).into())
+            },
+            context,
+        )
+    }
+
+    /// Reads the request body and parses it as JSON.
+    ///
+    /// Returns a `Promise` that resolves to the parsed JavaScript value.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-body-json>
+    fn json(&self, context: &mut Context) -> JsPromise {
+        let body = self.inner.body().clone();
+        JsPromise::from_async_fn(
+            async move |context| {
+                let json_str = String::from_utf8_lossy(&body);
+                let json = serde_json::from_str::<serde_json::Value>(&json_str)
+                    .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
+                JsValue::from_json(&json, &mut context.borrow_mut())
+            },
+            context,
+        )
+    }
+
+    /// Reads the request body and parses it as `application/x-www-form-urlencoded`.
+    ///
+    /// Returns a `Promise` that resolves to a plain JS object with the form fields.
+    ///
+    /// Note: This is a simplified implementation that only supports
+    /// `application/x-www-form-urlencoded` bodies. Multipart form data is not
+    /// supported. When the same key appears multiple times, the last value wins.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#dom-body-formdata>
+    fn form_data(&self, context: &mut Context) -> JsPromise {
+        let body = self.inner.body().clone();
+        let content_type = self
+            .inner
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_string);
+
+        JsPromise::from_async_fn(
+            async move |context| {
+                // Reject multipart; accept url-encoded or no Content-Type.
+                let is_url_encoded = content_type
+                    .as_deref()
+                    .is_none_or(|ct| ct.starts_with("application/x-www-form-urlencoded"));
+
+                if !is_url_encoded {
+                    return Err(JsNativeError::typ()
+                        .with_message(
+                            "formData() only supports application/x-www-form-urlencoded bodies",
+                        )
+                        .into());
+                }
+
+                let ctx = &mut context.borrow_mut();
+                let form_obj = JsObject::default(ctx.intrinsics());
+
+                for (key, value) in form_urlencoded::parse(&body) {
+                    form_obj.set(
+                        JsString::from(key.as_ref()),
+                        JsString::from(value.as_ref()),
+                        false,
+                        ctx,
+                    )?;
+                }
+
+                Ok(form_obj.into())
+            },
+            context,
+        )
     }
 }
