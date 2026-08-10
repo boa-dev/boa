@@ -133,10 +133,12 @@ where
         );
 
         let previous_index = self.write_index.checked_sub(1).unwrap_or(PEEK_BUF_SIZE - 1);
+        let is_start = self.lexer.linear_pos().pos() == 0;
+        let is_line_terminator = self.peeked[previous_index]
+            .as_ref()
+            .is_some_and(|token| token.kind() == &TokenKind::LineTerminator);
 
-        if let Some(ref token) = self.peeked[previous_index]
-            && token.kind() == &TokenKind::LineTerminator
-        {
+        if is_start || is_line_terminator {
             // We don't want to have multiple contiguous line terminators in the buffer, since
             // they have no meaning.
             let next = loop {

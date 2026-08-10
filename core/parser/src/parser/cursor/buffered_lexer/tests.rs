@@ -287,3 +287,34 @@ fn issue_1768() {
 
     assert!(cur.peek(3, true, interner).unwrap().is_none());
 }
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn html_close_comment_first_line() {
+    let mut cur = BufferedLexer::from(&b"--> this is a comment\nthrow"[..]);
+    let interner = &mut Interner::default();
+
+    assert_eq!(
+        *cur.next(false, interner)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::Keyword((boa_ast::Keyword::Throw, false))
+    );
+}
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn html_close_comment_first_line_with_spaces_and_comments() {
+    let mut cur =
+        BufferedLexer::from(&b"  /* comment */ /*another*/--> this is a comment\nthrow"[..]);
+    let interner = &mut Interner::default();
+
+    assert_eq!(
+        *cur.next(false, interner)
+            .unwrap()
+            .expect("Some value expected")
+            .kind(),
+        TokenKind::Keyword((boa_ast::Keyword::Throw, false))
+    );
+}

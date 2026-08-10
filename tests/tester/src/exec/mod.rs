@@ -602,6 +602,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
             JsNativeErrorKind::Reference if target_type == ErrorType::ReferenceError => {}
             JsNativeErrorKind::Range if target_type == ErrorType::RangeError => {}
             JsNativeErrorKind::Type if target_type == ErrorType::TypeError => {}
+            JsNativeErrorKind::Eval if target_type == ErrorType::EvalError => {}
             _ => return false,
         }
         true
