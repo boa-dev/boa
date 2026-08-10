@@ -10,6 +10,7 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'boa-dev/boa'
     permissions:
       contents: write
     strategy:

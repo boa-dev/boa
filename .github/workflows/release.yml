@@ -9,6 +9,7 @@ permissions:
 jobs:
   publish:
     name: Publish crates
+    if: github.repository == 'boa-dev/boa'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -50,6 +51,7 @@ jobs:
 
   npm_publish:
     name: Publish NPM package (wasm)
+    if: github.repository == 'boa-dev/boa'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -93,6 +95,7 @@ jobs:
 
   release-binaries:
     name: Publish binaries
+    if: github.repository == 'boa-dev/boa'
     permissions:
       contents: write
     needs: publish
