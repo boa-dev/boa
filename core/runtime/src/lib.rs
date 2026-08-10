@@ -97,12 +97,15 @@
 //! [`boa_wintertc`] crate. They are re-exported from `boa_runtime` so existing users keep a single,
 //! unchanged import path:
 //!
+//! - `abort` — `AbortController` and `AbortSignal` (requires the `fetch` feature)
 //! - [`base64`] — `atob` and `btoa`
 //! - [`clone`] — `structuredClone`
 //! - [`console`] — the `console` object
-//! - [`microtask`] — `queueMicrotask`
 //! - [`interval`] — the timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
 //!   kept under their historical `interval` name
+//! - [`microtask`] — `queueMicrotask`
+//! - [`text`] — `TextEncoder` and `TextDecoder`, kept under their historical `text` name
+//! - `url` — the `URL` class (requires the `url` feature)
 //!
 //! The [`store`] module holds the serialization core backing `structuredClone`. See each
 //! re-exported module for its full API documentation.
@@ -131,7 +134,8 @@ pub use boa_wintertc::base64;
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 #[cfg(feature = "fetch")]
-pub mod abort;
+#[doc(inline)]
+pub use boa_wintertc::abort;
 
 #[doc(inline)]
 pub use boa_wintertc::clone;
@@ -152,9 +156,11 @@ pub use boa_wintertc::store;
 /// Support for the `$262` test262 harness object.
 #[cfg(feature = "test262")]
 pub mod test262;
-pub mod text;
+#[doc(inline)]
+pub use boa_wintertc::encoding as text;
 #[cfg(feature = "url")]
-pub mod url;
+#[doc(inline)]
+pub use boa_wintertc::url;
 
 #[cfg(feature = "process")]
 use crate::extensions::ProcessExtension;

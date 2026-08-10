@@ -43,7 +43,7 @@ pub struct EncodingExtension;
 
 impl RuntimeExtension for EncodingExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::text::register(realm, context)?;
+        boa_wintertc::encoding::register(realm, context)?;
         Ok(())
     }
 }
@@ -76,7 +76,7 @@ pub struct UrlExtension;
 #[cfg(feature = "url")]
 impl RuntimeExtension for UrlExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::url::Url::register(realm, context)
+        boa_wintertc::url::Url::register(realm, context)
     }
 }
 
@@ -129,7 +129,7 @@ pub struct AbortControllerExtension;
 #[cfg(feature = "fetch")]
 impl RuntimeExtension for AbortControllerExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::abort::register(realm, context)
+        boa_wintertc::abort::register(realm, context)
     }
 }
 
