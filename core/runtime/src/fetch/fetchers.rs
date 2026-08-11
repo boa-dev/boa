@@ -39,6 +39,7 @@ impl Fetcher for BlockingReqwestFetcher {
         _context: &RefCell<&mut Context>,
     ) -> JsResult<JsResponse> {
         use boa_engine::{JsError, JsString};
+        use http::response;
 
         if let Some(ref sig) = signal
             && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
@@ -74,6 +75,8 @@ impl Fetcher for BlockingReqwestFetcher {
 
         let status = resp.status();
         let headers = resp.headers().clone();
+        let final_url = resp.url().to_string();    // <-- capture before consuming
+        let redirected = final_url != url;
         let bytes = resp.bytes().map_err(JsError::from_rust)?;
         let mut builder = http::Response::builder().status(status.as_u16());
 
@@ -83,9 +86,13 @@ impl Fetcher for BlockingReqwestFetcher {
             }
         }
 
+        let final_url = resp.url().to_string();
+        let redirected = final_url != url;
+
+
         builder
             .body(bytes.to_vec())
             .map_err(JsError::from_rust)
-            .map(|request| JsResponse::basic(JsString::from(url), request))
+            .map(|request| JsResponse::basic(JsString::from(final_url), redirected, response))
     }
 }
