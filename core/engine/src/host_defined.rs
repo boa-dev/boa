@@ -100,6 +100,13 @@ impl HostDefined<dyn Any> {
 
 impl HostDefined<dyn NativeObject> {
     /// Insert a type into the [`HostDefined`].
+    /// Creates a new `SpannedSourceText` from the given source string.
+    ///
+    /// # Arguments
+    /// - `source`: The source text to wrap.
+    ///
+    /// # Returns
+    /// A new `SpannedSourceText` instance.
     #[track_caller]
     pub fn insert_default<T: NativeObject + Default>(&mut self) -> Option<Box<T>> {
         self.types
