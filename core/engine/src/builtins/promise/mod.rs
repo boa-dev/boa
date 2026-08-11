@@ -1251,7 +1251,7 @@ impl Promise {
 
             // b. If desc is not undefined and desc.[[Enumerable]] is true, then
             if let Some(desc) = desc
-                && desc.expect_enumerable()
+                && desc.enumerable()
             {
                 // i. Let value be ? Get(promises, key).
                 let value = promises.get(key.clone(), context)?;
