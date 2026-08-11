@@ -293,10 +293,74 @@ fn response_redirect_custom_status_and_coercion() {
             r#"
                 const response = Response.redirect("http://example.com/", 301);
                 assertEq(response.status, 301);
+            "#,
+        ),
+    ]);
+}
 
-                // Tests Web IDL coercion of the URL parameter
-                const response2 = Response.redirect(12345);
-                assertEq(response2.headers.get("location"), "12345");
+#[test]
+fn response_redirect_rejects_non_url_after_string_coercion() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                let threw = false;
+                try {
+                    Response.redirect(12345);
+                } catch (e) {
+                    threw = true;
+                    if (!(e instanceof TypeError)) {
+                        throw new Error("Expected TypeError, got " + e.name);
+                    }
+                }
+                if (!threw) {
+                    throw new Error("Expected TypeError, but no error was thrown");
+                }
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn response_redirect_serializes_parsed_url() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                const response1 = Response.redirect("https://example.com");
+                assertEq(response1.headers.get("location"), "https://example.com/");
+            "#,
+        ),
+        TestAction::run(
+            r#"
+                const response2 = Response.redirect("https://example.com#frag");
+                assertEq(response2.headers.get("location"), "https://example.com/#frag");
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn response_redirect_rejects_relative_url() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                let threw = false;
+                try {
+                    Response.redirect("/foo");
+                } catch (e) {
+                    threw = true;
+                    if (!(e instanceof TypeError)) {
+                        throw new Error("Expected TypeError, got " + e.name);
+                    }
+                }
+                if (!threw) {
+                    throw new Error("Expected TypeError, but no error was thrown");
+                }
             "#,
         ),
     ]);

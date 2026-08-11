@@ -303,9 +303,9 @@ impl JsResponse {
         if !matches!(status, 301 | 302 | 303 | 307 | 308) {
             return Err(js_error!(RangeError: "Invalid redirect status: {}", status));
         }
-        let url_str = url.to_string(context)?.to_std_string_escaped();
-        http::Uri::try_from(url_str.as_str())
-            .map_err(|_| js_error!(TypeError: "Invalid URL: {}", url_str))?;
+        let parsed_url = url::Url::parse(&url.to_string(context)?.to_std_string_escaped())
+            .map_err(|e| js_error!(TypeError: "Invalid URL: {}", e))?;
+        let serialized_url = parsed_url.to_string();
 
         let status_code = StatusCode::from_u16(status)
             .map_err(|_| js_error!(RangeError: "Invalid status code: {}", status))?;
@@ -313,7 +313,7 @@ impl JsResponse {
         let mut headers = http::header::HeaderMap::new();
         headers.insert(
             HeaderName::from_static("location"),
-            HeaderValue::try_from(url_str)
+            HeaderValue::try_from(serialized_url)
                 .map_err(|_| js_error!(TypeError: "Invalid URL for header value"))?,
         );
 
