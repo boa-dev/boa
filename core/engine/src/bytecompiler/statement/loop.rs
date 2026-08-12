@@ -243,6 +243,11 @@ impl ByteCompiler<'_> {
                 IterableLoopInitializer::Pattern(pattern) => {
                     self.compile_declaration_pattern(pattern, BindingOpcode::SetName, &value);
                 }
+                // Annex B: evaluate the call for side effects, then throw ReferenceError.
+                #[cfg(feature = "annex-b")]
+                IterableLoopInitializer::Call(call) => {
+                    self.compile_call_as_invalid_lhs(call, &value);
+                }
             }
 
             self.register_allocator.dealloc(value);
@@ -383,6 +388,11 @@ impl ByteCompiler<'_> {
                 },
                 IterableLoopInitializer::Pattern(pattern) => {
                     self.compile_declaration_pattern(pattern, BindingOpcode::SetName, &value);
+                }
+                // Annex B: evaluate the call for side effects, then throw ReferenceError.
+                #[cfg(feature = "annex-b")]
+                IterableLoopInitializer::Call(call) => {
+                    self.compile_call_as_invalid_lhs(call, &value);
                 }
             }
 
