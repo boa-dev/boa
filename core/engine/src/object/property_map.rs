@@ -14,6 +14,18 @@ use rustc_hash::FxHashMap;
 use std::{collections::hash_map, iter::FusedIterator};
 use thin_vec::ThinVec;
 
+/// Result of [`PropertyMap::get_own_data_named`], the fast-path own-property lookup
+/// used by `OrdinaryGet`.
+#[derive(Debug)]
+pub(crate) enum OwnDataLookup {
+    /// A plain data own property; carries its value read directly from storage.
+    Data(JsValue),
+    /// The own property exists but is an accessor; the caller must use the descriptor path.
+    Accessor,
+    /// No such own property; the caller can proceed directly to the prototype walk.
+    Absent,
+}
+
 /// This represents all the indexed properties.
 ///
 /// The index properties can be stored in two storage methods:
@@ -563,6 +575,32 @@ impl PropertyMap {
         }
 
         None
+    }
+
+    /// Fast path for `OrdinaryGet`: resolves a named own-property lookup in a single shape
+    /// probe, returning a plain data property's value straight from storage without building
+    /// a [`PropertyDescriptor`]. `out_slot` is updated only on a data hit.
+    #[must_use]
+    pub(crate) fn get_own_data_named(
+        &self,
+        key: &PropertyKey,
+        out_slot: &mut Slot,
+    ) -> OwnDataLookup {
+        debug_assert!(!matches!(key, PropertyKey::Index(_)));
+
+        let Some(slot) = self.shape.lookup(key) else {
+            return OwnDataLookup::Absent;
+        };
+        if slot.attributes.is_accessor_descriptor() {
+            return OwnDataLookup::Accessor;
+        }
+
+        out_slot.index = slot.index;
+        // Remove all descriptor attributes, but keep inline caching bits.
+        out_slot.attributes = (out_slot.attributes & SlotAttributes::INLINE_CACHE_BITS)
+            | slot.attributes
+            | SlotAttributes::FOUND;
+        OwnDataLookup::Data(self.storage[slot.index as usize].clone())
     }
 
     /// Get the property with the given key from the [`PropertyMap`].
