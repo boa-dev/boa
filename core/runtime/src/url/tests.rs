@@ -68,6 +68,12 @@ fn url_base() {
                 assert_eq(url.hash, "#fragment");
             "##,
         ),
+        TestAction::run(
+            r##"
+                url = new URL("http://example.org/new/path?new-query#new-fragment", "about:blank");
+                assert_eq(url.href, "http://example.org/new/path?new-query#new-fragment");
+            "##,
+        ),
     ]);
 }
 
@@ -107,6 +113,474 @@ fn url_static_methods() {
                 assert(!URL.canParse("http//:example.org/new/path?new-query#new-fragment"));
                 assert(!URL.canParse("http://example.org/new/path?new-query#new-fragment", "http:"));
                 assert(URL.canParse("/new/path?new-query#new-fragment", "http://example.org/"));
+                assert(URL.canParse("http://example.org/new/path?new-query#new-fragment", "about:blank"));
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const parsed = URL.parse("https://example.org/?a=1");
+                assert(parsed instanceof URL);
+                assert_eq(parsed.searchParams.get("a"), "1");
+
+                parsed.searchParams.append("b", "2");
+                assert_eq(parsed.href, "https://example.org/?a=1&b=2");
+                assert_eq(URL.parse("http//:example.org/"), null);
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_constructor_and_methods() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                const params = new URLSearchParams([["b", "2"], ["a", "1"], ["a", "3"]]);
+                assert_eq(params.size, 3);
+                assert_eq(params.get("a"), "1");
+                assert_eq(params.get("missing"), null);
+                assert_eq(params.getAll("a").join(","), "1,3");
+                assert(params.has("b"));
+                assert(!params.has("b", "4"));
+
+                params.append("c", "5");
+                params.delete("a", "1");
+                params.set("b", "4");
+                params.sort();
+
+                assert_eq(params.toString(), "a=3&b=4&c=5");
+                assert_eq([...params].map(([k, v]) => `${k}=${v}`).join("&"), "a=3&b=4&c=5");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const fromObject = new URLSearchParams({ a: "1", b: "2" });
+                assert_eq(fromObject.toString(), "a=1&b=2");
+
+                const fromString = new URLSearchParams("?x=1&x=2");
+                assert_eq(fromString.getAll("x").join(","), "1,2");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const fromIterableObject = new URLSearchParams({
+                    *[Symbol.iterator]() {
+                        yield ["i", "1"];
+                        yield new Set(["j", "2"]);
+                    },
+                    ignored: "value",
+                });
+                assert_eq(fromIterableObject.toString(), "i=1&j=2");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const record = Object.create({ inherited: "x" });
+                Object.defineProperty(record, "hidden", { value: "2", enumerable: false });
+                record.a = "1";
+                assert_eq(new URLSearchParams(record).toString(), "a=1");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const originalFrom = Array.from;
+                Array.from = () => {
+                    throw new Error("patched");
+                };
+
+                try {
+                    const params = new URLSearchParams([["a", "1"], new Set(["b", "2"])]);
+                    assert_eq(params.toString(), "a=1&b=2");
+                } finally {
+                    Array.from = originalFrom;
+                }
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const customParams = new URLSearchParams("x=1");
+                customParams[Symbol.iterator] = function* () {
+                    yield ["a", "b"];
+                };
+
+                assert_eq(new URLSearchParams(customParams).toString(), "a=b");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_is_live_and_cached() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                const url = new URL("https://example.com/?a=1&b=2");
+                const params1 = url.searchParams;
+                const params2 = url.searchParams;
+
+                assert(params1 === params2, "searchParams must be the same object");
+                assert_eq(params1.get("a"), "1");
+
+                params1.append("c", "3");
+                assert_eq(url.search, "?a=1&b=2&c=3");
+
+                url.search = "?x=9";
+                assert_eq(params1.get("x"), "9");
+                assert_eq(params1.get("a"), null);
+
+                params1.delete("x");
+                assert_eq(url.href, "https://example.com/");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const liveUrl = new URL("http://a.b/c?a=1&b=2&c=3");
+                const liveSeen = [];
+
+                for (const entry of liveUrl.searchParams) {
+                    if (entry[0] === "a") {
+                        liveUrl.search = "x=1&y=2&z=3";
+                    }
+                    liveSeen.push(entry.join("="));
+                }
+
+                assert_eq(liveSeen.join("&"), "a=1&y=2&z=3");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const forEachUrl = new URL("http://localhost/query?param0=0&param1=1&param2=2");
+                const forEachSeen = [];
+
+                forEachUrl.searchParams.forEach((value, key) => {
+                    forEachSeen.push(`${key}=${value}`);
+                    if (key === "param0") {
+                        forEachUrl.searchParams.delete("param1");
+                    }
+                });
+
+                assert_eq(forEachSeen.join("&"), "param0=0&param2=2");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_iterators() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                const params = new URLSearchParams([["a", "1"], ["b", "2"]]);
+                const entries = params.entries();
+
+                assert(entries[Symbol.iterator]() === entries, "iterator should return itself");
+                assert_eq(Object.prototype.toString.call(entries), "[object URLSearchParams Iterator]");
+
+                assert_eq(entries.next().value.join("="), "a=1");
+                assert_eq(entries.next().value.join("="), "b=2");
+
+                const done = entries.next();
+                assert(done.done);
+                assert_eq(done.value, undefined);
+
+                const doneAgain = entries.next();
+                assert(doneAgain.done);
+                assert_eq(doneAgain.value, undefined);
+
+                assert_eq([...params.keys()].join(","), "a,b");
+                assert_eq([...params.values()].join(","), "1,2");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const next = new URLSearchParams("a=1").entries().next;
+
+                let primitiveThisThrew = false;
+                try {
+                    next.call(1);
+                } catch (e) {
+                    primitiveThisThrew = e instanceof TypeError;
+                }
+                assert(primitiveThisThrew, "calling iterator next with primitive this must throw");
+
+                let wrongObjectThrew = false;
+                try {
+                    next.call({});
+                } catch (e) {
+                    wrongObjectThrew = e instanceof TypeError;
+                }
+                assert(wrongObjectThrew, "calling iterator next with a plain object must throw");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_optional_value_argument() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                const params = new URLSearchParams("a=b&a=undefined&b=c");
+
+                assert(params.has("a", undefined));
+                assert(!params.has("a", "missing"));
+
+                params.delete("a", undefined);
+                assert_eq(params.toString(), "a=b&b=c");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const deleteAllParams = new URLSearchParams("a=b&a=undefined&a=d");
+                deleteAllParams.delete("a");
+                assert_eq(deleteAllParams.toString(), "");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const url = new URL("https://example.com/?a=undefined&a=x");
+                assert(url.searchParams.has("a", undefined));
+                url.searchParams.delete("a", undefined);
+                assert_eq(url.search, "?a=x");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_constructor_errors() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                assert_eq(new URLSearchParams().toString(), "");
+                assert_eq(new URLSearchParams(null).toString(), "");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+                try {
+                    new URLSearchParams(new String("ab"));
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+                assert(threw, "string wrapper objects must use the iterable branch");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+                try {
+                    new URLSearchParams([[1, 2, 3]]);
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+                assert(threw, "pairs with length != 2 must throw");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+                try {
+                    new URLSearchParams({ a: "1", [Symbol.iterator]: 1 });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+                assert(threw, "non-callable @@iterator must throw");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                const key = Symbol("k");
+                var threw = false;
+                try {
+                    new URLSearchParams({ [key]: "1", a: "2" });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+                assert(threw, "enumerable symbol keys must throw during record conversion");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_constructor_iterator_cleanup_errors() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                var cleanup = [];
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return { value: 1, done: false };
+                                },
+                                return() {
+                                    cleanup.push("outer");
+                                    return {};
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "non-object sequence items must throw");
+                assert_eq(cleanup.join(","), "outer");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var cleanup = [];
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return {
+                                        value: {
+                                            [Symbol.iterator]() {
+                                                let step = 0;
+                                                return {
+                                                    next() {
+                                                        step += 1;
+                                                        if (step === 1) {
+                                                            return { value: "a", done: false };
+                                                        }
+                                                        if (step === 2) {
+                                                            return {
+                                                                value: {
+                                                                    toString() {
+                                                                        throw new Error("boom");
+                                                                    },
+                                                                },
+                                                                done: false,
+                                                            };
+                                                        }
+                                                        return { done: true };
+                                                    },
+                                                    return() {
+                                                        cleanup.push("pair");
+                                                        return {};
+                                                    },
+                                                };
+                                            },
+                                        },
+                                        done: false,
+                                    };
+                                },
+                                return() {
+                                    cleanup.push("outer");
+                                    return {};
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof Error && e.message === "boom";
+                }
+
+                assert(threw, "errors from pair value coercion must propagate");
+                assert_eq(cleanup.join(","), "pair,outer");
+            "##,
+        ),
+    ]);
+}
+
+#[test]
+fn url_search_params_constructor_iterator_protocol_errors() {
+    run_test_actions([
+        TestAction::run(TEST_HARNESS),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return 1;
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator methods must return an object");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return { next: 1 };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator next must be callable");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return 1;
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator next result must be an object");
+            "##,
+        ),
+        TestAction::run(
+            r##"
+                var threw = false;
+
+                try {
+                    new URLSearchParams({
+                        [Symbol.iterator]() {
+                            return {
+                                next() {
+                                    return { value: 1, done: false };
+                                },
+                                return() {
+                                    return 1;
+                                },
+                            };
+                        },
+                    });
+                } catch (e) {
+                    threw = e instanceof TypeError;
+                }
+
+                assert(threw, "iterator return must produce an object");
             "##,
         ),
     ]);
