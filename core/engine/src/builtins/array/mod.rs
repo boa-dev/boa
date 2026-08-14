@@ -875,6 +875,44 @@ impl Array {
                 )
                 .into());
         }
+
+        // Fast path: if O is an extensible dense array whose shape still matches the
+        // default array template (guaranteeing length is writable and no custom
+        // property descriptors), push directly to indexed storage without going
+        // through the generic [[Set]] machinery. push_dense() handles type transitions
+        // (DenseI32 -> DenseF64 -> DenseElement) and only returns false for
+        // already-sparse storage, so if the first push succeeds all subsequent
+        // pushes on the same storage will too.
+        let template_shape = context
+            .intrinsics()
+            .templates()
+            .array()
+            .shape()
+            .to_addr_usize();
+        if o.is_array() && !args.is_empty() {
+            let mut o_borrowed = o.borrow_mut();
+            if o_borrowed.extensible
+                && o_borrowed.properties().shape.to_addr_usize() == template_shape
+                && let Some(len_i32) = o_borrowed.properties().storage[0].as_i32()
+                && o_borrowed
+                    .properties_mut()
+                    .indexed_properties
+                    .push_dense(&args[0])
+            {
+                let mut current_len = len_i32 + 1;
+                for element in &args[1..] {
+                    o_borrowed
+                        .properties_mut()
+                        .indexed_properties
+                        .push_dense(element);
+                    current_len += 1;
+                }
+                o_borrowed.properties_mut().storage[0] = JsValue::new(current_len);
+                len += args.len() as u64;
+                return Ok(len.into());
+            }
+        }
+
         // 5. For each element E of items, do
         for element in args.iter().cloned() {
             // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
