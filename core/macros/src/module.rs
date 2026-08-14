@@ -169,10 +169,7 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
     let mut generics = vec![];
 
     for item in mod_.content.map_or_else(Vec::new, |c| c.1).as_mut_slice() {
-        // Check for skip attributes.
-        #[allow(clippy::collapsible_match)]
-        // Allowed because take_path_attr would borrow attrs as mutable
-        match item {
+        let skip = match item {
             Item::Const(ItemConst { attrs, .. })
             | Item::Enum(ItemEnum { attrs, .. })
             | Item::ExternCrate(ItemExternCrate { attrs, .. })
@@ -187,16 +184,16 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
             | Item::TraitAlias(ItemTraitAlias { attrs, .. })
             | Item::Type(ItemType { attrs, .. })
             | Item::Union(ItemUnion { attrs, .. })
-            | Item::Use(ItemUse { attrs, .. }) => {
-                if take_path_attr(attrs, "skip") {
-                    original_module_decl = quote! {
-                        #original_module_decl
-                        #item
-                    };
-                    continue;
-                }
-            }
-            _ => {}
+            | Item::Use(ItemUse { attrs, .. }) => take_path_attr(attrs, "skip"),
+            _ => false,
+        };
+
+        if skip {
+            original_module_decl = quote! {
+                #original_module_decl
+                #item
+            };
+            continue;
         }
 
         let result = match item {
