@@ -354,3 +354,251 @@ fn request_clone_signal_override() {
         }),
     ]);
 }
+
+#[test]
+fn request_body_methods() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.promise = (async () => {
+                    const textRequest = new Request("http://unit.test", {
+                        method: "POST",
+                        body: "",
+                    });
+                    assertEq(textRequest.bodyUsed, false);
+                    assertEq(await textRequest.text(), "");
+                    assertEq(textRequest.bodyUsed, true);
+
+                    const bytesRequest = new Request("http://unit.test", {
+                        method: "POST",
+                        body: "hello",
+                    });
+                    const bytes = await bytesRequest.bytes();
+                    assertEq(new TextDecoder().decode(bytes), "hello");
+                    assertEq(bytesRequest.bodyUsed, true);
+
+                    const jsonRequest = new Request("http://unit.test", {
+                        method: "POST",
+                        body: '{ "value": 1 }',
+                    });
+                    const json = await jsonRequest.json();
+                    assertEq(json.value, 1);
+                    assertEq(jsonRequest.bodyUsed, true);
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let promise = ctx.global_object().get(js_str!("promise"), ctx).unwrap();
+            promise.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn request_without_body_is_not_disturbed_by_reads() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.promise = (async () => {
+                    const request = new Request("http://unit.test");
+                    assertEq(await request.text(), "");
+                    assertEq(await request.text(), "");
+                    assertEq(request.bodyUsed, false);
+                    const cloned = request.clone();
+                    assertEq(cloned instanceof Request, true);
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let promise = ctx.global_object().get(js_str!("promise"), ctx).unwrap();
+            promise.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn request_used_body_cannot_be_reused() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.promise = (async () => {
+                    const request = new Request("http://unit.test", {
+                        method: "POST",
+                        body: "payload",
+                    });
+
+                    assertEq(await request.text(), "payload");
+
+                    for (const action of [
+                        () => request.clone(),
+                        () => new Request(request),
+                    ]) {
+                        try {
+                            action();
+                            throw Error("expected the call above to throw");
+                        } catch (e) {
+                            if (!(e instanceof TypeError)) {
+                                throw e;
+                            }
+                        }
+                    }
+
+                    const overridden = new Request(request, {
+                        method: "POST",
+                        body: "override",
+                    });
+                    assertEq(await overridden.text(), "override");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let promise = ctx.global_object().get(js_str!("promise"), ctx).unwrap();
+            promise.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn request_constructor_consumes_source_body() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.promise = (async () => {
+                    const withBody = new Request("http://unit.test", {
+                        method: "POST",
+                        body: "payload",
+                    });
+                    const copied = new Request(withBody);
+                    assertEq(withBody.bodyUsed, true);
+                    assertEq(await copied.text(), "payload");
+
+                    const withEmptyBody = new Request("http://unit.test", {
+                        method: "POST",
+                        body: "",
+                    });
+                    const copiedEmpty = new Request(withEmptyBody);
+                    assertEq(withEmptyBody.bodyUsed, true);
+                    assertEq(await copiedEmpty.text(), "");
+
+                    const withoutBody = new Request("http://unit.test");
+                    const copiedWithoutBody = new Request(withoutBody);
+                    assertEq(withoutBody.bodyUsed, false);
+                    assertEq(await copiedWithoutBody.text(), "");
+
+                    const overridden = new Request("http://unit.test", {
+                        method: "POST",
+                        body: "payload",
+                    });
+                    const overrideCopy = new Request(overridden, {
+                        method: "POST",
+                        body: "override",
+                    });
+                    assertEq(overridden.bodyUsed, false);
+                    assertEq(await overrideCopy.text(), "override");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let promise = ctx.global_object().get(js_str!("promise"), ctx).unwrap();
+            promise.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn request_constructor_does_not_consume_source_when_it_throws() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                const request = new Request("http://unit.test", {
+                    method: "POST",
+                    body: "payload",
+                });
+
+                try {
+                    new Request(request, { method: "CONNECT" });
+                    throw Error("expected the call above to throw");
+                } catch (e) {
+                    if (!(e instanceof TypeError)) {
+                        throw e;
+                    }
+                }
+
+                assertEq(request.bodyUsed, false);
+            "#,
+        ),
+    ]);
+}
+
+#[test]
+fn fetch_marks_request_body_used() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let mut fetcher = TestFetcher::default();
+            fetcher.add_response(
+                Uri::from_static("http://unit.test"),
+                Response::new("ok".as_bytes().to_vec()),
+            );
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(
+            r#"
+                globalThis.promise = (async () => {
+                    const request = new Request("http://unit.test", {
+                        method: "POST",
+                        body: "payload",
+                    });
+
+                    const response = await fetch(request);
+                    assertEq(await response.text(), "ok");
+                    assertEq(request.bodyUsed, true);
+
+                    try {
+                        await fetch(request);
+                        throw Error("expected the call above to throw");
+                    } catch (e) {
+                        if (!(e instanceof TypeError)) {
+                            throw e;
+                        }
+                    }
+
+                    const overrideResponse = await fetch(request, {
+                        method: "POST",
+                        body: "override",
+                    });
+                    assertEq(await overrideResponse.text(), "ok");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let promise = ctx.global_object().get(js_str!("promise"), ctx).unwrap();
+            promise.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}

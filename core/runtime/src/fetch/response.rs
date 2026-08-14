@@ -4,9 +4,9 @@
 //! See the [Response interface documentation][mdn] for more information.
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Response
-
+use crate::fetch::body;
 use crate::fetch::headers::JsHeaders;
-use boa_engine::object::builtins::{JsPromise, JsUint8Array};
+use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{Convert, TryFromJs, TryIntoJs};
 use boa_engine::{
     Context, JsData, JsNativeError, JsResult, JsString, JsValue, boa_class, js_error, js_str,
@@ -459,38 +459,14 @@ impl JsResponse {
     }
 
     fn bytes(&self, context: &mut Context) -> JsPromise {
-        let body = self.body.clone();
-        JsPromise::from_async_fn(
-            async move |context| {
-                JsUint8Array::from_iter(body.iter().copied(), &mut context.borrow_mut())
-                    .map(Into::into)
-            },
-            context,
-        )
+        body::bytes(self.body.clone(), context)
     }
 
     fn text(&self, context: &mut Context) -> JsPromise {
-        let body = self.body.clone();
-        JsPromise::from_async_fn(
-            async move |_| {
-                let body = String::from_utf8_lossy(body.as_ref());
-                Ok(JsString::from(body).into())
-            },
-            context,
-        )
+        body::text(self.body.clone(), context)
     }
 
     fn json(&self, context: &mut Context) -> JsPromise {
-        let body = self.body.clone();
-        JsPromise::from_async_fn(
-            async move |context| {
-                let json_string = String::from_utf8_lossy(body.as_ref());
-                let json = serde_json::from_str::<serde_json::Value>(&json_string)
-                    .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
-
-                JsValue::from_json(&json, &mut context.borrow_mut())
-            },
-            context,
-        )
+        body::json(self.body.clone(), context)
     }
 }
