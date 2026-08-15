@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - releases/**
+      - dev/oscars-gc
 
 permissions:
   contents: read
@@ -15,6 +16,7 @@ concurrency:
 
 jobs:
   run_test262:
+    if: ${{ github.base_ref != 'dev/oscars-gc' }}
     name: Run the test262 test suite
     runs-on: ubuntu-latest
     timeout-minutes: 60

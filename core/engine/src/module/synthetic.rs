@@ -120,7 +120,7 @@ impl SyntheticModuleInitializer {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
         let ptr = Gc::into_raw(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             Callback {
                 f: closure,
                 captures,
@@ -131,7 +131,7 @@ impl SyntheticModuleInitializer {
         // meaning this is safe.
         unsafe {
             Self {
-                inner: Gc::from_raw(ptr),
+                inner: <Gc<'static, dyn TraceableCallback>>::from_raw(ptr),
             }
         }
     }
@@ -338,13 +338,11 @@ impl SyntheticModule {
 
         module_scope.escape_all_bindings();
 
-        let cb = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            compiler.finish(),
-        );
+        let finished = compiler.finish();
+        let cb = context.alloc(finished);
 
         let mut envs = EnvironmentStack::new();
-        envs.push_module(module_scope);
+        envs.push_module(module_scope, unsafe { boa_gc::MutationContext::global() });
 
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).

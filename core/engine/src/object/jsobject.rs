@@ -33,12 +33,6 @@ use std::{
 };
 use thin_vec::ThinVec;
 
-#[cfg(not(feature = "jsvalue-enum"))]
-use boa_gc::GcBox;
-
-#[cfg(not(feature = "jsvalue-enum"))]
-use std::ptr::NonNull;
-
 /// A wrapper type for an immutably borrowed type T.
 pub type Ref<'a, T> = GcRef<'a, T>;
 
@@ -86,8 +80,8 @@ pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
 impl JsObject {
     /// Converts the `JsObject` into a raw pointer to its inner `GcBox<ErasedVTableObject>`.
     #[cfg(not(feature = "jsvalue-enum"))]
-    pub(crate) fn into_raw(self) -> NonNull<GcBox<ErasedVTableObject>> {
-        Gc::into_raw(self.inner)
+    pub(crate) fn into_raw(self) -> *const () {
+        Gc::into_raw(self.inner).as_ptr() as *const ()
     }
 
     /// Creates a new `JsObject` from a raw pointer.
@@ -96,9 +90,9 @@ impl JsObject {
     /// The caller must ensure that the pointer is valid and points to a `GcBox<ErasedVTableObject>`.
     /// The pointer must not be null.
     #[cfg(not(feature = "jsvalue-enum"))]
-    pub(crate) unsafe fn from_raw(raw: NonNull<GcBox<ErasedVTableObject>>) -> Self {
+    pub(crate) unsafe fn from_raw(raw: *const ()) -> Self {
         // SAFETY: The caller guaranteed the value to be a valid pointer to a `GcBox<ErasedVTableObject>`.
-        let inner = unsafe { Gc::from_raw(raw) };
+        let inner = unsafe { Gc::from_raw(core::ptr::NonNull::new_unchecked(raw as *mut _)) };
 
         JsObject { inner }
     }
@@ -128,7 +122,7 @@ impl JsObject {
         vtable: &'static InternalObjectMethods,
     ) -> Self {
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             VTableObject {
                 object: GcRefCell::new(object),
                 vtable,
@@ -217,7 +211,7 @@ impl JsObject {
     ) -> Self {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
@@ -246,7 +240,7 @@ impl JsObject {
     ) -> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
@@ -1088,7 +1082,7 @@ impl<T: NativeObject> JsObject<T> {
     pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
@@ -1126,7 +1120,7 @@ impl<T: NativeObject> JsObject<T> {
     pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),

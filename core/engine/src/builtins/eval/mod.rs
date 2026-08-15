@@ -320,10 +320,8 @@ impl Eval {
 
         compiler.compile_statement_list(body.statements(), true, false);
 
-        let code_block = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            compiler.finish(),
-        );
+        let finished = compiler.finish();
+        let code_block = context.alloc(finished);
 
         // Strict calls don't need extensions, since all strict eval calls push a new
         // function environment before evaluating.
@@ -350,9 +348,11 @@ impl Eval {
         {
             let frame = context.vm.frame_mut();
             let global = frame.realm.environment();
-            frame
-                .environments
-                .push_lexical(lexical_scope.num_bindings_non_local(), global);
+            frame.environments.push_lexical(
+                lexical_scope.num_bindings_non_local(),
+                global,
+                unsafe { boa_gc::MutationContext::global() },
+            );
         }
 
         context

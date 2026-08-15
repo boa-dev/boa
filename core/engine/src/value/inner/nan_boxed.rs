@@ -1,3 +1,4 @@
+#![allow(clippy::forget_non_drop)]
 //! A NaN-boxed inner value for JavaScript values.
 //!
 //! This [`JsValue`] is a float using `NaN` values to represent an inner
@@ -109,10 +110,9 @@
 #[cfg(feature = "annex-b")]
 use crate::builtins::is_html_dda::IsHTMLDDA;
 use crate::{
-    JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, object::ErasedVTableObject,
-    symbol::RawJsSymbol, value::Type,
+    JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, symbol::RawJsSymbol, value::Type,
 };
-use boa_gc::{Finalize, GcBox, Trace, custom_trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use boa_string::JsString;
 use core::fmt;
 use static_assertions::const_assert;
@@ -479,7 +479,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn object(value: JsObject) -> Self {
-        let ptr = value.into_raw();
+        let ptr = unsafe { NonNull::new_unchecked(value.into_raw().cast_mut()) };
         let addr = bits::tag_pointer(ptr, bits::MASK_OBJECT);
         Self::from_object_like(ptr, addr)
     }
@@ -684,11 +684,7 @@ impl NanBoxedValue {
     unsafe fn as_object_unchecked(&self) -> ManuallyDrop<JsObject> {
         let addr = bits::untag_pointer(self.value());
         // SAFETY: This is guaranteed by the caller.
-        unsafe {
-            ManuallyDrop::new(JsObject::from_raw(NonNull::new_unchecked(
-                self.ptr.with_addr(addr).cast::<GcBox<ErasedVTableObject>>(),
-            )))
-        }
+        unsafe { ManuallyDrop::new(JsObject::from_raw(self.ptr.with_addr(addr).cast::<()>())) }
     }
 
     /// Returns the value as a [`JsSymbol`].

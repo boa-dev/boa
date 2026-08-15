@@ -107,6 +107,8 @@ pub struct Context {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
+    pub gc: boa_gc::GcContext,
+
     can_block: bool,
 
     #[cfg(any(feature = "temporal", feature = "intl"))]
@@ -461,6 +463,22 @@ impl Context {
     #[must_use]
     pub fn realm(&self) -> &Realm {
         &self.vm.frame().realm
+    }
+
+    /// Allocates a value on the Gc heap.
+    #[inline]
+    pub fn alloc<T: crate::Trace + boa_gc::Finalize + 'static>(
+        &self,
+        value: T,
+    ) -> boa_gc::Gc<'static, T> {
+        self.gc.alloc(value)
+    }
+
+    /// Returns the active collector.
+    #[inline]
+    #[must_use]
+    pub fn gc_collector(&self) -> &boa_gc::MutationContext<'static, 'static> {
+        self.gc.gc_collector()
     }
 
     /// Set the value of trace on the context
@@ -1259,6 +1277,7 @@ impl ContextBuilder {
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
             parser_identifier: 0,
+            gc: boa_gc::GcContext::new(),
             can_block: self.can_block,
             data: HostDefined::default(),
         };

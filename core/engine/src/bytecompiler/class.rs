@@ -157,7 +157,7 @@ impl ByteCompiler<'_> {
         );
 
         let code = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             compiler.finish(),
         );
         let index = self.push_function_to_constants(code);
@@ -444,7 +444,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = Gc::new(
-                        &unsafe { boa_gc::MutationContext::dummy() },
+                        &unsafe { boa_gc::MutationContext::global() },
                         field_compiler.finish(),
                     );
                     let index = self.push_function_to_constants(code);
@@ -493,7 +493,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = Gc::new(
-                        &unsafe { boa_gc::MutationContext::dummy() },
+                        &unsafe { boa_gc::MutationContext::global() },
                         field_compiler.finish(),
                     );
                     let index = self.push_function_to_constants(code);
@@ -551,7 +551,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, code);
+                    let code = Gc::new(&unsafe { boa_gc::MutationContext::global() }, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -595,7 +595,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, code);
+                    let code = Gc::new(&unsafe { boa_gc::MutationContext::global() }, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -639,7 +639,7 @@ impl ByteCompiler<'_> {
                     }
 
                     let code = Gc::new(
-                        &unsafe { boa_gc::MutationContext::dummy() },
+                        &unsafe { boa_gc::MutationContext::global() },
                         compiler.finish(),
                     );
                     static_elements.push(StaticElement::StaticBlock(code));

@@ -227,6 +227,6 @@ impl FunctionCompiler {
 
         let code = compiler.finish();
 
-        Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, code)
+        Gc::new(&unsafe { boa_gc::MutationContext::global() }, code)
     }
 }
