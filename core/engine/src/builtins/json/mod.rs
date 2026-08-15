@@ -308,7 +308,7 @@ impl Json {
             );
             compiler.compile_statement_list(script.statements(), true, false);
             let finished = compiler.finish();
-            Gc::new(&context.gc(), finished)
+            context.alloc(finished)
         };
 
         let realm = context.realm().clone();

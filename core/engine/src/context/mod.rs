@@ -107,6 +107,8 @@ pub struct Context {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
+    pub gc: boa_gc::GcContext,
+
     can_block: bool,
 
     #[cfg(any(feature = "temporal", feature = "intl"))]
@@ -463,18 +465,20 @@ impl Context {
         &self.vm.frame().realm
     }
 
-    /// Returns [`boa_gc::MutationContext`] to allocate on the Gc heap
-    /// (eg. for [`Gc::new`])
-    ///
-    /// # Safety
-    /// Uses `dummy()` as a temporary bridge during the oscars GC migration.
-    /// Todo: replace with a real branding token in future
+    /// Allocates a value on the Gc heap.
+    #[inline]
+    pub fn alloc<T: crate::Trace + boa_gc::Finalize + 'static>(
+        &self,
+        value: T,
+    ) -> boa_gc::Gc<'static, T> {
+        self.gc.alloc(value)
+    }
+
+    /// Returns the active collector.
     #[inline]
     #[must_use]
-    pub fn gc(&self) -> boa_gc::MutationContext<'static, 'static> {
-        // SAFETY: `MutationContext` is a ZST phantom type, this is sound
-        // under boa's single-threaded GC invariant until migration is complete
-        unsafe { boa_gc::MutationContext::global() }
+    pub fn gc_collector(&self) -> &boa_gc::MutationContext<'static, 'static> {
+        self.gc.gc_collector()
     }
 
     /// Set the value of trace on the context
@@ -1273,6 +1277,7 @@ impl ContextBuilder {
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
             parser_identifier: 0,
+            gc: boa_gc::GcContext::new(),
             can_block: self.can_block,
             data: HostDefined::default(),
         };

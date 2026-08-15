@@ -83,10 +83,7 @@ impl PushPrivateEnvironment {
         }
 
         let ptr: *const _ = class.as_ref();
-        let environment = Gc::new(
-            &context.gc(),
-            PrivateEnvironment::new(ptr.cast::<()>() as usize, names),
-        );
+        let environment = context.alloc(PrivateEnvironment::new(ptr.cast::<()>() as usize, names));
 
         class
             .downcast_mut::<OrdinaryFunction>()

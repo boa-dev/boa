@@ -1,7 +1,7 @@
 //! Dummy `WeakMap` implementation for the `oscars_backend` feature.
 //!
 //! We define this here instead of in `oscars` because `boa_engine` needs to be able to modify the `WeakMap` even when it is shared, which it handles by using `GcRefCell`.
-//! Additionally, the `null_collector_branded` backend never frees memory, making a true weak map impossible.
+//! Additionally, the `mark_sweep_branded` backend never frees memory, making a true weak map impossible.
 //! Defining a dummy wrapper in `boa_gc` fulfills engine requirements without polluting it with conditional compilation gates.
 //! All operations are leaky strong map operations to maintain API compatibility.
 

@@ -158,7 +158,7 @@ impl BuiltInConstructor for FinalizationRegistry {
             },
         );
 
-        let weak_registry = WeakGc::new(&context.gc(), registry.inner());
+        let weak_registry = WeakGc::new(context.gc_collector(), registry.inner());
 
         {
             async fn inner_cleanup(
@@ -254,7 +254,7 @@ impl FinalizationRegistry {
         //
         // TODO: support Symbols
         let unregister_token = match unregister_token.variant() {
-            JsVariant::Object(obj) => Some(WeakGc::new(&context.gc(), obj.inner())),
+            JsVariant::Object(obj) => Some(WeakGc::new(context.gc_collector(), obj.inner())),
             // b. Set unregisterToken to empty.
             JsVariant::Undefined => None,
             // a. If unregisterToken is not undefined, throw a TypeError exception.
@@ -269,7 +269,7 @@ impl FinalizationRegistry {
         // 6. Let cell be the Record { [[WeakRefTarget]]: target, [[HeldValue]]: heldValue, [[UnregisterToken]]: unregisterToken }.
         let cell = RegistryCell {
             target: Ephemeron::new(
-                &context.gc(),
+                context.gc_collector(),
                 target_obj.inner(),
                 CleanupSignaler(Cell::new(Some(
                     registry.cleanup_notifier.clone().downgrade(),
@@ -332,16 +332,18 @@ impl FinalizationRegistry {
 
             // a. If cell.[[UnregisterToken]] is not empty and SameValue(cell.[[UnregisterToken]], unregisterToken) is true, then
             if let Some(tok) = cell.unregister_token.as_ref()
-                && let Some(tok) = tok.upgrade(&context.gc())
+                && let Some(tok) = tok.upgrade(context.gc_collector())
                 && Gc::ptr_eq(&tok, unregister_token)
             {
                 // i. Remove cell from finalizationRegistry.[[Cells]].
                 let cell = registry.cells.swap_remove(i);
-                let _key = cell.target.key(&context.gc());
+                let _key = cell.target.key(context.gc_collector());
 
                 // TODO: it might be better to add a special ref for the value that
                 // also preserves the original key instead.
-                cell.target.value(&context.gc()).and_then(|v| v.0.take());
+                cell.target
+                    .value(context.gc_collector())
+                    .and_then(|v| v.0.take());
 
                 // ii. Set removed to true.
                 removed = true;

@@ -286,16 +286,13 @@ impl Module {
         let src = SourceTextModule::new(module, context.interner(), source_text, path.clone());
 
         Ok(Self {
-            inner: Gc::new(
-                &context.gc(),
-                ModuleRepr {
-                    realm,
-                    namespace: GcRefCell::default(),
-                    kind: ModuleKind::SourceText(Box::new(src)),
-                    host_defined: HostDefined::default(),
-                    path,
-                },
-            ),
+            inner: context.alloc(ModuleRepr {
+                realm,
+                namespace: GcRefCell::default(),
+                kind: ModuleKind::SourceText(Box::new(src)),
+                host_defined: HostDefined::default(),
+                path,
+            }),
         })
     }
 
@@ -318,16 +315,13 @@ impl Module {
         let synth = SyntheticModule::new(names, evaluation_steps);
 
         Self {
-            inner: Gc::new(
-                &context.gc(),
-                ModuleRepr {
-                    realm,
-                    namespace: GcRefCell::default(),
-                    kind: ModuleKind::Synthetic(Box::new(synth)),
-                    host_defined: HostDefined::default(),
-                    path,
-                },
-            ),
+            inner: context.alloc(ModuleRepr {
+                realm,
+                namespace: GcRefCell::default(),
+                kind: ModuleKind::Synthetic(Box::new(synth)),
+                host_defined: HostDefined::default(),
+                path,
+            }),
         }
     }
 
@@ -826,7 +820,7 @@ fn into_js_module() {
     let bar_count = Rc::new(RefCell::new(0));
     let dad_count = Rc::new(RefCell::new(0));
 
-    context.insert_data(Gc::new(&context.gc(), GcRefCell::new(JsValue::undefined())));
+    context.insert_data(context.alloc(GcRefCell::new(JsValue::undefined())));
 
     let module = unsafe {
         vec![

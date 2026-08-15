@@ -1094,13 +1094,10 @@ impl JsPromise {
             }
         }
 
-        let state = Gc::new(
-            &context.gc(),
-            GcRefCell::new(Inner {
-                result: None,
-                task: None,
-            }),
-        );
+        let state = context.alloc(GcRefCell::new(Inner {
+            result: None,
+            task: None,
+        }));
 
         let resolve = {
             let state = state.clone();
