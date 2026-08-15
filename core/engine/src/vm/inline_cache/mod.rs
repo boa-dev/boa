@@ -98,6 +98,7 @@ impl InlineCache {
 
         while i < entries.len() {
             if let Some(upgraded) = entries[i].shape.upgrade() {
+                let upgraded: Shape = upgraded;
                 if upgraded.to_addr_usize() == shape_addr {
                     result = Some((upgraded, entries[i].slot));
                     break;

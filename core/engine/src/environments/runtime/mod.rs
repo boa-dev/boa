@@ -1,3 +1,5 @@
+#![allow(clippy::trivially_copy_pass_by_ref)]
+#![allow(clippy::needless_pass_by_value)]
 use crate::{
     Context, JsResult, JsString, JsSymbol, JsValue,
     object::{JsObject, PrivateName},
@@ -214,13 +216,14 @@ impl EnvironmentStack {
         &mut self,
         bindings_count: u32,
         global: &Gc<'static, DeclarativeEnvironment>,
+        gc: boa_gc::MutationContext<'static, '_>,
     ) -> u32 {
         let (poisoned, with) = self.compute_poisoned_with(global);
 
         let index = self.depth;
 
         self.push_env(Environment::Declarative(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &gc,
             DeclarativeEnvironment::new(
                 DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(bindings_count)),
                 poisoned,
@@ -237,13 +240,14 @@ impl EnvironmentStack {
         scope: Scope,
         function_slots: FunctionSlots,
         global: &Gc<'static, DeclarativeEnvironment>,
+        gc: boa_gc::MutationContext<'static, '_>,
     ) {
         let num_bindings = scope.num_bindings_non_local();
 
         let (poisoned, with) = self.compute_poisoned_with(global);
 
         self.push_env(Environment::Declarative(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &gc,
             DeclarativeEnvironment::new(
                 DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
                     num_bindings,
@@ -257,10 +261,10 @@ impl EnvironmentStack {
     }
 
     /// Push a module environment on the environments stack.
-    pub(crate) fn push_module(&mut self, scope: Scope) {
+    pub(crate) fn push_module(&mut self, scope: Scope, gc: boa_gc::MutationContext<'static, '_>) {
         let num_bindings = scope.num_bindings_non_local();
         self.push_env(Environment::Declarative(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &gc,
             DeclarativeEnvironment::new(
                 DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings, scope)),
                 false,
@@ -414,7 +418,7 @@ impl EnvironmentStack {
     /// Push an environment onto the chain.
     fn push_env(&mut self, env: Environment) {
         self.tip = Some(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             EnvironmentNode {
                 env,
                 parent: self.tip.take(),

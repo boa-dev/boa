@@ -445,7 +445,7 @@ mod miri {
                     &watched,
                     root.clone(),
                 );
-                let eph_size = size_of::<EphemeronBox<Gc<i32>, TestCell>>();
+                let eph_size = size_of::<EphemeronBox<Gc<'_, i32>, TestCell>>();
 
                 root.inner.borrow_mut().0 = Some(root.clone());
                 root.inner.borrow_mut().1 = Some(root.clone());

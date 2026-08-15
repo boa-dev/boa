@@ -87,14 +87,14 @@ impl Realm {
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
         let environment = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             DeclarativeEnvironment::global(),
         );
         let scope = Scope::new_global();
 
         let realm = Self {
             inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                &unsafe { boa_gc::MutationContext::global() },
                 Inner {
                     intrinsics,
                     environment,

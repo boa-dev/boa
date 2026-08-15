@@ -482,6 +482,7 @@ dependencies = [
  "icu_locale_core",
  "oscars",
  "thin-vec",
+ "typeid",
 ]
 
 [[package]]
@@ -593,6 +594,7 @@ version = "1.0.0-dev"
 dependencies = [
  "fast-float2",
  "itoa",
+ "oscars",
  "pastey",
  "rustc-hash 2.1.2",
  "ryu-js",
@@ -2846,17 +2848,22 @@ dependencies = [
 [[package]]
 name = "oscars"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/oscars.git?branch=main#592903ff2bec29ae3f4be7fecf4baded74674be2"
+source = "git+https://github.com/boa-dev/oscars.git?branch=main#ed5f692df0356338a82c113982449a3b5f7b1927"
 dependencies = [
+ "arrayvec",
+ "either",
  "hashbrown 0.16.1",
+ "icu_locale_core",
  "oscars_derive",
  "rustc-hash 2.1.2",
+ "thin-vec",
+ "typeid",
 ]
 
 [[package]]
 name = "oscars_derive"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/oscars.git?branch=main#592903ff2bec29ae3f4be7fecf4baded74674be2"
+source = "git+https://github.com/boa-dev/oscars.git?branch=main#ed5f692df0356338a82c113982449a3b5f7b1927"
 dependencies = [
  "cfg-if",
  "proc-macro2",

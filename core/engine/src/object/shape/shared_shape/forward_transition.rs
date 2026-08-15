@@ -1,3 +1,5 @@
+#![allow(clippy::trivially_copy_pass_by_ref)]
+#![allow(clippy::needless_pass_by_value)]
 use std::fmt::Debug;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
@@ -68,7 +70,7 @@ impl ForwardTransition {
 
         properties.map.insert(
             key,
-            WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, value),
+            WeakGc::new(&unsafe { boa_gc::MutationContext::global() }, value),
         );
     }
 
@@ -83,11 +85,12 @@ impl ForwardTransition {
 
         prototypes.map.insert(
             key,
-            WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, value),
+            WeakGc::new(&unsafe { boa_gc::MutationContext::global() }, value),
         );
     }
 
     /// Get a property transition, return [`None`] otherwise.
+    #[allow(clippy::cloned_instead_of_copied)]
     pub(super) fn get_property(&self, key: &TransitionKey) -> Option<WeakGc<SharedShapeInner>> {
         let this = self.inner.borrow();
         let transitions = this.properties.as_ref()?;
@@ -95,6 +98,7 @@ impl ForwardTransition {
     }
 
     /// Get a prototype transition, return [`None`] otherwise.
+    #[allow(clippy::cloned_instead_of_copied)]
     pub(super) fn get_prototype(&self, key: &JsPrototype) -> Option<WeakGc<SharedShapeInner>> {
         let this = self.inner.borrow();
         let transitions = this.prototypes.as_ref()?;
@@ -123,7 +127,7 @@ impl ForwardTransition {
         transitions.map.retain(|_, v| v.is_upgradable());
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, not(feature = "oscars_backend")))]
     pub(crate) fn property_transitions_count(&self) -> (usize, u8) {
         let this = self.inner.borrow();
         this.properties.as_ref().map_or((0, 0), |transitions| {
@@ -134,7 +138,7 @@ impl ForwardTransition {
         })
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, not(feature = "oscars_backend")))]
     pub(crate) fn prototype_transitions_count(&self) -> (usize, u8) {
         let this = self.inner.borrow();
         this.prototypes.as_ref().map_or((0, 0), |transitions| {

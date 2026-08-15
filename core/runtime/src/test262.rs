@@ -276,10 +276,8 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
             })?;
             let buffer = buffer
                 .downcast_ref::<SharedArrayBuffer>()
-                .ok_or_else(|| {
-                    JsNativeError::typ().with_message("argument was not a shared array")
-                })?
-                .clone();
+                .ok_or_else(|| JsNativeError::typ().with_message("argument was not a shared array"))
+                .map(|r| (*r).clone())?;
 
             bus.borrow_mut().broadcast(buffer);
 

@@ -56,10 +56,7 @@ impl Await {
 
         let r#gen = GeneratorContext::from_current(context, None);
 
-        let captures = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            Cell::new(Some(r#gen)),
-        );
+        let captures = Gc::new(&context.gc(), Cell::new(Some(r#gen)));
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -132,7 +129,7 @@ impl Await {
 
                     Ok(JsValue::undefined())
                 },
-                captures,
+                captures.clone(),
             ),
         )
         .name(js_string!())

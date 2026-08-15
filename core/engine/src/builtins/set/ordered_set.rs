@@ -15,9 +15,9 @@ pub struct OrderedSet {
 
 unsafe impl Trace for OrderedSet {
     custom_trace!(this, mark, {
-        for v in &this.inner {
-            if let MapKey::Key(v) = v {
-                mark(v);
+        for k in &this.inner {
+            if let MapKey::Key(key) = k {
+                mark(key);
             }
         }
     });

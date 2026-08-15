@@ -244,7 +244,7 @@ impl PromiseCapability {
         // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
         // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
         let promise_capability = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &context.gc(),
             GcRefCell::new(RejectResolve {
                 reject: JsValue::undefined(),
                 resolve: JsValue::undefined(),
@@ -656,10 +656,7 @@ impl Promise {
         }
 
         // 1. Let values be a new empty List.
-        let values = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let values = Gc::new(&context.gc(), GcRefCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -874,10 +871,7 @@ impl Promise {
         }
 
         // 1. Let values be a new empty List.
-        let values = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let values = Gc::new(&context.gc(), GcRefCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -1244,10 +1238,7 @@ impl Promise {
         let keys = Rc::new(RefCell::new(Vec::new()));
 
         // 3. Let values be a new empty List.
-        let values = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let values = Gc::new(&context.gc(), GcRefCell::new(Vec::new()));
 
         // 4. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -1557,10 +1548,7 @@ impl Promise {
         }
 
         // 1. Let errors be a new empty List.
-        let errors = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let errors = Gc::new(&context.gc(), GcRefCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -2460,10 +2448,7 @@ impl Promise {
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
         // 5. Set resolve.[[Promise]] to promise.
         // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
-        let promise = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            Cell::new(Some(promise.clone())),
-        );
+        let promise = Gc::new(&context.gc(), Cell::new(Some(promise.clone())));
 
         // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
