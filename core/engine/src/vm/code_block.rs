@@ -330,6 +330,7 @@ impl CodeBlock {
     ///
     /// If the type of the [`Constant`] is not [`Constant::Function`].
     /// Or `index` is greater or equal to length of `constants`.
+    #[allow(clippy::clone_on_copy)]
     pub(crate) fn constant_function(&self, index: usize) -> Gc<'static, Self> {
         if let Some(Constant::Function(value)) = self.constants.get(index) {
             return value.clone();

@@ -408,7 +408,7 @@ impl Vm {
         let mut frames = Vec::with_capacity(16);
         frames.push(CallFrame::new(
             Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                &unsafe { boa_gc::MutationContext::global() },
                 CodeBlock::new(JsString::default(), 0, true),
             ),
             None,

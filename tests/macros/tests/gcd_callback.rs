@@ -1,4 +1,4 @@
-#![allow(unused_crate_dependencies)]
+#![allow(unused_crate_dependencies, clippy::clone_on_copy)]
 //! A test that mimics the `boa_engine`'s GCD test with a typed callback.
 
 use boa_engine::interop::ContextData;
@@ -20,7 +20,7 @@ fn gcd_callback() {
     // Create the engine.
     let context = &mut Context::default();
     let result = Gc::new(
-        &unsafe { boa_gc::MutationContext::dummy() },
+        &unsafe { boa_gc::MutationContext::global() },
         AtomicUsize::new(0),
     );
     context.insert_data(result.clone());

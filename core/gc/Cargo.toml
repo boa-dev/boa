@@ -12,18 +12,18 @@ rust-version.workspace = true
 
 [features]
 # Enable default implementations of trace and finalize for the thin-vec crate
-thin-vec = ["dep:thin-vec"]
+thin-vec = ["dep:thin-vec", "oscars?/thin-vec"]
 # Enable default implementations of trace and finalize for some `ICU4X` types
-icu = ["dep:icu_locale_core"]
+icu = ["dep:icu_locale_core", "oscars?/icu"]
 # Enable default implementations of trace and finalize for the `boa_string` crate
 boa_string = ["dep:boa_string"]
 # Enable default implementations of trace and finalize for the `either` crate
-either = ["dep:either"]
+either = ["dep:either", "oscars?/either"]
 # Enable default implementations of trace and finalize for the arrayvec crate
-arrayvec = ["dep:arrayvec"]
-default = ["boa_gc_backend"]
+arrayvec = ["dep:arrayvec", "oscars?/arrayvec"]
+default = []
 boa_gc_backend = []
-oscars_backend = ["dep:oscars"]
+oscars_backend = ["dep:oscars", "dep:typeid", "oscars?/std", "boa_string?/oscars_backend"]
 
 [dependencies]
 boa_macros.workspace = true
@@ -35,6 +35,7 @@ thin-vec = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
 arrayvec = { workspace = true, optional = true }
 oscars = { git = "https://github.com/boa-dev/oscars.git", branch = "main", features = ["null_collector_branded"], optional = true }
+typeid = { workspace = true, optional = true }
 
 [lints]
 workspace = true

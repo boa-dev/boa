@@ -17,4 +17,10 @@ impl MutationContext<'_, '_> {
             _marker: PhantomData,
         }
     }
+
+    /// Creates a global context (polyfill for the oscars backend).
+    #[must_use]
+    pub unsafe fn global() -> Self {
+        unsafe { Self::dummy() }
+    }
 }

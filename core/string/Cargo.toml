@@ -12,6 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+oscars = { git = "https://github.com/boa-dev/oscars.git", branch = "main", features = ["null_collector_branded"], optional = true }
 itoa.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
@@ -22,6 +23,9 @@ fast-float2.workspace = true
 
 [lints]
 workspace = true
+
+[features]
+oscars_backend = ["dep:oscars"]
 
 [package.metadata.docs.rs]
 all-features = true

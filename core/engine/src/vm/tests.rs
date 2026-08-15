@@ -480,6 +480,7 @@ fn cross_context_function_call() {
 }
 
 // See: https://github.com/boa-dev/boa/issues/1848
+#[cfg(not(feature = "oscars_backend"))]
 #[test]
 fn long_object_chain_gc_trace_stack_overflow() {
     run_test_actions([

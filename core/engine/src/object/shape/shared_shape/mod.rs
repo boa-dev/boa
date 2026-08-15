@@ -1,7 +1,7 @@
 mod forward_transition;
 pub(crate) mod template;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "oscars_backend")))]
 mod tests;
 
 use std::{collections::hash_map::RandomState, hash::Hash};
@@ -166,7 +166,7 @@ impl SharedShape {
     /// Create a new [`SharedShape`].
     fn new(inner: Inner) -> Self {
         Self {
-            inner: Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, inner),
+            inner: Gc::new(&unsafe { boa_gc::MutationContext::global() }, inner),
         }
     }
 
@@ -188,7 +188,7 @@ impl SharedShape {
     /// Create a [`SharedShape`] change prototype transition.
     pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
         if let Some(shape) = self.forward_transitions().get_prototype(&prototype) {
-            if let Some(inner) = shape.upgrade(&unsafe { boa_gc::MutationContext::dummy() }) {
+            if let Some(inner) = shape.upgrade(&unsafe { boa_gc::MutationContext::global() }) {
                 return Self { inner };
             }
 
@@ -215,7 +215,7 @@ impl SharedShape {
     pub(crate) fn insert_property_transition(&self, key: TransitionKey) -> Self {
         // Check if we have already created such a transition, if so use it!
         if let Some(shape) = self.forward_transitions().get_property(&key) {
-            if let Some(inner) = shape.upgrade(&unsafe { boa_gc::MutationContext::dummy() }) {
+            if let Some(inner) = shape.upgrade(&unsafe { boa_gc::MutationContext::global() }) {
                 return Self { inner };
             }
 
@@ -253,7 +253,7 @@ impl SharedShape {
 
         // Check if we have already created such a transition, if so use it!
         if let Some(shape) = self.forward_transitions().get_property(&key) {
-            if let Some(inner) = shape.upgrade(&unsafe { boa_gc::MutationContext::dummy() }) {
+            if let Some(inner) = shape.upgrade(&unsafe { boa_gc::MutationContext::global() }) {
                 let action = if slot.attributes.width_match(key.attributes) {
                     ChangeTransitionAction::Nothing
                 } else if slot.attributes.is_accessor_descriptor() {
@@ -488,15 +488,20 @@ impl WeakSharedShape {
         Some(SharedShape {
             inner: self
                 .inner
-                .upgrade(&unsafe { boa_gc::MutationContext::dummy() })?,
+                .upgrade(&unsafe { boa_gc::MutationContext::global() })?,
         })
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn is_upgradable(&self) -> bool {
+        self.inner.is_upgradable()
     }
 }
 
 impl From<&SharedShape> for WeakSharedShape {
     fn from(value: &SharedShape) -> Self {
         WeakSharedShape {
-            inner: WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, &value.inner),
+            inner: WeakGc::new(&unsafe { boa_gc::MutationContext::global() }, &value.inner),
         }
     }
 }

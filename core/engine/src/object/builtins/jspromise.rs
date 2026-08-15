@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_locals)]
 //! A Rust API wrapper for Boa's promise Builtin ECMAScript Object
 
 use super::{JsArray, JsFunction};
@@ -1094,7 +1095,7 @@ impl JsPromise {
         }
 
         let state = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &context.gc(),
             GcRefCell::new(Inner {
                 result: None,
                 task: None,
@@ -1429,6 +1430,8 @@ impl TryIntoJs for JsPromise {
 /// between promises and futures a bit easier.
 ///
 /// The only way to construct an instance of `JsFuture` is by calling [`JsPromise::into_js_future`].
+#[derive(Clone)]
+#[allow(missing_copy_implementations)]
 pub struct JsFuture {
     inner: Gc<'static, GcRefCell<Inner>>,
 }

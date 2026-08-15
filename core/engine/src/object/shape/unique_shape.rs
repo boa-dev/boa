@@ -38,7 +38,7 @@ impl UniqueShape {
     pub(crate) fn new(prototype: JsPrototype, property_table: PropertyTableInner) -> Self {
         Self {
             inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                &unsafe { boa_gc::MutationContext::global() },
                 Inner {
                     property_table: RefCell::new(property_table),
                     prototype: GcRefCell::new(prototype),
@@ -58,7 +58,10 @@ impl UniqueShape {
 
     /// Get the prototype of the [`UniqueShape`].
     pub(crate) fn prototype(&self) -> JsPrototype {
-        self.inner.prototype.borrow().clone()
+        // Under `oscars_backend`, `GcRefCell::borrow()` returns `GcRef<'_, Option<JsObject>>`.
+        // Deref through the guard before cloning to get the inner `Option<JsObject>` value.
+        // This is what the `JsPrototype` return type requires.
+        (*self.inner.prototype.borrow()).clone()
     }
 
     /// Get the property table of the [`UniqueShape`].
@@ -258,15 +261,20 @@ impl WeakUniqueShape {
         Some(UniqueShape {
             inner: self
                 .inner
-                .upgrade(&unsafe { boa_gc::MutationContext::dummy() })?,
+                .upgrade(&unsafe { boa_gc::MutationContext::global() })?,
         })
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn is_upgradable(&self) -> bool {
+        self.inner.is_upgradable()
     }
 }
 
 impl From<&UniqueShape> for WeakUniqueShape {
     fn from(value: &UniqueShape) -> Self {
         WeakUniqueShape {
-            inner: WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, &value.inner),
+            inner: WeakGc::new(&unsafe { boa_gc::MutationContext::global() }, &value.inner),
         }
     }
 }

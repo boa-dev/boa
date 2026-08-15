@@ -1041,3 +1041,19 @@ impl_js_string_slice_index!(
     std::ops::RangeFrom<usize>,
     std::ops::RangeFull,
 );
+
+#[cfg(feature = "oscars_backend")]
+// SAFETY: `JsString` does not contain any GC pointers, so an empty trace is safe.
+unsafe impl oscars::collectors::null_collector_branded::Trace for JsString {
+    // SAFETY: Empty trace is safe.
+    #[inline]
+    unsafe fn trace(&self, _tracer: &mut oscars::collectors::null_collector_branded::Tracer<'_>) {}
+    // SAFETY: Empty trace is safe.
+    #[inline]
+    unsafe fn trace_non_roots(&self) {}
+    #[inline]
+    fn run_finalizer(&self) {}
+}
+
+#[cfg(feature = "oscars_backend")]
+impl oscars::collectors::null_collector_branded::Finalize for JsString {}

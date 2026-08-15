@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - releases/**
+      - dev/oscars-gc
   push:
     branches:
       - main
       - releases/**
+      - dev/oscars-gc
   merge_group:
     types: [checks_requested]
   workflow_dispatch:

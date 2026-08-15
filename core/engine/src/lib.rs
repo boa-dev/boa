@@ -71,6 +71,10 @@
 
     // Add temporarily - Needs addressing
     clippy::missing_panics_doc,
+
+    // Expected when feature "oscars_backend" is enabled, since Gc becomes a Copy type
+    clippy::clone_on_copy,
+    clippy::cloned_instead_of_copied,
 )]
 
 extern crate self as boa_engine;

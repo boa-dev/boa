@@ -105,7 +105,7 @@ impl Script {
 
         Ok(Self {
             inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                &context.gc(),
                 Inner {
                     realm: realm.unwrap_or_else(|| context.realm().clone()),
                     phase: GcRefCell::new(ScriptPhase::Ast(code)),
@@ -162,10 +162,8 @@ impl Script {
             compiler.global_declaration_instantiation(source);
             compiler.compile_statement_list(source.statements(), true, false);
 
-            Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                compiler.finish(),
-            )
+            let finished = compiler.finish();
+            Gc::new(&context.gc(), finished)
         };
 
         *self.inner.phase.borrow_mut() = ScriptPhase::Codeblock(cb.clone());
