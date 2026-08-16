@@ -122,6 +122,7 @@ impl FunctionCompiler {
         scopes: &FunctionScopes,
         contains_direct_eval: bool,
         interner: &mut Interner,
+        mc: &boa_gc::MutationContext<'static, 'static>,
     ) -> Gc<'static, CodeBlock> {
         self.strict = self.strict || body.strict();
 
@@ -136,6 +137,7 @@ impl FunctionCompiler {
             self.r#async,
             self.generator,
             interner,
+            mc,
             self.in_with,
             self.spanned_source_text,
             self.source_path,
@@ -227,6 +229,6 @@ impl FunctionCompiler {
 
         let code = compiler.finish();
 
-        Gc::new(&unsafe { boa_gc::MutationContext::global() }, code)
+        Gc::new(mc, code)
     }
 }

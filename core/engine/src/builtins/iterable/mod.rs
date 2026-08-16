@@ -91,24 +91,27 @@ pub struct IteratorPrototypes {
 
 impl Default for IteratorPrototypes {
     fn default() -> Self {
-        Self {
-            iterator: JsObject::with_null_proto(),
-            async_iterator: JsObject::with_null_proto(),
-            async_from_sync_iterator: JsObject::with_null_proto(),
-            array: JsObject::with_null_proto(),
-            set: JsObject::with_null_proto(),
-            string: JsObject::with_null_proto(),
-            regexp_string: JsObject::with_null_proto(),
-            map: JsObject::with_null_proto(),
-            #[cfg(feature = "intl")]
-            segment: JsObject::with_null_proto(),
-            iterator_helper: JsObject::with_null_proto(),
-            wrap_for_valid_iterator: JsObject::with_null_proto(),
-        }
+        Self::uninit_in(&unsafe { boa_gc::MutationContext::global() })
     }
 }
 
 impl IteratorPrototypes {
+    pub(crate) fn uninit_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
+        Self {
+            iterator: JsObject::with_null_proto_in(mc),
+            async_iterator: JsObject::with_null_proto_in(mc),
+            async_from_sync_iterator: JsObject::with_null_proto_in(mc),
+            array: JsObject::with_null_proto_in(mc),
+            set: JsObject::with_null_proto_in(mc),
+            string: JsObject::with_null_proto_in(mc),
+            regexp_string: JsObject::with_null_proto_in(mc),
+            map: JsObject::with_null_proto_in(mc),
+            #[cfg(feature = "intl")]
+            segment: JsObject::with_null_proto_in(mc),
+            iterator_helper: JsObject::with_null_proto_in(mc),
+            wrap_for_valid_iterator: JsObject::with_null_proto_in(mc),
+        }
+    }
     /// Returns the `ArrayIteratorPrototype` object.
     #[inline]
     #[must_use]

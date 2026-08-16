@@ -274,6 +274,7 @@ impl Eval {
         let source_text = SourceText::new(source);
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
 
+        let mc = context.gc_collector();
         let mut compiler = ByteCompiler::new(
             js_string!("<eval>"),
             body.strict(),
@@ -283,6 +284,7 @@ impl Eval {
             false,
             false,
             context.interner_mut(),
+            &mc,
             in_with,
             spanned_source_text,
             // TODO: Could give more information from previous shadow stack.
@@ -350,8 +352,8 @@ impl Eval {
             let global = frame.realm.environment();
             frame.environments.push_lexical(
                 lexical_scope.num_bindings_non_local(),
-                global,
-                unsafe { boa_gc::MutationContext::global() },
+                &global,
+                &unsafe { boa_gc::MutationContext::global() },
             );
         }
 

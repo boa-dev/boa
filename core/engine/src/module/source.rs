@@ -1645,6 +1645,7 @@ impl SourceTextModule {
         let env = source.scope().clone();
 
         let spanned_source_text = SpannedSourceText::new_source_only(source_text.clone());
+        let mc = context.gc_collector();
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1654,6 +1655,7 @@ impl SourceTextModule {
             self.code.has_tla,
             false,
             context.interner_mut(),
+            &mc,
             false,
             spanned_source_text,
             self.code.path.clone().into(),
@@ -1834,7 +1836,7 @@ impl SourceTextModule {
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new();
-        envs.push_module(source.scope().clone(), unsafe {
+        envs.push_module(source.scope().clone(), &unsafe {
             boa_gc::MutationContext::global()
         });
         drop(status);

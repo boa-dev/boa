@@ -18,13 +18,12 @@ impl PushScope {
     #[inline(always)]
     pub(crate) fn operation(index: IndexOperand, context: &mut Context) {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame
             .environments
-            .push_lexical(scope.num_bindings_non_local(), global, unsafe {
-                boa_gc::MutationContext::global()
-            });
+            .push_lexical(scope.num_bindings_non_local(), global, mc);
     }
 }
 

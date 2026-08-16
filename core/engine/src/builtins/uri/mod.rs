@@ -49,11 +49,17 @@ pub struct UriFunctions {
 
 impl Default for UriFunctions {
     fn default() -> Self {
+        Self::uninit_in(&unsafe { boa_gc::MutationContext::global() })
+    }
+}
+
+impl UriFunctions {
+    pub(crate) fn uninit_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {
-            decode_uri: JsFunction::empty_intrinsic_function(false),
-            decode_uri_component: JsFunction::empty_intrinsic_function(false),
-            encode_uri: JsFunction::empty_intrinsic_function(false),
-            encode_uri_component: JsFunction::empty_intrinsic_function(false),
+            decode_uri: JsFunction::empty_intrinsic_function_in(mc, false),
+            decode_uri_component: JsFunction::empty_intrinsic_function_in(mc, false),
+            encode_uri: JsFunction::empty_intrinsic_function_in(mc, false),
+            encode_uri_component: JsFunction::empty_intrinsic_function_in(mc, false),
         }
     }
 }

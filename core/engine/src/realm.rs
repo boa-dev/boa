@@ -77,8 +77,12 @@ struct Inner {
 impl Realm {
     /// Create a new [`Realm`].
     #[inline]
-    pub fn create(hooks: &dyn HostHooks, root_shape: &RootShape) -> JsResult<Self> {
-        let intrinsics = Intrinsics::uninit(root_shape).ok_or_else(|| {
+    pub fn create(
+        hooks: &dyn HostHooks,
+        root_shape: &RootShape,
+        mc: &boa_gc::MutationContext<'static, '_>,
+    ) -> JsResult<Self> {
+        let intrinsics = Intrinsics::uninit(root_shape, mc).ok_or_else(|| {
             JsNativeError::typ().with_message("failed to create the realm intrinsics")
         })?;
 
@@ -86,15 +90,12 @@ impl Realm {
         let global_this = hooks
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
-        let environment = Gc::new(
-            &unsafe { boa_gc::MutationContext::global() },
-            DeclarativeEnvironment::global(),
-        );
+        let environment = Gc::new(mc, DeclarativeEnvironment::global());
         let scope = Scope::new_global();
 
         let realm = Self {
             inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::global() },
+                mc,
                 Inner {
                     intrinsics,
                     environment,

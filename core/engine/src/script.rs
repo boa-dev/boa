@@ -137,6 +137,7 @@ impl Script {
 
             let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
 
+            let mc = context.gc_collector();
             let mut compiler = ByteCompiler::new(
                 js_string!("<main>"),
                 source.strict(),
@@ -146,9 +147,14 @@ impl Script {
                 false,
                 false,
                 context.interner_mut(),
+                &mc,
                 false,
                 spanned_source_text,
-                self.path().map(Path::to_owned).into(),
+                self.inner
+                    .path
+                    .as_deref()
+                    .map(std::path::Path::to_path_buf)
+                    .into(),
             );
 
             #[cfg(feature = "annex-b")]

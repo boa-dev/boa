@@ -311,6 +311,7 @@ impl SyntheticModule {
 
         // TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
+        let mc = context.gc_collector();
         let compiler = ByteCompiler::new(
             js_string!("<synthetic>"),
             true,
@@ -320,6 +321,7 @@ impl SyntheticModule {
             false,
             false,
             context.interner_mut(),
+            &mc,
             false,
             // A synthetic module does not contain `SourceText`
             SpannedSourceText::new_empty(),
@@ -342,7 +344,7 @@ impl SyntheticModule {
         let cb = context.alloc(finished);
 
         let mut envs = EnvironmentStack::new();
-        envs.push_module(module_scope, unsafe { boa_gc::MutationContext::global() });
+        envs.push_module(module_scope, &unsafe { boa_gc::MutationContext::global() });
 
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).
