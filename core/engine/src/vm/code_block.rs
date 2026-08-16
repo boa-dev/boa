@@ -51,6 +51,10 @@ bitflags! {
         /// If the function requires a function scope.
         const HAS_FUNCTION_SCOPE = 0b1_0000_0000;
 
+        /// The function body is trivial (just returns undefined).
+        /// Used to skip frame creation at runtime.
+        const TRIVIAL_RETURN = 0b10_0000_0000;
+
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
         const TRACEABLE = 0b1000_0000_0000_0000;
@@ -298,6 +302,11 @@ impl CodeBlock {
     /// Returns true if this function requires a function scope.
     pub(crate) fn has_function_scope(&self) -> bool {
         self.flags.get().has_function_scope()
+    }
+
+    /// Returns true if this function has a trivial body (just returns undefined).
+    pub(crate) fn is_trivial_return(&self) -> bool {
+        self.flags.get().contains(CodeBlockFlags::TRIVIAL_RETURN)
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
