@@ -28,7 +28,7 @@ pub(crate) type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakMap;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "oscars_backend")))]
 mod tests;
 
 impl IntrinsicObject for WeakMap {
@@ -97,7 +97,7 @@ impl BuiltInConstructor for WeakMap {
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            NativeWeakMap::new(&unsafe { boa_gc::MutationContext::dummy() }),
+            NativeWeakMap::new(context.gc_collector()),
         )
         .upcast();
 
@@ -171,7 +171,7 @@ impl WeakMap {
     pub(crate) fn get(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context,
+        #[allow(unused_variables)] context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
@@ -193,13 +193,8 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
-        if let Some(entry) = map.get(key.inner())
-            && let Some(val) = entry.value(&unsafe { boa_gc::MutationContext::dummy() })
-        {
-            Ok(val.clone())
-        } else {
-            Ok(JsValue::undefined())
-        }
+        let result: Option<JsValue> = map.get_value(key.inner());
+        Ok(result.unwrap_or_else(JsValue::undefined))
     }
 
     /// `WeakMap.prototype.has ( key )`
@@ -298,13 +293,14 @@ impl WeakMap {
     pub(crate) fn get_or_insert(
         this: &JsValue,
         args: &[JsValue],
-        _context: &mut Context,
+        #[allow(unused_variables)] context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let map = object
-            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
+        let mut map = object
+            .as_ref()
+            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
             .ok_or_else(|| {
                 js_error!(TypeError:
                     "WeakMap.prototype.getOrInsert: expected 'this' to be a WeakMap object",
@@ -324,18 +320,13 @@ impl WeakMap {
         };
 
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key.inner())
-            && let Some(value) = existing.value(&unsafe { boa_gc::MutationContext::dummy() })
-        {
-            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(value.clone());
+        if let Some(existing) = map.get_value(key.inner()) {
+            return Ok(existing);
         }
 
         // 5-6. Insert the new record with provided value and return it.
         let value = args.get_or_undefined(1).clone();
-        map.borrow_mut()
-            .data_mut()
-            .insert(key.inner(), value.clone());
+        map.insert(key.inner(), value.clone());
         Ok(value)
     }
 
@@ -353,23 +344,12 @@ impl WeakMap {
     pub(crate) fn get_or_insert_computed(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context,
+        #[allow(unused_variables)] context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
         let object = this.as_object();
-        let map = object
-            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
-                )
-            })?;
 
-        // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
-        // TODO: Implement proper CanBeHeldWeakly once available. For now, only
-        //       objects are accepted as keys; symbols should be allowed in the
-        //       future according to the proposal.
         let key_value = args.get_or_undefined(0).clone();
         let Some(key_obj) = key_value.as_object() else {
             return Err(js_error!(TypeError:
@@ -378,6 +358,19 @@ impl WeakMap {
             ));
         };
 
+        if let Some(map) = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
+        {
+            if let Some(existing) = map.get_value(key_obj.inner()) {
+                return Ok(existing);
+            }
+        } else {
+            return Err(js_error!(TypeError:
+                "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
+            ));
+        }
+
         // 4. If IsCallable(callback) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
             return Err(js_error!(TypeError:
@@ -385,26 +378,20 @@ impl WeakMap {
             ));
         };
 
-        // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key_obj.inner())
-            && let Some(value) = existing.value(&unsafe { boa_gc::MutationContext::dummy() })
-        {
-            // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(value.clone());
-        }
-
         // 6. Let value be ? Call(callback, undefined, « key »).
         // 7. NOTE: The WeakMap may have been modified during execution of callback.
-        let value = callback_fn.call(
-            &JsValue::undefined(),
-            std::slice::from_ref(&key_value),
-            context,
-        )?;
+        let value = callback_fn.call(&JsValue::undefined(), &[key_obj.clone().into()], context)?;
 
         // 8-10. Insert or update the entry and return value.
-        map.borrow_mut()
-            .data_mut()
-            .insert(key_obj.inner(), value.clone());
+        let mut map = object
+            .as_ref()
+            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .ok_or_else(|| {
+                js_error!(TypeError:
+                    "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
+                )
+            })?;
+        map.insert(key_obj.inner(), value.clone());
         Ok(value)
     }
 }

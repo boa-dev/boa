@@ -33,12 +33,6 @@ use std::{
 };
 use thin_vec::ThinVec;
 
-#[cfg(not(feature = "jsvalue-enum"))]
-use boa_gc::GcBox;
-
-#[cfg(not(feature = "jsvalue-enum"))]
-use std::ptr::NonNull;
-
 /// A wrapper type for an immutably borrowed type T.
 pub type Ref<'a, T> = GcRef<'a, T>;
 
@@ -86,8 +80,8 @@ pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
 impl JsObject {
     /// Converts the `JsObject` into a raw pointer to its inner `GcBox<ErasedVTableObject>`.
     #[cfg(not(feature = "jsvalue-enum"))]
-    pub(crate) fn into_raw(self) -> NonNull<GcBox<ErasedVTableObject>> {
-        Gc::into_raw(self.inner)
+    pub(crate) fn into_raw(self) -> *const () {
+        Gc::into_raw(self.inner).as_ptr() as *const ()
     }
 
     /// Creates a new `JsObject` from a raw pointer.
@@ -96,9 +90,9 @@ impl JsObject {
     /// The caller must ensure that the pointer is valid and points to a `GcBox<ErasedVTableObject>`.
     /// The pointer must not be null.
     #[cfg(not(feature = "jsvalue-enum"))]
-    pub(crate) unsafe fn from_raw(raw: NonNull<GcBox<ErasedVTableObject>>) -> Self {
+    pub(crate) unsafe fn from_raw(raw: *const ()) -> Self {
         // SAFETY: The caller guaranteed the value to be a valid pointer to a `GcBox<ErasedVTableObject>`.
-        let inner = unsafe { Gc::from_raw(raw) };
+        let inner = unsafe { Gc::from_raw(core::ptr::NonNull::new_unchecked(raw as *mut _)) };
 
         JsObject { inner }
     }
@@ -122,13 +116,14 @@ impl JsObject {
         Self::with_object_proto(intrinsics)
     }
 
-    /// Creates a new `JsObject` from its inner object and its vtable.
-    pub(crate) fn from_object_and_vtable<T: NativeObject>(
+    /// Creates a new `JsObject` from its inner object and its vtable using the given context.
+    pub(crate) fn from_object_and_vtable_in<T: NativeObject>(
+        mc: &boa_gc::MutationContext<'static, '_>,
         object: Object<T>,
         vtable: &'static InternalObjectMethods,
     ) -> Self {
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            mc,
             VTableObject {
                 object: GcRefCell::new(object),
                 vtable,
@@ -136,6 +131,18 @@ impl JsObject {
         );
 
         JsObject { inner }.upcast()
+    }
+
+    /// Creates a new `JsObject` from its inner object and its vtable.
+    pub(crate) fn from_object_and_vtable<T: NativeObject>(
+        object: Object<T>,
+        vtable: &'static InternalObjectMethods,
+    ) -> Self {
+        Self::from_object_and_vtable_in(
+            &unsafe { boa_gc::MutationContext::global() },
+            object,
+            vtable,
+        )
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
@@ -164,6 +171,13 @@ impl JsObject {
         )
     }
 
+    /// Creates a new ordinary object, with its prototype set to null using the given context.
+    #[inline]
+    #[must_use]
+    pub fn with_null_proto_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
+        Self::from_proto_and_data_in(mc, None, OrdinaryObject)
+    }
+
     /// Creates a new ordinary object, with its prototype set to null.
     ///
     /// This is equivalent to calling the specification's abstract operation
@@ -182,7 +196,30 @@ impl JsObject {
     #[inline]
     #[must_use]
     pub fn with_null_proto() -> Self {
-        Self::from_proto_and_data(None, OrdinaryObject)
+        Self::with_null_proto_in(&unsafe { boa_gc::MutationContext::global() })
+    }
+
+    /// Creates a new object with the provided prototype and object data, using the given context.
+    pub fn from_proto_and_data_in<O: Into<Option<Self>>, T: NativeObject>(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: O,
+        data: T,
+    ) -> Self {
+        let internal_methods = data.internal_methods();
+        let inner = Gc::new(
+            mc,
+            VTableObject {
+                object: GcRefCell::new(Object {
+                    data: ObjectData::new(data),
+                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: internal_methods,
+            },
+        );
+
+        JsObject { inner }.upcast()
     }
 
     /// Creates a new object with the provided prototype and object data.
@@ -215,38 +252,26 @@ impl JsObject {
         prototype: O,
         data: T,
     ) -> Self {
-        let internal_methods = data.internal_methods();
-        let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            VTableObject {
-                object: GcRefCell::new(Object {
-                    data: ObjectData::new(data),
-                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
-                    extensible: true,
-                    private_elements: ThinVec::new(),
-                }),
-                vtable: internal_methods,
-            },
-        );
-
-        JsObject { inner }.upcast()
+        Self::from_proto_and_data_in(
+            &unsafe { boa_gc::MutationContext::global() },
+            prototype,
+            data,
+        )
     }
 
-    /// Creates a new object with the provided prototype and object data.
-    ///
-    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
-    /// with the difference that the `additionalInternalSlotsList` parameter is determined by
-    /// the provided `data`.
-    ///
-    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
-    pub(crate) fn from_proto_and_data_with_shared_shape<O: Into<Option<Self>>, T: NativeObject>(
+    /// Creates a new object with the provided prototype and object data using the given context.
+    pub(crate) fn from_proto_and_data_with_shared_shape_in<
+        O: Into<Option<Self>>,
+        T: NativeObject,
+    >(
+        mc: &boa_gc::MutationContext<'static, '_>,
         root_shape: &RootShape,
         prototype: O,
         data: T,
     ) -> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            mc,
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
@@ -262,6 +287,26 @@ impl JsObject {
         );
 
         JsObject { inner }
+    }
+
+    /// Creates a new object with the provided prototype and object data.
+    ///
+    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
+    /// with the difference that the `additionalInternalSlotsList` parameter is determined by
+    /// the provided `data`.
+    ///
+    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
+    pub(crate) fn from_proto_and_data_with_shared_shape<O: Into<Option<Self>>, T: NativeObject>(
+        root_shape: &RootShape,
+        prototype: O,
+        data: T,
+    ) -> JsObject<T> {
+        Self::from_proto_and_data_with_shared_shape_in(
+            &unsafe { boa_gc::MutationContext::global() },
+            root_shape,
+            prototype,
+            data,
+        )
     }
 
     /// Downcasts the object's inner data if the object is of type `T`.
@@ -1063,6 +1108,33 @@ impl<T: NativeObject> JsObject<T> {
 }
 
 impl<T: NativeObject> JsObject<T> {
+    /// Creates a new `JsObject` from a `RootShape`, prototype, and data using the given context.
+    pub fn new_in<O: Into<Option<JsObject>>>(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        root_shape: &RootShape,
+        prototype: O,
+        data: T,
+    ) -> Self {
+        let internal_methods = data.internal_methods();
+        let inner = Gc::new(
+            mc,
+            VTableObject {
+                object: GcRefCell::new(Object {
+                    data: ObjectData::new(data),
+                    properties: PropertyMap::from_prototype_with_shared_shape(
+                        root_shape,
+                        prototype.into(),
+                    ),
+                    extensible: true,
+                    private_elements: ThinVec::new(),
+                }),
+                vtable: internal_methods,
+            },
+        );
+
+        Self { inner }
+    }
+
     /// Creates a new `JsObject` from its root shape, prototype, and data.
     ///
     /// Note that the returned object will not be erased to be convertible to a
@@ -1086,16 +1158,27 @@ impl<T: NativeObject> JsObject<T> {
     /// assert!(obj.is_ordinary());
     /// ```
     pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self {
+        Self::new_in(
+            &unsafe { boa_gc::MutationContext::global() },
+            root_shape,
+            prototype,
+            data,
+        )
+    }
+
+    /// Creates a new `JsObject` from prototype, and data using the given context.
+    pub fn new_unique_in<O: Into<Option<JsObject>>>(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: O,
+        data: T,
+    ) -> Self {
         let internal_methods = data.internal_methods();
         let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            mc,
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
-                    properties: PropertyMap::from_prototype_with_shared_shape(
-                        root_shape,
-                        prototype.into(),
-                    ),
+                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
                     extensible: true,
                     private_elements: ThinVec::new(),
                 }),
@@ -1124,21 +1207,11 @@ impl<T: NativeObject> JsObject<T> {
     /// assert!(obj.prototype().is_none());
     /// ```
     pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self {
-        let internal_methods = data.internal_methods();
-        let inner = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            VTableObject {
-                object: GcRefCell::new(Object {
-                    data: ObjectData::new(data),
-                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
-                    extensible: true,
-                    private_elements: ThinVec::new(),
-                }),
-                vtable: internal_methods,
-            },
-        );
-
-        Self { inner }
+        Self::new_unique_in(
+            &unsafe { boa_gc::MutationContext::global() },
+            prototype,
+            data,
+        )
     }
 
     /// Upcasts this object's inner data from a specific type `T` to an erased type

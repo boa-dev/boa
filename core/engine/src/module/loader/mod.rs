@@ -287,7 +287,7 @@ impl ModuleLoader for MapModuleLoader {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, boa_gc::Trace, boa_gc::Finalize)]
 struct ModuleCacheKey {
     path: PathBuf,
     attributes: Box<[ImportAttribute]>,

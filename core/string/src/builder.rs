@@ -771,14 +771,18 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         let mut builder = Latin1JsStringBuilder::new();
         for seg in &self.segments {
             match seg {
-                Segment::String(s) => {
+                Segment::String(s) =>
+                {
+                    #[allow(clippy::question_mark)]
                     if let Some(data) = s.as_str().as_latin1() {
                         builder.extend_from_slice(data);
                     } else {
                         return None;
                     }
                 }
-                Segment::Str(s) => {
+                Segment::Str(s) =>
+                {
+                    #[allow(clippy::question_mark)]
                     if let Some(data) = s.as_latin1() {
                         builder.extend_from_slice(data);
                     } else {

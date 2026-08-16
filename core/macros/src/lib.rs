@@ -299,7 +299,8 @@ decl_derive! {
 
 /// Derives the `Trace` trait.
 #[allow(clippy::too_many_lines)]
-fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
+#[allow(clippy::needless_pass_by_value)]
+fn derive_trace(s: Structure<'_>) -> proc_macro2::TokenStream {
     struct EmptyTrace {
         copy: bool,
         drop: bool,
@@ -332,6 +333,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                 Err(e) => return e.into_compile_error(),
             };
 
+            let mut s = s.clone();
             if trace.copy {
                 s.add_where_predicate(syn::parse_quote!(Self: Copy));
             }
@@ -341,7 +343,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                 continue;
             }
 
-            return s.unsafe_bound_impl(
+            let normal_impl = s.unsafe_bound_impl(
                 quote!(::boa_gc::Trace),
                 quote! {
                     #[inline(always)]
@@ -354,43 +356,51 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                     }
                 },
             );
+
+            return quote! {
+                #normal_impl
+            };
         }
     }
 
+    let mut s = s.clone();
     s.filter(|bi| {
         !bi.ast()
             .attrs
             .iter()
             .any(|attr| attr.path().is_ident("unsafe_ignore_trace"))
     });
-    let trace_body = s.each(|bi| quote!(::boa_gc::Trace::trace(#bi, tracer)));
-    let trace_other_body = s.each(|bi| quote!(mark(#bi)));
-
     s.add_bounds(AddBounds::Fields);
-    let trace_impl = s.unsafe_bound_impl(
+
+    let mut s_ref = s.clone();
+    s_ref.bind_with(|_| synstructure::BindStyle::Ref);
+
+    // Normal backend: Unsafe Trace with &self
+    let trace_body_ref = s_ref.each(|bi| quote!(::boa_gc::Trace::trace(#bi, tracer)));
+    let trace_other_body_ref = s_ref.each(|bi| quote!(mark(#bi)));
+
+    let normal_impl = s.unsafe_bound_impl(
         quote!(::boa_gc::Trace),
         quote! {
             #[inline]
             unsafe fn trace(&self, tracer: &mut ::boa_gc::Tracer) {
                 #[allow(dead_code)]
                 let mut mark = |it: &dyn ::boa_gc::Trace| {
-                    // SAFETY: The implementor must ensure that `trace` is correctly implemented.
                     unsafe {
                         ::boa_gc::Trace::trace(it, tracer);
                     }
                 };
-                match *self { #trace_body }
+                match *self { #trace_body_ref }
             }
             #[inline]
             unsafe fn trace_non_roots(&self) {
                 #[allow(dead_code)]
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
-                    // SAFETY: The implementor must ensure that `trace_non_roots` is correctly implemented.
                     unsafe {
                         ::boa_gc::Trace::trace_non_roots(it);
                     }
                 }
-                match *self { #trace_other_body }
+                match *self { #trace_other_body_ref }
             }
             #[inline]
             fn run_finalizer(&self) {
@@ -401,14 +411,11 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                         ::boa_gc::Trace::run_finalizer(it);
                     }
                 }
-                match *self { #trace_other_body }
+                match *self { #trace_other_body_ref }
             }
         },
     );
 
-    // We also implement drop to prevent unsafe drop implementations on this
-    // type and encourage people to use Finalize. This implementation will
-    // call `Finalize::finalize` if it is safe to do so.
     let drop_impl = if drop {
         s.unbound_impl(
             quote!(::core::ops::Drop),
@@ -427,7 +434,8 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
     };
 
     quote! {
-        #trace_impl
+        #normal_impl
+
         #drop_impl
     }
 }

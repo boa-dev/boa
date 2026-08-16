@@ -93,7 +93,7 @@ fn main() -> JsResult<()> {
     // forEach
     let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
     let num_to_modify = Gc::new(
-        &unsafe { boa_gc::MutationContext::dummy() },
+        &unsafe { boa_gc::MutationContext::global() },
         GcRefCell::new(0u8),
     );
 

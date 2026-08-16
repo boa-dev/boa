@@ -293,6 +293,7 @@ impl Json {
             let spanned_source_text = SpannedSourceText::new_source_only(
                 crate::spanned_source_text::SourceText::new(source_text),
             );
+            let gc = context.gc_collector();
             let mut compiler = ByteCompiler::new(
                 js_string!("<json>"),
                 script.strict(),
@@ -302,15 +303,14 @@ impl Json {
                 false,
                 false,
                 context.interner_mut(),
-                in_with,
+                &gc,
+                false,
                 spanned_source_text,
                 SourcePath::Json,
             );
             compiler.compile_statement_list(script.statements(), true, false);
-            Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                compiler.finish(),
-            )
+            let finished = compiler.finish();
+            context.alloc(finished)
         };
 
         let realm = context.realm().clone();
@@ -815,7 +815,10 @@ impl Json {
             // d. Else if value has a [[BigIntData]] internal slot, then
             else if let Some(bigint) = obj.downcast_ref::<JsBigInt>() {
                 // i. Set value to value.[[BigIntData]].
-                value = bigint.clone().into();
+                // SAFETY: Under oscars_backend, `downcast_ref` returns a `GcRef<'_, JsBigInt>`.
+                // We must deref through the guard before calling `.clone()` so that we clone
+                // the inner `JsBigInt`, not the `GcRef` wrapper.
+                value = (*bigint).clone().into();
             }
             // e. Else if value has a [[IsRawJSON]] internal slot, then
             else if obj.is::<RawJson>() {

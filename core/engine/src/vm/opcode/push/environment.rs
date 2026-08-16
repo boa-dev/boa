@@ -18,11 +18,12 @@ impl PushScope {
     #[inline(always)]
     pub(crate) fn operation(index: IndexOperand, context: &mut Context) {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame
             .environments
-            .push_lexical(scope.num_bindings_non_local(), global);
+            .push_lexical(scope.num_bindings_non_local(), global, mc);
     }
 }
 
@@ -81,10 +82,7 @@ impl PushPrivateEnvironment {
         }
 
         let ptr: *const _ = class.as_ref();
-        let environment = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            PrivateEnvironment::new(ptr.cast::<()>() as usize, names),
-        );
+        let environment = context.alloc(PrivateEnvironment::new(ptr.cast::<()>() as usize, names));
 
         class
             .downcast_mut::<OrdinaryFunction>()

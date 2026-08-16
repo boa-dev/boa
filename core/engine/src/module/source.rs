@@ -1645,6 +1645,7 @@ impl SourceTextModule {
         let env = source.scope().clone();
 
         let spanned_source_text = SpannedSourceText::new_source_only(source_text.clone());
+        let mc = context.gc_collector();
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1654,6 +1655,7 @@ impl SourceTextModule {
             self.code.has_tla,
             false,
             context.interner_mut(),
+            &mc,
             false,
             spanned_source_text,
             self.code.path.clone().into(),
@@ -1824,17 +1826,19 @@ impl SourceTextModule {
             compiler.compile_module_item_list(source.items());
 
             (
-                Gc::new(
-                    &unsafe { boa_gc::MutationContext::dummy() },
-                    compiler.finish(),
-                ),
+                {
+                    let finished = compiler.finish();
+                    context.alloc(finished)
+                },
                 functions,
             )
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new();
-        envs.push_module(source.scope().clone());
+        envs.push_module(source.scope().clone(), &unsafe {
+            boa_gc::MutationContext::global()
+        });
         drop(status);
 
         // 9. Set the Function of moduleContext to null.

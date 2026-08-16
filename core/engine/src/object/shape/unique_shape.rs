@@ -34,17 +34,30 @@ pub(crate) struct UniqueShape {
 }
 
 impl UniqueShape {
-    /// Create a new [`UniqueShape`].
-    pub(crate) fn new(prototype: JsPrototype, property_table: PropertyTableInner) -> Self {
+    /// Create a new [`UniqueShape`] using the given context.
+    pub(crate) fn new_in(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsPrototype,
+        property_table: PropertyTableInner,
+    ) -> Self {
         Self {
             inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                mc,
                 Inner {
                     property_table: RefCell::new(property_table),
                     prototype: GcRefCell::new(prototype),
                 },
             ),
         }
+    }
+
+    /// Create a new [`UniqueShape`].
+    pub(crate) fn new(prototype: JsPrototype, property_table: PropertyTableInner) -> Self {
+        Self::new_in(
+            &unsafe { boa_gc::MutationContext::global() },
+            prototype,
+            property_table,
+        )
     }
 
     pub(crate) fn override_internal(
@@ -58,7 +71,10 @@ impl UniqueShape {
 
     /// Get the prototype of the [`UniqueShape`].
     pub(crate) fn prototype(&self) -> JsPrototype {
-        self.inner.prototype.borrow().clone()
+        // Under `oscars_backend`, `GcRefCell::borrow()` returns `GcRef<'_, Option<JsObject>>`.
+        // Deref through the guard before cloning to get the inner `Option<JsObject>` value.
+        // This is what the `JsPrototype` return type requires.
+        (*self.inner.prototype.borrow()).clone()
     }
 
     /// Get the property table of the [`UniqueShape`].
@@ -251,22 +267,39 @@ pub(crate) struct WeakUniqueShape {
 
 impl WeakUniqueShape {
     /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
+    /// or [`None`] if the value was already garbage collected, using the given context.
+    #[inline]
+    #[must_use]
+    pub(crate) fn upgrade_in(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+    ) -> Option<UniqueShape> {
+        Some(UniqueShape {
+            inner: self.inner.upgrade(mc)?,
+        })
+    }
+
+    /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
     /// or [`None`] if the value was already garbage collected.
     #[inline]
     #[must_use]
     pub(crate) fn upgrade(&self) -> Option<UniqueShape> {
-        Some(UniqueShape {
-            inner: self
-                .inner
-                .upgrade(&unsafe { boa_gc::MutationContext::dummy() })?,
-        })
+        self.upgrade_in(&unsafe { boa_gc::MutationContext::global() })
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn is_upgradable(&self) -> bool {
+        self.inner.is_upgradable()
+    }
+    pub(crate) fn new_in(mc: &boa_gc::MutationContext<'static, '_>, value: &UniqueShape) -> Self {
+        WeakUniqueShape {
+            inner: WeakGc::new(mc, &value.inner),
+        }
     }
 }
 
 impl From<&UniqueShape> for WeakUniqueShape {
     fn from(value: &UniqueShape) -> Self {
-        WeakUniqueShape {
-            inner: WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, &value.inner),
-        }
+        Self::new_in(&unsafe { boa_gc::MutationContext::global() }, value)
     }
 }
