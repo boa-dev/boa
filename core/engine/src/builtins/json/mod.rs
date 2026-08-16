@@ -293,6 +293,7 @@ impl Json {
             let spanned_source_text = SpannedSourceText::new_source_only(
                 crate::spanned_source_text::SourceText::new(source_text),
             );
+            let gc = context.gc_collector();
             let mut compiler = ByteCompiler::new(
                 js_string!("<json>"),
                 script.strict(),
@@ -302,7 +303,8 @@ impl Json {
                 false,
                 false,
                 context.interner_mut(),
-                in_with,
+                &gc,
+                false,
                 spanned_source_text,
                 SourcePath::Json,
             );

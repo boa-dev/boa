@@ -13,6 +13,13 @@ impl Default for GcContext {
 }
 
 #[cfg(feature = "oscars_backend")]
+struct SyncWrapper(MutationContext<'static, 'static>);
+#[cfg(feature = "oscars_backend")]
+unsafe impl Sync for SyncWrapper {}
+#[cfg(feature = "oscars_backend")]
+unsafe impl Send for SyncWrapper {}
+
+#[cfg(feature = "oscars_backend")]
 impl GcContext {
     #[must_use]
     pub fn new() -> Self {
@@ -20,17 +27,15 @@ impl GcContext {
     }
 
     pub fn alloc<T: crate::Trace + crate::Finalize + 'static>(&self, value: T) -> Gc<'static, T> {
-        // As a bridge, we use the global MutationContext until explicit
-        // context threading is natively supported by the oscars backend.
         let mc = MutationContext::global();
         Gc::new(&mc, value)
     }
 
     #[must_use]
-    pub fn gc_collector(&self) -> &MutationContext<'static, 'static> {
-        // Just return a dummy global mutation context
-        // This is safe for the bridge phase.
-        unimplemented!("Not supported natively without closure yet, use MutationContext::global()")
+    pub fn gc_collector(&self) -> &'static MutationContext<'static, 'static> {
+        static DUMMY: std::sync::LazyLock<SyncWrapper> =
+            std::sync::LazyLock::new(|| SyncWrapper(MutationContext::global()));
+        &DUMMY.0
     }
 }
 
@@ -46,6 +51,13 @@ impl Default for GcContext {
 }
 
 #[cfg(not(feature = "oscars_backend"))]
+struct SyncWrapperDefault(crate::MutationContext<'static, 'static>);
+#[cfg(not(feature = "oscars_backend"))]
+unsafe impl Sync for SyncWrapperDefault {}
+#[cfg(not(feature = "oscars_backend"))]
+unsafe impl Send for SyncWrapperDefault {}
+
+#[cfg(not(feature = "oscars_backend"))]
 impl GcContext {
     #[must_use]
     pub fn new() -> Self {
@@ -58,10 +70,9 @@ impl GcContext {
     }
 
     #[must_use]
-    pub fn gc_collector(&self) -> &crate::MutationContext<'static, 'static> {
-        // Just return a dummy global mutation context
-        static DUMMY: crate::MutationContext<'static, 'static> =
-            unsafe { crate::MutationContext::global() };
-        &DUMMY
+    pub fn gc_collector(&self) -> &'static crate::MutationContext<'static, 'static> {
+        static DUMMY: SyncWrapperDefault =
+            SyncWrapperDefault(unsafe { crate::MutationContext::global() });
+        &DUMMY.0
     }
 }
