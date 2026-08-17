@@ -101,13 +101,13 @@ impl Service for DateTimeFormat {
 }
 
 impl IntrinsicObject for DateTimeFormat {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         use crate::JsSymbol;
-        let get_format = BuiltInBuilder::callable(realm, Self::get_format)
+        let get_format = BuiltInBuilder::callable(realm, Self::get_format, mc)
             .name(js_string!("get format"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),
@@ -189,7 +189,8 @@ impl BuiltInConstructor for DateTimeFormat {
             StandardConstructors::date_time_format,
             context,
         )?;
-        let date_time_format = JsObject::from_proto_and_data(prototype, dtf);
+        let date_time_format =
+            JsObject::from_proto_and_data(context.gc_collector(), prototype, dtf);
 
         // 3. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
         //     a. Let this be the this value.
@@ -259,6 +260,7 @@ impl DateTimeFormat {
             // a. Let F be a new built-in function object as defined in DateTime Format Functions (11.5.4).
             let bound_format = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
                     |_, args, dtf, context| {
                         // 1. Let dtf be F.[[DateTimeFormat]].

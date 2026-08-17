@@ -36,8 +36,8 @@ use super::{BuiltInBuilder, IntrinsicObject};
 pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval, mc)
             .name(Self::NAME)
             .length(1)
             .build();

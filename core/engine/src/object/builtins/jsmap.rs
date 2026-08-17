@@ -155,6 +155,7 @@ impl JsMap {
     /// # let context = &mut Context::default();
     /// // `some_object` can be any JavaScript `Map` object.
     /// let some_object = JsObject::from_proto_and_data(
+    ///     context.gc_collector(),
     ///     context.intrinsics().constructors().map().prototype(),
     ///     OrderedMap::<JsValue>::new(),
     /// );
@@ -198,6 +199,7 @@ impl JsMap {
 
         // Create a default map object with [[MapData]] as a new empty list
         JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             <OrderedMap<JsValue>>::new(),

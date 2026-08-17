@@ -30,8 +30,8 @@ impl IntrinsicObject for WeakRef {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("WeakRef"),
@@ -85,6 +85,7 @@ impl BuiltInConstructor for WeakRef {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)?;
         let weak_ref = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             WeakGc::new(context.gc_collector(), target.inner()),

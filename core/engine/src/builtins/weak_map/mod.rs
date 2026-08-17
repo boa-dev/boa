@@ -36,8 +36,8 @@ impl IntrinsicObject for WeakMap {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -95,6 +95,7 @@ impl BuiltInConstructor for WeakMap {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::weak_map, context)?;
         let map = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             NativeWeakMap::new(context.gc_collector()),

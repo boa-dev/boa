@@ -19,11 +19,12 @@ impl CreateForInIterator {
         let (iterator, next_method) =
             ForInIterator::create_for_in_iterator(JsValue::new(object), context);
 
+        let mc = context.gc_collector();
         context
             .vm
             .frame_mut()
             .iterators
-            .push(IteratorRecord::new(iterator, next_method));
+            .push(IteratorRecord::new(iterator, next_method, mc));
 
         Ok(())
     }

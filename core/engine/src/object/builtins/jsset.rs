@@ -29,6 +29,7 @@ impl JsSet {
     pub fn new(context: &mut Context) -> Self {
         Self {
             inner: JsObject::from_proto_and_data_with_shared_shape(
+                context.gc_collector(),
                 context.root_shape(),
                 context.intrinsics().constructors().set().prototype(),
                 OrderedSet::new(),
@@ -179,6 +180,7 @@ impl JsSet {
 
         Self {
             inner: JsObject::from_proto_and_data_with_shared_shape(
+                context.gc_collector(),
                 context.root_shape(),
                 context.intrinsics().constructors().set().prototype(),
                 set,

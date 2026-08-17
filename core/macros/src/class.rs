@@ -406,10 +406,11 @@ impl Accessor {
         let getter = if let Some(getter) = self.getter.as_ref() {
             let body = getter.body.clone();
             quote! {
-                Some(
+                Some({
+                    let ctx = builder.context();
                     boa_engine::NativeFunction::from_fn_ptr( #body )
-                        .to_js_function(builder.context().realm())
-                )
+                        .to_js_function(ctx.realm(), ctx.gc_collector())
+                })
             }
         } else {
             quote! { None }
@@ -417,10 +418,11 @@ impl Accessor {
         let setter = if let Some(setter) = self.setter.as_ref() {
             let body = setter.body.clone();
             quote! {
-                Some(
+                Some({
+                    let ctx = builder.context();
                     boa_engine::NativeFunction::from_fn_ptr( #body )
-                        .to_js_function(builder.context().realm())
-                )
+                        .to_js_function(ctx.realm(), ctx.gc_collector())
+                })
             }
         } else {
             quote! { None }

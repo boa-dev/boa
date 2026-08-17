@@ -65,6 +65,7 @@ fn main() -> JsResult<()> {
 
     let filter_callback = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_this, args, _context| {
             Ok(args.first().cloned().unwrap_or_default().is_number().into())
         }),
@@ -73,6 +74,7 @@ fn main() -> JsResult<()> {
 
     let map_callback = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_this, args, context| {
             args.first()
                 .cloned()
@@ -99,6 +101,7 @@ fn main() -> JsResult<()> {
 
     let reduce_callback = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_this, args, context| {
             let accumulator = args.first().cloned().unwrap_or_default();
             let value = args.get(1).cloned().unwrap_or_default();

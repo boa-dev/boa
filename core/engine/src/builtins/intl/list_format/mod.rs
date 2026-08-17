@@ -53,8 +53,8 @@ impl Service for ListFormat {
 }
 
 impl IntrinsicObject for ListFormat {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),
@@ -116,7 +116,7 @@ impl BuiltInConstructor for ListFormat {
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
         // 4. Set options to ? GetOptionsObject(options).
-        let options = get_options_object(options)?;
+        let options = get_options_object(options, context.gc_collector())?;
 
         // 5. Let opt be a new Record.
         // 6. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
@@ -173,6 +173,7 @@ impl BuiltInConstructor for ListFormat {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::list_format, context)?;
         let list_format = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Self {
@@ -380,11 +381,11 @@ impl ListFormat {
         // 4. For each Record { [[Type]], [[Value]] } part in parts, do
         for (n, part) in parts.0.into_iter().enumerate() {
             // a. Let O be OrdinaryObjectCreate(%Object.prototype%).
-            let o = context
-                .intrinsics()
-                .templates()
-                .ordinary_object()
-                .create(OrdinaryObject, vec![]);
+            let o = context.intrinsics().templates().ordinary_object().create(
+                context.gc_collector(),
+                OrdinaryObject,
+                vec![],
+            );
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
             o.create_data_property_or_throw(js_string!("type"), js_string!(part.typ()), context)
@@ -429,11 +430,11 @@ impl ListFormat {
             })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
-        let options = context
-            .intrinsics()
-            .templates()
-            .ordinary_object()
-            .create(OrdinaryObject, vec![]);
+        let options = context.intrinsics().templates().ordinary_object().create(
+            context.gc_collector(),
+            OrdinaryObject,
+            vec![],
+        );
 
         // 4. For each row of Table 11, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

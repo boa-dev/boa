@@ -308,15 +308,15 @@ impl OrdinaryFunction {
 pub struct BuiltInFunctionObject;
 
 impl IntrinsicObject for BuiltInFunctionObject {
-    fn init(realm: &Realm) {
-        let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let has_instance = BuiltInBuilder::callable(realm, Self::has_instance, mc)
             .name(js_string!("[Symbol.hasInstance]"))
             .length(1)
             .build();
 
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .method(Self::apply, js_string!("apply"), 2)
             .method(Self::bind, js_string!("bind"), 1)
             .method(Self::call, js_string!("call"), 1)
@@ -338,12 +338,15 @@ impl IntrinsicObject for BuiltInFunctionObject {
 
         let prototype = realm.intrinsics().constructors().function().prototype();
 
-        BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype)
+        BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype, mc)
             .name(js_string!())
             .length(0)
             .build();
 
-        prototype.set_prototype(Some(realm.intrinsics().constructors().object().prototype()));
+        prototype.set_prototype(
+            mc,
+            Some(realm.intrinsics().constructors().object().prototype()),
+        );
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -1146,6 +1149,7 @@ fn function_construct(
         let prototype =
             get_prototype_from_constructor(&new_target, StandardConstructors::object, context)?;
         let this = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             OrdinaryObject,

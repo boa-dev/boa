@@ -169,8 +169,12 @@ pub trait HostHooks {
     /// Equivalent to the step 7 of [`InitializeHostDefinedRealm ( )`][ihdr].
     ///
     /// [ihdr]: https://tc39.es/ecma262/#sec-initializehostdefinedrealm
-    fn create_global_object(&self, intrinsics: &Intrinsics) -> JsObject {
-        JsObject::with_object_proto(intrinsics)
+    fn create_global_object(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        intrinsics: &Intrinsics,
+    ) -> JsObject {
+        JsObject::with_object_proto(mc, intrinsics)
     }
 
     /// Creates the global `this` of a new [`Context`] from the initial intrinsics.

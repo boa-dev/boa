@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Promise resolved with: {}", value.display());
                     Ok(value.clone())
                 })
-                .to_js_function(context.realm()),
+                .to_js_function(context.realm(), context.gc_collector()),
             ),
             Some(
                 NativeFunction::from_fn_ptr(|_, args, _context| {
@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Promise rejected with: {}", error.display());
                     Err(JsError::from_opaque(error.clone()))
                 })
-                .to_js_function(context.realm()),
+                .to_js_function(context.realm(), context.gc_collector()),
             ),
             context,
         )?
@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("Promise settled!");
                 Ok(JsValue::undefined())
             })
-            .to_js_function(context.realm()),
+            .to_js_function(context.realm(), context.gc_collector()),
             context,
         )?;
 

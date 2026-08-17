@@ -47,6 +47,7 @@ impl UnmappedArguments {
             .templates()
             .unmapped_arguments()
             .create(
+                context.gc_collector(),
                 Self,
                 vec![
                     // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
@@ -244,6 +245,7 @@ impl MappedArguments {
 
         // 11. Set obj.[[ParameterMap]] to map.
         let obj = context.intrinsics().templates().mapped_arguments().create(
+            context.gc_collector(),
             map,
             vec![
                 // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),

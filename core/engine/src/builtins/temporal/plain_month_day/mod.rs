@@ -56,20 +56,20 @@ impl BuiltInObject for PlainMonthDay {
 }
 
 impl IntrinsicObject for PlainMonthDay {
-    fn init(realm: &Realm) {
-        let get_day = BuiltInBuilder::callable(realm, Self::get_day)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_day = BuiltInBuilder::callable(realm, Self::get_day, mc)
             .name(js_string!("get day"))
             .build();
 
-        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
+        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code, mc)
             .name(js_string!("get monthCode"))
             .build();
 
-        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
+        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id, mc)
             .name(js_string!("get calendarId"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::PLAIN_MD_TAG,
@@ -297,7 +297,8 @@ impl PlainMonthDay {
         let fields = to_calendar_fields(&object, month_day.inner.calendar(), context)?;
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialMonthDay).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
-        let resolved_options = get_options_object(args.get_or_undefined(1))?;
+        let resolved_options =
+            get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
         // 10. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
@@ -354,7 +355,7 @@ impl PlainMonthDay {
             })?;
 
         // 3. Set options to ? NormalizeOptionsObject(options).
-        let options = get_options_object(args.get_or_undefined(0))?;
+        let options = get_options_object(args.get_or_undefined(0), context.gc_collector())?;
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
         let show_calendar =
@@ -513,7 +514,8 @@ pub(crate) fn create_temporal_month_day(
     // 6. Set object.[[ISODay]] to isoDay.
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISOYear]] to referenceISOYear.
-    let obj = JsObject::from_proto_and_data(proto, PlainMonthDay::new(inner));
+    let obj =
+        JsObject::from_proto_and_data(context.gc_collector(), proto, PlainMonthDay::new(inner));
 
     // 9. Return object.
     Ok(obj.into())
@@ -531,7 +533,7 @@ fn to_temporal_month_day(
         // a. If item has an [[InitializedTemporalMonthDay]] internal slot, then
         if let Some(md) = obj.downcast_ref::<PlainMonthDay>() {
             // i. Let resolvedOptions be ? GetOptionsObject(options).
-            let options = get_options_object(options)?;
+            let options = get_options_object(options, context.gc_collector())?;
             // ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
             let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             // iii. Return ! CreateTemporalMonthDay(item.[[ISODate]], item.[[Calendar]]).
@@ -591,7 +593,7 @@ fn to_temporal_month_day(
             .with_calendar(calendar);
 
         // d. Let resolvedOptions be ? GetOptionsObject(options).
-        let options = get_options_object(options)?;
+        let options = get_options_object(options, context.gc_collector())?;
         // e. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
         // f. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
@@ -612,7 +614,7 @@ fn to_temporal_month_day(
     let parse_record =
         ParsedDate::month_day_from_utf8(md_string.to_std_string_escaped().as_bytes())?;
     // 8. Let resolvedOptions be ? GetOptionsObject(options).
-    let options = get_options_object(options)?;
+    let options = get_options_object(options, context.gc_collector())?;
     // 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
     let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
     // 10. If calendar is "iso8601", then

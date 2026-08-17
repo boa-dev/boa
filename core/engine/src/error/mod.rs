@@ -1346,6 +1346,7 @@ impl JsNativeError {
         };
 
         let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Error::with_stack(tag, stack.0.clone()),
