@@ -76,11 +76,11 @@ impl JsData for Array {
 }
 
 impl IntrinsicObject for Array {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let symbol_iterator = JsSymbol::iterator();
         let symbol_unscopables = JsSymbol::unscopables();
 
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
@@ -88,6 +88,7 @@ impl IntrinsicObject for Array {
             realm,
             realm.intrinsics().objects().array_prototype_values().into(),
             Self::values,
+            mc,
         )
         .name(js_string!("values"))
         .build();
@@ -100,13 +101,14 @@ impl IntrinsicObject for Array {
                 .array_prototype_to_string()
                 .into(),
             Self::to_string,
+            mc,
         )
         .name(js_string!("toString"))
         .build();
 
-        let unscopables_object = Self::unscopables_object();
+        let unscopables_object = Self::unscopables_object(mc);
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             // Static Methods
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::is_array, js_string!("isArray"), 1)
@@ -333,11 +335,11 @@ impl Array {
 
         // Fast path:
         if prototype.is_none() {
-            return Ok(context
-                .intrinsics()
-                .templates()
-                .array()
-                .create(Array, vec![JsValue::new(length)]));
+            return Ok(context.intrinsics().templates().array().create(
+                context.gc_collector(),
+                Array,
+                vec![JsValue::new(length)],
+            ));
         }
 
         // 7. Return A.
@@ -355,16 +357,20 @@ impl Array {
             .array()
             .has_prototype(&prototype)
         {
-            return Ok(context
-                .intrinsics()
-                .templates()
-                .array()
-                .create(Array, vec![JsValue::new(length)]));
+            return Ok(context.intrinsics().templates().array().create(
+                context.gc_collector(),
+                Array,
+                vec![JsValue::new(length)],
+            ));
         }
 
-        let array =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, Array)
-                .upcast();
+        let array = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            Array,
+        )
+        .upcast();
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         ordinary_define_own_property(
@@ -408,6 +414,7 @@ impl Array {
             .templates()
             .array()
             .create_with_indexed_properties(
+                context.gc_collector(),
                 Array,
                 vec![JsValue::new(length)],
                 IndexedProperties::from_dense_js_value(elements),
@@ -3283,9 +3290,9 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
-    pub(crate) fn unscopables_object() -> JsObject {
+    pub(crate) fn unscopables_object(mc: &boa_gc::MutationContext<'static, '_>) -> JsObject {
         // 1. Let unscopableList be OrdinaryObjectCreate(null).
-        let unscopable_list = JsObject::with_null_proto();
+        let unscopable_list = JsObject::with_null_proto(mc);
         let true_prop = PropertyDescriptor::builder()
             .value(true)
             .writable(true)
@@ -3294,37 +3301,37 @@ impl Array {
         {
             let mut obj = unscopable_list.borrow_mut();
             // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
-            obj.insert(js_string!("at"), true_prop.clone());
+            obj.insert(mc, js_string!("at"), true_prop.clone());
             // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
-            obj.insert(js_string!("copyWithin"), true_prop.clone());
+            obj.insert(mc, js_string!("copyWithin"), true_prop.clone());
             // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
-            obj.insert(js_string!("entries"), true_prop.clone());
+            obj.insert(mc, js_string!("entries"), true_prop.clone());
             // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
-            obj.insert(js_string!("fill"), true_prop.clone());
+            obj.insert(mc, js_string!("fill"), true_prop.clone());
             // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
-            obj.insert(js_string!("find"), true_prop.clone());
+            obj.insert(mc, js_string!("find"), true_prop.clone());
             // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
-            obj.insert(js_string!("findIndex"), true_prop.clone());
+            obj.insert(mc, js_string!("findIndex"), true_prop.clone());
             // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLast", true).
-            obj.insert(js_string!("findLast"), true_prop.clone());
+            obj.insert(mc, js_string!("findLast"), true_prop.clone());
             // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLastIndex", true).
-            obj.insert(js_string!("findLastIndex"), true_prop.clone());
+            obj.insert(mc, js_string!("findLastIndex"), true_prop.clone());
             // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
-            obj.insert(js_string!("flat"), true_prop.clone());
+            obj.insert(mc, js_string!("flat"), true_prop.clone());
             // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
-            obj.insert(js_string!("flatMap"), true_prop.clone());
+            obj.insert(mc, js_string!("flatMap"), true_prop.clone());
             // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
-            obj.insert(js_string!("includes"), true_prop.clone());
+            obj.insert(mc, js_string!("includes"), true_prop.clone());
             // 13. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
-            obj.insert(js_string!("keys"), true_prop.clone());
+            obj.insert(mc, js_string!("keys"), true_prop.clone());
             // 14. Perform ! CreateDataPropertyOrThrow(unscopableList, "toReversed", true).
-            obj.insert(js_string!("toReversed"), true_prop.clone());
+            obj.insert(mc, js_string!("toReversed"), true_prop.clone());
             // 15. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSorted", true).
-            obj.insert(js_string!("toSorted"), true_prop.clone());
+            obj.insert(mc, js_string!("toSorted"), true_prop.clone());
             // 16. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSpliced", true).
-            obj.insert(js_string!("toSpliced"), true_prop.clone());
+            obj.insert(mc, js_string!("toSpliced"), true_prop.clone());
             // 17. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
-            obj.insert(js_string!("values"), true_prop);
+            obj.insert(mc, js_string!("values"), true_prop);
         }
 
         // 13. Return unscopableList.

@@ -61,48 +61,48 @@ impl BuiltInObject for PlainYearMonth {
 }
 
 impl IntrinsicObject for PlainYearMonth {
-    fn init(realm: &Realm) {
-        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id, mc)
             .name(js_string!("get calendarId"))
             .build();
 
-        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year)
+        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year, mc)
             .name(js_string!("get eraYear"))
             .build();
 
-        let get_era = BuiltInBuilder::callable(realm, Self::get_era)
+        let get_era = BuiltInBuilder::callable(realm, Self::get_era, mc)
             .name(js_string!("get era"))
             .build();
 
-        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
+        let get_year = BuiltInBuilder::callable(realm, Self::get_year, mc)
             .name(js_string!("get year"))
             .build();
 
-        let get_month = BuiltInBuilder::callable(realm, Self::get_month)
+        let get_month = BuiltInBuilder::callable(realm, Self::get_month, mc)
             .name(js_string!("get month"))
             .build();
 
-        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
+        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code, mc)
             .name(js_string!("get monthCode"))
             .build();
 
-        let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month)
+        let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month, mc)
             .name(js_string!("get daysInMonth"))
             .build();
 
-        let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year)
+        let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year, mc)
             .name(js_string!("get daysInYear"))
             .build();
 
-        let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year)
+        let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year, mc)
             .name(js_string!("get monthsInYear"))
             .build();
 
-        let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
+        let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year, mc)
             .name(js_string!("get inLeapYear"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::PLAIN_YM_TAG,
@@ -571,7 +571,8 @@ impl PlainYearMonth {
                 .into());
         }
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
-        let resolved_options = get_options_object(args.get_or_undefined(1))?;
+        let resolved_options =
+            get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?
             .unwrap_or_default();
@@ -594,7 +595,7 @@ impl PlainYearMonth {
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.add
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let duration_like = args.get_or_undefined(0);
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
 
         add_or_subtract_duration(true, this, duration_like, &options, context)
     }
@@ -612,7 +613,7 @@ impl PlainYearMonth {
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.subtract
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let duration_like = args.get_or_undefined(0);
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
 
         add_or_subtract_duration(false, this, duration_like, &options, context)
     }
@@ -645,7 +646,8 @@ impl PlainYearMonth {
                 .into());
         }
 
-        let resolved_options = get_options_object(args.get_or_undefined(1))?;
+        let resolved_options =
+            get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         // TODO: Disallowed units must be rejected in `temporal_rs`.
         let settings = get_difference_settings(&resolved_options, context)?;
         let result = year_month.inner.until(&other, settings)?;
@@ -680,7 +682,8 @@ impl PlainYearMonth {
                 .into());
         }
 
-        let resolved_options = get_options_object(args.get_or_undefined(1))?;
+        let resolved_options =
+            get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         // TODO: Disallowed units must be rejected in `temporal_rs`.
         let settings = get_difference_settings(&resolved_options, context)?;
         let result = year_month.inner.since(&other, settings)?;
@@ -735,7 +738,7 @@ impl PlainYearMonth {
             })?;
 
         // 3. Set options to ? NormalizeOptionsObject(options).
-        let options = get_options_object(args.get_or_undefined(0))?;
+        let options = get_options_object(args.get_or_undefined(0), context.gc_collector())?;
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
         let show_calendar =
@@ -875,7 +878,7 @@ fn to_temporal_year_month(
         // a. If item has an [[InitializedTemporalYearMonth]] internal slot, then
         if let Some(ym) = obj.downcast_ref::<PlainYearMonth>() {
             // i. Let resolvedOptions be ? GetOptionsObject(options).
-            let resolved_options = get_options_object(&options)?;
+            let resolved_options = get_options_object(&options, context.gc_collector())?;
             // ii. Perform ? GetTemporalOverflowOption(resolvedOptions).
             let _overflow =
                 get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?
@@ -887,7 +890,7 @@ fn to_temporal_year_month(
         // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code », «», «»).
         let partial = to_partial_year_month(&obj, context)?;
         // d. Let resolvedOptions be ? GetOptionsObject(options).
-        let resolved_options = get_options_object(&options)?;
+        let resolved_options = get_options_object(&options, context.gc_collector())?;
         // e. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
         // f. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
@@ -908,7 +911,7 @@ fn to_temporal_year_month(
     // 6. If calendar is empty, set calendar to "iso8601".
     // 7. Set calendar to ? CanonicalizeCalendar(calendar).
     // 8. Let resolvedOptions be ? GetOptionsObject(options).
-    let resolved_options = get_options_object(&options)?;
+    let resolved_options = get_options_object(&options, context.gc_collector())?;
     // 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
     let _overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?
         .unwrap_or(Overflow::Constrain);
@@ -956,7 +959,7 @@ pub(crate) fn create_temporal_year_month(
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISODay]] to referenceISODay.
 
-    let obj = JsObject::from_proto_and_data(proto, PlainYearMonth::new(ym));
+    let obj = JsObject::from_proto_and_data(context.gc_collector(), proto, PlainYearMonth::new(ym));
 
     // 9. Return object.
     Ok(obj.into())

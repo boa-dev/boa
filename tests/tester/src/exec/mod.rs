@@ -625,6 +625,7 @@ fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
     // We use `FunctionBuilder` to define a closure with additional captures.
     let js_function = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
         unsafe {
             NativeFunction::from_closure(move |_, args, context| {

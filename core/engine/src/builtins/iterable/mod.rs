@@ -98,18 +98,18 @@ impl Default for IteratorPrototypes {
 impl IteratorPrototypes {
     pub(crate) fn uninit_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {
-            iterator: JsObject::with_null_proto_in(mc),
-            async_iterator: JsObject::with_null_proto_in(mc),
-            async_from_sync_iterator: JsObject::with_null_proto_in(mc),
-            array: JsObject::with_null_proto_in(mc),
-            set: JsObject::with_null_proto_in(mc),
-            string: JsObject::with_null_proto_in(mc),
-            regexp_string: JsObject::with_null_proto_in(mc),
-            map: JsObject::with_null_proto_in(mc),
+            iterator: JsObject::with_null_proto(mc),
+            async_iterator: JsObject::with_null_proto(mc),
+            async_from_sync_iterator: JsObject::with_null_proto(mc),
+            array: JsObject::with_null_proto(mc),
+            set: JsObject::with_null_proto(mc),
+            string: JsObject::with_null_proto(mc),
+            regexp_string: JsObject::with_null_proto(mc),
+            map: JsObject::with_null_proto(mc),
             #[cfg(feature = "intl")]
-            segment: JsObject::with_null_proto_in(mc),
-            iterator_helper: JsObject::with_null_proto_in(mc),
-            wrap_for_valid_iterator: JsObject::with_null_proto_in(mc),
+            segment: JsObject::with_null_proto(mc),
+            iterator_helper: JsObject::with_null_proto(mc),
+            wrap_for_valid_iterator: JsObject::with_null_proto(mc),
         }
     }
     /// Returns the `ArrayIteratorPrototype` object.
@@ -193,8 +193,8 @@ impl IteratorPrototypes {
 pub(crate) struct AsyncIterator;
 
 impl IntrinsicObject for AsyncIterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_method(|v, _, _| Ok(v.clone()), JsSymbol::async_iterator(), 0)
             .build();
     }
@@ -212,11 +212,11 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
     // 4. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
-    let obj = context
-        .intrinsics()
-        .templates()
-        .iterator_result()
-        .create(OrdinaryObject, vec![value, done.into()]);
+    let obj = context.intrinsics().templates().iterator_result().create(
+        context.gc_collector(),
+        OrdinaryObject,
+        vec![value, done.into()],
+    );
 
     // 5. Return obj.
     obj.into()
@@ -254,7 +254,11 @@ impl JsValue {
         let next_method = iterator_obj.get(js_string!("next"), context)?;
         // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 5. Return iteratorRecord.
-        Ok(IteratorRecord::new(iterator_obj.clone(), next_method))
+        Ok(IteratorRecord::new(
+            iterator_obj.clone(),
+            next_method,
+            context.gc_collector(),
+        ))
     }
 
     /// `GetIterator ( obj, kind )`
@@ -403,13 +407,17 @@ impl IteratorRecord {
     /// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
     #[inline]
     #[must_use]
-    pub fn new(iterator: JsObject, next_method: JsValue) -> Self {
+    pub fn new(
+        iterator: JsObject,
+        next_method: JsValue,
+        mc: &boa_gc::MutationContext<'static, '_>,
+    ) -> Self {
         Self {
             iterator,
             next_method,
             done: false,
             last_result: IteratorResult {
-                object: JsObject::with_null_proto(),
+                object: JsObject::with_null_proto(mc),
             },
         }
     }
@@ -697,7 +705,11 @@ pub(crate) fn get_iterator_direct(
     let next_method = obj.get(js_string!("next"), context)?;
     // 2. Let iteratorRecord be the Iterator Record { [[Iterator]]: obj, [[NextMethod]]: nextMethod, [[Done]]: false }.
     // 3. Return iteratorRecord.
-    Ok(IteratorRecord::new(obj.clone(), next_method))
+    Ok(IteratorRecord::new(
+        obj.clone(),
+        next_method,
+        context.gc_collector(),
+    ))
 }
 
 /// `GetIteratorFlattenable ( obj, stringHandling )`

@@ -64,48 +64,72 @@ fn set_backtrace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
 }
 
 pub(super) fn create_object(context: &mut Context) -> JsObject {
-    let get_loop =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_loop))
-            .name(js_string!("get loop"))
-            .length(0)
-            .build();
-    let set_loop =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_loop))
-            .name(js_string!("set loop"))
-            .length(1)
-            .build();
+    let get_loop = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(get_loop),
+    )
+    .name(js_string!("get loop"))
+    .length(0)
+    .build();
+    let set_loop = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(set_loop),
+    )
+    .name(js_string!("set loop"))
+    .length(1)
+    .build();
 
-    let get_stack =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_stack))
-            .name(js_string!("get stack"))
-            .length(0)
-            .build();
-    let set_stack =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_stack))
-            .name(js_string!("set stack"))
-            .length(1)
-            .build();
+    let get_stack = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(get_stack),
+    )
+    .name(js_string!("get stack"))
+    .length(0)
+    .build();
+    let set_stack = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(set_stack),
+    )
+    .name(js_string!("set stack"))
+    .length(1)
+    .build();
 
-    let get_recursion =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_recursion))
-            .name(js_string!("get recursion"))
-            .length(0)
-            .build();
-    let set_recursion =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_recursion))
-            .name(js_string!("set recursion"))
-            .length(1)
-            .build();
-    let get_backtrace =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_backtrace))
-            .name(js_string!("get backtrace"))
-            .length(0)
-            .build();
-    let set_backtrace =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_backtrace))
-            .name(js_string!("set backtrace"))
-            .length(1)
-            .build();
+    let get_recursion = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(get_recursion),
+    )
+    .name(js_string!("get recursion"))
+    .length(0)
+    .build();
+    let set_recursion = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(set_recursion),
+    )
+    .name(js_string!("set recursion"))
+    .length(1)
+    .build();
+    let get_backtrace = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(get_backtrace),
+    )
+    .name(js_string!("get backtrace"))
+    .length(0)
+    .build();
+    let set_backtrace = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(set_backtrace),
+    )
+    .name(js_string!("set backtrace"))
+    .length(1)
+    .build();
 
     ObjectInitializer::new(context)
         .accessor(

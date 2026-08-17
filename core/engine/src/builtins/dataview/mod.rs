@@ -94,22 +94,22 @@ impl DataView {
 }
 
 impl IntrinsicObject for DataView {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_buffer = BuiltInBuilder::callable(realm, Self::get_buffer)
+        let get_buffer = BuiltInBuilder::callable(realm, Self::get_buffer, mc)
             .name(js_string!("get buffer"))
             .build();
 
-        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
+        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length, mc)
             .name(js_string!("get byteLength"))
             .build();
 
-        let get_byte_offset = BuiltInBuilder::callable(realm, Self::get_byte_offset)
+        let get_byte_offset = BuiltInBuilder::callable(realm, Self::get_byte_offset, mc)
             .name(js_string!("get byteOffset"))
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .accessor(
                 js_string!("buffer"),
                 Some(get_buffer),
@@ -295,6 +295,7 @@ impl BuiltInConstructor for DataView {
         }
 
         let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Self {

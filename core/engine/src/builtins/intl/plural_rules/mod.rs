@@ -47,8 +47,8 @@ impl Service for PluralRules {
 }
 
 impl IntrinsicObject for PluralRules {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),
@@ -151,6 +151,7 @@ impl BuiltInConstructor for PluralRules {
 
         // 12. Return pluralRules.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             proto,
             Self {

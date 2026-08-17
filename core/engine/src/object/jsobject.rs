@@ -112,12 +112,12 @@ impl JsObject {
     /// ```
     #[inline]
     #[must_use]
-    pub fn default(intrinsics: &Intrinsics) -> Self {
-        Self::with_object_proto(intrinsics)
+    pub fn default(mc: &boa_gc::MutationContext<'static, '_>, intrinsics: &Intrinsics) -> Self {
+        Self::with_object_proto(mc, intrinsics)
     }
 
     /// Creates a new `JsObject` from its inner object and its vtable using the given context.
-    pub(crate) fn from_object_and_vtable_in<T: NativeObject>(
+    pub(crate) fn from_object_and_vtable<T: NativeObject>(
         mc: &boa_gc::MutationContext<'static, '_>,
         object: Object<T>,
         vtable: &'static InternalObjectMethods,
@@ -133,18 +133,6 @@ impl JsObject {
         JsObject { inner }.upcast()
     }
 
-    /// Creates a new `JsObject` from its inner object and its vtable.
-    pub(crate) fn from_object_and_vtable<T: NativeObject>(
-        object: Object<T>,
-        vtable: &'static InternalObjectMethods,
-    ) -> Self {
-        Self::from_object_and_vtable_in(
-            &unsafe { boa_gc::MutationContext::global() },
-            object,
-            vtable,
-        )
-    }
-
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
     /// This is equivalent to calling the specification's abstract operation
@@ -157,15 +145,19 @@ impl JsObject {
     /// ```
     /// # use boa_engine::{Context, JsObject};
     /// let context = &mut Context::default();
-    /// let obj = JsObject::with_object_proto(context.intrinsics());
+    /// let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     ///
     /// assert!(obj.is_ordinary());
     /// assert!(obj.prototype().is_some());
     /// ```
     #[inline]
     #[must_use]
-    pub fn with_object_proto(intrinsics: &Intrinsics) -> Self {
+    pub fn with_object_proto(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        intrinsics: &Intrinsics,
+    ) -> Self {
         Self::from_proto_and_data(
+            mc,
             intrinsics.constructors().object().prototype(),
             OrdinaryObject,
         )
@@ -174,33 +166,12 @@ impl JsObject {
     /// Creates a new ordinary object, with its prototype set to null using the given context.
     #[inline]
     #[must_use]
-    pub fn with_null_proto_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
-        Self::from_proto_and_data_in(mc, None, OrdinaryObject)
-    }
-
-    /// Creates a new ordinary object, with its prototype set to null.
-    ///
-    /// This is equivalent to calling the specification's abstract operation
-    /// [`OrdinaryObjectCreate(null)`][call].
-    ///
-    /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use boa_engine::JsObject;
-    /// let obj = JsObject::with_null_proto();
-    /// assert!(obj.prototype().is_none());
-    /// assert!(obj.is_ordinary());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn with_null_proto() -> Self {
-        Self::with_null_proto_in(&unsafe { boa_gc::MutationContext::global() })
+    pub fn with_null_proto(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
+        Self::from_proto_and_data(mc, None, OrdinaryObject)
     }
 
     /// Creates a new object with the provided prototype and object data, using the given context.
-    pub fn from_proto_and_data_in<O: Into<Option<Self>>, T: NativeObject>(
+    pub fn from_proto_and_data<O: Into<Option<Self>>, T: NativeObject>(
         mc: &boa_gc::MutationContext<'static, '_>,
         prototype: O,
         data: T,
@@ -211,7 +182,7 @@ impl JsObject {
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
-                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    properties: PropertyMap::from_prototype_unique_shape(mc, prototype.into()),
                     extensible: true,
                     private_elements: ThinVec::new(),
                 }),
@@ -222,48 +193,8 @@ impl JsObject {
         JsObject { inner }.upcast()
     }
 
-    /// Creates a new object with the provided prototype and object data.
-    ///
-    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
-    /// with the difference that the `additionalInternalSlotsList` parameter is determined by
-    /// the provided `data`.
-    ///
-    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use boa_engine::{Context, JsObject};
-    /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let context = &mut Context::default();
-    /// let obj = JsObject::from_proto_and_data(
-    ///     context.intrinsics().constructors().object().prototype(),
-    ///     OrdinaryObject,
-    /// );
-    ///
-    /// assert!(obj.is_ordinary());
-    /// assert!(obj.prototype().is_some());
-    ///
-    /// // Create an object with no prototype.
-    /// let null_obj = JsObject::from_proto_and_data(None, OrdinaryObject);
-    /// assert!(null_obj.prototype().is_none());
-    /// ```
-    pub fn from_proto_and_data<O: Into<Option<Self>>, T: NativeObject>(
-        prototype: O,
-        data: T,
-    ) -> Self {
-        Self::from_proto_and_data_in(
-            &unsafe { boa_gc::MutationContext::global() },
-            prototype,
-            data,
-        )
-    }
-
     /// Creates a new object with the provided prototype and object data using the given context.
-    pub(crate) fn from_proto_and_data_with_shared_shape_in<
-        O: Into<Option<Self>>,
-        T: NativeObject,
-    >(
+    pub(crate) fn from_proto_and_data_with_shared_shape<O: Into<Option<Self>>, T: NativeObject>(
         mc: &boa_gc::MutationContext<'static, '_>,
         root_shape: &RootShape,
         prototype: O,
@@ -276,6 +207,7 @@ impl JsObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
                     properties: PropertyMap::from_prototype_with_shared_shape(
+                        mc,
                         root_shape,
                         prototype.into(),
                     ),
@@ -287,26 +219,6 @@ impl JsObject {
         );
 
         JsObject { inner }
-    }
-
-    /// Creates a new object with the provided prototype and object data.
-    ///
-    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
-    /// with the difference that the `additionalInternalSlotsList` parameter is determined by
-    /// the provided `data`.
-    ///
-    /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
-    pub(crate) fn from_proto_and_data_with_shared_shape<O: Into<Option<Self>>, T: NativeObject>(
-        root_shape: &RootShape,
-        prototype: O,
-        data: T,
-    ) -> JsObject<T> {
-        Self::from_proto_and_data_with_shared_shape_in(
-            &unsafe { boa_gc::MutationContext::global() },
-            root_shape,
-            prototype,
-            data,
-        )
     }
 
     /// Downcasts the object's inner data if the object is of type `T`.
@@ -323,14 +235,14 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Downcast consumes the object on success.
     /// let typed = obj.downcast::<OrdinaryObject>();
     /// assert!(typed.is_ok());
     ///
     /// // Downcast fails for a wrong type, returning the original object.
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     /// let result = obj.downcast::<CustomStruct>();
     /// assert!(result.is_err());
     /// ```
@@ -376,7 +288,7 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Downcast ref succeeds for the correct type.
     /// assert!(obj.downcast_ref::<OrdinaryObject>().is_some());
@@ -413,7 +325,7 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Downcast mut succeeds for the correct type.
     /// assert!(obj.downcast_mut::<OrdinaryObject>().is_some());
@@ -449,7 +361,7 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// assert!(obj.is::<OrdinaryObject>());
     /// assert!(!obj.is::<CustomStruct>());
@@ -472,7 +384,7 @@ impl JsObject {
     /// ```
     /// # use boa_engine::{Context, JsObject};
     /// let context = &mut Context::default();
-    /// let obj = JsObject::with_object_proto(context.intrinsics());
+    /// let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     ///
     /// assert!(obj.is_ordinary());
     /// ```
@@ -498,7 +410,7 @@ impl JsObject {
     /// assert!(JsObject::from(array).is_array());
     ///
     /// // An ordinary object is not an array.
-    /// let obj = JsObject::with_object_proto(context.intrinsics());
+    /// let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     /// assert!(!obj.is_array());
     /// # Ok(())
     /// # }
@@ -589,10 +501,10 @@ impl JsObject {
     /// # fn main() -> JsResult<()> {
     /// let context = &mut Context::default();
     ///
-    /// let obj1 = JsObject::with_object_proto(context.intrinsics());
+    /// let obj1 = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     /// obj1.set(js_string!("key"), 42, false, context)?;
     ///
-    /// let obj2 = JsObject::with_object_proto(context.intrinsics());
+    /// let obj2 = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     /// obj2.set(js_string!("key"), 42, false, context)?;
     ///
     /// assert!(JsObject::deep_strict_equals(&obj1, &obj2, context)?);
@@ -861,7 +773,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Multiple immutable borrows are allowed.
     /// let borrowed = obj.borrow();
@@ -894,7 +806,7 @@ impl<T: NativeObject> JsObject<T> {
     /// );
     ///
     /// // Set the prototype to `None` via a mutable borrow.
-    /// obj.borrow_mut().set_prototype(None);
+    /// obj.borrow_mut().set_prototype(context.gc_collector(), None);
     /// assert!(obj.prototype().is_none());
     /// ```
     #[inline]
@@ -916,7 +828,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Non-panicking immutable borrow.
     /// let result = obj.try_borrow();
@@ -939,7 +851,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Non-panicking mutable borrow.
     /// let result = obj.try_borrow_mut();
@@ -960,14 +872,14 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let obj = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     /// let clone = obj.clone();
     ///
     /// // A clone points to the same GC allocation.
     /// assert!(JsObject::equals(&obj, &clone));
     ///
     /// // A separate object is different, even with identical data.
-    /// let other = JsObject::from_proto_and_data(None, OrdinaryObject);
+    /// let other = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     /// assert!(!JsObject::equals(&obj, &other));
     /// ```
     #[must_use]
@@ -988,10 +900,10 @@ impl<T: NativeObject> JsObject<T> {
     /// # use boa_engine::{Context, JsObject};
     /// let context = &mut Context::default();
     ///
-    /// let obj = JsObject::with_object_proto(context.intrinsics());
+    /// let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     /// assert!(obj.prototype().is_some());
     ///
-    /// let null_obj = JsObject::with_null_proto();
+    /// let null_obj = JsObject::with_null_proto(context.gc_collector());
     /// assert!(null_obj.prototype().is_none());
     /// ```
     #[inline]
@@ -1021,41 +933,55 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::{Context, JsObject};
     /// let context = &mut Context::default();
-    /// let obj = JsObject::with_object_proto(context.intrinsics());
+    /// let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     ///
     /// assert!(obj.prototype().is_some());
     ///
     /// // Set the prototype to `None`.
-    /// obj.set_prototype(None);
+    /// obj.set_prototype(context.gc_collector(), None);
     /// assert!(obj.prototype().is_none());
     /// ```
     #[inline]
     #[track_caller]
     #[allow(clippy::must_use_candidate)]
-    pub fn set_prototype(&self, prototype: JsPrototype) -> bool {
-        self.borrow_mut().set_prototype(prototype)
+    pub fn set_prototype(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsPrototype,
+    ) -> bool {
+        self.borrow_mut().set_prototype(mc, prototype)
     }
 
     /// Helper function for property insertion.
     #[track_caller]
-    pub(crate) fn insert<K, P>(&self, key: K, property: P) -> bool
+    pub(crate) fn insert<K, P>(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: K,
+        property: P,
+    ) -> bool
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
     {
-        self.borrow_mut().insert(key, property)
+        self.borrow_mut().insert(mc, key, property)
     }
 
     /// Inserts a field in the object `properties` without checking if it's writable.
     ///
     /// If a field was already in the object with the same name, than `true` is returned
     /// with that field, otherwise `false` is returned.
-    pub fn insert_property<K, P>(&self, key: K, property: P) -> bool
+    pub fn insert_property<K, P>(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: K,
+        property: P,
+    ) -> bool
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
     {
-        self.insert(key.into(), property)
+        self.insert(mc, key.into(), property)
     }
 
     /// It determines if Object is a callable function with a `[[Call]]` internal method.
@@ -1109,7 +1035,7 @@ impl<T: NativeObject> JsObject<T> {
 
 impl<T: NativeObject> JsObject<T> {
     /// Creates a new `JsObject` from a `RootShape`, prototype, and data using the given context.
-    pub fn new_in<O: Into<Option<JsObject>>>(
+    pub fn new<O: Into<Option<JsObject>>>(
         mc: &boa_gc::MutationContext<'static, '_>,
         root_shape: &RootShape,
         prototype: O,
@@ -1122,6 +1048,7 @@ impl<T: NativeObject> JsObject<T> {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
                     properties: PropertyMap::from_prototype_with_shared_shape(
+                        mc,
                         root_shape,
                         prototype.into(),
                     ),
@@ -1157,17 +1084,8 @@ impl<T: NativeObject> JsObject<T> {
     /// let obj = typed_obj.upcast();
     /// assert!(obj.is_ordinary());
     /// ```
-    pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self {
-        Self::new_in(
-            &unsafe { boa_gc::MutationContext::global() },
-            root_shape,
-            prototype,
-            data,
-        )
-    }
-
     /// Creates a new `JsObject` from prototype, and data using the given context.
-    pub fn new_unique_in<O: Into<Option<JsObject>>>(
+    pub fn new_unique<O: Into<Option<JsObject>>>(
         mc: &boa_gc::MutationContext<'static, '_>,
         prototype: O,
         data: T,
@@ -1178,7 +1096,7 @@ impl<T: NativeObject> JsObject<T> {
             VTableObject {
                 object: GcRefCell::new(Object {
                     data: ObjectData::new(data),
-                    properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                    properties: PropertyMap::from_prototype_unique_shape(mc, prototype.into()),
                     extensible: true,
                     private_elements: ThinVec::new(),
                 }),
@@ -1199,21 +1117,13 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let typed_obj = JsObject::new_unique(None, OrdinaryObject);
+    /// let typed_obj = JsObject::new_unique(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Upcast to an erased JsObject.
     /// let obj = typed_obj.upcast();
     /// assert!(obj.is_ordinary());
     /// assert!(obj.prototype().is_none());
     /// ```
-    pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self {
-        Self::new_unique_in(
-            &unsafe { boa_gc::MutationContext::global() },
-            prototype,
-            data,
-        )
-    }
-
     /// Upcasts this object's inner data from a specific type `T` to an erased type
     /// `dyn NativeObject`.
     ///
@@ -1223,7 +1133,7 @@ impl<T: NativeObject> JsObject<T> {
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
     /// // Create a typed JsObject<OrdinaryObject>.
-    /// let typed_obj = JsObject::new_unique(None, OrdinaryObject);
+    /// let typed_obj = JsObject::new_unique(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Upcast erases the type, producing an untyped JsObject.
     /// let obj: JsObject = typed_obj.upcast();

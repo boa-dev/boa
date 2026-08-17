@@ -76,11 +76,12 @@ impl IteratorPush {
             .js_expect("iterator should be an object")?;
         let next = context.vm.get_register(next.into()).clone();
 
+        let mc = context.gc_collector();
         context
             .vm
             .frame_mut()
             .iterators
-            .push(IteratorRecord::new(iterator, next));
+            .push(IteratorRecord::new(iterator, next, mc));
 
         Ok(())
     }

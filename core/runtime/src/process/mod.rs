@@ -82,7 +82,7 @@ impl Process {
 
         let provider = Rc::new(provider);
 
-        let env = JsObject::default(context.intrinsics());
+        let env = JsObject::default(context.gc_collector(), context.intrinsics());
         for (key, value) in provider.env() {
             env.set(key, JsValue::from(value), false, context)?;
         }

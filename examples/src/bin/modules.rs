@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     },
                     module.clone(),
                 )
-                .to_js_function(context.realm()),
+                .to_js_function(context.realm(), context.gc_collector()),
             ),
             None,
             context,
@@ -81,7 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     |_, _, module, context| Ok(module.evaluate(context)?.into()),
                     module.clone(),
                 )
-                .to_js_function(context.realm()),
+                .to_js_function(context.realm(), context.gc_collector()),
             ),
             None,
             context,

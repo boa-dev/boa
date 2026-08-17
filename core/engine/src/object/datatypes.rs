@@ -34,7 +34,7 @@ use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 /// }
 ///
 /// let object =
-///     JsObject::from_proto_and_data(None, CustomStruct { counter: 5 });
+///     JsObject::from_proto_and_data(context.gc_collector(), None, CustomStruct { counter: 5 });
 ///
 /// assert_eq!(object.downcast_ref::<CustomStruct>().unwrap().counter, 5);
 /// ```

@@ -74,12 +74,15 @@ pub(crate) fn get_option<T: OptionType>(
 /// default empty `JsObject`. It throws a `TypeError` if `options` is not undefined and not a `JsObject`.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getoptionsobject
-pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
+pub(crate) fn get_options_object(
+    options: &JsValue,
+    mc: &boa_gc::MutationContext<'static, '_>,
+) -> JsResult<JsObject> {
     match options.variant() {
         // If options is undefined, then
         JsVariant::Undefined => {
             // a. Return OrdinaryObjectCreate(null).
-            Ok(JsObject::with_null_proto())
+            Ok(JsObject::with_null_proto(mc))
         }
         // 2. If Type(options) is Object, then
         JsVariant::Object(obj) => {

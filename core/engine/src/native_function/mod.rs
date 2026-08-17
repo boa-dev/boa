@@ -312,8 +312,12 @@ impl NativeFunction {
     ///
     /// Useful to create functions that will only be used once, such as callbacks.
     #[must_use]
-    pub fn to_js_function(self, realm: &Realm) -> JsFunction {
-        FunctionObjectBuilder::new(realm, self).build()
+    pub fn to_js_function(
+        self,
+        realm: &Realm,
+        mc: &boa_gc::MutationContext<'static, '_>,
+    ) -> JsFunction {
+        FunctionObjectBuilder::new(realm, mc, self).build()
     }
 }
 
@@ -443,6 +447,7 @@ fn native_function_construct(
                         context,
                     )?;
                     Ok(JsObject::from_proto_and_data_with_shared_shape(
+                        context.gc_collector(),
                         context.root_shape(),
                         prototype,
                         OrdinaryObject,

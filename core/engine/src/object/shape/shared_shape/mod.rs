@@ -164,21 +164,18 @@ impl SharedShape {
     }
 
     /// Create a new [`SharedShape`] using the given context.
-    fn new_in(mc: &boa_gc::MutationContext<'static, '_>, inner: Inner) -> Self {
+    fn new(mc: &boa_gc::MutationContext<'static, '_>, inner: Inner) -> Self {
         Self {
             inner: Gc::new(mc, inner),
         }
     }
 
     /// Create a new [`SharedShape`].
-    fn new(inner: Inner) -> Self {
-        Self::new_in(&unsafe { boa_gc::MutationContext::global() }, inner)
-    }
 
     /// Create a root [`SharedShape`] using the given context.
     #[must_use]
-    pub(crate) fn root_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
-        Self::new_in(
+    pub(crate) fn root(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
+        Self::new(
             mc,
             Inner {
                 forward_transitions: ForwardTransition::default(),
@@ -194,13 +191,9 @@ impl SharedShape {
     }
 
     /// Create a root [`SharedShape`].
-    #[must_use]
-    pub(crate) fn root() -> Self {
-        Self::root_in(&unsafe { boa_gc::MutationContext::global() })
-    }
 
     /// Create a [`SharedShape`] change prototype transition using the given context.
-    pub(crate) fn change_prototype_transition_in(
+    pub(crate) fn change_prototype_transition(
         &self,
         mc: &boa_gc::MutationContext<'static, '_>,
         prototype: JsPrototype,
@@ -221,24 +214,18 @@ impl SharedShape {
             transition_count: self.transition_count() + 1,
             flags: ShapeFlags::prototype_transition_from(self.flags()),
         };
-        let new_shape = Self::new_in(mc, new_inner_shape);
+        let new_shape = Self::new(mc, new_inner_shape);
 
         self.forward_transitions()
-            .insert_prototype(prototype, &new_shape.inner);
+            .insert_prototype(mc, prototype, &new_shape.inner);
 
         new_shape
     }
 
     /// Create a [`SharedShape`] change prototype transition.
-    pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
-        self.change_prototype_transition_in(
-            &unsafe { boa_gc::MutationContext::global() },
-            prototype,
-        )
-    }
 
     /// Create a [`SharedShape`] insert property transition using the given context.
-    pub(crate) fn insert_property_transition_in(
+    pub(crate) fn insert_property_transition(
         &self,
         mc: &boa_gc::MutationContext<'static, '_>,
         key: TransitionKey,
@@ -266,29 +253,20 @@ impl SharedShape {
             transition_count: self.transition_count() + 1,
             flags: ShapeFlags::insert_property_transition_from(self.flags()),
         };
-        let new_shape = Self::new_in(mc, new_inner_shape);
+        let new_shape = Self::new(mc, new_inner_shape);
 
         self.forward_transitions()
-            .insert_property(key, &new_shape.inner);
+            .insert_property(mc, key, &new_shape.inner);
 
         new_shape
     }
 
     /// Create a [`SharedShape`] insert property transition.
-    pub(crate) fn insert_property_transition(&self, key: TransitionKey) -> Self {
-        self.insert_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
-    }
 
     /// Create a [`SharedShape`] change prototype transition, returning [`ChangeTransition`].
-    pub(crate) fn change_attributes_transition(
-        &self,
-        key: TransitionKey,
-    ) -> ChangeTransition<Self> {
-        self.change_attributes_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
-    }
 
     /// Create a [`SharedShape`] change prototype transition using the given context, returning [`ChangeTransition`].
-    pub(crate) fn change_attributes_transition_in(
+    pub(crate) fn change_attributes_transition(
         &self,
         mc: &boa_gc::MutationContext<'static, '_>,
         key: TransitionKey,
@@ -330,10 +308,10 @@ impl SharedShape {
                 transition_count: self.transition_count() + 1,
                 flags: ShapeFlags::configure_property_transition_from(self.flags()),
             };
-            let shape = Self::new(inner_shape);
+            let shape = Self::new(mc, inner_shape);
 
             self.forward_transitions()
-                .insert_property(key, &shape.inner);
+                .insert_property(mc, key, &shape.inner);
 
             return ChangeTransition {
                 shape,
@@ -346,11 +324,11 @@ impl SharedShape {
 
         // Apply prototype transition, if it was found.
         if let Some(prototype) = prototype {
-            base = base.change_prototype_transition(prototype);
+            base = base.change_prototype_transition(mc, prototype);
         }
 
         // Apply this property.
-        base = base.insert_property_transition(key);
+        base = base.insert_property_transition(mc, key);
 
         // Apply previous properties.
         for (property_key, attributes) in transitions.into_iter().rev() {
@@ -358,7 +336,7 @@ impl SharedShape {
                 property_key,
                 attributes,
             };
-            base = base.insert_property_transition(transition);
+            base = base.insert_property_transition(mc, transition);
         }
 
         // Determine action to be performed on the storage.
@@ -457,7 +435,7 @@ impl SharedShape {
     }
 
     /// Remove a property from [`SharedShape`], returning the new [`SharedShape`] using the given context.
-    pub(crate) fn remove_property_transition_in(
+    pub(crate) fn remove_property_transition(
         &self,
         mc: &boa_gc::MutationContext<'static, '_>,
         key: &PropertyKey,
@@ -466,7 +444,7 @@ impl SharedShape {
 
         // Apply prototype transition, if it was found.
         if let Some(prototype) = prototype {
-            base = base.change_prototype_transition_in(mc, prototype);
+            base = base.change_prototype_transition(mc, prototype);
         }
 
         for (property_key, attributes) in transitions.into_iter().rev() {
@@ -474,16 +452,13 @@ impl SharedShape {
                 property_key,
                 attributes,
             };
-            base = base.insert_property_transition_in(mc, transition);
+            base = base.insert_property_transition(mc, transition);
         }
 
         base
     }
 
     /// Remove a property from [`SharedShape`], returning the new [`SharedShape`].
-    pub(crate) fn remove_property_transition(&self, key: &PropertyKey) -> Self {
-        self.remove_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
-    }
 
     /// Do a property lookup, returns [`None`] if property not found.
     pub(crate) fn lookup(&self, key: &PropertyKey) -> Option<Slot> {
@@ -509,8 +484,9 @@ impl SharedShape {
     }
 
     /// Returns a new [`UniqueShape`] with the properties of the [`SharedShape`].
-    pub(crate) fn to_unique(&self) -> UniqueShape {
+    pub(crate) fn to_unique(&self, mc: &boa_gc::MutationContext<'static, '_>) -> UniqueShape {
         UniqueShape::new(
+            mc,
             self.prototype(),
             self.property_table()
                 .inner()
@@ -537,10 +513,7 @@ impl WeakSharedShape {
     /// or [`None`] if the value was already garbage collected, using the given context.
     #[inline]
     #[must_use]
-    pub(crate) fn upgrade_in(
-        &self,
-        mc: &boa_gc::MutationContext<'static, '_>,
-    ) -> Option<SharedShape> {
+    pub(crate) fn upgrade(&self, mc: &boa_gc::MutationContext<'static, '_>) -> Option<SharedShape> {
         Some(SharedShape {
             inner: self.inner.upgrade(mc)?,
         })
@@ -548,25 +521,14 @@ impl WeakSharedShape {
 
     /// Upgrade returns a [`SharedShape`] pointer for the internal value if the pointer is still live,
     /// or [`None`] if the value was already garbage collected.
-    #[inline]
-    #[must_use]
-    pub(crate) fn upgrade(&self) -> Option<SharedShape> {
-        self.upgrade_in(&unsafe { boa_gc::MutationContext::global() })
-    }
 
     #[allow(dead_code)]
     pub(crate) fn is_upgradable(&self) -> bool {
         self.inner.is_upgradable()
     }
-    pub(crate) fn new_in(mc: &boa_gc::MutationContext<'static, '_>, value: &SharedShape) -> Self {
+    pub(crate) fn new(mc: &boa_gc::MutationContext<'static, '_>, value: &SharedShape) -> Self {
         WeakSharedShape {
             inner: WeakGc::new(mc, &value.inner),
         }
-    }
-}
-
-impl From<&SharedShape> for WeakSharedShape {
-    fn from(value: &SharedShape) -> Self {
-        Self::new_in(&unsafe { boa_gc::MutationContext::global() }, value)
     }
 }

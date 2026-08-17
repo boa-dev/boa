@@ -255,6 +255,7 @@ pub fn register<F: Fetcher>(
 
     let iterator = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(headers_symbol_iterator),
     )
     .name(js_string!("[Symbol.iterator]"))

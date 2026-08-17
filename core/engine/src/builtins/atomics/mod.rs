@@ -39,8 +39,8 @@ use super::{
 pub(crate) struct Atomics;
 
 impl IntrinsicObject for Atomics {
-    fn init(realm: &Realm) {
-        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -494,7 +494,11 @@ impl Atomics {
                 .intrinsics()
                 .templates()
                 .wait_async()
-                .create(OrdinaryObject, vec![is_async.into(), value])
+                .create(
+                    context.gc_collector(),
+                    OrdinaryObject,
+                    vec![is_async.into(), value],
+                )
                 .into())
         } else {
             let result = unsafe {

@@ -73,7 +73,7 @@ impl ImportMeta {
             .borrow_mut()
             .get_or_insert_with(|| {
                 // a. Set importMeta to OrdinaryObjectCreate(null).
-                let import_meta = JsObject::with_null_proto();
+                let import_meta = JsObject::with_null_proto(context.gc_collector());
 
                 // b. Let importMetaValues be HostGetImportMetaProperties(module).
                 // c. For each Record { [[Key]], [[Value]] } p of importMetaValues, do

@@ -327,31 +327,31 @@ impl ArrayBuffer {
 }
 
 impl IntrinsicObject for ArrayBuffer {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
+        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length, mc)
             .name(js_string!("get byteLength"))
             .build();
 
-        let get_resizable = BuiltInBuilder::callable(realm, Self::get_resizable)
+        let get_resizable = BuiltInBuilder::callable(realm, Self::get_resizable, mc)
             .name(js_string!("get resizable"))
             .build();
 
-        let get_max_byte_length = BuiltInBuilder::callable(realm, Self::get_max_byte_length)
+        let get_max_byte_length = BuiltInBuilder::callable(realm, Self::get_max_byte_length, mc)
             .name(js_string!("get maxByteLength"))
             .build();
 
         #[cfg(feature = "experimental")]
-        let get_detached = BuiltInBuilder::callable(realm, Self::get_detached)
+        let get_detached = BuiltInBuilder::callable(realm, Self::get_detached, mc)
             .name(js_string!("get detached"))
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -848,6 +848,7 @@ impl ArrayBuffer {
             .prototype();
 
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             ArrayBuffer {
@@ -899,6 +900,7 @@ impl ArrayBuffer {
         let block = create_byte_data_block(byte_len, max_byte_len, context)?;
 
         let obj = JsObject::new(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Self {

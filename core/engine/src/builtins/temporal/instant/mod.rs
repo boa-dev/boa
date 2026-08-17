@@ -61,16 +61,16 @@ impl BuiltInObject for Instant {
 }
 
 impl IntrinsicObject for Instant {
-    fn init(realm: &Realm) {
-        let get_millis = BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_millis = BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds, mc)
             .name(js_string!("get epochMilliseconds"))
             .build();
 
-        let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoch_nanoseconds)
+        let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoch_nanoseconds, mc)
             .name(js_string!("get epochNanoseconds"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::INSTANT_TAG,
@@ -428,8 +428,10 @@ impl Instant {
         let other = to_temporal_instant(args.get_or_undefined(0), context)?;
 
         // Fetch the necessary options.
-        let settings =
-            get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
+        let settings = get_difference_settings(
+            &get_options_object(args.get_or_undefined(1), context.gc_collector())?,
+            context,
+        )?;
         let result = instant.inner.until(&other, settings)?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
@@ -462,8 +464,10 @@ impl Instant {
 
         // 3. Return ? DifferenceTemporalInstant(since, instant, other, options).
         let other = to_temporal_instant(args.get_or_undefined(0), context)?;
-        let settings =
-            get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
+        let settings = get_difference_settings(
+            &get_options_object(args.get_or_undefined(1), context.gc_collector())?,
+            context,
+        )?;
         let result = instant.inner.since(&other, settings)?;
         create_temporal_duration(result, None, context).map(Into::into)
     }
@@ -506,7 +510,7 @@ impl Instant {
             // a. Let paramString be roundTo.
             let param_string = param_string.clone();
             // b. Set roundTo to OrdinaryObjectCreate(null).
-            let new_round_to = JsObject::with_null_proto();
+            let new_round_to = JsObject::with_null_proto(context.gc_collector());
             // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
             new_round_to.create_data_property_or_throw(
                 js_string!("smallestUnit"),
@@ -517,7 +521,7 @@ impl Instant {
         } else {
             // 5. Else,
             // a. Set roundTo to ? GetOptionsObject(roundTo).
-            get_options_object(round_to_arg)?
+            get_options_object(round_to_arg, context.gc_collector())?
         };
 
         // 6. NOTE: The following steps read options and perform independent validation in
@@ -624,7 +628,7 @@ impl Instant {
                     .with_message("the this object must be a Temporal.Instant object.")
             })?;
 
-        let options = get_options_object(args.get_or_undefined(0))?;
+        let options = get_options_object(args.get_or_undefined(0), context.gc_collector())?;
 
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
@@ -784,7 +788,7 @@ pub(crate) fn create_temporal_instant(
         get_prototype_from_constructor(&new_target, StandardConstructors::instant, context)?;
 
     // 4. Set object.[[Nanoseconds]] to epochNanoseconds.
-    let obj = JsObject::from_proto_and_data(proto, Instant::new(instant));
+    let obj = JsObject::from_proto_and_data(context.gc_collector(), proto, Instant::new(instant));
 
     // 5. Return object.
     Ok(obj.into())

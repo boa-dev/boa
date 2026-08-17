@@ -179,20 +179,20 @@ impl Error {
 }
 
 impl IntrinsicObject for Error {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let property_attribute =
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         let accessor_attribute = Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        let get_stack = BuiltInBuilder::callable(realm, Self::get_stack)
+        let get_stack = BuiltInBuilder::callable(realm, Self::get_stack, mc)
             .name(js_string!("get stack"))
             .build();
 
-        let set_stack = BuiltInBuilder::callable(realm, Self::set_stack)
+        let set_stack = BuiltInBuilder::callable(realm, Self::set_stack, mc)
             .name(js_string!("set stack"))
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(js_string!("name"), Self::NAME, property_attribute)
             .property(js_string!("message"), js_string!(), property_attribute)
             .method(Self::to_string, js_string!("toString"), 0)
@@ -248,6 +248,7 @@ impl BuiltInConstructor for Error {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::error, context)?;
         let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Error::with_caller_position(ErrorKind::Error, context),
@@ -468,6 +469,7 @@ impl Error {
 
         let prototype = get_prototype_from_constructor(new_target, constructor_fn, context)?;
         let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Error::with_caller_position(error_kind, context),

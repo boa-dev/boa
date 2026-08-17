@@ -14,11 +14,11 @@ pub(crate) struct StoreEmptyObject;
 impl StoreEmptyObject {
     #[inline(always)]
     pub(crate) fn operation(dst: RegisterOperand, context: &mut Context) {
-        let o = context
-            .intrinsics()
-            .templates()
-            .ordinary_object()
-            .create(OrdinaryObject, Vec::default());
+        let o = context.intrinsics().templates().ordinary_object().create(
+            context.gc_collector(),
+            OrdinaryObject,
+            Vec::default(),
+        );
         context.vm.set_register(dst.into(), o.into());
     }
 }

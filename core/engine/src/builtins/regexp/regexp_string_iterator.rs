@@ -40,8 +40,8 @@ pub(crate) struct RegExpStringIterator {
 }
 
 impl IntrinsicObject for RegExpStringIterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 0)
             .static_property(
@@ -95,6 +95,7 @@ impl RegExpStringIterator {
         // 5. Return ! CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%", %RegExpStringIteratorPrototype%).
 
         let regexp_string_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context
                 .intrinsics()

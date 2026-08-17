@@ -291,7 +291,7 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self.realm(), body)
+        let function = FunctionObjectBuilder::new(self.realm(), self.gc_collector(), body)
             .name(name.clone())
             .length(length)
             .constructor(true)
@@ -324,7 +324,7 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self.realm(), body)
+        let function = FunctionObjectBuilder::new(self.realm(), self.gc_collector(), body)
             .name(name.clone())
             .length(length)
             .constructor(false)
@@ -1225,7 +1225,7 @@ impl ContextBuilder {
         }
 
         let mc = unsafe { boa_gc::MutationContext::global() };
-        let root_shape = RootShape::new_in(&mc);
+        let root_shape = RootShape::new(&mc);
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
         let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));

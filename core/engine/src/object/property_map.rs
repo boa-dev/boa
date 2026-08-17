@@ -506,10 +506,13 @@ impl PropertyMap {
     /// Construct a [`PropertyMap`] with the given prototype with a unique [`Shape`].
     #[must_use]
     #[inline]
-    pub fn from_prototype_unique_shape(prototype: JsPrototype) -> Self {
+    pub fn from_prototype_unique_shape(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsPrototype,
+    ) -> Self {
         Self {
             indexed_properties: IndexedProperties::default(),
-            shape: UniqueShape::new(prototype, PropertyTableInner::default()).into(),
+            shape: UniqueShape::new(mc, prototype, PropertyTableInner::default()).into(),
             storage: Vec::default(),
         }
     }
@@ -518,10 +521,13 @@ impl PropertyMap {
     #[must_use]
     #[inline]
     pub fn from_prototype_with_shared_shape(
+        mc: &boa_gc::MutationContext<'static, '_>,
         root_shape: &RootShape,
         prototype: JsPrototype,
     ) -> Self {
-        let shape = root_shape.shape().change_prototype_transition(prototype);
+        let shape = root_shape
+            .shape()
+            .change_prototype_transition(mc, prototype);
         Self {
             indexed_properties: IndexedProperties::default(),
             shape: shape.into(),
@@ -587,14 +593,21 @@ impl PropertyMap {
     }
 
     /// Insert the given property descriptor with the given key [`PropertyMap`].
-    pub fn insert(&mut self, key: &PropertyKey, property: PropertyDescriptor) -> bool {
+
+    pub fn insert(
+        &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: &PropertyKey,
+        property: PropertyDescriptor,
+    ) -> bool {
         let mut dummy_slot = Slot::new();
-        self.insert_with_slot(key, property, &mut dummy_slot)
+        self.insert_with_slot(mc, key, property, &mut dummy_slot)
     }
 
     /// Insert the given property descriptor with the given key [`PropertyMap`].
     pub(crate) fn insert_with_slot(
         &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
         key: &PropertyKey,
         property: PropertyDescriptor,
         out_slot: &mut Slot,
@@ -613,7 +626,7 @@ impl PropertyMap {
                     property_key: key.clone(),
                     attributes,
                 };
-                let transition = self.shape.change_attributes_transition(key);
+                let transition = self.shape.change_attributes_transition(mc, key);
                 self.shape = transition.shape;
                 match transition.action {
                     ChangeTransitionAction::Nothing => {}
@@ -655,7 +668,7 @@ impl PropertyMap {
             property_key: key.clone(),
             attributes,
         };
-        self.shape = self.shape.insert_property_transition(transition_key);
+        self.shape = self.shape.insert_property_transition(mc, transition_key);
 
         // Make Sure that if we are inserting, it has the correct slot index.
         debug_assert_eq!(
@@ -694,7 +707,7 @@ impl PropertyMap {
     }
 
     /// Remove the property with the given key from the [`PropertyMap`].
-    pub fn remove(&mut self, key: &PropertyKey) -> bool {
+    pub fn remove(&mut self, mc: &boa_gc::MutationContext<'static, '_>, key: &PropertyKey) -> bool {
         if let PropertyKey::Index(index) = key {
             return self.indexed_properties.remove(index.get());
         }
@@ -705,7 +718,7 @@ impl PropertyMap {
             }
             self.storage.remove(slot.index as usize);
 
-            self.shape = self.shape.remove_property_transition(key);
+            self.shape = self.shape.remove_property_transition(mc, key);
             return true;
         }
 

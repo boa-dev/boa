@@ -27,9 +27,9 @@ mod tests;
 pub(crate) struct Math;
 
 impl IntrinsicObject for Math {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
+        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_property(js_string!("E"), std::f64::consts::E, attribute)
             .static_property(js_string!("LN10"), std::f64::consts::LN_10, attribute)
             .static_property(js_string!("LN2"), std::f64::consts::LN_2, attribute)

@@ -135,6 +135,7 @@ impl JsDataView {
         }
 
         let obj = JsObject::new(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             DataView {

@@ -4,7 +4,7 @@ use super::{SharedShape, TransitionKey};
 
 #[test]
 fn test_prune_property_on_counter_limit() {
-    let shape = SharedShape::root();
+    let shape = SharedShape::root(&unsafe { boa_gc::MutationContext::global() });
 
     for i in 0..255 {
         assert_eq!(
@@ -12,10 +12,13 @@ fn test_prune_property_on_counter_limit() {
             (i, i as u8)
         );
 
-        shape.insert_property_transition(TransitionKey {
-            property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
-            attributes: SlotAttributes::all(),
-        });
+        shape.insert_property_transition(
+            &unsafe { boa_gc::MutationContext::global() },
+            TransitionKey {
+                property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
+                attributes: SlotAttributes::all(),
+            },
+        );
     }
 
     assert_eq!(
@@ -26,10 +29,13 @@ fn test_prune_property_on_counter_limit() {
     boa_gc::force_collect();
 
     {
-        shape.insert_property_transition(TransitionKey {
-            property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
-            attributes: SlotAttributes::all(),
-        });
+        shape.insert_property_transition(
+            &unsafe { boa_gc::MutationContext::global() },
+            TransitionKey {
+                property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
+                attributes: SlotAttributes::all(),
+            },
+        );
     }
 
     assert_eq!(
@@ -38,10 +44,13 @@ fn test_prune_property_on_counter_limit() {
     );
 
     {
-        shape.insert_property_transition(TransitionKey {
-            property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
-            attributes: SlotAttributes::all(),
-        });
+        shape.insert_property_transition(
+            &unsafe { boa_gc::MutationContext::global() },
+            TransitionKey {
+                property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
+                attributes: SlotAttributes::all(),
+            },
+        );
     }
 
     assert_eq!(
@@ -59,7 +68,7 @@ fn test_prune_property_on_counter_limit() {
 
 #[test]
 fn test_prune_prototype_on_counter_limit() {
-    let shape = SharedShape::root();
+    let shape = SharedShape::root(&unsafe { boa_gc::MutationContext::global() });
 
     assert_eq!(
         shape.forward_transitions().prototype_transitions_count(),
@@ -72,7 +81,12 @@ fn test_prune_prototype_on_counter_limit() {
             (i, i as u8)
         );
 
-        shape.change_prototype_transition(Some(JsObject::with_null_proto()));
+        shape.change_prototype_transition(
+            &unsafe { boa_gc::MutationContext::global() },
+            Some(JsObject::with_null_proto(&unsafe {
+                boa_gc::MutationContext::global()
+            })),
+        );
     }
 
     boa_gc::force_collect();
@@ -83,7 +97,12 @@ fn test_prune_prototype_on_counter_limit() {
     );
 
     {
-        shape.change_prototype_transition(Some(JsObject::with_null_proto()));
+        shape.change_prototype_transition(
+            &unsafe { boa_gc::MutationContext::global() },
+            Some(JsObject::with_null_proto(&unsafe {
+                boa_gc::MutationContext::global()
+            })),
+        );
     }
 
     assert_eq!(
@@ -92,7 +111,12 @@ fn test_prune_prototype_on_counter_limit() {
     );
 
     {
-        shape.change_prototype_transition(Some(JsObject::with_null_proto()));
+        shape.change_prototype_transition(
+            &unsafe { boa_gc::MutationContext::global() },
+            Some(JsObject::with_null_proto(&unsafe {
+                boa_gc::MutationContext::global()
+            })),
+        );
     }
 
     assert_eq!(

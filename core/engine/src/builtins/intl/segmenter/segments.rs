@@ -19,8 +19,8 @@ pub(crate) struct Segments {
 }
 
 impl IntrinsicObject for Segments {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_method(Self::containing, js_string!("containing"), 1)
             .static_method(Self::iterator, JsSymbol::iterator(), 0)
             .build();
@@ -42,6 +42,7 @@ impl Segments {
         // 4. Set segments.[[SegmentsString]] to string.
         // 5. Return segments.
         JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().objects().segments_prototype(),
             Self { segmenter, string },
