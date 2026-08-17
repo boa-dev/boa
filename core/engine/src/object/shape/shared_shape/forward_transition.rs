@@ -1,3 +1,5 @@
+#![allow(clippy::trivially_copy_pass_by_ref)]
+#![allow(clippy::needless_pass_by_value)]
 use std::fmt::Debug;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
@@ -53,9 +55,10 @@ pub(super) struct ForwardTransition {
 }
 
 impl ForwardTransition {
-    /// Insert a property transition.
-    pub(super) fn insert_property(
+    /// Insert a property transition using the given context.
+    pub(super) fn insert_property_in(
         &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
         key: TransitionKey,
         value: &Gc<'static, SharedShapeInner>,
     ) {
@@ -66,14 +69,25 @@ impl ForwardTransition {
             properties.map.retain(|_, v| v.is_upgradable());
         }
 
-        properties.map.insert(
-            key,
-            WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, value),
-        );
+        properties.map.insert(key, WeakGc::new(mc, value));
     }
 
-    /// Insert a prototype transition.
-    pub(super) fn insert_prototype(&self, key: JsPrototype, value: &Gc<'static, SharedShapeInner>) {
+    /// Insert a property transition.
+    pub(super) fn insert_property(
+        &self,
+        key: TransitionKey,
+        value: &Gc<'static, SharedShapeInner>,
+    ) {
+        self.insert_property_in(&unsafe { boa_gc::MutationContext::global() }, key, value)
+    }
+
+    /// Insert a prototype transition using the given context.
+    pub(super) fn insert_prototype_in(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: JsPrototype,
+        value: &Gc<'static, SharedShapeInner>,
+    ) {
         let mut this = self.inner.borrow_mut();
         let prototypes = this.prototypes.get_or_insert_with(Box::default);
 
@@ -81,13 +95,16 @@ impl ForwardTransition {
             prototypes.map.retain(|_, v| v.is_upgradable());
         }
 
-        prototypes.map.insert(
-            key,
-            WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, value),
-        );
+        prototypes.map.insert(key, WeakGc::new(mc, value));
+    }
+
+    /// Insert a prototype transition.
+    pub(super) fn insert_prototype(&self, key: JsPrototype, value: &Gc<'static, SharedShapeInner>) {
+        self.insert_prototype_in(&unsafe { boa_gc::MutationContext::global() }, key, value)
     }
 
     /// Get a property transition, return [`None`] otherwise.
+    #[allow(clippy::cloned_instead_of_copied)]
     pub(super) fn get_property(&self, key: &TransitionKey) -> Option<WeakGc<SharedShapeInner>> {
         let this = self.inner.borrow();
         let transitions = this.properties.as_ref()?;
@@ -95,6 +112,7 @@ impl ForwardTransition {
     }
 
     /// Get a prototype transition, return [`None`] otherwise.
+    #[allow(clippy::cloned_instead_of_copied)]
     pub(super) fn get_prototype(&self, key: &JsPrototype) -> Option<WeakGc<SharedShapeInner>> {
         let this = self.inner.borrow();
         let transitions = this.prototypes.as_ref()?;
@@ -123,7 +141,7 @@ impl ForwardTransition {
         transitions.map.retain(|_, v| v.is_upgradable());
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, not(feature = "oscars_backend")))]
     pub(crate) fn property_transitions_count(&self) -> (usize, u8) {
         let this = self.inner.borrow();
         this.properties.as_ref().map_or((0, 0), |transitions| {
@@ -134,7 +152,7 @@ impl ForwardTransition {
         })
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, not(feature = "oscars_backend")))]
     pub(crate) fn prototype_transitions_count(&self) -> (usize, u8) {
         let this = self.inner.borrow();
         this.prototypes.as_ref().map_or((0, 0), |transitions| {

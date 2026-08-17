@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use boa_engine::value::JsVariant;
 use boa_engine::{Context, JsNativeError, JsResult, JsValue, Source, value::TryFromJs};
 

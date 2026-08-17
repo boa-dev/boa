@@ -158,10 +158,7 @@ impl BuiltInConstructor for FinalizationRegistry {
             },
         );
 
-        let weak_registry = WeakGc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            registry.inner(),
-        );
+        let weak_registry = WeakGc::new(context.gc_collector(), registry.inner());
 
         {
             async fn inner_cleanup(
@@ -174,7 +171,7 @@ impl BuiltInConstructor for FinalizationRegistry {
                 };
 
                 let Some(registry) = weak_registry
-                    .upgrade(&unsafe { boa_gc::MutationContext::dummy() })
+                    .upgrade(&unsafe { boa_gc::MutationContext::global() })
                     .map(JsObject::from_inner)
                 else {
                     return Ok(JsValue::undefined());
@@ -205,7 +202,7 @@ impl FinalizationRegistry {
     /// [`FinalizationRegistry.prototype.register ( target, heldValue [ , unregisterToken ] )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/sec-finalization-registry.prototype.register
-    fn register(this: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+    fn register(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let finalizationRegistry be the this value.
         // 2. Perform ? RequireInternalSlot(finalizationRegistry, [[Cells]]).
         let this = this.as_object();
@@ -257,10 +254,7 @@ impl FinalizationRegistry {
         //
         // TODO: support Symbols
         let unregister_token = match unregister_token.variant() {
-            JsVariant::Object(obj) => Some(WeakGc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                obj.inner(),
-            )),
+            JsVariant::Object(obj) => Some(WeakGc::new(context.gc_collector(), obj.inner())),
             // b. Set unregisterToken to empty.
             JsVariant::Undefined => None,
             // a. If unregisterToken is not undefined, throw a TypeError exception.
@@ -275,7 +269,7 @@ impl FinalizationRegistry {
         // 6. Let cell be the Record { [[WeakRefTarget]]: target, [[HeldValue]]: heldValue, [[UnregisterToken]]: unregisterToken }.
         let cell = RegistryCell {
             target: Ephemeron::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                context.gc_collector(),
                 target_obj.inner(),
                 CleanupSignaler(Cell::new(Some(
                     registry.cleanup_notifier.clone().downgrade(),
@@ -295,7 +289,7 @@ impl FinalizationRegistry {
     /// [`FinalizationRegistry.prototype.unregister ( unregisterToken )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-finalization-registry.prototype.unregister
-    fn unregister(this: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+    fn unregister(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let finalizationRegistry be the this value.
         // 2. Perform ? RequireInternalSlot(finalizationRegistry, [[Cells]]).
         let this = this.as_object();
@@ -338,19 +332,17 @@ impl FinalizationRegistry {
 
             // a. If cell.[[UnregisterToken]] is not empty and SameValue(cell.[[UnregisterToken]], unregisterToken) is true, then
             if let Some(tok) = cell.unregister_token.as_ref()
-                && let Some(tok) = tok.upgrade(&unsafe { boa_gc::MutationContext::dummy() })
+                && let Some(tok) = tok.upgrade(context.gc_collector())
                 && Gc::ptr_eq(&tok, unregister_token)
             {
                 // i. Remove cell from finalizationRegistry.[[Cells]].
                 let cell = registry.cells.swap_remove(i);
-                let _key = cell
-                    .target
-                    .key(&unsafe { boa_gc::MutationContext::dummy() });
+                let _key = cell.target.key(context.gc_collector());
 
                 // TODO: it might be better to add a special ref for the value that
                 // also preserves the original key instead.
                 cell.target
-                    .value(&unsafe { boa_gc::MutationContext::dummy() })
+                    .value(context.gc_collector())
                     .and_then(|v| v.0.take());
 
                 // ii. Set removed to true.

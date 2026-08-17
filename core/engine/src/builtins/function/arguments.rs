@@ -1,3 +1,5 @@
+#![allow(clippy::trivially_copy_pass_by_ref)]
+#![allow(clippy::needless_pass_by_value)]
 use crate::{
     Context, JsData, JsExpect, JsResult, JsValue,
     bytecompiler::ToJsString,
@@ -124,7 +126,7 @@ impl MappedArguments {
             .get(index as usize)
             .copied()
             .flatten()?;
-        self.environment.get(binding_index)
+        (*self.environment).get(binding_index)
     }
 
     /// Set the value of the binding at the given index in the function environment.

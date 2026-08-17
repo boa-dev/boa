@@ -104,17 +104,14 @@ impl Script {
         let source_text = SourceText::new(source);
 
         Ok(Self {
-            inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                Inner {
-                    realm: realm.unwrap_or_else(|| context.realm().clone()),
-                    phase: GcRefCell::new(ScriptPhase::Ast(code)),
-                    source_text,
-                    loaded_modules: GcRefCell::default(),
-                    host_defined: HostDefined::default(),
-                    path,
-                },
-            ),
+            inner: context.alloc(Inner {
+                realm: realm.unwrap_or_else(|| context.realm().clone()),
+                phase: GcRefCell::new(ScriptPhase::Ast(code)),
+                source_text,
+                loaded_modules: GcRefCell::default(),
+                host_defined: HostDefined::default(),
+                path,
+            }),
         })
     }
 
@@ -140,6 +137,7 @@ impl Script {
 
             let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
 
+            let mc = context.gc_collector();
             let mut compiler = ByteCompiler::new(
                 js_string!("<main>"),
                 source.strict(),
@@ -149,9 +147,14 @@ impl Script {
                 false,
                 false,
                 context.interner_mut(),
+                &mc,
                 false,
                 spanned_source_text,
-                self.path().map(Path::to_owned).into(),
+                self.inner
+                    .path
+                    .as_deref()
+                    .map(std::path::Path::to_path_buf)
+                    .into(),
             );
 
             #[cfg(feature = "annex-b")]
@@ -162,10 +165,8 @@ impl Script {
             compiler.global_declaration_instantiation(source);
             compiler.compile_statement_list(source.statements(), true, false);
 
-            Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                compiler.finish(),
-            )
+            let finished = compiler.finish();
+            context.alloc(finished)
         };
 
         *self.inner.phase.borrow_mut() = ScriptPhase::Codeblock(cb.clone());

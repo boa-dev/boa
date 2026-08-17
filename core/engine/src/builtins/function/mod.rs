@@ -659,6 +659,7 @@ impl BuiltInFunctionObject {
         let in_with = context.vm.frame().environments.has_object_environment();
         let spanned_source_text = SpannedSourceText::new_empty();
 
+        let mc = context.gc_collector();
         let code = FunctionCompiler::new(spanned_source_text)
             .name(js_string!("anonymous"))
             .generator(generator)
@@ -673,6 +674,7 @@ impl BuiltInFunctionObject {
                 function.scopes(),
                 function.contains_direct_eval(),
                 context.interner_mut(),
+                &mc,
             );
 
         let saved = context.vm.frame_mut().environments.pop_to_global();
@@ -1073,7 +1075,9 @@ pub(crate) fn function_call(
     if has_binding_identifier {
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, global);
+        let index = frame
+            .environments
+            .push_lexical(1, &global, &unsafe { boa_gc::MutationContext::global() });
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1090,7 +1094,8 @@ pub(crate) fn function_call(
         frame.environments.push_function(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
-            global,
+            &global,
+            &unsafe { boa_gc::MutationContext::global() },
         );
     }
 
@@ -1181,7 +1186,9 @@ fn function_construct(
     if has_binding_identifier {
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, global);
+        let index = frame
+            .environments
+            .push_lexical(1, &global, &unsafe { boa_gc::MutationContext::global() });
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1209,7 +1216,8 @@ fn function_construct(
                         .clone(),
                 ),
             ),
-            global,
+            &global,
+            &unsafe { boa_gc::MutationContext::global() },
         );
     }
 

@@ -349,14 +349,17 @@ impl Locale {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
+        // Under `oscars_backend`, `downcast_ref` returns `GcRef<'_, Locale>`.
+        // Deref through the guard before cloning to get an owned `icu_locale::Locale`.
+        // This is required because `GcRef<'_, Locale>` doesn't implement `NativeObject`.
         let mut loc = object
             .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`Locale.maximize` can only be called on a `Locale` object")
-            })?
-            .clone();
+            })
+            .map(|r| (*r).clone())?;
 
         // 3. Let maximal be the result of the Add Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set maximal to loc.[[Locale]].
         context
@@ -387,6 +390,8 @@ impl Locale {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
+        // Under `oscars_backend`, `downcast_ref` returns `GcRef<'_, Locale>`.
+        // Deref through the guard before cloning to get an owned `icu_locale::Locale`.
         let mut loc = object
             .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
@@ -394,8 +399,8 @@ impl Locale {
                 JsNativeError::typ().with_message(
                     "`Locale.prototype.minimize` can only be called on a `Locale` object",
                 )
-            })?
-            .clone();
+            })
+            .map(|r| (*r).clone())?;
 
         // 3. Let minimal be the result of the Remove Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set minimal to loc.[[Locale]].
         context

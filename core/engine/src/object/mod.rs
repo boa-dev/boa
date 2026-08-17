@@ -96,6 +96,16 @@ impl<T: Any + Trace + JsData> NativeObject for T {
 // TODO: Use super trait casting in Rust 1.75
 impl dyn NativeObject {
     /// Returns `true` if the inner type is the same as `T`.
+    ///
+    /// # Type identity under `oscars_backend`
+    ///
+    /// 1. **`dyn NativeObject::is::<T>()`** (this method) uses [`std::any::TypeId::of::<T>()`].
+    ///    This is sound because `NativeObject: Any` requires `T: 'static`
+    /// 2. **[`JsObject::is::<T>()`]** uses `typeid::of::<VTableObject<T>>()`
+    ///    (via [`boa_gc::type_id_of`]), which supports non-`'static` branded lifetimes
+    ///
+    /// Do not replace the `std::any::TypeId` call below with `typeid::of`.
+    /// `std::any::TypeId` is authoritative for `Any` bounded types.
     #[inline]
     pub fn is<T: NativeObject>(&self) -> bool {
         // Get `TypeId` of the type this function is instantiated with.

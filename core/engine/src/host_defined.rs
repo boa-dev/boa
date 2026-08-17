@@ -34,7 +34,7 @@ unsafe impl<T: ?Sized + Trace> Trace for HostDefined<T> {
     });
 }
 
-impl<T: ?Sized + Finalize> Finalize for HostDefined<T> {}
+impl<T: ?Sized> Finalize for HostDefined<T> {}
 
 impl HostDefined<dyn Any> {
     /// Insert a type into the [`HostDefined`].

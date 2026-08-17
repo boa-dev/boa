@@ -1,3 +1,4 @@
+#[cfg(not(feature = "oscars_backend"))]
 mod miri {
 
     use indoc::indoc;

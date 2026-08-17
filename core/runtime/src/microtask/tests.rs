@@ -37,7 +37,7 @@ fn queue_microtask() {
         context,
     );
 
-    let logs = logger.log.borrow().clone();
+    let logs = (*logger.log.borrow()).clone();
     assert_eq!(
         logs,
         indoc! { r#"

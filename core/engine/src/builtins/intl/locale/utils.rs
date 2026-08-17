@@ -54,7 +54,9 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
     if let Some(tag) = object.as_ref().and_then(|obj| obj.downcast_ref::<Locale>()) {
         // 1. Let tag be kValue.[[Locale]].
         // No need to canonicalize since all `Locale` objects should already be canonicalized.
-        return Ok(tag.clone());
+        // Under `oscars_backend`, `downcast_ref` returns `GcRef<'_, Locale>`.
+        // Deref through the guard before cloning to clone the `Locale` value, not the wrapper.
+        return Ok((*tag).clone());
     }
 
     // iv. Else,

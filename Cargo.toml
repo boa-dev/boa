@@ -118,6 +118,7 @@ num-integer = "0.1.46"
 ryu-js = "1.0.2"
 tap = "1.0.1"
 thiserror = { version = "2.0.18", default-features = false }
+typeid = "1.0.3"
 dashmap = "6.2.1"
 num_enum = "0.7.6"
 itertools = { version = "0.15.0", default-features = false }
@@ -266,4 +267,7 @@ style = { level = "warn", priority = -1 }
 complexity = { level = "warn", priority = -1 }
 perf = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
+
+[patch."https://github.com/boa-dev/boa.git"]
+boa_string = { path = "core/string" }
 
