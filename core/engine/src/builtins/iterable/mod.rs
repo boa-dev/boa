@@ -89,12 +89,6 @@ pub struct IteratorPrototypes {
     wrap_for_valid_iterator: JsObject,
 }
 
-impl Default for IteratorPrototypes {
-    fn default() -> Self {
-        Self::uninit_in(&unsafe { boa_gc::MutationContext::global() })
-    }
-}
-
 impl IteratorPrototypes {
     pub(crate) fn uninit_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {

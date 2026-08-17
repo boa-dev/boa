@@ -448,9 +448,10 @@ async fn load_dyn_import(
 
     // 4. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures promiseCapability and performs the following steps when called:
     // 5. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
+    let mc = context.borrow().gc_collector();
     let on_rejected = FunctionObjectBuilder::new(
         context.borrow().realm(),
-        context.borrow_mut().gc_collector(),
+        &mc,
         NativeFunction::from_copy_closure_with_captures(
             |_, args, cap, context| {
                 //     a. Perform ! Call(promiseCapability.[[Reject]], undefined, « reason »).
@@ -468,9 +469,10 @@ async fn load_dyn_import(
 
     // 6. Let linkAndEvaluateClosure be a new Abstract Closure with no parameters that captures module, promiseCapability, and onRejected and performs the following steps when called:
     // 7. Let linkAndEvaluate be CreateBuiltinFunction(linkAndEvaluateClosure, 0, "", « »).
+    let mc = context.borrow().gc_collector();
     let link_evaluate = FunctionObjectBuilder::new(
         context.borrow().realm(),
-        context.borrow_mut().gc_collector(),
+        &mc,
         NativeFunction::from_copy_closure_with_captures(
             |_, _, (module, cap, on_rejected), context| {
                 // a. Let link be Completion(module.Link()).

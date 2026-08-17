@@ -1076,11 +1076,10 @@ pub(crate) fn function_call(
     let has_function_scope = context.vm.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame
-            .environments
-            .push_lexical(1, &global, &unsafe { boa_gc::MutationContext::global() });
+        let index = frame.environments.push_lexical(1, &global, mc);
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1092,13 +1091,14 @@ pub(crate) fn function_call(
 
     if has_function_scope {
         let scope = context.vm.frame().code_block().constant_scope(last_env);
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
             &global,
-            &unsafe { boa_gc::MutationContext::global() },
+            mc,
         );
     }
 
@@ -1188,11 +1188,10 @@ fn function_construct(
     let has_function_scope = context.vm.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame
-            .environments
-            .push_lexical(1, &global, &unsafe { boa_gc::MutationContext::global() });
+        let index = frame.environments.push_lexical(1, &global, mc);
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1204,6 +1203,7 @@ fn function_construct(
 
     if has_function_scope {
         let scope = context.vm.frame().code_block().constant_scope(last_env);
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
@@ -1221,7 +1221,7 @@ fn function_construct(
                 ),
             ),
             &global,
-            &unsafe { boa_gc::MutationContext::global() },
+            mc,
         );
     }
 

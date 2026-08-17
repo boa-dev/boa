@@ -350,11 +350,9 @@ impl Eval {
         {
             let frame = context.vm.frame_mut();
             let global = frame.realm.environment();
-            frame.environments.push_lexical(
-                lexical_scope.num_bindings_non_local(),
-                &global,
-                &unsafe { boa_gc::MutationContext::global() },
-            );
+            frame
+                .environments
+                .push_lexical(lexical_scope.num_bindings_non_local(), &global, mc);
         }
 
         context

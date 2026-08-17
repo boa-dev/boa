@@ -47,12 +47,6 @@ pub struct UriFunctions {
     encode_uri_component: JsFunction,
 }
 
-impl Default for UriFunctions {
-    fn default() -> Self {
-        Self::uninit_in(&unsafe { boa_gc::MutationContext::global() })
-    }
-}
-
 impl UriFunctions {
     pub(crate) fn uninit_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {

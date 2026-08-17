@@ -420,8 +420,7 @@ mod tests {
         let mut context = Context::default();
         let symbol1 = JsSymbol::new(None).unwrap();
         let symbol2 = JsSymbol::new(None).unwrap();
-        let test_obj =
-            JsObject::from_proto_and_data(&unsafe { boa_gc::MutationContext::global() }, None, ());
+        let test_obj = JsObject::from_proto_and_data(context.gc_collector(), None, ());
         test_obj
             .set(symbol1, js_str!("Can't see me"), false, &mut context)
             .unwrap();
