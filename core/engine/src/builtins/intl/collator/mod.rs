@@ -359,6 +359,7 @@ impl Collator {
                 // 10.3.3.1. Collator Compare Functions
                 // https://tc39.es/ecma402/#sec-collator-compare-functions
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, collator, context| {
                         // 1. Let collator be F.[[Collator]].
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.

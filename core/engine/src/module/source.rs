@@ -1479,6 +1479,7 @@ impl SourceTextModule {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_, _, module, context| {
                     //     a. Perform AsyncModuleExecutionFulfilled(module).
                     async_module_execution_fulfilled(module, context)?;
@@ -1496,6 +1497,7 @@ impl SourceTextModule {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());
                     // a. Perform AsyncModuleExecutionRejected(module, error).

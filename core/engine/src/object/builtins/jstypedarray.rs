@@ -687,6 +687,7 @@ impl JsTypedArray {
     ///     context.realm(),
     ///     context.gc_collector(),
     ///     NativeFunction::from_copy_closure_with_captures(
+    ///         context.gc_collector(),
     ///         |_, args, captures, inner_context| {
     ///             let element = args
     ///                 .first()

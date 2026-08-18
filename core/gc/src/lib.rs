@@ -171,4 +171,8 @@ mod test;
 
 #[cfg(feature = "oscars_backend")]
 /// Forces a garbage collection
-pub fn force_collect() {}
+pub fn force_collect() {
+    let mc = MutationContext::global();
+    mc.collect();
+    crate::context::GcContext::new().force_collect();
+}

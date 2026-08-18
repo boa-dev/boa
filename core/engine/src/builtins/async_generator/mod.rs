@@ -582,6 +582,7 @@ impl AsyncGenerator {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, generator, context| {
                     // a. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
                     assert_eq!(
@@ -614,6 +615,7 @@ impl AsyncGenerator {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, generator, context| {
                     // a. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
                     assert_eq!(

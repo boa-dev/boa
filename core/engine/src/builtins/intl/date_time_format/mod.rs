@@ -262,6 +262,7 @@ impl DateTimeFormat {
                 context.realm(),
                 context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, dtf, context| {
                         // 1. Let dtf be F.[[DateTimeFormat]].
                         // 2. Assert: dtf is an Object and dtf has an [[InitializedDateTimeFormat]] internal slot.

@@ -1010,18 +1010,11 @@ pub(crate) fn is_compatible_property_descriptor(
     extensible: bool,
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
+    mc: &boa_gc::MutationContext<'_, '_>,
 ) -> bool {
     // 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
     let mut dummy_slot = Slot::new();
-    let dummy_mc = unsafe { boa_gc::MutationContext::global() };
-    validate_and_apply_property_descriptor(
-        None,
-        extensible,
-        desc,
-        current,
-        &mut dummy_slot,
-        &dummy_mc,
-    )
+    validate_and_apply_property_descriptor(None, extensible, desc, current, &mut dummy_slot, mc)
 }
 
 /// Abstract operation `ValidateAndApplyPropertyDescriptor`

@@ -192,7 +192,10 @@ impl IteratorConstructor {
         //    (implemented via IteratorHelperOp::Concat in execute_next)
         // 4-5. Let result be CreateIteratorFromClosure(closure, "Iterator Helper", ...)
         //      with [[UnderlyingIterators]] set to a new empty List.
-        let helper = IteratorHelper::create(iterator_helper::Concat::new(iterables), context);
+        let helper = IteratorHelper::create(
+            iterator_helper::Concat::new(context.gc_collector(), iterables),
+            context,
+        );
 
         // 6. Return result.
         Ok(helper.into())

@@ -197,6 +197,7 @@ impl Proxy {
         // 4. Set revoker.[[RevocableProxy]] to p.
 
         NativeFunction::from_copy_closure_with_captures(
+            context.gc_collector(),
             |_, _, revocable_proxy, _| {
                 // a. Let F be the active function object.
                 // b. Let p be F.[[RevocableProxy]].
@@ -547,6 +548,7 @@ pub(crate) fn proxy_exotic_get_own_property(
         extensible_target,
         result_desc.clone(),
         target_desc.clone(),
+        context.gc_collector(),
     ) {
         return Err(JsNativeError::typ()
             .with_message("Proxy trap returned unexpected property")
@@ -662,6 +664,7 @@ pub(crate) fn proxy_exotic_define_own_property(
                 extensible_target,
                 desc.clone(),
                 Some(target_desc.clone()),
+                context.gc_collector(),
             ) {
                 return Err(JsNativeError::typ()
                     .with_message("Proxy trap set property to unexpected value")

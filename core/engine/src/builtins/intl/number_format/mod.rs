@@ -610,6 +610,7 @@ impl NumberFormat {
                 // Number Format Functions
                 // <https://tc39.es/ecma402/#sec-number-format-functions>
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, nf, context| {
                         // 1. Let nf be F.[[NumberFormat]].
                         // 2. Assert: Type(nf) is Object and nf has an [[InitializedNumberFormat]] internal slot.

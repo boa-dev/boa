@@ -55,6 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .then(
             Some(
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, _, module, context| {
                         // After loading, link all modules by resolving the imports
                         // and exports on the full module graph, initializing module
@@ -74,6 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .then(
             Some(
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     // Finally, evaluate the root module.
                     // This returns a `JsPromise` since a module could have
                     // top-level await statements, which defers module execution to the

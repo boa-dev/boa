@@ -1309,6 +1309,7 @@ impl OrdinaryObject {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_, args, obj, context| {
                     let key = args.get_or_undefined(0);
                     let value = args.get_or_undefined(1);

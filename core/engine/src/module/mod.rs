@@ -330,13 +330,16 @@ impl Module {
     pub fn from_value_as_default(value: JsValue, context: &mut Context) -> Self {
         Module::synthetic(
             &[js_string!("default")],
-            SyntheticModuleInitializer::from_copy_closure_with_captures(
-                move |m, value, _ctx| {
-                    m.set_export(&js_string!("default"), value.clone())?;
-                    Ok(())
-                },
-                value,
-            ),
+            unsafe {
+                SyntheticModuleInitializer::from_closure_with_captures(
+                    context.gc_collector(),
+                    move |m, value, _ctx| {
+                        m.set_export(&js_string!("default"), value.clone())?;
+                        Ok(())
+                    },
+                    value,
+                )
+            },
             None,
             None,
             context,
@@ -652,6 +655,7 @@ impl Module {
             .then(
                 Some(
                     NativeFunction::from_copy_closure_with_captures(
+                        context.gc_collector(),
                         |_, _, module, context| {
                             module.link(context)?;
                             Ok(JsValue::undefined())
@@ -667,6 +671,7 @@ impl Module {
             .then(
                 Some(
                     NativeFunction::from_copy_closure_with_captures(
+                        context.gc_collector(),
                         |_, _, module, context| Ok(module.evaluate(context)?.into()),
                         self.clone(),
                     )
@@ -782,17 +787,20 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
         Module::synthetic(
             exports.as_slice(),
             unsafe {
-                SyntheticModuleInitializer::from_closure(move |module, context| {
-                    for (name, f) in names.iter().zip(fns.iter()) {
-                        module.set_export(
-                            name,
-                            f.clone()
-                                .to_js_function(context.realm(), context.gc_collector())
-                                .into(),
-                        )?;
-                    }
-                    Ok(())
-                })
+                SyntheticModuleInitializer::from_closure(
+                    context.gc_collector(),
+                    move |module, context| {
+                        for (name, f) in names.iter().zip(fns.iter()) {
+                            module.set_export(
+                                name,
+                                f.clone()
+                                    .to_js_function(context.realm(), context.gc_collector())
+                                    .into(),
+                            )?;
+                        }
+                        Ok(())
+                    },
+                )
             },
             None,
             None,

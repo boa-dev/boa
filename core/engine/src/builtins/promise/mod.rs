@@ -254,6 +254,7 @@ impl PromiseCapability {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args: &[JsValue], captures, _| {
                     let mut promise_capability = captures.borrow_mut();
                     // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
@@ -685,6 +686,7 @@ impl Promise {
                 context.realm(),
                 context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.all-resolve-element-functions
 
@@ -904,6 +906,7 @@ impl Promise {
                 context.realm(),
                 context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.allsettled-resolve-element-functions
 
@@ -998,6 +1001,7 @@ impl Promise {
                 context.realm(),
                 context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.allsettled-reject-element-functions
 
@@ -1286,6 +1290,7 @@ impl Promise {
                     context.realm(),
                     context.gc_collector(),
                     NativeFunction::from_copy_closure_with_captures(
+                        context.gc_collector(),
                         |_, args, captures, context| {
                             // 1. If alreadyCalled.[[Value]] is true, return undefined.
                             if captures.already_called.get() {
@@ -1372,6 +1377,7 @@ impl Promise {
                         context.realm(),
                         context.gc_collector(),
                         NativeFunction::from_copy_closure_with_captures(
+                            context.gc_collector(),
                             |_, args, captures, context| {
                                 // 1. If alreadyCalled.[[Value]] is true, return undefined.
                                 if captures.already_called.get() {
@@ -1595,6 +1601,7 @@ impl Promise {
                 context.realm(),
                 context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.any-reject-element-functions
 
@@ -2029,6 +2036,7 @@ impl Promise {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     /// Capture object for the abstract `returnValue` closure.
                     #[derive(Debug, Trace, Finalize)]
@@ -2051,6 +2059,7 @@ impl Promise {
                         context.realm(),
                         context.gc_collector(),
                         NativeFunction::from_copy_closure_with_captures(
+                            context.gc_collector(),
                             |_this, _args, captures, _context| {
                                 // 1. Return value.
                                 Ok(captures.value.clone())
@@ -2082,6 +2091,7 @@ impl Promise {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     /// Capture object for the abstract `throwReason` closure.
                     #[derive(Debug, Trace, Finalize)]
@@ -2104,6 +2114,7 @@ impl Promise {
                         context.realm(),
                         context.gc_collector(),
                         NativeFunction::from_copy_closure_with_captures(
+                            context.gc_collector(),
                             |_this, _args, captures, _context| {
                                 // 1. Return ThrowCompletion(reason).
                                 Err(JsError::from_opaque(captures.reason.clone()))
@@ -2479,6 +2490,7 @@ impl Promise {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // https://tc39.es/ecma262/#sec-promise-resolve-functions
 
@@ -2577,6 +2589,7 @@ impl Promise {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // https://tc39.es/ecma262/#sec-promise-reject-functions
 

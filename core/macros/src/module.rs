@@ -272,7 +272,7 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
                 boa_engine::Module::synthetic(
                     &[ #module_exports ],
                     boa_engine::module::SyntheticModuleInitializer::from_copy_closure(
-                        |m, context| {
+                        context.gc_collector(), |m, context| {
                             #module_fn
                             Ok(())
                         }

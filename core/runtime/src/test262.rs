@@ -127,11 +127,7 @@ pub fn register_js262(handles: WorkerHandles, console: bool, context: &mut Conte
     js262
         .create_data_property_or_throw(
             js_string!("IsHTMLDDA"),
-            JsObject::from_proto_and_data(
-                &unsafe { boa_gc::MutationContext::global() },
-                None,
-                IsHTMLDDA,
-            ),
+            JsObject::from_proto_and_data(context.gc_collector(), None, IsHTMLDDA),
             context,
         )
         .expect("the IsHTMLDDA property must be definable");
@@ -235,7 +231,7 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
 
     let start = unsafe {
         let bus = bus.clone();
-        NativeFunction::from_closure(move |_, args, context| {
+        NativeFunction::from_closure(context.gc_collector(), move |_, args, context| {
             let script = args
                 .get_or_undefined(0)
                 .to_string(context)?
@@ -274,7 +270,7 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
 
     let broadcast = unsafe {
         // should technically also have a second numeric argument, but the test262 never uses it.
-        NativeFunction::from_closure(move |_, args, _| {
+        NativeFunction::from_closure(context.gc_collector(), move |_, args, _| {
             let buffer = args.get_or_undefined(0).as_object().ok_or_else(|| {
                 JsNativeError::typ().with_message("argument was not a shared array")
             })?;
@@ -290,7 +286,7 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
     };
 
     let get_report = unsafe {
-        NativeFunction::from_closure(move |_, _, _| {
+        NativeFunction::from_closure(context.gc_collector(), move |_, _, _| {
             let Ok(msg) = reports_rx.try_recv() else {
                 return Ok(JsValue::null());
             };
@@ -321,7 +317,7 @@ fn register_js262_worker(
     let rx = RefCell::new(rx);
     let receive_broadcast = unsafe {
         // should technically also have a second numeric argument, but the test262 never uses it.
-        NativeFunction::from_closure(move |_, args, context| {
+        NativeFunction::from_closure(context.gc_collector(), move |_, args, context| {
             let array = rx.borrow_mut().recv().map_err(|err| {
                 JsNativeError::typ().with_message(format!("failed to receive buffer: {err}"))
             })?;
@@ -337,7 +333,7 @@ fn register_js262_worker(
     };
 
     let report = unsafe {
-        NativeFunction::from_closure(move |_, args, context| {
+        NativeFunction::from_closure(context.gc_collector(), move |_, args, context| {
             let string = args.get_or_undefined(0).to_string(context)?.to_vec();
             tx.send(string)
                 .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;

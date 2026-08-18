@@ -453,6 +453,7 @@ async fn load_dyn_import(
         context.borrow().realm(),
         &mc,
         NativeFunction::from_copy_closure_with_captures(
+            &mc,
             |_, args, cap, context| {
                 //     a. Perform ! Call(promiseCapability.[[Reject]], undefined, « reason »).
                 cap.reject()
@@ -474,6 +475,7 @@ async fn load_dyn_import(
         context.borrow().realm(),
         &mc,
         NativeFunction::from_copy_closure_with_captures(
+            &mc,
             |_, _, (module, cap, on_rejected), context| {
                 // a. Let link be Completion(module.Link()).
                 // b. If link is an abrupt completion, then
@@ -496,6 +498,7 @@ async fn load_dyn_import(
                     context.realm(),
                     context.gc_collector(),
                     NativeFunction::from_copy_closure_with_captures(
+                        context.gc_collector(),
                         |_, _, (module, cap), context| {
                             // i. Let namespace be GetModuleNamespace(module).
                             let namespace = module.namespace(context);

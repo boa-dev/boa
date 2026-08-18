@@ -13,6 +13,18 @@ impl Default for GcContext {
 }
 
 #[cfg(feature = "oscars_backend")]
+thread_local! {
+    static COLLECTOR: &'static oscars::collectors::mark_sweep_branded::Collector =
+        Box::leak(Box::new(oscars::collectors::mark_sweep_branded::Collector::new()));
+
+    static DUMMY: &'static MutationContext<'static, 'static> = COLLECTOR.with(|c| {
+        Box::leak(Box::new(unsafe {
+            MutationContext::from_collector_erased(*c)
+        }))
+    });
+}
+
+#[cfg(feature = "oscars_backend")]
 impl GcContext {
     #[must_use]
     pub fn new() -> Self {
@@ -20,23 +32,17 @@ impl GcContext {
     }
 
     pub fn alloc<T: crate::Trace + crate::Finalize + 'static>(&self, value: T) -> Gc<'static, T> {
-        let mc = MutationContext::global();
-        Gc::new(&mc, value)
+        let mc = self.gc_collector();
+        Gc::new(mc, value)
     }
 
     #[must_use]
     pub fn gc_collector(&self) -> &'static MutationContext<'static, 'static> {
-        thread_local! {
-            static COLLECTOR: &'static oscars::collectors::mark_sweep_branded::Collector =
-                Box::leak(Box::new(oscars::collectors::mark_sweep_branded::Collector::new()));
-
-            static DUMMY: &'static MutationContext<'static, 'static> = COLLECTOR.with(|c| {
-                Box::leak(Box::new(unsafe {
-                    oscars::collectors::mark_sweep_branded::MutationContext::from_collector_erased(*c)
-                }))
-            });
-        }
         DUMMY.with(|dummy| *dummy)
+    }
+
+    pub fn force_collect(&self) {
+        COLLECTOR.with(|c| c.collect());
     }
 }
 
