@@ -516,7 +516,9 @@ impl JsTypedArray {
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
     /// let greater_than_10_predicate = FunctionObjectBuilder::new(
-    ///     context.realm(), ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///     context.realm(),
+    ///     context.gc_collector(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
     ///             .cloned()
@@ -573,7 +575,9 @@ impl JsTypedArray {
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
     /// let lower_than_200_predicate = FunctionObjectBuilder::new(
-    ///     context.realm(), ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///     context.realm(),
+    ///     context.gc_collector(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
     ///             .cloned()
@@ -622,7 +626,9 @@ impl JsTypedArray {
     /// let array = JsUint8Array::from_iter(data, context)?;
     ///
     /// let lower_than_200_predicate = FunctionObjectBuilder::new(
-    ///     context.realm(), ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///     context.realm(),
+    ///     context.gc_collector(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
     ///             .cloned()
@@ -678,7 +684,9 @@ impl JsTypedArray {
     /// let num_to_modify = context.alloc(GcRefCell::new(0u8));
     ///
     /// let js_function = FunctionObjectBuilder::new(
-    ///     context.realm(), ///     NativeFunction::from_copy_closure_with_captures(
+    ///     context.realm(),
+    ///     context.gc_collector(),
+    ///     NativeFunction::from_copy_closure_with_captures(
     ///         |_, args, captures, inner_context| {
     ///             let element = args
     ///                 .first()
