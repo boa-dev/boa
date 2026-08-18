@@ -130,7 +130,7 @@ pub(crate) trait IntrinsicObject {
     ///
     /// This is where the methods, properties, static methods and the constructor of a built-in must
     /// be initialized to be accessible from ECMAScript.
-    fn init(realm: &Realm);
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>);
 
     /// Gets the intrinsic object.
     fn get(intrinsics: &Intrinsics) -> JsObject;
@@ -242,113 +242,113 @@ impl Realm {
     /// Abstract operation [`CreateIntrinsics ( realmRec )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createintrinsics
-    pub(crate) fn initialize(&self) {
-        BuiltInFunctionObject::init(self);
-        OrdinaryObject::init(self);
-        Iterator::init(self);
-        AsyncIterator::init(self);
-        AsyncFromSyncIterator::init(self);
-        IteratorConstructor::init(self);
-        WrapForValidIterator::init(self);
-        IteratorHelper::init(self);
-        Math::init(self);
-        Json::init(self);
-        Array::init(self);
-        ArrayIterator::init(self);
-        Proxy::init(self);
-        ArrayBuffer::init(self);
-        SharedArrayBuffer::init(self);
-        BigInt::init(self);
-        Boolean::init(self);
-        Date::init(self);
-        DataView::init(self);
-        Map::init(self);
-        MapIterator::init(self);
-        IsFinite::init(self);
-        IsNaN::init(self);
-        ParseInt::init(self);
-        ParseFloat::init(self);
-        Number::init(self);
-        Eval::init(self);
-        Set::init(self);
-        SetIterator::init(self);
-        String::init(self);
-        StringIterator::init(self);
-        RegExp::init(self);
-        RegExpStringIterator::init(self);
-        BuiltinTypedArray::init(self);
-        Int8Array::init(self);
-        Uint8Array::init(self);
-        Uint8ClampedArray::init(self);
-        Int16Array::init(self);
-        Uint16Array::init(self);
-        Int32Array::init(self);
-        Uint32Array::init(self);
-        BigInt64Array::init(self);
-        BigUint64Array::init(self);
+    pub(crate) fn initialize(&self, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInFunctionObject::init(self, mc);
+        OrdinaryObject::init(self, mc);
+        Iterator::init(self, mc);
+        AsyncIterator::init(self, mc);
+        AsyncFromSyncIterator::init(self, mc);
+        IteratorConstructor::init(self, mc);
+        WrapForValidIterator::init(self, mc);
+        IteratorHelper::init(self, mc);
+        Math::init(self, mc);
+        Json::init(self, mc);
+        Array::init(self, mc);
+        ArrayIterator::init(self, mc);
+        Proxy::init(self, mc);
+        ArrayBuffer::init(self, mc);
+        SharedArrayBuffer::init(self, mc);
+        BigInt::init(self, mc);
+        Boolean::init(self, mc);
+        Date::init(self, mc);
+        DataView::init(self, mc);
+        Map::init(self, mc);
+        MapIterator::init(self, mc);
+        IsFinite::init(self, mc);
+        IsNaN::init(self, mc);
+        ParseInt::init(self, mc);
+        ParseFloat::init(self, mc);
+        Number::init(self, mc);
+        Eval::init(self, mc);
+        Set::init(self, mc);
+        SetIterator::init(self, mc);
+        String::init(self, mc);
+        StringIterator::init(self, mc);
+        RegExp::init(self, mc);
+        RegExpStringIterator::init(self, mc);
+        BuiltinTypedArray::init(self, mc);
+        Int8Array::init(self, mc);
+        Uint8Array::init(self, mc);
+        Uint8ClampedArray::init(self, mc);
+        Int16Array::init(self, mc);
+        Uint16Array::init(self, mc);
+        Int32Array::init(self, mc);
+        Uint32Array::init(self, mc);
+        BigInt64Array::init(self, mc);
+        BigUint64Array::init(self, mc);
         #[cfg(feature = "float16")]
-        typed_array::Float16Array::init(self);
-        Float32Array::init(self);
-        Float64Array::init(self);
-        Symbol::init(self);
-        Error::init(self);
-        RangeError::init(self);
-        ReferenceError::init(self);
-        TypeError::init(self);
-        ThrowTypeError::init(self);
-        SyntaxError::init(self);
-        EvalError::init(self);
-        UriError::init(self);
-        AggregateError::init(self);
-        Reflect::init(self);
-        Generator::init(self);
-        GeneratorFunction::init(self);
-        Promise::init(self);
-        AsyncFunction::init(self);
-        AsyncGenerator::init(self);
-        AsyncGeneratorFunction::init(self);
-        EncodeUri::init(self);
-        EncodeUriComponent::init(self);
-        DecodeUri::init(self);
-        DecodeUriComponent::init(self);
-        WeakRef::init(self);
-        WeakMap::init(self);
-        WeakSet::init(self);
-        Atomics::init(self);
-        FinalizationRegistry::init(self);
+        typed_array::Float16Array::init(self, mc);
+        Float32Array::init(self, mc);
+        Float64Array::init(self, mc);
+        Symbol::init(self, mc);
+        Error::init(self, mc);
+        RangeError::init(self, mc);
+        ReferenceError::init(self, mc);
+        TypeError::init(self, mc);
+        ThrowTypeError::init(self, mc);
+        SyntaxError::init(self, mc);
+        EvalError::init(self, mc);
+        UriError::init(self, mc);
+        AggregateError::init(self, mc);
+        Reflect::init(self, mc);
+        Generator::init(self, mc);
+        GeneratorFunction::init(self, mc);
+        Promise::init(self, mc);
+        AsyncFunction::init(self, mc);
+        AsyncGenerator::init(self, mc);
+        AsyncGeneratorFunction::init(self, mc);
+        EncodeUri::init(self, mc);
+        EncodeUriComponent::init(self, mc);
+        DecodeUri::init(self, mc);
+        DecodeUriComponent::init(self, mc);
+        WeakRef::init(self, mc);
+        WeakMap::init(self, mc);
+        WeakSet::init(self, mc);
+        Atomics::init(self, mc);
+        FinalizationRegistry::init(self, mc);
 
         #[cfg(feature = "annex-b")]
         {
-            escape::Escape::init(self);
-            escape::Unescape::init(self);
+            escape::Escape::init(self, mc);
+            escape::Unescape::init(self, mc);
         }
 
         #[cfg(feature = "intl")]
         {
-            intl::Intl::init(self);
-            intl::Collator::init(self);
-            intl::ListFormat::init(self);
-            intl::Locale::init(self);
-            intl::DateTimeFormat::init(self);
-            intl::Segmenter::init(self);
-            intl::segmenter::Segments::init(self);
-            intl::segmenter::SegmentIterator::init(self);
-            intl::PluralRules::init(self);
-            intl::NumberFormat::init(self);
+            intl::Intl::init(self, mc);
+            intl::Collator::init(self, mc);
+            intl::ListFormat::init(self, mc);
+            intl::Locale::init(self, mc);
+            intl::DateTimeFormat::init(self, mc);
+            intl::Segmenter::init(self, mc);
+            intl::segmenter::Segments::init(self, mc);
+            intl::segmenter::SegmentIterator::init(self, mc);
+            intl::PluralRules::init(self, mc);
+            intl::NumberFormat::init(self, mc);
         }
 
         #[cfg(feature = "temporal")]
         {
-            temporal::Temporal::init(self);
-            temporal::Now::init(self);
-            temporal::Instant::init(self);
-            temporal::Duration::init(self);
-            temporal::PlainDate::init(self);
-            temporal::PlainTime::init(self);
-            temporal::PlainDateTime::init(self);
-            temporal::PlainMonthDay::init(self);
-            temporal::PlainYearMonth::init(self);
-            temporal::ZonedDateTime::init(self);
+            temporal::Temporal::init(self, mc);
+            temporal::Now::init(self, mc);
+            temporal::Instant::init(self, mc);
+            temporal::Duration::init(self, mc);
+            temporal::PlainDate::init(self, mc);
+            temporal::PlainTime::init(self, mc);
+            temporal::PlainDateTime::init(self, mc);
+            temporal::PlainMonthDay::init(self, mc);
+            temporal::PlainYearMonth::init(self, mc);
+            temporal::ZonedDateTime::init(self, mc);
         }
     }
 }

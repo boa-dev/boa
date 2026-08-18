@@ -36,8 +36,8 @@ fn is_finite(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<J
 pub(crate) struct IsFinite;
 
 impl IntrinsicObject for IsFinite {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, is_finite)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, is_finite, mc)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -78,8 +78,8 @@ pub(crate) fn is_nan(_: &JsValue, args: &[JsValue], context: &mut Context) -> Js
 pub(crate) struct IsNaN;
 
 impl IntrinsicObject for IsNaN {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, is_nan)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, is_nan, mc)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -267,8 +267,8 @@ pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) ->
 pub(crate) struct ParseInt;
 
 impl IntrinsicObject for ParseInt {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, parse_int)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, parse_int, mc)
             .name(Self::NAME)
             .length(2)
             .build();
@@ -383,8 +383,8 @@ pub(crate) fn parse_float(
 pub(crate) struct ParseFloat;
 
 impl IntrinsicObject for ParseFloat {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, parse_float)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, parse_float, mc)
             .name(Self::NAME)
             .length(1)
             .build();

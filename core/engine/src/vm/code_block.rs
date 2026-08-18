@@ -330,6 +330,7 @@ impl CodeBlock {
     ///
     /// If the type of the [`Constant`] is not [`Constant::Function`].
     /// Or `index` is greater or equal to length of `constants`.
+    #[allow(clippy::clone_on_copy)]
     pub(crate) fn constant_function(&self, index: usize) -> Gc<'static, Self> {
         if let Some(Constant::Function(value)) = self.constants.get(index) {
             return value.clone();
@@ -1114,6 +1115,7 @@ pub(crate) fn create_function_object(
 
     let (mut template, storage, constructor_prototype) = if is_generator {
         let prototype = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             if is_async {
                 context.intrinsics().objects().async_generator()
@@ -1135,9 +1137,11 @@ pub(crate) fn create_function_object(
             None,
         )
     } else {
-        let constructor_prototype = templates
-            .function_prototype()
-            .create(OrdinaryObject, vec![JsValue::undefined()]);
+        let constructor_prototype = templates.function_prototype().create(
+            context.gc_collector(),
+            OrdinaryObject,
+            vec![JsValue::undefined()],
+        );
 
         let template = templates.function_with_prototype_without_proto();
 
@@ -1148,9 +1152,9 @@ pub(crate) fn create_function_object(
         )
     };
 
-    template.set_prototype(prototype);
+    template.set_prototype(context.gc_collector(), prototype);
 
-    let constructor = template.create(function, storage);
+    let constructor = template.create(context.gc_collector(), function, storage);
 
     if let Some(constructor_prototype) = &constructor_prototype {
         constructor_prototype.borrow_mut().properties_mut().storage[0] = constructor.clone().into();
@@ -1184,6 +1188,7 @@ pub(crate) fn create_function_object_fast(
 
     if is_generator {
         let prototype = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             if is_async {
                 context.intrinsics().objects().async_generator()
@@ -1198,31 +1203,43 @@ pub(crate) fn create_function_object_fast(
             context.intrinsics().templates().generator_function()
         };
 
-        template.create(function, vec![length, name, prototype.into()])
+        template.create(
+            context.gc_collector(),
+            function,
+            vec![length, name, prototype.into()],
+        )
     } else if is_async {
-        context
-            .intrinsics()
-            .templates()
-            .async_function()
-            .create(function, vec![length, name])
+        context.intrinsics().templates().async_function().create(
+            context.gc_collector(),
+            function,
+            vec![length, name],
+        )
     } else if !has_prototype_property {
-        context
-            .intrinsics()
-            .templates()
-            .function()
-            .create(function, vec![length, name])
+        context.intrinsics().templates().function().create(
+            context.gc_collector(),
+            function,
+            vec![length, name],
+        )
     } else {
         let prototype = context
             .intrinsics()
             .templates()
             .function_prototype()
-            .create(OrdinaryObject, vec![JsValue::undefined()]);
+            .create(
+                context.gc_collector(),
+                OrdinaryObject,
+                vec![JsValue::undefined()],
+            );
 
         let constructor = context
             .intrinsics()
             .templates()
             .function_with_prototype()
-            .create(function, vec![length, name, prototype.clone().into()]);
+            .create(
+                context.gc_collector(),
+                function,
+                vec![length, name, prototype.clone().into()],
+            );
 
         prototype.borrow_mut().properties_mut().storage[0] = constructor.clone().into();
 

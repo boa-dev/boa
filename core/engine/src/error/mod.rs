@@ -562,10 +562,13 @@ impl JsError {
                 let obj = val
                     .as_object()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
+                // Under `oscars_backend`, `downcast_ref` returns a `GcRef<'_, Error>`.
+                // We deref through the guard before `.clone()` so we clone the `Error` value,
+                // not the GcRef wrapper. The `*` operator goes through `Deref<Target = Error>`.
                 let error_data: Error = obj
                     .downcast_ref::<Error>()
-                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?
-                    .clone();
+                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))
+                    .map(|r| (*r).clone())?;
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
                     obj.try_get(key, context)
@@ -1343,6 +1346,7 @@ impl JsNativeError {
         };
 
         let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Error::with_stack(tag, stack.0.clone()),
@@ -1496,7 +1500,7 @@ unsafe impl Trace for JsNativeErrorKind {
     custom_trace!(
         this,
         mark,
-        match &this {
+        match this {
             Self::Aggregate(errors) => mark(errors),
             Self::Error
             | Self::Eval

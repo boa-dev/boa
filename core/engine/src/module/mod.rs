@@ -286,16 +286,13 @@ impl Module {
         let src = SourceTextModule::new(module, context.interner(), source_text, path.clone());
 
         Ok(Self {
-            inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                ModuleRepr {
-                    realm,
-                    namespace: GcRefCell::default(),
-                    kind: ModuleKind::SourceText(Box::new(src)),
-                    host_defined: HostDefined::default(),
-                    path,
-                },
-            ),
+            inner: context.alloc(ModuleRepr {
+                realm,
+                namespace: GcRefCell::default(),
+                kind: ModuleKind::SourceText(Box::new(src)),
+                host_defined: HostDefined::default(),
+                path,
+            }),
         })
     }
 
@@ -318,16 +315,13 @@ impl Module {
         let synth = SyntheticModule::new(names, evaluation_steps);
 
         Self {
-            inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                ModuleRepr {
-                    realm,
-                    namespace: GcRefCell::default(),
-                    kind: ModuleKind::Synthetic(Box::new(synth)),
-                    host_defined: HostDefined::default(),
-                    path,
-                },
-            ),
+            inner: context.alloc(ModuleRepr {
+                realm,
+                namespace: GcRefCell::default(),
+                kind: ModuleKind::Synthetic(Box::new(synth)),
+                host_defined: HostDefined::default(),
+                path,
+            }),
         }
     }
 
@@ -664,7 +658,7 @@ impl Module {
                         },
                         self.clone(),
                     )
-                    .to_js_function(context.realm()),
+                    .to_js_function(context.realm(), context.gc_collector()),
                 ),
                 None,
                 context,
@@ -676,7 +670,7 @@ impl Module {
                         |_, _, module, context| Ok(module.evaluate(context)?.into()),
                         self.clone(),
                     )
-                    .to_js_function(context.realm()),
+                    .to_js_function(context.realm(), context.gc_collector()),
                 ),
                 None,
                 context,
@@ -790,8 +784,12 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
             unsafe {
                 SyntheticModuleInitializer::from_closure(move |module, context| {
                     for (name, f) in names.iter().zip(fns.iter()) {
-                        module
-                            .set_export(name, f.clone().to_js_function(context.realm()).into())?;
+                        module.set_export(
+                            name,
+                            f.clone()
+                                .to_js_function(context.realm(), context.gc_collector())
+                                .into(),
+                        )?;
                     }
                     Ok(())
                 })
@@ -826,10 +824,7 @@ fn into_js_module() {
     let bar_count = Rc::new(RefCell::new(0));
     let dad_count = Rc::new(RefCell::new(0));
 
-    context.insert_data(Gc::new(
-        &unsafe { boa_gc::MutationContext::dummy() },
-        GcRefCell::new(JsValue::undefined()),
-    ));
+    context.insert_data(context.alloc(GcRefCell::new(JsValue::undefined())));
 
     let module = unsafe {
         vec![
@@ -912,7 +907,10 @@ fn into_js_module() {
         promise_result.state()
     );
 
-    let result = context.get_data::<ResultType>().unwrap().borrow().clone();
+    // Under `oscars_backend`, `borrow()` returns `GcRef<'_, JsValue>`.
+    // Deref through the guard before cloning to clone the inner `JsValue`. If we clone
+    // the guard instead, the `GcRef` (and immutable borrow) stays alive, causing error.
+    let result = (*context.get_data::<ResultType>().unwrap().borrow()).clone();
 
     assert_eq!(*foo_count.borrow(), 2);
     assert_eq!(*bar_count.borrow(), 15);

@@ -107,6 +107,8 @@ pub struct Context {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
+    pub gc: boa_gc::GcContext,
+
     can_block: bool,
 
     #[cfg(any(feature = "temporal", feature = "intl"))]
@@ -289,7 +291,7 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self.realm(), body)
+        let function = FunctionObjectBuilder::new(self.realm(), self.gc_collector(), body)
             .name(name.clone())
             .length(length)
             .constructor(true)
@@ -322,7 +324,7 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self.realm(), body)
+        let function = FunctionObjectBuilder::new(self.realm(), self.gc_collector(), body)
             .name(name.clone())
             .length(length)
             .constructor(false)
@@ -463,6 +465,21 @@ impl Context {
         &self.vm.frame().realm
     }
 
+    /// Allocates a value on the Gc heap.
+    #[inline]
+    pub fn alloc<T: crate::Trace + boa_gc::Finalize + 'static>(
+        &self,
+        value: T,
+    ) -> boa_gc::Gc<'static, T> {
+        self.gc.alloc(value)
+    }
+
+    /// Gets the GC collector.
+    #[must_use]
+    pub fn gc_collector(&self) -> &'static boa_gc::MutationContext<'static, 'static> {
+        self.gc.gc_collector()
+    }
+
     /// Set the value of trace on the context
     #[cfg(feature = "trace")]
     #[inline]
@@ -531,7 +548,11 @@ impl Context {
 
     /// Create a new Realm with the default global bindings.
     pub fn create_realm(&mut self) -> JsResult<Realm> {
-        let realm = Realm::create(self.host_hooks.as_ref(), &self.root_shape)?;
+        let realm = Realm::create(
+            self.host_hooks.as_ref(),
+            &self.root_shape,
+            self.gc_collector(),
+        )?;
 
         let old_realm = self.enter_realm(realm);
 
@@ -1205,12 +1226,14 @@ impl ContextBuilder {
             CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() + 1);
         }
 
-        let root_shape = RootShape::default();
+        let gc = boa_gc::GcContext::new();
+        let mc = gc.gc_collector();
+        let root_shape = RootShape::new(&mc);
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
         let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));
-        let realm = Realm::create(host_hooks.as_ref(), &root_shape)?;
-        let vm = Vm::new(realm);
+        let realm = Realm::create(host_hooks.as_ref(), &root_shape, &mc)?;
+        let vm = Vm::new(realm, &mc);
 
         let module_loader: Rc<dyn DynModuleLoader> = if let Some(loader) = self.module_loader {
             loader
@@ -1259,6 +1282,7 @@ impl ContextBuilder {
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
             parser_identifier: 0,
+            gc,
             can_block: self.can_block,
             data: HostDefined::default(),
         };

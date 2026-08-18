@@ -35,37 +35,37 @@ use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 pub(crate) struct BuiltinTypedArray;
 
 impl IntrinsicObject for BuiltinTypedArray {
-    fn init(realm: &Realm) {
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        let get_buffer = BuiltInBuilder::callable(realm, Self::buffer)
+        let get_buffer = BuiltInBuilder::callable(realm, Self::buffer, mc)
             .name(js_string!("get buffer"))
             .build();
 
-        let get_byte_length = BuiltInBuilder::callable(realm, Self::byte_length)
+        let get_byte_length = BuiltInBuilder::callable(realm, Self::byte_length, mc)
             .name(js_string!("get byteLength"))
             .build();
 
-        let get_byte_offset = BuiltInBuilder::callable(realm, Self::byte_offset)
+        let get_byte_offset = BuiltInBuilder::callable(realm, Self::byte_offset, mc)
             .name(js_string!("get byteOffset"))
             .build();
 
-        let get_length = BuiltInBuilder::callable(realm, Self::length)
+        let get_length = BuiltInBuilder::callable(realm, Self::length, mc)
             .name(js_string!("get length"))
             .build();
 
-        let get_to_string_tag = BuiltInBuilder::callable(realm, Self::to_string_tag)
+        let get_to_string_tag = BuiltInBuilder::callable(realm, Self::to_string_tag, mc)
             .name(js_string!("get [Symbol.toStringTag]"))
             .build();
 
-        let values_function = BuiltInBuilder::callable(realm, Self::values)
+        let values_function = BuiltInBuilder::callable(realm, Self::values, mc)
             .name(js_string!("values"))
             .length(0)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -2815,8 +2815,13 @@ impl BuiltinTypedArray {
         let len = values.len() as u64;
         // 2. Perform ? AllocateTypedArrayBuffer(O, len).
         let buf = Self::allocate_buffer::<T>(len, context)?;
-        let obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf)
-            .upcast();
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            proto,
+            buf,
+        )
+        .upcast();
 
         // 3. Let k be 0.
         // 4. Repeat, while k < len,
@@ -2865,9 +2870,13 @@ impl BuiltinTypedArray {
         let indexed = Self::allocate_buffer::<T>(length, context)?;
 
         // 2. Let obj be ! IntegerIndexedObjectCreate(proto).
-        let obj =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, indexed)
-                .upcast();
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            proto,
+            indexed,
+        )
+        .upcast();
 
         // 9. Return obj.
         Ok(obj)
@@ -3008,6 +3017,7 @@ impl BuiltinTypedArray {
         // 15. Set O.[[ByteOffset]] to 0.
         // 16. Set O.[[ArrayLength]] to elementLength.
         let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             proto,
             TypedArray::new(
@@ -3128,6 +3138,7 @@ impl BuiltinTypedArray {
         // 11. Set O.[[ByteOffset]] to offset.
         // 12. Return unused.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             proto,
             TypedArray::new(buffer, T::ERASED, offset, byte_length, array_length),
@@ -3151,8 +3162,13 @@ impl BuiltinTypedArray {
 
         // 2. Perform ? AllocateTypedArrayBuffer(O, len).
         let buf = Self::allocate_buffer::<T>(len, context)?;
-        let obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf)
-            .upcast();
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            proto,
+            buf,
+        )
+        .upcast();
 
         // 3. Let k be 0.
         // 4. Repeat, while k < len,

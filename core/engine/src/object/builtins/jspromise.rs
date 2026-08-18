@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_locals)]
 //! A Rust API wrapper for Boa's promise Builtin ECMAScript Object
 
 use super::{JsArray, JsFunction};
@@ -61,7 +62,7 @@ use std::{future::Future, pin::Pin, task};
 ///                 Err(JsError::from_opaque(args.get_or_undefined(0).clone())
 ///                     .into())
 ///             })
-///             .to_js_function(context.realm()),
+///             .to_js_function(context.realm(), context.gc_collector()),
 ///         ),
 ///         None,
 ///         context,
@@ -70,7 +71,7 @@ use std::{future::Future, pin::Pin, task};
 ///         NativeFunction::from_fn_ptr(|_, args, _| {
 ///             Ok(args.get_or_undefined(0).clone())
 ///         })
-///         .to_js_function(context.realm()),
+///         .to_js_function(context.realm(), context.gc_collector()),
 ///         context,
 ///     )?
 ///     .finally(
@@ -83,7 +84,7 @@ use std::{future::Future, pin::Pin, task};
 ///             )?;
 ///             Ok(JsValue::undefined())
 ///         })
-///         .to_js_function(context.realm()),
+///         .to_js_function(context.realm(), context.gc_collector()),
 ///         context,
 ///     )?;
 ///
@@ -167,6 +168,7 @@ impl JsPromise {
         F: FnOnce(&ResolvingFunctions, &mut Context) -> JsResult<JsValue>,
     {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             Promise::new(),
@@ -218,6 +220,7 @@ impl JsPromise {
     #[inline]
     pub fn new_pending(context: &mut Context) -> (Self, ResolvingFunctions) {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
             Promise::new(),
@@ -254,7 +257,7 @@ impl JsPromise {
     ///     PromiseState::Fulfilled(JsValue::undefined())
     /// );
     ///
-    /// assert!(JsPromise::from_object(JsObject::with_null_proto()).is_err());
+    /// assert!(JsPromise::from_object(JsObject::with_null_proto(context.gc_collector())).is_err());
     ///
     /// # Ok(())
     /// # }
@@ -540,7 +543,7 @@ impl JsPromise {
     ///                 .to_string(context)
     ///                 .map(JsValue::from)
     ///         })
-    ///         .to_js_function(context.realm()),
+    ///         .to_js_function(context.realm(), context.gc_collector()),
     ///     ),
     ///     None,
     ///     context,
@@ -610,7 +613,7 @@ impl JsPromise {
     ///             .to_string(context)
     ///             .map(JsValue::from)
     ///     })
-    ///     .to_js_function(context.realm()),
+    ///     .to_js_function(context.realm(), context.gc_collector()),
     ///     context,
     /// )?;
     ///
@@ -684,7 +687,7 @@ impl JsPromise {
     ///         )?;
     ///         Ok(JsValue::undefined())
     ///     })
-    ///     .to_js_function(context.realm()),
+    ///     .to_js_function(context.realm(), context.gc_collector()),
     ///     context,
     /// )?;
     ///
@@ -1093,13 +1096,10 @@ impl JsPromise {
             }
         }
 
-        let state = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Inner {
-                result: None,
-                task: None,
-            }),
-        );
+        let state = context.alloc(GcRefCell::new(Inner {
+            result: None,
+            task: None,
+        }));
 
         let resolve = {
             let state = state.clone();
@@ -1127,8 +1127,8 @@ impl JsPromise {
         };
 
         drop(self.then(
-            Some(resolve.to_js_function(context.realm())),
-            Some(reject.to_js_function(context.realm())),
+            Some(resolve.to_js_function(context.realm(), context.gc_collector())),
+            Some(reject.to_js_function(context.realm(), context.gc_collector())),
             context,
         )?);
 
@@ -1167,7 +1167,7 @@ impl JsPromise {
     ///             assert_eq!(*args.get_or_undefined(0), JsValue::new(1));
     ///             Ok(JsValue::new(2))
     ///         })
-    ///         .to_js_function(context.realm()),
+    ///         .to_js_function(context.realm(), context.gc_collector()),
     ///     ),
     ///     None,
     ///     context,
@@ -1194,7 +1194,7 @@ impl JsPromise {
     ///         NativeFunction::from_fn_ptr(|_, _, _| {
     ///             panic!("This will not happen.");
     ///         })
-    ///         .to_js_function(context.realm()),
+    ///         .to_js_function(context.realm(), context.gc_collector()),
     ///     ),
     ///     None,
     ///     context,
@@ -1243,6 +1243,7 @@ impl JsPromise {
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
@@ -1307,6 +1308,7 @@ impl JsPromise {
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
         let on_rejected = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
@@ -1429,6 +1431,8 @@ impl TryIntoJs for JsPromise {
 /// between promises and futures a bit easier.
 ///
 /// The only way to construct an instance of `JsFuture` is by calling [`JsPromise::into_js_future`].
+#[derive(Clone)]
+#[allow(missing_copy_implementations)]
 pub struct JsFuture {
     inner: Gc<'static, GcRefCell<Inner>>,
 }

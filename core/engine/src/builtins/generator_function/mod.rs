@@ -29,8 +29,8 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 pub struct GeneratorFunction;
 
 impl IntrinsicObject for GeneratorFunction {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .inherits(Some(
                 realm.intrinsics().constructors().function().prototype(),
             ))

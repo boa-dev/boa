@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - releases/**
+      - dev/oscars-gc
 
 permissions:
   contents: read

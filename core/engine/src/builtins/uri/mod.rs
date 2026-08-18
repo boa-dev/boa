@@ -47,13 +47,13 @@ pub struct UriFunctions {
     encode_uri_component: JsFunction,
 }
 
-impl Default for UriFunctions {
-    fn default() -> Self {
+impl UriFunctions {
+    pub(crate) fn uninit_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {
-            decode_uri: JsFunction::empty_intrinsic_function(false),
-            decode_uri_component: JsFunction::empty_intrinsic_function(false),
-            encode_uri: JsFunction::empty_intrinsic_function(false),
-            encode_uri_component: JsFunction::empty_intrinsic_function(false),
+            decode_uri: JsFunction::empty_intrinsic_function_in(mc, false),
+            decode_uri_component: JsFunction::empty_intrinsic_function_in(mc, false),
+            encode_uri: JsFunction::empty_intrinsic_function_in(mc, false),
+            encode_uri_component: JsFunction::empty_intrinsic_function_in(mc, false),
         }
     }
 }
@@ -81,8 +81,8 @@ impl UriFunctions {
 pub(crate) struct DecodeUri;
 
 impl IntrinsicObject for DecodeUri {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri, mc)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -99,8 +99,8 @@ impl BuiltInObject for DecodeUri {
 pub(crate) struct DecodeUriComponent;
 
 impl IntrinsicObject for DecodeUriComponent {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri_component)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, decode_uri_component, mc)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -121,8 +121,8 @@ impl BuiltInObject for DecodeUriComponent {
 pub(crate) struct EncodeUri;
 
 impl IntrinsicObject for EncodeUri {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri, mc)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -138,8 +138,8 @@ impl BuiltInObject for EncodeUri {
 pub(crate) struct EncodeUriComponent;
 
 impl IntrinsicObject for EncodeUriComponent {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri_component)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, encode_uri_component, mc)
             .name(Self::NAME)
             .length(1)
             .build();

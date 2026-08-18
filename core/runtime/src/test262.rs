@@ -127,7 +127,11 @@ pub fn register_js262(handles: WorkerHandles, console: bool, context: &mut Conte
     js262
         .create_data_property_or_throw(
             js_string!("IsHTMLDDA"),
-            JsObject::from_proto_and_data(None, IsHTMLDDA),
+            JsObject::from_proto_and_data(
+                &unsafe { boa_gc::MutationContext::global() },
+                None,
+                IsHTMLDDA,
+            ),
             context,
         )
         .expect("the IsHTMLDDA property must be definable");
@@ -276,10 +280,8 @@ fn agent_obj(handles: WorkerHandles, console: bool, context: &mut Context) -> Js
             })?;
             let buffer = buffer
                 .downcast_ref::<SharedArrayBuffer>()
-                .ok_or_else(|| {
-                    JsNativeError::typ().with_message("argument was not a shared array")
-                })?
-                .clone();
+                .ok_or_else(|| JsNativeError::typ().with_message("argument was not a shared array"))
+                .map(|r| (*r).clone())?;
 
             bus.borrow_mut().broadcast(buffer);
 

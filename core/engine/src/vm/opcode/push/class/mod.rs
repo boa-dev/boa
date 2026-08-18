@@ -65,7 +65,7 @@ impl StoreClassPrototype {
         let class_object = class.as_object().js_expect("class must be object")?;
 
         if let Some(constructor_parent) = constructor_parent {
-            class_object.set_prototype(Some(constructor_parent));
+            class_object.set_prototype(context.gc_collector(), Some(constructor_parent));
         }
 
         context.vm.set_register(dst.into(), proto_parent);

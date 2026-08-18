@@ -60,12 +60,13 @@ pub(crate) struct OrdinaryObject;
 
 /// Applies the pending builder data to the object.
 pub(crate) trait ApplyToObject {
-    fn apply_to(self, object: &JsObject);
+    fn apply_to(self, mc: &boa_gc::MutationContext<'static, '_>, object: &JsObject);
 }
 
 impl ApplyToObject for Constructor {
-    fn apply_to(self, object: &JsObject) {
+    fn apply_to(self, mc: &boa_gc::MutationContext<'static, '_>, object: &JsObject) {
         object.insert(
+            mc,
             PROTOTYPE,
             PropertyDescriptor::builder()
                 .value(self.prototype.clone())
@@ -76,8 +77,9 @@ impl ApplyToObject for Constructor {
 
         {
             let mut prototype = self.prototype.borrow_mut();
-            prototype.set_prototype(self.inherits);
+            prototype.set_prototype(mc, self.inherits);
             prototype.insert(
+                mc,
                 CONSTRUCTOR,
                 PropertyDescriptor::builder()
                     .value(object.clone())
@@ -90,15 +92,15 @@ impl ApplyToObject for Constructor {
 }
 
 impl ApplyToObject for ConstructorNoProto {
-    fn apply_to(self, _: &JsObject) {}
+    fn apply_to(self, _: &boa_gc::MutationContext<'static, '_>, _: &JsObject) {}
 }
 
 impl ApplyToObject for OrdinaryFunction {
-    fn apply_to(self, _: &JsObject) {}
+    fn apply_to(self, _: &boa_gc::MutationContext<'static, '_>, _: &JsObject) {}
 }
 
 impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
-    fn apply_to(self, object: &JsObject) {
+    fn apply_to(self, mc: &boa_gc::MutationContext<'static, '_>, object: &JsObject) {
         {
             let mut function = object
                 .downcast_mut::<NativeFunctionObject>()
@@ -108,6 +110,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
             function.realm = Some(self.realm);
         }
         object.insert(
+            mc,
             StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(self.length)
@@ -116,6 +119,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
                 .configurable(true),
         );
         object.insert(
+            mc,
             js_string!("name"),
             PropertyDescriptor::builder()
                 .value(self.name)
@@ -124,22 +128,22 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
                 .configurable(true),
         );
 
-        self.kind.apply_to(object);
+        self.kind.apply_to(mc, object);
     }
 }
 
 impl ApplyToObject for OrdinaryObject {
-    fn apply_to(self, _: &JsObject) {}
+    fn apply_to(self, _: &boa_gc::MutationContext<'static, '_>, _: &JsObject) {}
 }
 
 /// Builder for creating built-in objects, like `Array`.
 ///
 /// The marker `ObjectType` restricts the methods that can be called depending on the
 /// type of object that is being constructed.
-#[derive(Debug)]
 #[must_use = "You need to call the `build` method in order for this to correctly assign the inner data"]
 pub(crate) struct BuiltInBuilder<'ctx, Kind> {
     realm: &'ctx Realm,
+    mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     object: JsObject,
     kind: Kind,
     prototype: JsObject,
@@ -148,9 +152,11 @@ pub(crate) struct BuiltInBuilder<'ctx, Kind> {
 impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
     pub(crate) fn with_intrinsic<I: IntrinsicObject>(
         realm: &'ctx Realm,
+        mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     ) -> BuiltInBuilder<'ctx, OrdinaryObject> {
         BuiltInBuilder {
             realm,
+            mc,
             object: I::get(realm.intrinsics()),
             kind: OrdinaryObject,
             prototype: realm.intrinsics().constructors().object().prototype(),
@@ -160,6 +166,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
 
 pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
     realm: &'ctx Realm,
+    mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     function: NativeFunctionPointer,
     name: JsString,
     length: usize,
@@ -222,7 +229,7 @@ impl BuiltInConstructorWithPrototype<'_> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = BuiltInBuilder::callable(self.realm, function)
+        let function = BuiltInBuilder::callable(self.realm, function, self.mc)
             .name(binding.name)
             .length(length)
             .build();
@@ -302,7 +309,7 @@ impl BuiltInConstructorWithPrototype<'_> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = BuiltInBuilder::callable(self.realm, function)
+        let function = BuiltInBuilder::callable(self.realm, function, self.mc)
             .name(binding.name)
             .length(length)
             .build();
@@ -490,6 +497,7 @@ impl BuiltInConstructorWithPrototype<'_> {
 
 pub(crate) struct BuiltInCallable<'ctx> {
     realm: &'ctx Realm,
+    mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     function: NativeFunctionPointer,
     name: JsString,
     length: usize,
@@ -515,6 +523,7 @@ impl BuiltInCallable<'_> {
 
     pub(crate) fn build(self) -> JsFunction {
         let object = self.realm.intrinsics().templates().function().create(
+            self.mc,
             NativeFunctionObject {
                 f: NativeFunction::from_fn_ptr(self.function),
                 name: self.name.clone(),
@@ -532,9 +541,11 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
     pub(crate) fn callable(
         realm: &'ctx Realm,
         function: NativeFunctionPointer,
+        mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     ) -> BuiltInCallable<'ctx> {
         BuiltInCallable {
             realm,
+            mc,
             function,
             length: 0,
             name: js_string!(),
@@ -544,9 +555,11 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
     pub(crate) fn callable_with_intrinsic<I: IntrinsicObject>(
         realm: &'ctx Realm,
         function: NativeFunctionPointer,
+        mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     ) -> BuiltInBuilder<'ctx, Callable<OrdinaryFunction>> {
         BuiltInBuilder {
             realm,
+            mc,
             object: I::get(realm.intrinsics()),
             kind: Callable {
                 function,
@@ -563,9 +576,11 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
         realm: &'ctx Realm,
         object: JsObject,
         function: NativeFunctionPointer,
+        mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     ) -> BuiltInBuilder<'ctx, Callable<OrdinaryFunction>> {
         BuiltInBuilder {
             realm,
+            mc,
             object,
             kind: Callable {
                 function,
@@ -586,10 +601,12 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
     /// (less reallocations).
     pub(crate) fn from_standard_constructor<SC: BuiltInConstructor>(
         realm: &'ctx Realm,
+        mc: &'ctx boa_gc::MutationContext<'static, 'ctx>,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
         let constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInConstructorWithPrototype {
             realm,
+            mc,
             function: SC::constructor,
             name: js_string!(SC::NAME),
             length: SC::CONSTRUCTOR_ARGUMENTS,
@@ -634,12 +651,13 @@ impl<T> BuiltInBuilder<'_, T> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = BuiltInBuilder::callable(self.realm, function)
+        let function = BuiltInBuilder::callable(self.realm, function, self.mc)
             .name(binding.name)
             .length(length)
             .build();
 
         self.object.insert(
+            self.mc,
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -661,7 +679,7 @@ impl<T> BuiltInBuilder<'_, T> {
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.object.insert(key, property);
+        self.object.insert(self.mc, key, property);
         self
     }
 
@@ -690,7 +708,7 @@ impl<T> BuiltInBuilder<'_, T> {
 
         let key = key.into();
 
-        self.object.insert(key, property);
+        self.object.insert(self.mc, key, property);
 
         self
     }
@@ -726,9 +744,9 @@ impl<FnTyp> BuiltInBuilder<'_, Callable<FnTyp>> {
 impl BuiltInBuilder<'_, OrdinaryObject> {
     /// Build the builtin object.
     pub(crate) fn build(self) -> JsObject {
-        self.kind.apply_to(&self.object);
+        self.kind.apply_to(self.mc, &self.object);
 
-        self.object.set_prototype(Some(self.prototype));
+        self.object.set_prototype(self.mc, Some(self.prototype));
 
         self.object
     }
@@ -737,9 +755,9 @@ impl BuiltInBuilder<'_, OrdinaryObject> {
 impl<FnTyp: ApplyToObject + IsConstructor> BuiltInBuilder<'_, Callable<FnTyp>> {
     /// Build the builtin callable.
     pub(crate) fn build(self) -> JsFunction {
-        self.kind.apply_to(&self.object);
+        self.kind.apply_to(self.mc, &self.object);
 
-        self.object.set_prototype(Some(self.prototype));
+        self.object.set_prototype(self.mc, Some(self.prototype));
 
         JsFunction::from_object_unchecked(self.object)
     }

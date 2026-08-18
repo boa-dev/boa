@@ -81,7 +81,7 @@ fn fn_item(
                 &boa_engine::js_string!( #name ),
                 boa_engine::JsValue::from(
                     boa_engine::NativeFunction::from_fn_ptr( #fn_body )
-                        .to_js_function(context.realm())
+                        .to_js_function(context.realm(), context.gc_collector())
                 ),
             )?;
         },
@@ -92,7 +92,7 @@ fn fn_item(
                     boa_engine::js_string!( #name ),
                     boa_engine::JsValue::from(
                         boa_engine::NativeFunction::from_fn_ptr( function )
-                            .to_js_function(context.realm())
+                            .to_js_function(context.realm(), context.gc_collector())
                     ),
                     boa_engine::property::Attribute::all(),
                     context,
@@ -102,7 +102,7 @@ fn fn_item(
                     boa_engine::js_string!( #name ),
                     boa_engine::JsValue::from(
                         boa_engine::NativeFunction::from_fn_ptr( function )
-                            .to_js_function(context.realm())
+                            .to_js_function(context.realm(), context.gc_collector())
                     ),
                     boa_engine::property::Attribute::all(),
                 )?;

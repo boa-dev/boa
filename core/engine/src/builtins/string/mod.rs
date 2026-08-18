@@ -62,13 +62,13 @@ pub(crate) enum Placement {
 pub(crate) struct String;
 
 impl IntrinsicObject for String {
-    fn init(realm: &Realm) {
-        let trim_start = BuiltInBuilder::callable(realm, Self::trim_start)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let trim_start = BuiltInBuilder::callable(realm, Self::trim_start, mc)
             .length(0)
             .name(js_string!("trimStart"))
             .build();
 
-        let trim_end = BuiltInBuilder::callable(realm, Self::trim_end)
+        let trim_end = BuiltInBuilder::callable(realm, Self::trim_end, mc)
             .length(0)
             .name(js_string!("trimEnd"))
             .build();
@@ -80,7 +80,7 @@ impl IntrinsicObject for String {
         let trim_right = trim_end.clone();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(js_string!("length"), 0, attribute)
             .property(
                 js_string!("trimStart"),
@@ -250,9 +250,13 @@ impl String {
         // 4. Set S.[[GetOwnProperty]] as specified in 10.4.3.1.
         // 5. Set S.[[DefineOwnProperty]] as specified in 10.4.3.2.
         // 6. Set S.[[OwnPropertyKeys]] as specified in 10.4.3.3.
-        let s =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, value)
-                .upcast();
+        let s = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            value,
+        )
+        .upcast();
 
         // 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).

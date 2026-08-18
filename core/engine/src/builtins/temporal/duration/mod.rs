@@ -59,56 +59,56 @@ impl BuiltInObject for Duration {
 }
 
 impl IntrinsicObject for Duration {
-    fn init(realm: &Realm) {
-        let get_years = BuiltInBuilder::callable(realm, Self::get_years)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_years = BuiltInBuilder::callable(realm, Self::get_years, mc)
             .name(js_string!("get Years"))
             .build();
 
-        let get_months = BuiltInBuilder::callable(realm, Self::get_months)
+        let get_months = BuiltInBuilder::callable(realm, Self::get_months, mc)
             .name(js_string!("get Months"))
             .build();
 
-        let get_weeks = BuiltInBuilder::callable(realm, Self::get_weeks)
+        let get_weeks = BuiltInBuilder::callable(realm, Self::get_weeks, mc)
             .name(js_string!("get Weeks"))
             .build();
 
-        let get_days = BuiltInBuilder::callable(realm, Self::get_days)
+        let get_days = BuiltInBuilder::callable(realm, Self::get_days, mc)
             .name(js_string!("get Days"))
             .build();
 
-        let get_hours = BuiltInBuilder::callable(realm, Self::get_hours)
+        let get_hours = BuiltInBuilder::callable(realm, Self::get_hours, mc)
             .name(js_string!("get Hours"))
             .build();
 
-        let get_minutes = BuiltInBuilder::callable(realm, Self::get_minutes)
+        let get_minutes = BuiltInBuilder::callable(realm, Self::get_minutes, mc)
             .name(js_string!("get Minutes"))
             .build();
 
-        let get_seconds = BuiltInBuilder::callable(realm, Self::get_seconds)
+        let get_seconds = BuiltInBuilder::callable(realm, Self::get_seconds, mc)
             .name(js_string!("get Seconds"))
             .build();
 
-        let get_milliseconds = BuiltInBuilder::callable(realm, Self::get_milliseconds)
+        let get_milliseconds = BuiltInBuilder::callable(realm, Self::get_milliseconds, mc)
             .name(js_string!("get Milliseconds"))
             .build();
 
-        let get_microseconds = BuiltInBuilder::callable(realm, Self::get_microseconds)
+        let get_microseconds = BuiltInBuilder::callable(realm, Self::get_microseconds, mc)
             .name(js_string!("get Microseconds"))
             .build();
 
-        let get_nanoseconds = BuiltInBuilder::callable(realm, Self::get_nanoseconds)
+        let get_nanoseconds = BuiltInBuilder::callable(realm, Self::get_nanoseconds, mc)
             .name(js_string!("get Nanoseconds"))
             .build();
 
-        let get_sign = BuiltInBuilder::callable(realm, Self::get_sign)
+        let get_sign = BuiltInBuilder::callable(realm, Self::get_sign, mc)
             .name(js_string!("get Sign"))
             .build();
 
-        let is_blank = BuiltInBuilder::callable(realm, Self::get_blank)
+        let is_blank = BuiltInBuilder::callable(realm, Self::get_blank, mc)
             .name(js_string!("get blank"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::DURATION_TAG,
@@ -612,7 +612,7 @@ impl Duration {
         // 2. Set two to ? ToTemporalDuration(two).
         let two = to_temporal_duration(args.get_or_undefined(1), context)?;
         // 3. Let resolvedOptions be ? GetOptionsObject(options).
-        let options = get_options_object(args.get_or_undefined(2))?;
+        let options = get_options_object(args.get_or_undefined(2), context.gc_collector())?;
         // 4. Let relativeToRecord be ? GetTemporalRelativeToOption(resolvedOptions).
         let relative_to = get_relative_to_option(&options, context)?;
 
@@ -908,7 +908,7 @@ impl Duration {
             // a. Let paramString be roundTo.
             let param_string = param_string.clone();
             // b. Set roundTo to OrdinaryObjectCreate(null).
-            let new_round_to = JsObject::with_null_proto();
+            let new_round_to = JsObject::with_null_proto(context.gc_collector());
             // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
             new_round_to.create_data_property_or_throw(
                 js_string!("smallestUnit"),
@@ -919,7 +919,7 @@ impl Duration {
         } else {
             // 5. Else,
             // a. Set roundTo to ? GetOptionsObject(roundTo).
-            get_options_object(round_to_arg)?
+            get_options_object(round_to_arg, context.gc_collector())?
         };
 
         // NOTE: 6 & 7 unused in favor of `is_none()`.
@@ -1009,7 +1009,7 @@ impl Duration {
             JsVariant::String(param_string) => {
                 // a. Let paramString be totalOf.
                 // b. Set totalOf to OrdinaryObjectCreate(null).
-                let total_of = JsObject::with_null_proto();
+                let total_of = JsObject::with_null_proto(context.gc_collector());
                 // c. Perform ! CreateDataPropertyOrThrow(totalOf, "unit", paramString).
                 total_of.create_data_property_or_throw(
                     js_string!("unit"),
@@ -1021,7 +1021,7 @@ impl Duration {
             // 5. Else,
             _ => {
                 // a. Set totalOf to ? GetOptionsObject(totalOf).
-                get_options_object(total_of)?
+                get_options_object(total_of, context.gc_collector())?
             }
         };
 
@@ -1072,7 +1072,7 @@ impl Duration {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
 
-        let options = get_options_object(args.get_or_undefined(0))?;
+        let options = get_options_object(args.get_or_undefined(0), context.gc_collector())?;
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
             get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
@@ -1262,7 +1262,8 @@ pub(crate) fn create_temporal_duration(
     // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
     // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
 
-    let obj = JsObject::from_proto_and_data(prototype, Duration::new(inner));
+    let obj =
+        JsObject::from_proto_and_data(context.gc_collector(), prototype, Duration::new(inner));
     // 14. Return object.
     Ok(obj)
 }

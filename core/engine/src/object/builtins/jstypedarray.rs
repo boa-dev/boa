@@ -517,6 +517,7 @@ impl JsTypedArray {
     ///
     /// let greater_than_10_predicate = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
@@ -575,6 +576,7 @@ impl JsTypedArray {
     ///
     /// let lower_than_200_predicate = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
@@ -625,6 +627,7 @@ impl JsTypedArray {
     ///
     /// let lower_than_200_predicate = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
@@ -678,10 +681,11 @@ impl JsTypedArray {
     /// # fn main() -> JsResult<()> {
     /// let context = &mut Context::default();
     /// let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
-    /// let num_to_modify = Gc::new(GcRefCell::new(0u8));
+    /// let num_to_modify = context.alloc(GcRefCell::new(0u8));
     ///
     /// let js_function = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_copy_closure_with_captures(
     ///         |_, args, captures, inner_context| {
     ///             let element = args

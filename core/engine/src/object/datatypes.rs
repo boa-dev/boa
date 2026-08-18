@@ -25,7 +25,7 @@ use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 /// # Example
 ///
 /// ```
-/// use boa_engine::{Finalize, JsData, JsObject, Trace};
+/// use boa_engine::{Context, Finalize, JsData, JsObject, Trace};
 ///
 /// #[derive(Trace, Finalize, JsData)]
 /// struct CustomStruct {
@@ -33,8 +33,9 @@ use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 ///     counter: usize,
 /// }
 ///
+/// let context = &mut Context::default();
 /// let object =
-///     JsObject::from_proto_and_data(None, CustomStruct { counter: 5 });
+///     JsObject::from_proto_and_data(context.gc_collector(), None, CustomStruct { counter: 5 });
 ///
 /// assert_eq!(object.downcast_ref::<CustomStruct>().unwrap().counter, 5);
 /// ```

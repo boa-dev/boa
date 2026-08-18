@@ -35,9 +35,9 @@ use super::{Error, ErrorKind};
 pub(crate) struct TypeError;
 
 impl IntrinsicObject for TypeError {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
             .property(js_string!("name"), Self::NAME, attribute)
@@ -82,8 +82,8 @@ impl BuiltInConstructor for TypeError {
 pub(crate) struct ThrowTypeError;
 
 impl IntrinsicObject for ThrowTypeError {
-    fn init(realm: &Realm) {
-        let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let obj = BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .prototype(realm.intrinsics().constructors().function().prototype())
             .static_property(StaticJsStrings::LENGTH, 0, Attribute::empty())
             .static_property(js_string!("name"), js_string!(), Attribute::empty())

@@ -46,7 +46,7 @@ pub(crate) enum GeneratorState {
 // Need to manually implement, since `Trace` adds a `Drop` impl which disallows destructuring.
 unsafe impl Trace for GeneratorState {
     custom_trace!(this, mark, {
-        match &this {
+        match this {
             Self::SuspendedStart { context } | Self::SuspendedYield { context } => mark(context),
             Self::Executing | Self::Completed => {}
         }
@@ -154,8 +154,8 @@ pub struct Generator {
 }
 
 impl IntrinsicObject for Generator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 1)
             .static_method(Self::r#return, js_string!("return"), 1)

@@ -15,11 +15,11 @@ pub(crate) struct StoreNewArray;
 impl StoreNewArray {
     #[inline(always)]
     pub(crate) fn operation(array: RegisterOperand, context: &mut Context) {
-        let value = context
-            .intrinsics()
-            .templates()
-            .array()
-            .create(Array, Vec::from([JsValue::new(0)]));
+        let value = context.intrinsics().templates().array().create(
+            context.gc_collector(),
+            Array,
+            Vec::from([JsValue::new(0)]),
+        );
         context.vm.set_register(array.into(), value.into());
     }
 }

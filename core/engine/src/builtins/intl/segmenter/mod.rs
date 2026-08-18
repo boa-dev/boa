@@ -103,8 +103,8 @@ impl Service for Segmenter {
 }
 
 impl IntrinsicObject for Segmenter {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),
@@ -155,7 +155,7 @@ impl BuiltInConstructor for Segmenter {
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
         // 5. Set options to ? GetOptionsObject(options).
-        let options = get_options_object(options)?;
+        let options = get_options_object(options, context.gc_collector())?;
 
         // 6. Let opt be a new Record.
         // 7. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
@@ -214,8 +214,12 @@ impl BuiltInConstructor for Segmenter {
         let proto =
             get_prototype_from_constructor(new_target, StandardConstructors::segmenter, context)?;
 
-        let segmenter =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, segmenter);
+        let segmenter = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            proto,
+            segmenter,
+        );
 
         // 14. Return segmenter.
         Ok(segmenter.into())

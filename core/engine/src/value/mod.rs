@@ -290,9 +290,10 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{JsValue, object::JsObject};
+    /// use boa_engine::{Context, JsValue, object::JsObject};
     ///
-    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// let context = &mut Context::default();
+    /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// assert!(obj.is_object());
     ///
     /// let number = JsValue::new(42);
@@ -309,9 +310,10 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{JsValue, object::JsObject};
+    /// use boa_engine::{Context, JsValue, object::JsObject};
     ///
-    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// let context = &mut Context::default();
+    /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// assert!(obj.as_object().is_some());
     ///
     /// let number = JsValue::new(42);
@@ -328,9 +330,10 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{JsValue, object::JsObject};
+    /// use boa_engine::{Context, JsValue, object::JsObject};
     ///
-    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// let context = &mut Context::default();
+    /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// let inner = obj.into_object();
     /// assert!(inner.is_some());
     ///
@@ -357,7 +360,7 @@ impl JsValue {
     ///
     /// let context = &mut Context::default();
     /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
-    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.is_callable());
     ///
     /// let number = JsValue::new(42);
@@ -378,7 +381,7 @@ impl JsValue {
     ///
     /// let context = &mut Context::default();
     /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
-    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.as_callable().is_some());
     ///
     /// let number = JsValue::new(42);
@@ -400,7 +403,7 @@ impl JsValue {
     ///
     /// let context = &mut Context::default();
     /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
-    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.as_function().is_some());
     ///
     /// let number = JsValue::new(42);
@@ -1000,39 +1003,39 @@ impl JsValue {
             JsVariant::Undefined | JsVariant::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert 'null' or 'undefined' to object")
                 .into()),
-            JsVariant::Boolean(boolean) => Ok(context
-                .intrinsics()
-                .templates()
-                .boolean()
-                .create(boolean, Vec::default())),
-            JsVariant::Integer32(integer) => Ok(context
-                .intrinsics()
-                .templates()
-                .number()
-                .create(f64::from(integer), Vec::default())),
-            JsVariant::Float64(rational) => Ok(context
-                .intrinsics()
-                .templates()
-                .number()
-                .create(rational, Vec::default())),
+            JsVariant::Boolean(boolean) => Ok(context.intrinsics().templates().boolean().create(
+                context.gc_collector(),
+                boolean,
+                Vec::default(),
+            )),
+            JsVariant::Integer32(integer) => Ok(context.intrinsics().templates().number().create(
+                context.gc_collector(),
+                f64::from(integer),
+                Vec::default(),
+            )),
+            JsVariant::Float64(rational) => Ok(context.intrinsics().templates().number().create(
+                context.gc_collector(),
+                rational,
+                Vec::default(),
+            )),
             JsVariant::String(string) => {
                 let len = string.len();
-                Ok(context
-                    .intrinsics()
-                    .templates()
-                    .string()
-                    .create(string, vec![len.into()]))
+                Ok(context.intrinsics().templates().string().create(
+                    context.gc_collector(),
+                    string,
+                    vec![len.into()],
+                ))
             }
-            JsVariant::Symbol(symbol) => Ok(context
-                .intrinsics()
-                .templates()
-                .symbol()
-                .create(symbol, Vec::default())),
-            JsVariant::BigInt(bigint) => Ok(context
-                .intrinsics()
-                .templates()
-                .bigint()
-                .create(bigint, Vec::default())),
+            JsVariant::Symbol(symbol) => Ok(context.intrinsics().templates().symbol().create(
+                context.gc_collector(),
+                symbol,
+                Vec::default(),
+            )),
+            JsVariant::BigInt(bigint) => Ok(context.intrinsics().templates().bigint().create(
+                context.gc_collector(),
+                bigint,
+                Vec::default(),
+            )),
             JsVariant::Object(jsobject) => Ok(jsobject),
         }
     }

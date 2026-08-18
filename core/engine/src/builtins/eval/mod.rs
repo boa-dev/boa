@@ -36,8 +36,8 @@ use super::{BuiltInBuilder, IntrinsicObject};
 pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval, mc)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -274,6 +274,7 @@ impl Eval {
         let source_text = SourceText::new(source);
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
 
+        let mc = context.gc_collector();
         let mut compiler = ByteCompiler::new(
             js_string!("<eval>"),
             body.strict(),
@@ -283,6 +284,7 @@ impl Eval {
             false,
             false,
             context.interner_mut(),
+            &mc,
             in_with,
             spanned_source_text,
             // TODO: Could give more information from previous shadow stack.
@@ -320,10 +322,8 @@ impl Eval {
 
         compiler.compile_statement_list(body.statements(), true, false);
 
-        let code_block = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            compiler.finish(),
-        );
+        let finished = compiler.finish();
+        let code_block = context.alloc(finished);
 
         // Strict calls don't need extensions, since all strict eval calls push a new
         // function environment before evaluating.
@@ -352,7 +352,7 @@ impl Eval {
             let global = frame.realm.environment();
             frame
                 .environments
-                .push_lexical(lexical_scope.num_bindings_non_local(), global);
+                .push_lexical(lexical_scope.num_bindings_non_local(), &global, mc);
         }
 
         context

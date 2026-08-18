@@ -96,26 +96,26 @@ impl SharedArrayBuffer {
 }
 
 impl IntrinsicObject for SharedArrayBuffer {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length)
+        let get_byte_length = BuiltInBuilder::callable(realm, Self::get_byte_length, mc)
             .name(js_string!("get byteLength"))
             .build();
 
-        let get_growable = BuiltInBuilder::callable(realm, Self::get_growable)
+        let get_growable = BuiltInBuilder::callable(realm, Self::get_growable, mc)
             .name(js_string!("get growable"))
             .build();
 
-        let get_max_byte_length = BuiltInBuilder::callable(realm, Self::get_max_byte_length)
+        let get_max_byte_length = BuiltInBuilder::callable(realm, Self::get_max_byte_length, mc)
             .name(js_string!("get maxByteLength"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -537,6 +537,7 @@ impl SharedArrayBuffer {
         // 10. Else,
         //     a. Set obj.[[ArrayBufferByteLength]] to byteLength.
         let obj = JsObject::new(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Self {

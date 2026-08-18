@@ -124,6 +124,7 @@ impl JsArrayBuffer {
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
         let obj = JsObject::new(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             ArrayBuffer::from_data(block, JsValue::undefined()),

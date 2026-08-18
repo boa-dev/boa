@@ -279,7 +279,7 @@ impl NativeFunction {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
         let ptr = Gc::into_raw(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+            &unsafe { boa_gc::MutationContext::global() },
             Closure {
                 f: closure,
                 captures,
@@ -289,7 +289,7 @@ impl NativeFunction {
         // meaning this is safe.
         unsafe {
             Self {
-                inner: Inner::Closure(Gc::from_raw(ptr)),
+                inner: Inner::Closure(<Gc<'static, dyn TraceableClosure>>::from_raw(ptr)),
             }
         }
     }
@@ -312,8 +312,12 @@ impl NativeFunction {
     ///
     /// Useful to create functions that will only be used once, such as callbacks.
     #[must_use]
-    pub fn to_js_function(self, realm: &Realm) -> JsFunction {
-        FunctionObjectBuilder::new(realm, self).build()
+    pub fn to_js_function(
+        self,
+        realm: &Realm,
+        mc: &boa_gc::MutationContext<'static, '_>,
+    ) -> JsFunction {
+        FunctionObjectBuilder::new(realm, mc, self).build()
     }
 }
 
@@ -340,15 +344,18 @@ pub(crate) fn native_function_call(
     context.check_runtime_limits()?;
     let this_function_object = obj.clone();
 
+    // Under `oscars_backend`, `downcast_ref` returns a `GcRef<'_, NativeFunctionObject>`.
+    // We deref through the guard with `(*guard).clone()` so we clone the inner struct
+    // (which is `Copy` friendly via `Clone`), not the `GcRef` wrapper itself
     let NativeFunctionObject {
         f: function,
         name,
         constructor,
         realm,
-    } = obj
+    } = (*obj
         .downcast_ref::<NativeFunctionObject>()
-        .expect("the object should be a native function object")
-        .clone();
+        .expect("the object should be a native function object"))
+    .clone();
 
     let pc = context.vm.frame().pc;
     let native_source_info = context.native_source_info();
@@ -395,15 +402,17 @@ fn native_function_construct(
     context.check_runtime_limits()?;
     let this_function_object = obj.clone();
 
+    // Under `oscars_backend`, `downcast_ref` returns a `GcRef<'_, NativeFunctionObject>`.
+    // We deref through the guard with `(*guard).clone()` so we clone the inner struct.
     let NativeFunctionObject {
         f: function,
         name,
         constructor,
         realm,
-    } = obj
+    } = (*obj
         .downcast_ref::<NativeFunctionObject>()
-        .expect("the object should be a native function object")
-        .clone();
+        .expect("the object should be a native function object"))
+    .clone();
 
     let pc = context.vm.frame().pc;
     let native_source_info = context.native_source_info();
@@ -438,6 +447,7 @@ fn native_function_construct(
                         context,
                     )?;
                     Ok(JsObject::from_proto_and_data_with_shared_shape(
+                        context.gc_collector(),
                         context.root_shape(),
                         prototype,
                         OrdinaryObject,

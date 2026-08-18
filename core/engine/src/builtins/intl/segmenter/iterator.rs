@@ -59,8 +59,8 @@ pub(crate) struct SegmentIterator {
 }
 
 impl IntrinsicObject for SegmentIterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_property(
                 JsSymbol::to_string_tag(),
                 js_string!("Segmenter String Iterator"),
@@ -87,6 +87,7 @@ impl SegmentIterator {
         // 5. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to 0.
         // 6. Return iterator.
         JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context
                 .intrinsics()

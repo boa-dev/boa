@@ -22,8 +22,8 @@ use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 pub(crate) struct Escape;
 
 impl IntrinsicObject for Escape {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, escape)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, escape, mc)
             .name(Self::NAME)
             .length(1)
             .build();
@@ -94,8 +94,8 @@ fn escape(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVa
 pub(crate) struct Unescape;
 
 impl IntrinsicObject for Unescape {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, unescape)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::callable_with_intrinsic::<Self>(realm, unescape, mc)
             .name(Self::NAME)
             .length(1)
             .build();

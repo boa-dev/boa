@@ -49,7 +49,7 @@ fn main() -> Result<(), JsError> {
     }
 
     // We create a new `JsObject` with some data
-    let object = JsObject::with_object_proto(context.intrinsics());
+    let object = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     object.define_property_or_throw(
         js_string!("name"),
         PropertyDescriptor::builder()
@@ -70,6 +70,7 @@ fn main() -> Result<(), JsError> {
     // attributes.
     let js_function = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_copy_closure_with_captures(
             |_, _, captures, context| {
                 let mut captures = captures.borrow_mut();

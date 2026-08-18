@@ -539,6 +539,7 @@ impl ByteCompiler<'_> {
                     &scopes,
                     contains_direct_eval,
                     self.interner,
+                    self.mc.0,
                 );
 
             // Ensures global functions are printed when generating the global flowgraph.
@@ -817,6 +818,7 @@ impl ByteCompiler<'_> {
                     &scopes,
                     contains_direct_eval,
                     self.interner,
+                    self.mc.0,
                 );
 
             // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
