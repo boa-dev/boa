@@ -288,7 +288,7 @@ impl NativeFunction {
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
-        let ptr = Gc::into_raw(Gc::new(
+        let ptr = Gc::into_raw(boa_gc::allocate_rooted(
             mc,
             Closure {
                 f: closure,

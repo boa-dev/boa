@@ -227,7 +227,7 @@ impl EnvironmentStack {
         let index = self.depth;
 
         self.push_env(
-            Environment::Declarative(Gc::new(
+            Environment::Declarative(boa_gc::allocate_rooted(
                 &gc,
                 DeclarativeEnvironment::new(
                     DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(bindings_count)),
@@ -254,7 +254,7 @@ impl EnvironmentStack {
         let (poisoned, with) = self.compute_poisoned_with(global);
 
         self.push_env(
-            Environment::Declarative(Gc::new(
+            Environment::Declarative(boa_gc::allocate_rooted(
                 gc,
                 DeclarativeEnvironment::new(
                     DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
@@ -274,7 +274,7 @@ impl EnvironmentStack {
     pub(crate) fn push_module(&mut self, scope: Scope, gc: &boa_gc::MutationContext<'static, '_>) {
         let num_bindings = scope.num_bindings_non_local();
         self.push_env(
-            Environment::Declarative(Gc::new(
+            Environment::Declarative(boa_gc::allocate_rooted(
                 gc,
                 DeclarativeEnvironment::new(
                     DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings, scope)),
@@ -430,7 +430,7 @@ impl EnvironmentStack {
 
     /// Push an environment onto the chain.
     fn push_env(&mut self, env: Environment, mc: &boa_gc::MutationContext<'static, '_>) {
-        self.tip = Some(Gc::new(
+        self.tip = Some(boa_gc::allocate_rooted(
             mc,
             EnvironmentNode {
                 env,

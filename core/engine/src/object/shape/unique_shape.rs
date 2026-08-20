@@ -41,7 +41,7 @@ impl UniqueShape {
         property_table: PropertyTableInner,
     ) -> Self {
         Self {
-            inner: Gc::new(
+            inner: boa_gc::allocate_rooted(
                 mc,
                 Inner {
                     property_table: RefCell::new(property_table),

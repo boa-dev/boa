@@ -108,6 +108,8 @@ pub struct Context {
     pub(crate) kept_alive: Vec<JsObject>,
 
     pub gc: boa_gc::GcContext,
+    #[cfg(feature = "oscars_backend")]
+    global_scope: boa_gc::HandleScope,
 
     can_block: bool,
 
@@ -1227,6 +1229,8 @@ impl ContextBuilder {
         }
 
         let gc = boa_gc::GcContext::new();
+        #[cfg(feature = "oscars_backend")]
+        let global_scope = boa_gc::HandleScope::enter();
         let mc = gc.gc_collector();
         let root_shape = RootShape::new(&mc);
 
@@ -1283,6 +1287,8 @@ impl ContextBuilder {
             root_shape,
             parser_identifier: 0,
             gc,
+            #[cfg(feature = "oscars_backend")]
+            global_scope,
             can_block: self.can_block,
             data: HostDefined::default(),
         };

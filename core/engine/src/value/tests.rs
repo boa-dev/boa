@@ -128,6 +128,9 @@ fn hash_rational() {
 
 #[test]
 fn hash_object() {
+    #[cfg(feature = "oscars_backend")]
+    let _scope = boa_gc::HandleScope::enter();
+
     let object1 = JsValue::new(JsObject::with_null_proto(&unsafe {
         boa_gc::MutationContext::global()
     }));

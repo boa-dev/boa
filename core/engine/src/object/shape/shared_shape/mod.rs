@@ -166,7 +166,7 @@ impl SharedShape {
     /// Create a new [`SharedShape`] using the given context.
     fn new(mc: &boa_gc::MutationContext<'static, '_>, inner: Inner) -> Self {
         Self {
-            inner: Gc::new(mc, inner),
+            inner: boa_gc::allocate_rooted(mc, inner),
         }
     }
 

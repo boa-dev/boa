@@ -1014,6 +1014,9 @@ fn bigint() {
 
 #[test]
 fn object() {
+    #[cfg(feature = "oscars_backend")]
+    let _scope = boa_gc::HandleScope::enter();
+
     let object = JsObject::with_null_proto(&unsafe { boa_gc::MutationContext::global() });
     let v = NanBoxedValue::object(object.clone());
     assert_type!(v is object(object));

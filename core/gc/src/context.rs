@@ -22,12 +22,22 @@ thread_local! {
             MutationContext::from_collector_erased(*c)
         }))
     });
+
+    static TRACKER: std::cell::RefCell<Option<oscars::collectors::mark_sweep_branded::Root<'static, crate::scope_tracker::HandleScopeTracker>>> = std::cell::RefCell::new(None);
 }
 
 #[cfg(feature = "oscars_backend")]
 impl GcContext {
     #[must_use]
     pub fn new() -> Self {
+        TRACKER.with(|tracker| {
+            if tracker.borrow().is_none() {
+                let mc = DUMMY.with(|dummy| *dummy);
+                let handle = Gc::new(mc, crate::scope_tracker::HandleScopeTracker);
+                let root = mc.root(handle).expect("Failed to root HandleScopeTracker");
+                *tracker.borrow_mut() = Some(root);
+            }
+        });
         Self
     }
 

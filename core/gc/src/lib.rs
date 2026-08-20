@@ -30,7 +30,14 @@ mod pointers;
 mod trace;
 
 pub mod context;
+#[cfg(feature = "oscars_backend")]
+pub(crate) mod scope;
+#[cfg(feature = "oscars_backend")]
+pub(crate) mod scope_tracker;
 pub use context::GcContext;
+
+#[cfg(feature = "oscars_backend")]
+pub use scope::{HandleScope, Local};
 
 #[cfg(not(feature = "oscars_backend"))]
 pub(crate) mod internals;
@@ -175,4 +182,22 @@ pub fn force_collect() {
     let mc = MutationContext::global();
     mc.collect();
     crate::context::GcContext::new().force_collect();
+}
+
+#[cfg(feature = "oscars_backend")]
+pub fn allocate_rooted<'gc, T: Trace + Finalize + 'gc>(
+    mc: &MutationContext<'gc, '_>,
+    value: T,
+) -> Gc<'gc, T> {
+    let gc = Gc::new(mc, value);
+    Local::new(gc);
+    gc
+}
+
+#[cfg(not(feature = "oscars_backend"))]
+pub fn allocate_rooted<'gc, T: Trace + Finalize + 'gc>(
+    mc: &MutationContext<'gc, '_>,
+    value: T,
+) -> Gc<'gc, T> {
+    Gc::new(mc, value)
 }

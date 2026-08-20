@@ -122,7 +122,7 @@ impl JsObject {
         object: Object<T>,
         vtable: &'static InternalObjectMethods,
     ) -> Self {
-        let inner = Gc::new(
+        let inner = boa_gc::allocate_rooted(
             mc,
             VTableObject {
                 object: GcRefCell::new(object),
@@ -177,7 +177,7 @@ impl JsObject {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(
+        let inner = boa_gc::allocate_rooted(
             mc,
             VTableObject {
                 object: GcRefCell::new(Object {
@@ -201,7 +201,7 @@ impl JsObject {
         data: T,
     ) -> JsObject<T> {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(
+        let inner = boa_gc::allocate_rooted(
             mc,
             VTableObject {
                 object: GcRefCell::new(Object {
@@ -1032,6 +1032,8 @@ impl<T: NativeObject> JsObject<T> {
     }
 
     pub(crate) fn from_inner(inner: Gc<'static, VTableObject<T>>) -> Self {
+        #[cfg(feature = "oscars_backend")]
+        let _root = boa_gc::Local::new(inner.clone());
         Self { inner }
     }
 
@@ -1051,7 +1053,7 @@ impl<T: NativeObject> JsObject<T> {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(
+        let inner = boa_gc::allocate_rooted(
             mc,
             VTableObject {
                 object: GcRefCell::new(Object {
@@ -1101,7 +1103,7 @@ impl<T: NativeObject> JsObject<T> {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let inner = Gc::new(
+        let inner = boa_gc::allocate_rooted(
             mc,
             VTableObject {
                 object: GcRefCell::new(Object {

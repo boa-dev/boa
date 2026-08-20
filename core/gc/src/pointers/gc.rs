@@ -175,10 +175,15 @@ impl<'gc, T: Trace + ?Sized + 'static> Gc<'gc, T> {
         // Note: Allocator can cause Collector to run
         let inner_ptr = Allocator::alloc_gc(GcBox::new(value));
 
-        Self {
+        let gc = Self {
             inner_ptr,
             marker: PhantomData,
-        }
+        };
+
+        #[cfg(feature = "oscars_backend")]
+        crate::Local::new(gc.clone());
+
+        gc
     }
 
     /// Constructs a new `Gc<T>` while giving you a `WeakGc<T>` to the allocation, to allow
