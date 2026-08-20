@@ -11,7 +11,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine.workspace = true
+boa_engine = { workspace = true, features = ["oscars_backend"] }
 
 [lints]
 workspace = true

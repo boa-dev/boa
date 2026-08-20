@@ -24,6 +24,8 @@ thread_local! {
     });
 
     static TRACKER: std::cell::RefCell<Option<oscars::collectors::mark_sweep_branded::Root<'static, crate::scope_tracker::HandleScopeTracker>>> = std::cell::RefCell::new(None);
+
+    pub(crate) static ALLOCATED_BYTES: std::cell::Cell<usize> = std::cell::Cell::new(0);
 }
 
 #[cfg(feature = "oscars_backend")]
@@ -43,7 +45,22 @@ impl GcContext {
 
     pub fn alloc<T: crate::Trace + crate::Finalize + 'static>(&self, value: T) -> Gc<'static, T> {
         let mc = self.gc_collector();
-        Gc::new(mc, value)
+
+        crate::context::ALLOCATED_BYTES.with(|bytes| {
+            let size = std::mem::size_of::<T>();
+            let next = bytes.get() + size;
+            if next > 4_194_304 {
+                // 4MB threshold per thread
+                mc.collect();
+                bytes.set(0);
+            } else {
+                bytes.set(next);
+            }
+        });
+
+        let gc = Gc::new(mc, value);
+        crate::Local::new(gc.clone());
+        gc
     }
 
     #[must_use]

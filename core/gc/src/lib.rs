@@ -189,6 +189,17 @@ pub fn allocate_rooted<'gc, T: Trace + Finalize + 'gc>(
     mc: &MutationContext<'gc, '_>,
     value: T,
 ) -> Gc<'gc, T> {
+    crate::context::ALLOCATED_BYTES.with(|bytes| {
+        let size = core::mem::size_of::<T>();
+        let next = bytes.get() + size;
+        if next > 4_194_304 {
+            mc.collect();
+            bytes.set(0);
+        } else {
+            bytes.set(next);
+        }
+    });
+
     let gc = Gc::new(mc, value);
     Local::new(gc);
     gc

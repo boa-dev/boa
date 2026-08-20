@@ -5,7 +5,7 @@ edition = "2024"
 publish = false
 
 [dependencies]
-boa_engine = { workspace = true, features = ["intl_bundled"] }
+boa_engine = { workspace = true, features = ["oscars_backend", "intl_bundled"] }
 boa_runtime.workspace = true
 
 [dev-dependencies]
