@@ -72,72 +72,72 @@ impl BuiltInObject for PlainDate {
 }
 
 impl IntrinsicObject for PlainDate {
-    fn init(realm: &Realm) {
-        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id, mc)
             .name(js_string!("get calendarId"))
             .build();
 
-        let get_era = BuiltInBuilder::callable(realm, Self::get_era)
+        let get_era = BuiltInBuilder::callable(realm, Self::get_era, mc)
             .name(js_string!("get era"))
             .build();
 
-        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year)
+        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year, mc)
             .name(js_string!("get eraYear"))
             .build();
 
-        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
+        let get_year = BuiltInBuilder::callable(realm, Self::get_year, mc)
             .name(js_string!("get year"))
             .build();
 
-        let get_month = BuiltInBuilder::callable(realm, Self::get_month)
+        let get_month = BuiltInBuilder::callable(realm, Self::get_month, mc)
             .name(js_string!("get month"))
             .build();
 
-        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
+        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code, mc)
             .name(js_string!("get monthCode"))
             .build();
 
-        let get_day = BuiltInBuilder::callable(realm, Self::get_day)
+        let get_day = BuiltInBuilder::callable(realm, Self::get_day, mc)
             .name(js_string!("get day"))
             .build();
 
-        let get_day_of_week = BuiltInBuilder::callable(realm, Self::get_day_of_week)
+        let get_day_of_week = BuiltInBuilder::callable(realm, Self::get_day_of_week, mc)
             .name(js_string!("get dayOfWeek"))
             .build();
 
-        let get_day_of_year = BuiltInBuilder::callable(realm, Self::get_day_of_year)
+        let get_day_of_year = BuiltInBuilder::callable(realm, Self::get_day_of_year, mc)
             .name(js_string!("get dayOfYear"))
             .build();
 
-        let get_week_of_year = BuiltInBuilder::callable(realm, Self::get_week_of_year)
+        let get_week_of_year = BuiltInBuilder::callable(realm, Self::get_week_of_year, mc)
             .name(js_string!("get weekOfYear"))
             .build();
 
-        let get_year_of_week = BuiltInBuilder::callable(realm, Self::get_year_of_week)
+        let get_year_of_week = BuiltInBuilder::callable(realm, Self::get_year_of_week, mc)
             .name(js_string!("get yearOfWeek"))
             .build();
 
-        let get_days_in_week = BuiltInBuilder::callable(realm, Self::get_days_in_week)
+        let get_days_in_week = BuiltInBuilder::callable(realm, Self::get_days_in_week, mc)
             .name(js_string!("get daysInWeek"))
             .build();
 
-        let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month)
+        let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month, mc)
             .name(js_string!("get daysInMonth"))
             .build();
 
-        let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year)
+        let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year, mc)
             .name(js_string!("get daysInYear"))
             .build();
 
-        let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year)
+        let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year, mc)
             .name(js_string!("get monthsInYear"))
             .build();
 
-        let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
+        let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year, mc)
             .name(js_string!("get inLeapYear"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::PLAIN_DATE_TAG,
@@ -752,7 +752,10 @@ impl PlainDate {
 
         let object = item.as_object();
         if let Some(date) = object.as_ref().and_then(JsObject::downcast_ref::<Self>) {
-            let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
+            let options = get_options_object(
+                options.unwrap_or(&JsValue::undefined()),
+                context.gc_collector(),
+            )?;
             let _ = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
             return create_temporal_date(date.inner.clone(), None, context).map(Into::into);
         }
@@ -869,7 +872,7 @@ impl PlainDate {
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
 
         // 4. Set options to ? GetOptionsObject(options).
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
 
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
@@ -905,7 +908,7 @@ impl PlainDate {
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
 
         // 4. Set options to ? GetOptionsObject(options).
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         // 5. Let negatedDuration be CreateNegatedTemporalDuration(duration).
@@ -954,7 +957,7 @@ impl PlainDate {
         let fields = to_calendar_fields(&partial_object, date.inner.calendar(), context)?;
 
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
@@ -1018,7 +1021,7 @@ impl PlainDate {
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
 
         // 3. Return ? DifferenceTemporalPlainDate(until, temporalDate, other, options).
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         let settings = get_difference_settings(&options, context)?;
 
         create_temporal_duration(date.inner.until(&other, settings)?, None, context).map(Into::into)
@@ -1049,7 +1052,7 @@ impl PlainDate {
         // 3. Return ? DifferenceTemporalPlainDate(since, temporalDate, other, options).
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         let settings = get_difference_settings(&options, context)?;
 
         create_temporal_duration(date.inner.since(&other, settings)?, None, context).map(Into::into)
@@ -1204,7 +1207,7 @@ impl PlainDate {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
-        let options = get_options_object(args.get_or_undefined(0))?;
+        let options = get_options_object(args.get_or_undefined(0), context.gc_collector())?;
         let display_calendar =
             get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
                 .unwrap_or(DisplayCalendar::Auto);
@@ -1302,7 +1305,8 @@ pub(crate) fn create_temporal_date(
     // 6. Set object.[[ISOMonth]] to isoMonth.
     // 7. Set object.[[ISODay]] to isoDay.
     // 8. Set object.[[Calendar]] to calendar.
-    let obj = JsObject::from_proto_and_data(prototype, PlainDate::new(inner));
+    let obj =
+        JsObject::from_proto_and_data(context.gc_collector(), prototype, PlainDate::new(inner));
 
     // 9. Return object.
     Ok(obj)
@@ -1326,11 +1330,11 @@ pub(crate) fn to_temporal_date(
     if let Some(object) = item.as_object() {
         // a. If item has an [[InitializedTemporalDate]] internal slot, then
         if let Some(date) = object.downcast_ref::<PlainDate>() {
-            let _options_obj = get_options_object(&options)?;
+            let _options_obj = get_options_object(&options, context.gc_collector())?;
             return Ok(date.inner.clone());
         // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
         } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
-            let options_obj = get_options_object(&options)?;
+            let options_obj = get_options_object(&options, context.gc_collector())?;
             // i. Perform ? ToTemporalOverflow(options).
             let _overflow = get_option(&options_obj, js_string!("overflow"), context)?
                 .unwrap_or(Overflow::Constrain);
@@ -1341,7 +1345,7 @@ pub(crate) fn to_temporal_date(
             return Ok(zdt.inner.to_plain_date());
         // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
         } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
-            let options_obj = get_options_object(&options)?;
+            let options_obj = get_options_object(&options, context.gc_collector())?;
             // i. Perform ? ToTemporalOverflow(options).
             let _overflow = get_option(&options_obj, js_string!("overflow"), context)?
                 .unwrap_or(Overflow::Constrain);
@@ -1356,7 +1360,7 @@ pub(crate) fn to_temporal_date(
         // e. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », «», «»).
         let partial = to_partial_date_record(&object, context)?;
         // f. Let resolvedOptions be ? GetOptionsObject(options).
-        let resolved_options = get_options_object(&options)?;
+        let resolved_options = get_options_object(&options, context.gc_collector())?;
         // g. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?;
         // h. Let isoDate be ? CalendarDateFromFields(calendar, fields, overflow).
@@ -1381,7 +1385,7 @@ pub(crate) fn to_temporal_date(
     // 6. If calendar is empty, set calendar to "iso8601".
     // 7. Set calendar to ? CanonicalizeCalendar(calendar).
     // 8. Let resolvedOptions be ? GetOptionsObject(options).
-    let resolved_options = get_options_object(&options)?;
+    let resolved_options = get_options_object(&options, context.gc_collector())?;
     // 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
     let _overflow = get_option::<Overflow>(&resolved_options, js_string!("overflow"), context)?
         .unwrap_or(Overflow::Constrain);

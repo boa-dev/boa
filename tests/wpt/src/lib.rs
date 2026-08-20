@@ -304,7 +304,7 @@ fn execute_test_file(path: &Path) {
 
     let function = result_callback__
         .into_js_function_copied(&mut context)
-        .to_js_function(context.realm());
+        .to_js_function(context.realm(), context.gc_collector());
     context
         .register_global_property(js_str!("result_callback__"), function, Attribute::all())
         .expect("Could not register result_callback__");
@@ -316,7 +316,7 @@ fn execute_test_file(path: &Path) {
 
     let function = complete_callback__
         .into_js_function_copied(&mut context)
-        .to_js_function(context.realm());
+        .to_js_function(context.realm(), context.gc_collector());
     context
         .register_global_property(js_str!("complete_callback__"), function, Attribute::all())
         .expect("Could not register complete_callback__");

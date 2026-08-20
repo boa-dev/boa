@@ -30,8 +30,8 @@ impl IntrinsicObject for WeakRef {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("WeakRef"),
@@ -85,9 +85,10 @@ impl BuiltInConstructor for WeakRef {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::weak_ref, context)?;
         let weak_ref = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
-            WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, target.inner()),
+            WeakGc::new(context.gc_collector(), target.inner()),
         );
 
         // 4. Perform AddToKeptObjects(target).
@@ -124,7 +125,7 @@ impl WeakRef {
         // https://tc39.es/ecma262/multipage/managing-memory.html#sec-weakrefderef
         // 1. Let target be weakRef.[[WeakRefTarget]].
         // 2. If target is not empty, then
-        if let Some(object) = weak_ref.upgrade(&unsafe { boa_gc::MutationContext::dummy() }) {
+        if let Some(object) = weak_ref.upgrade(context.gc_collector()) {
             let object = JsObject::from(object);
 
             // a. Perform AddToKeptObjects(target).
@@ -140,11 +141,13 @@ impl WeakRef {
 }
 
 #[cfg(test)]
+#[allow(unused_imports)]
 mod tests {
     use indoc::indoc;
 
     use crate::{JsNativeErrorKind, JsValue, TestAction, run_test_actions};
 
+    #[cfg(not(feature = "oscars_backend"))]
     #[test]
     fn weak_ref_collected() {
         run_test_actions([

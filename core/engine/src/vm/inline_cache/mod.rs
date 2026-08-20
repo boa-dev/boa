@@ -47,9 +47,9 @@ impl fmt::Display for InlineCache {
         }
 
         let entries = self.entries.borrow();
-        let entries = entries.iter().map(|e| e.shape.to_addr_usize()).format(", ");
+        let entries = entries.iter().map(|_| "<?>").format(", ");
 
-        write!(f, "({entries:#x}))")
+        write!(f, "({entries}))")
     }
 }
 
@@ -62,7 +62,7 @@ impl InlineCache {
         }
     }
 
-    pub(crate) fn set(&self, shape: &Shape, slot: Slot) {
+    pub(crate) fn set(&self, mc: &boa_gc::MutationContext<'static, '_>, shape: &Shape, slot: Slot) {
         if self.megamorphic.get() {
             return;
         }
@@ -72,7 +72,7 @@ impl InlineCache {
         // Add a new entry if there's space.
         if entries
             .try_push(CacheEntry {
-                shape: shape.into(),
+                shape: WeakShape::new(mc, shape),
                 slot,
             })
             .is_err()
@@ -86,7 +86,11 @@ impl InlineCache {
     /// Returns the cached `(Shape, Slot)` if a matching shape exists in the inline cache.
     ///
     /// Opportunistically cleans up stale weak shape references during lookup.
-    pub(crate) fn get(&self, shape: &Shape) -> Option<(Shape, Slot)> {
+    pub(crate) fn get(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        shape: &Shape,
+    ) -> Option<(Shape, Slot)> {
         if self.megamorphic.get() {
             return None;
         }
@@ -97,7 +101,8 @@ impl InlineCache {
         let shape_addr = shape.to_addr_usize();
 
         while i < entries.len() {
-            if let Some(upgraded) = entries[i].shape.upgrade() {
+            if let Some(upgraded) = entries[i].shape.upgrade(mc) {
+                let upgraded: Shape = upgraded;
                 if upgraded.to_addr_usize() == shape_addr {
                     result = Some((upgraded, entries[i].slot));
                     break;

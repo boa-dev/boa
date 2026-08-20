@@ -201,7 +201,7 @@ fn add_runtime(context: &mut Context) {
         .register_global_builtin_callable(
             js_string!("delay"),
             1,
-            NativeFunction::from_async_fn(delay),
+            NativeFunction::from_async_fn(context.gc_collector(), delay),
         )
         .expect("the delay builtin shouldn't exist");
 

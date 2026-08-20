@@ -404,13 +404,10 @@ impl ActiveRunnable {
 
 impl Vm {
     /// Creates a new virtual machine.
-    pub(crate) fn new(realm: Realm) -> Self {
+    pub(crate) fn new(realm: Realm, mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         let mut frames = Vec::with_capacity(16);
         frames.push(CallFrame::new(
-            Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
-                CodeBlock::new(JsString::default(), 0, true),
-            ),
+            boa_gc::allocate_rooted(mc, CodeBlock::new(JsString::default(), 0, true)),
             None,
             EnvironmentStack::new(),
             realm,

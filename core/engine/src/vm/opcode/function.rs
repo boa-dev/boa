@@ -61,7 +61,9 @@ impl GetHomeObject {
             .downcast_ref::<OrdinaryFunction>()
             .js_expect("must be function object")?
             .get_home_object()
-            .map_or_else(JsValue::null, |o| o.clone().into());
+            .map_or_else(JsValue::null, |o: &crate::object::JsObject| {
+                o.clone().into()
+            });
 
         context.vm.set_register(function.into(), home_object);
         Ok(())

@@ -29,52 +29,52 @@ use super::options::coerce_options_to_object;
 pub(crate) struct Locale;
 
 impl IntrinsicObject for Locale {
-    fn init(realm: &Realm) {
-        let base_name = BuiltInBuilder::callable(realm, Self::base_name)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let base_name = BuiltInBuilder::callable(realm, Self::base_name, mc)
             .name(js_string!("get baseName"))
             .build();
 
-        let calendar = BuiltInBuilder::callable(realm, Self::calendar)
+        let calendar = BuiltInBuilder::callable(realm, Self::calendar, mc)
             .name(js_string!("get calendar"))
             .build();
 
-        let case_first = BuiltInBuilder::callable(realm, Self::case_first)
+        let case_first = BuiltInBuilder::callable(realm, Self::case_first, mc)
             .name(js_string!("get caseFirst"))
             .build();
 
-        let collation = BuiltInBuilder::callable(realm, Self::collation)
+        let collation = BuiltInBuilder::callable(realm, Self::collation, mc)
             .name(js_string!("get collation"))
             .build();
 
-        let hour_cycle = BuiltInBuilder::callable(realm, Self::hour_cycle)
+        let hour_cycle = BuiltInBuilder::callable(realm, Self::hour_cycle, mc)
             .name(js_string!("get hourCycle"))
             .build();
 
-        let numeric = BuiltInBuilder::callable(realm, Self::numeric)
+        let numeric = BuiltInBuilder::callable(realm, Self::numeric, mc)
             .name(js_string!("get numeric"))
             .build();
 
-        let numbering_system = BuiltInBuilder::callable(realm, Self::numbering_system)
+        let numbering_system = BuiltInBuilder::callable(realm, Self::numbering_system, mc)
             .name(js_string!("get numberingSystem"))
             .build();
 
-        let language = BuiltInBuilder::callable(realm, Self::language)
+        let language = BuiltInBuilder::callable(realm, Self::language, mc)
             .name(js_string!("get language"))
             .build();
 
-        let script = BuiltInBuilder::callable(realm, Self::script)
+        let script = BuiltInBuilder::callable(realm, Self::script, mc)
             .name(js_string!("get script"))
             .build();
 
-        let region = BuiltInBuilder::callable(realm, Self::region)
+        let region = BuiltInBuilder::callable(realm, Self::region, mc)
             .name(js_string!("get region"))
             .build();
 
-        let variants = BuiltInBuilder::callable(realm, Self::variants)
+        let variants = BuiltInBuilder::callable(realm, Self::variants, mc)
             .name(js_string!("get variants"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("Intl.Locale"),
@@ -325,8 +325,12 @@ impl BuiltInConstructor for Locale {
             .locale_canonicalizer()?
             .canonicalize(&mut tag);
 
-        let locale =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
+        let locale = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            tag,
+        );
 
         // 39. Return locale.
         Ok(locale.into())
@@ -349,14 +353,17 @@ impl Locale {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
+        // Under `oscars_backend`, `downcast_ref` returns `GcRef<'_, Locale>`.
+        // Deref through the guard before cloning to get an owned `icu_locale::Locale`.
+        // This is required because `GcRef<'_, Locale>` doesn't implement `NativeObject`.
         let mut loc = object
             .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`Locale.maximize` can only be called on a `Locale` object")
-            })?
-            .clone();
+            })
+            .map(|r| (*r).clone())?;
 
         // 3. Let maximal be the result of the Add Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set maximal to loc.[[Locale]].
         context
@@ -366,10 +373,13 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, maximal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, loc)
-                .into(),
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            loc,
         )
+        .into())
     }
 
     /// [`Intl.Locale.prototype.minimize ( )`][spec]
@@ -387,6 +397,8 @@ impl Locale {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
         let object = this.as_object();
+        // Under `oscars_backend`, `downcast_ref` returns `GcRef<'_, Locale>`.
+        // Deref through the guard before cloning to get an owned `icu_locale::Locale`.
         let mut loc = object
             .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
@@ -394,8 +406,8 @@ impl Locale {
                 JsNativeError::typ().with_message(
                     "`Locale.prototype.minimize` can only be called on a `Locale` object",
                 )
-            })?
-            .clone();
+            })
+            .map(|r| (*r).clone())?;
 
         // 3. Let minimal be the result of the Remove Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set minimal to loc.[[Locale]].
         context
@@ -405,10 +417,13 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, minimal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, loc)
-                .into(),
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            loc,
         )
+        .into())
     }
 
     /// [`Intl.Locale.prototype.toString ( )`][spec].

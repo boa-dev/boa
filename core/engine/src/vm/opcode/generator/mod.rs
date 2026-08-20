@@ -37,6 +37,7 @@ impl Generator {
             .unwrap_or_else(|| context.intrinsics().objects().generator());
 
         let generator = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             proto,
             NativeGenerator {
@@ -83,6 +84,7 @@ impl AsyncGenerator {
             .unwrap_or_else(|| context.intrinsics().objects().async_generator());
 
         let generator = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             proto,
             NativeAsyncGenerator {

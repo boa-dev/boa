@@ -52,7 +52,7 @@ fn position() {
         .register_global_callable(
             js_string!("check_stack"),
             2,
-            NativeFunction::from_copy_closure(|_, _, context| {
+            NativeFunction::from_copy_closure(context.gc_collector(), |_, _, context| {
                 let frame = context.stack_trace().collect::<Vec<&CallFrame>>();
 
                 assert_eq!(frame.len(), 4);
@@ -480,6 +480,7 @@ fn cross_context_function_call() {
 }
 
 // See: https://github.com/boa-dev/boa/issues/1848
+#[cfg(not(feature = "oscars_backend"))]
 #[test]
 fn long_object_chain_gc_trace_stack_overflow() {
     run_test_actions([

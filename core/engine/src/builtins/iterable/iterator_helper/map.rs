@@ -31,11 +31,15 @@ impl Map {
         clippy::new_ret_no_self,
         reason = "slightly cleaner to have this be a `new` method"
     )]
-    pub(crate) fn new(iterated: IteratorRecord, mapper: JsFunction) -> NativeCoroutine {
+    pub(crate) fn new(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        iterated: IteratorRecord,
+        mapper: JsFunction,
+    ) -> NativeCoroutine {
         // 6. Let closure be a new Abstract Closure with no parameters that captures
         //    iterated and mapper and performs the following steps when called:
         NativeCoroutine::from_copy_closure_with_captures(
-            // a. Let counter be 0.
+            mc, // a. Let counter be 0.
             // b. Repeat,
             |completion, state, context| {
                 let st = state.take();

@@ -10,16 +10,14 @@ pub struct RootShape {
     shape: SharedShape,
 }
 
-impl Default for RootShape {
+impl RootShape {
+    /// Create a new root shape using the given context.
     #[inline]
-    fn default() -> Self {
+    pub fn new(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {
-            shape: SharedShape::root(),
+            shape: SharedShape::root(mc),
         }
     }
-}
-
-impl RootShape {
     /// Gets the inner [`SharedShape`].
     #[must_use]
     pub const fn shape(&self) -> &SharedShape {

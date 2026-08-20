@@ -55,6 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .then(
             Some(
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, _, module, context| {
                         // After loading, link all modules by resolving the imports
                         // and exports on the full module graph, initializing module
@@ -65,7 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     },
                     module.clone(),
                 )
-                .to_js_function(context.realm()),
+                .to_js_function(context.realm(), context.gc_collector()),
             ),
             None,
             context,
@@ -74,6 +75,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .then(
             Some(
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     // Finally, evaluate the root module.
                     // This returns a `JsPromise` since a module could have
                     // top-level await statements, which defers module execution to the
@@ -81,7 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     |_, _, module, context| Ok(module.evaluate(context)?.into()),
                     module.clone(),
                 )
-                .to_js_function(context.realm()),
+                .to_js_function(context.realm(), context.gc_collector()),
             ),
             None,
             context,

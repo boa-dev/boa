@@ -37,8 +37,8 @@ mod tests;
 pub struct BigInt;
 
 impl IntrinsicObject for BigInt {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)

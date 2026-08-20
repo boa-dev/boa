@@ -40,9 +40,9 @@ use super::{iterator_helper::IteratorHelper, wrap_for_valid_iterator::WrapForVal
 pub(crate) struct IteratorConstructor;
 
 impl IntrinsicObject for IteratorConstructor {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let iterator_prototype = realm.intrinsics().constructors().iterator().prototype();
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .inherits(Some(iterator_prototype.clone()))
             // Static methods
             .static_method(Self::from, js_string!("from"), 1)
@@ -101,6 +101,7 @@ impl BuiltInConstructor for IteratorConstructor {
 
         // Create an ordinary object (Iterator instances have no internal data slots).
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             OrdinaryObject,
@@ -141,6 +142,7 @@ impl IteratorConstructor {
         // 5. Set wrapper.[[Iterated]] to iteratorRecord.
         // 6. Return wrapper.
         let wrapper = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context
                 .intrinsics()
@@ -190,7 +192,10 @@ impl IteratorConstructor {
         //    (implemented via IteratorHelperOp::Concat in execute_next)
         // 4-5. Let result be CreateIteratorFromClosure(closure, "Iterator Helper", ...)
         //      with [[UnderlyingIterators]] set to a new empty List.
-        let helper = IteratorHelper::create(iterator_helper::Concat::new(iterables), context);
+        let helper = IteratorHelper::create(
+            iterator_helper::Concat::new(context.gc_collector(), iterables),
+            context,
+        );
 
         // 6. Return result.
         Ok(helper.into())

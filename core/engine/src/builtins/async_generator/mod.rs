@@ -70,8 +70,8 @@ pub struct AsyncGenerator {
 }
 
 impl IntrinsicObject for AsyncGenerator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .prototype(
                 realm
                     .intrinsics()
@@ -580,7 +580,9 @@ impl AsyncGenerator {
         // 12. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, generator, context| {
                     // a. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
                     assert_eq!(
@@ -611,7 +613,9 @@ impl AsyncGenerator {
         // 14. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
         let on_rejected = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, generator, context| {
                     // a. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
                     assert_eq!(

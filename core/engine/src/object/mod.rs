@@ -96,6 +96,16 @@ impl<T: Any + Trace + JsData> NativeObject for T {
 // TODO: Use super trait casting in Rust 1.75
 impl dyn NativeObject {
     /// Returns `true` if the inner type is the same as `T`.
+    ///
+    /// # Type identity under `oscars_backend`
+    ///
+    /// 1. **`dyn NativeObject::is::<T>()`** (this method) uses [`std::any::TypeId::of::<T>()`].
+    ///    This is sound because `NativeObject: Any` requires `T: 'static`
+    /// 2. **[`JsObject::is::<T>()`]** uses `typeid::of::<VTableObject<T>>()`
+    ///    (via [`boa_gc::type_id_of`]), which supports non-`'static` branded lifetimes
+    ///
+    /// Do not replace the `std::any::TypeId` call below with `typeid::of`.
+    /// `std::any::TypeId` is authoritative for `Any` bounded types.
     #[inline]
     pub fn is<T: NativeObject>(&self) -> bool {
         // Get `TypeId` of the type this function is instantiated with.
@@ -262,10 +272,17 @@ impl<T: ?Sized> Object<T> {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
     #[track_caller]
-    pub fn set_prototype<O: Into<JsPrototype>>(&mut self, prototype: O) -> bool {
+    pub fn set_prototype<O: Into<JsPrototype>>(
+        &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: O,
+    ) -> bool {
         let prototype = prototype.into();
         if self.extensible {
-            self.properties.shape = self.properties.shape.change_prototype_transition(prototype);
+            self.properties.shape = self
+                .properties
+                .shape
+                .change_prototype_transition(mc, prototype);
             true
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
@@ -290,20 +307,29 @@ impl<T: ?Sized> Object<T> {
     ///
     /// If a field was already in the object with the same name, then `true` is returned
     /// otherwise, `false` is returned.
-    pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> bool
+    pub(crate) fn insert<K, P>(
+        &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: K,
+        property: P,
+    ) -> bool
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
     {
-        self.properties.insert(&key.into(), property.into())
+        self.properties.insert(mc, &key.into(), property.into())
     }
 
     /// Helper function for property removal without checking if it's configurable.
     ///
     /// Returns `true` if the property was removed, `false` otherwise.
     #[inline]
-    pub(crate) fn remove(&mut self, key: &PropertyKey) -> bool {
-        self.properties.remove(key)
+    pub(crate) fn remove(
+        &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: &PropertyKey,
+    ) -> bool {
+        self.properties.remove(mc, key)
     }
 
     /// Append a private element to an object.
@@ -384,9 +410,9 @@ where
 }
 
 /// Builder for creating native function objects
-#[derive(Debug)]
 pub struct FunctionObjectBuilder<'realm> {
     realm: &'realm Realm,
+    mc: &'realm boa_gc::MutationContext<'static, 'realm>,
     function: NativeFunction,
     constructor: Option<ConstructorKind>,
     name: JsString,
@@ -397,9 +423,14 @@ impl<'realm> FunctionObjectBuilder<'realm> {
     /// Create a new `FunctionBuilder` for creating a native function.
     #[inline]
     #[must_use]
-    pub fn new(realm: &'realm Realm, function: NativeFunction) -> Self {
+    pub fn new(
+        realm: &'realm Realm,
+        mc: &'realm boa_gc::MutationContext<'static, 'realm>,
+        function: NativeFunction,
+    ) -> Self {
         Self {
             realm,
+            mc,
             function,
             constructor: None,
             name: js_string!(),
@@ -444,6 +475,7 @@ impl<'realm> FunctionObjectBuilder<'realm> {
     #[must_use]
     pub fn build(self) -> JsFunction {
         let object = self.realm.intrinsics().templates().function().create(
+            self.mc,
             NativeFunctionObject {
                 f: self.function,
                 name: self.name.clone(),
@@ -500,13 +532,14 @@ impl<'ctx> ObjectInitializer<'ctx> {
     /// Create a new `ObjectBuilder`.
     #[inline]
     pub fn new(context: &'ctx mut Context) -> Self {
-        let object = JsObject::with_object_proto(context.intrinsics());
+        let object = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
         Self { context, object }
     }
 
     /// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
     pub fn with_native_data<T: NativeObject>(data: T, context: &'ctx mut Context) -> Self {
         let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             data,
@@ -521,9 +554,13 @@ impl<'ctx> ObjectInitializer<'ctx> {
         proto: JsObject,
         context: &'ctx mut Context,
     ) -> Self {
-        let object =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data)
-                .upcast();
+        let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            proto,
+            data,
+        )
+        .upcast();
         Self { context, object }
     }
 
@@ -533,19 +570,22 @@ impl<'ctx> ObjectInitializer<'ctx> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context.realm(), function)
-            .name(binding.name)
-            .length(length)
-            .constructor(false)
-            .build();
+        let function =
+            FunctionObjectBuilder::new(self.context.realm(), self.context.gc_collector(), function)
+                .name(binding.name)
+                .length(length)
+                .constructor(false)
+                .build();
 
         self.object.borrow_mut().insert(
+            self.context.gc_collector(),
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)
                 .enumerable(false)
-                .configurable(true),
+                .configurable(true)
+                .build(),
         );
         self
     }
@@ -560,8 +600,11 @@ impl<'ctx> ObjectInitializer<'ctx> {
             .value(value)
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.object.borrow_mut().insert(key, property);
+            .configurable(attribute.configurable())
+            .build();
+        self.object
+            .borrow_mut()
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -587,8 +630,11 @@ impl<'ctx> ObjectInitializer<'ctx> {
             .maybe_get(get)
             .maybe_set(set)
             .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.object.borrow_mut().insert(key, property);
+            .configurable(attribute.configurable())
+            .build();
+        self.object
+            .borrow_mut()
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -656,19 +702,22 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context.realm(), function)
-            .name(binding.name)
-            .length(length)
-            .constructor(false)
-            .build();
+        let function =
+            FunctionObjectBuilder::new(self.context.realm(), self.context.gc_collector(), function)
+                .name(binding.name)
+                .length(length)
+                .constructor(false)
+                .build();
 
         self.prototype.insert(
+            self.context.gc_collector(),
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)
                 .enumerable(false)
-                .configurable(true),
+                .configurable(true)
+                .build(),
         );
         self
     }
@@ -684,19 +733,22 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionObjectBuilder::new(self.context.realm(), function)
-            .name(binding.name)
-            .length(length)
-            .constructor(false)
-            .build();
+        let function =
+            FunctionObjectBuilder::new(self.context.realm(), self.context.gc_collector(), function)
+                .name(binding.name)
+                .length(length)
+                .constructor(false)
+                .build();
 
         self.constructor_object.insert(
+            self.context.gc_collector(),
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
                 .writable(true)
                 .enumerable(false)
-                .configurable(true),
+                .configurable(true)
+                .build(),
         );
         self
     }
@@ -711,8 +763,10 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             .value(value)
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.prototype.insert(key, property);
+            .configurable(attribute.configurable())
+            .build();
+        self.prototype
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -726,8 +780,10 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             .value(value)
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.constructor_object.insert(key, property);
+            .configurable(attribute.configurable())
+            .build();
+        self.constructor_object
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -746,8 +802,10 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             .maybe_get(get)
             .maybe_set(set)
             .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.prototype.insert(key, property);
+            .configurable(attribute.configurable())
+            .build();
+        self.prototype
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -766,8 +824,10 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             .maybe_get(get)
             .maybe_set(set)
             .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.constructor_object.insert(key, property);
+            .configurable(attribute.configurable())
+            .build();
+        self.constructor_object
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -778,7 +838,8 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         P: Into<PropertyDescriptor>,
     {
         let property = property.into();
-        self.prototype.insert(key, property);
+        self.prototype
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -789,7 +850,8 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         P: Into<PropertyDescriptor>,
     {
         let property = property.into();
-        self.constructor_object.insert(key, property);
+        self.constructor_object
+            .insert(self.context.gc_collector(), key, property);
         self
     }
 
@@ -870,18 +932,22 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             .value(self.length)
             .writable(false)
             .enumerable(false)
-            .configurable(true);
+            .configurable(true)
+            .build();
         let name = PropertyDescriptor::builder()
             .value(self.name.clone())
             .writable(false)
             .enumerable(false)
-            .configurable(true);
+            .configurable(true)
+            .build();
 
         let prototype = {
             if let Some(proto) = self.inherit.take() {
-                self.prototype.set_prototype(proto);
+                self.prototype
+                    .set_prototype(self.context.gc_collector(), proto);
             } else {
                 self.prototype.set_prototype(
+                    self.context.gc_collector(),
                     self.context
                         .intrinsics()
                         .constructors()
@@ -890,7 +956,11 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 );
             }
 
-            JsObject::from_object_and_vtable(self.prototype, &ORDINARY_INTERNAL_METHODS)
+            JsObject::from_object_and_vtable(
+                self.context.gc_collector(),
+                self.prototype,
+                &ORDINARY_INTERNAL_METHODS,
+            )
         };
 
         let constructor = {
@@ -908,13 +978,14 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 data: ObjectData::new(data),
             };
 
-            constructor.insert(StaticJsStrings::LENGTH, length);
-            constructor.insert(js_string!("name"), name);
+            constructor.insert(self.context.gc_collector(), StaticJsStrings::LENGTH, length);
+            constructor.insert(self.context.gc_collector(), js_string!("name"), name);
 
             if let Some(proto) = self.custom_prototype.take() {
-                constructor.set_prototype(proto);
+                constructor.set_prototype(self.context.gc_collector(), proto);
             } else {
                 constructor.set_prototype(
+                    self.context.gc_collector(),
                     self.context
                         .intrinsics()
                         .constructors()
@@ -925,27 +996,35 @@ impl<'ctx> ConstructorBuilder<'ctx> {
 
             if self.has_prototype_property {
                 constructor.insert(
+                    self.context.gc_collector(),
                     PROTOTYPE,
                     PropertyDescriptor::builder()
                         .value(prototype.clone())
                         .writable(false)
                         .enumerable(false)
-                        .configurable(false),
+                        .configurable(false)
+                        .build(),
                 );
             }
 
-            JsObject::from_object_and_vtable(constructor, internal_methods)
+            JsObject::from_object_and_vtable(
+                self.context.gc_collector(),
+                constructor,
+                internal_methods,
+            )
         };
 
         {
             let mut prototype = prototype.borrow_mut();
             prototype.insert(
+                self.context.gc_collector(),
                 CONSTRUCTOR,
                 PropertyDescriptor::builder()
                     .value(constructor.clone())
                     .writable(true)
                     .enumerable(false)
-                    .configurable(true),
+                    .configurable(true)
+                    .build(),
             );
         }
 

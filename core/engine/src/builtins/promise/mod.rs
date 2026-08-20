@@ -243,19 +243,18 @@ impl PromiseCapability {
 
         // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
         // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
-        let promise_capability = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(RejectResolve {
-                reject: JsValue::undefined(),
-                resolve: JsValue::undefined(),
-            }),
-        );
+        let promise_capability = context.alloc(GcRefCell::new(RejectResolve {
+            reject: JsValue::undefined(),
+            resolve: JsValue::undefined(),
+        }));
 
         // 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
         // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, "", « »).
         let executor = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args: &[JsValue], captures, _| {
                     let mut promise_capability = captures.borrow_mut();
                     // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
@@ -341,12 +340,12 @@ impl PromiseCapability {
 }
 
 impl IntrinsicObject for Promise {
-    fn init(realm: &Realm) {
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(Self::all, js_string!("all"), 1)
             .static_method(Self::all_settled, js_string!("allSettled"), 1)
             .static_method(Self::any, js_string!("any"), 1)
@@ -425,6 +424,7 @@ impl BuiltInConstructor for Promise {
             get_prototype_from_constructor(new_target, StandardConstructors::promise, context)?;
 
         let promise = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             promise,
             // 4. Set promise.[[PromiseState]] to pending.
@@ -559,6 +559,7 @@ impl Promise {
         // 5. Perform ! CreateDataPropertyOrThrow(obj, "resolve", promiseCapability.[[Resolve]]).
         // 6. Perform ! CreateDataPropertyOrThrow(obj, "reject", promiseCapability.[[Reject]]).
         let obj = context.intrinsics().templates().with_resolvers().create(
+            context.gc_collector(),
             OrdinaryObject,
             vec![promise.into(), resolve.into(), reject.into()],
         );
@@ -656,10 +657,7 @@ impl Promise {
         }
 
         // 1. Let values be a new empty List.
-        let values = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let values = context.alloc(GcRefCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -686,7 +684,9 @@ impl Promise {
             // l. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
             let on_fulfilled = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.all-resolve-element-functions
 
@@ -874,10 +874,7 @@ impl Promise {
         }
 
         // 1. Let values be a new empty List.
-        let values = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let values = context.alloc(GcRefCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -907,7 +904,9 @@ impl Promise {
             // m. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
             let on_fulfilled = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.allsettled-resolve-element-functions
 
@@ -928,7 +927,10 @@ impl Promise {
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        let obj = JsObject::with_object_proto(context.intrinsics());
+                        let obj = JsObject::with_object_proto(
+                            context.gc_collector(),
+                            context.intrinsics(),
+                        );
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
                         obj.create_data_property_or_throw(
@@ -997,7 +999,9 @@ impl Promise {
             // u. Set onRejected.[[RemainingElements]] to remainingElementsCount.
             let on_rejected = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.allsettled-reject-element-functions
 
@@ -1018,7 +1022,10 @@ impl Promise {
                         // 8. Let remainingElementsCount be F.[[RemainingElements]].
 
                         // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                        let obj = JsObject::with_object_proto(context.intrinsics());
+                        let obj = JsObject::with_object_proto(
+                            context.gc_collector(),
+                            context.intrinsics(),
+                        );
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
                         obj.create_data_property_or_throw(
@@ -1244,10 +1251,7 @@ impl Promise {
         let keys = Rc::new(RefCell::new(Vec::new()));
 
         // 3. Let values be a new empty List.
-        let values = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let values = context.alloc(GcRefCell::new(Vec::new()));
 
         // 4. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -1284,7 +1288,9 @@ impl Promise {
                 // vi. Let onFulfilled be a new Abstract Closure...
                 let on_fulfilled = FunctionObjectBuilder::new(
                     context.realm(),
+                    context.gc_collector(),
                     NativeFunction::from_copy_closure_with_captures(
+                        context.gc_collector(),
                         |_, args, captures, context| {
                             // 1. If alreadyCalled.[[Value]] is true, return undefined.
                             if captures.already_called.get() {
@@ -1303,7 +1309,10 @@ impl Promise {
                             } else {
                                 // 4. Else (variant is all-settled)
                                 // a. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                                let obj = JsObject::with_object_proto(context.intrinsics());
+                                let obj = JsObject::with_object_proto(
+                                    context.gc_collector(),
+                                    context.intrinsics(),
+                                );
                                 // b. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
                                 obj.create_data_property_or_throw(
                                     js_string!("status"),
@@ -1366,7 +1375,9 @@ impl Promise {
                     // Else (variant is all-settled), let onRejected be a new Abstract Closure...
                     let on_rejected_fn = FunctionObjectBuilder::new(
                         context.realm(),
+                        context.gc_collector(),
                         NativeFunction::from_copy_closure_with_captures(
+                            context.gc_collector(),
                             |_, args, captures, context| {
                                 // 1. If alreadyCalled.[[Value]] is true, return undefined.
                                 if captures.already_called.get() {
@@ -1379,7 +1390,10 @@ impl Promise {
                                 let x = args.get_or_undefined(0).clone();
 
                                 // 3. Let obj be OrdinaryObjectCreate(%Object.prototype%).
-                                let obj = JsObject::with_object_proto(context.intrinsics());
+                                let obj = JsObject::with_object_proto(
+                                    context.gc_collector(),
+                                    context.intrinsics(),
+                                );
                                 // 4. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
                                 obj.create_data_property_or_throw(
                                     js_string!("status"),
@@ -1557,10 +1571,7 @@ impl Promise {
         }
 
         // 1. Let errors be a new empty List.
-        let errors = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            GcRefCell::new(Vec::new()),
-        );
+        let errors = context.alloc(GcRefCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -1588,7 +1599,9 @@ impl Promise {
             // l. Set onRejected.[[RemainingElements]] to remainingElementsCount.
             let on_rejected = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, captures, context| {
                         // https://tc39.es/ecma262/#sec-promise.any-reject-element-functions
 
@@ -2021,7 +2034,9 @@ impl Promise {
         // a. Let thenFinallyClosure be a new Abstract Closure with parameters (value) that captures onFinally and C and performs the following steps when called:
         let then_finally_closure = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     /// Capture object for the abstract `returnValue` closure.
                     #[derive(Debug, Trace, Finalize)]
@@ -2042,7 +2057,9 @@ impl Promise {
                     // iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
                     let return_value = FunctionObjectBuilder::new(
                         context.realm(),
+                        context.gc_collector(),
                         NativeFunction::from_copy_closure_with_captures(
+                            context.gc_collector(),
                             |_this, _args, captures, _context| {
                                 // 1. Return value.
                                 Ok(captures.value.clone())
@@ -2072,7 +2089,9 @@ impl Promise {
         // c. Let catchFinallyClosure be a new Abstract Closure with parameters (reason) that captures onFinally and C and performs the following steps when called:
         let catch_finally_closure = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     /// Capture object for the abstract `throwReason` closure.
                     #[derive(Debug, Trace, Finalize)]
@@ -2093,7 +2112,9 @@ impl Promise {
                     // iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
                     let throw_reason = FunctionObjectBuilder::new(
                         context.realm(),
+                        context.gc_collector(),
                         NativeFunction::from_copy_closure_with_captures(
+                            context.gc_collector(),
                             |_this, _args, captures, _context| {
                                 // 1. Return ThrowCompletion(reason).
                                 Err(JsError::from_opaque(captures.reason.clone()))
@@ -2460,17 +2481,16 @@ impl Promise {
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
         // 5. Set resolve.[[Promise]] to promise.
         // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
-        let promise = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            Cell::new(Some(promise.clone())),
-        );
+        let promise = context.alloc(Cell::new(Some(promise.clone())));
 
         // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
         // 4. Let resolve be CreateBuiltinFunction(stepsResolve, lengthResolve, "", « [[Promise]], [[AlreadyResolved]] »).
         let resolve = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // https://tc39.es/ecma262/#sec-promise-resolve-functions
 
@@ -2567,7 +2587,9 @@ impl Promise {
         // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, "", « [[Promise]], [[AlreadyResolved]] »).
         let reject = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // https://tc39.es/ecma262/#sec-promise-reject-functions
 
@@ -2779,7 +2801,7 @@ fn create_keyed_result_object(
     debug_assert_eq!(keys.len(), values.len());
 
     // 2. Let obj be OrdinaryObjectCreate(null).
-    let obj = JsObject::with_null_proto();
+    let obj = JsObject::with_null_proto(context.gc_collector());
 
     // 3. For each integer i such that 0 ≤ i < the number of elements in keys, in ascending order, do
     for (key, value) in keys.iter().zip(values.iter()) {

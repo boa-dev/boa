@@ -33,10 +33,10 @@ mod tests;
 pub(crate) struct Reflect;
 
 impl IntrinsicObject for Reflect {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let to_string_tag = JsSymbol::to_string_tag();
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_method(Self::apply, js_string!("apply"), 3)
             .static_method(Self::construct, js_string!("construct"), 2)
             .static_method(Self::define_property, js_string!("defineProperty"), 3)

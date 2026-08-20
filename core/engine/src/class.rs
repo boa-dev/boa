@@ -196,8 +196,12 @@ pub trait Class: NativeObject + Sized {
 
         let data = Self::data_constructor(new_target, args, context)?;
 
-        let object =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
+        let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            data,
+        );
 
         Self::object_constructor(&object, args, context)?;
 
@@ -228,8 +232,12 @@ pub trait Class: NativeObject + Sized {
             })?
             .prototype();
 
-        let object =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
+        let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            data,
+        );
 
         Self::object_constructor(&object, &[], context)?;
 

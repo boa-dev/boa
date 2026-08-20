@@ -339,25 +339,27 @@ impl Console {
         L: Logger + 'static,
     {
         fn console_method<L: Logger + 'static>(
+            mc: &boa_gc::MutationContext<'_, '_>,
             f: fn(&JsValue, &[JsValue], &Console, &L, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
             logger: Rc<L>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
             unsafe {
-                NativeFunction::from_closure(move |this, args, context| {
+                NativeFunction::from_closure(mc, move |this, args, context| {
                     f(this, args, &state.borrow(), &logger, context)
                 })
             }
         }
         fn console_method_mut<L: Logger + 'static>(
+            mc: &boa_gc::MutationContext<'_, '_>,
             f: fn(&JsValue, &[JsValue], &mut Console, &L, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
             logger: Rc<L>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
             unsafe {
-                NativeFunction::from_closure(move |this, args, context| {
+                NativeFunction::from_closure(mc, move |this, args, context| {
                     f(this, args, &mut state.borrow_mut(), &logger, context)
                 })
             }
@@ -366,9 +368,119 @@ impl Console {
         let state = Rc::new(RefCell::new(Self::default()));
         let logger = Rc::new(logger);
 
+        let assert_fn = console_method(
+            context.gc_collector(),
+            Self::assert,
+            state.clone(),
+            logger.clone(),
+        );
+        let clear_fn = console_method_mut(
+            context.gc_collector(),
+            Self::clear,
+            state.clone(),
+            logger.clone(),
+        );
+        let debug_fn = console_method(
+            context.gc_collector(),
+            Self::debug,
+            state.clone(),
+            logger.clone(),
+        );
+        let error_fn = console_method(
+            context.gc_collector(),
+            Self::error,
+            state.clone(),
+            logger.clone(),
+        );
+        let info_fn = console_method(
+            context.gc_collector(),
+            Self::info,
+            state.clone(),
+            logger.clone(),
+        );
+        let log_fn = console_method(
+            context.gc_collector(),
+            Self::log,
+            state.clone(),
+            logger.clone(),
+        );
+        let trace_fn = console_method(
+            context.gc_collector(),
+            Self::trace,
+            state.clone(),
+            logger.clone(),
+        );
+        let warn_fn = console_method(
+            context.gc_collector(),
+            Self::warn,
+            state.clone(),
+            logger.clone(),
+        );
+        let count_fn = console_method_mut(
+            context.gc_collector(),
+            Self::count,
+            state.clone(),
+            logger.clone(),
+        );
+        let count_reset_fn = console_method_mut(
+            context.gc_collector(),
+            Self::count_reset,
+            state.clone(),
+            logger.clone(),
+        );
+        let group_fn = console_method_mut(
+            context.gc_collector(),
+            Self::group,
+            state.clone(),
+            logger.clone(),
+        );
+        let group_collapsed_fn = console_method_mut(
+            context.gc_collector(),
+            Self::group_collapsed,
+            state.clone(),
+            logger.clone(),
+        );
+        let group_end_fn = console_method_mut(
+            context.gc_collector(),
+            Self::group_end,
+            state.clone(),
+            logger.clone(),
+        );
+        let time_fn = console_method_mut(
+            context.gc_collector(),
+            Self::time,
+            state.clone(),
+            logger.clone(),
+        );
+        let time_log_fn = console_method(
+            context.gc_collector(),
+            Self::time_log,
+            state.clone(),
+            logger.clone(),
+        );
+        let time_end_fn = console_method_mut(
+            context.gc_collector(),
+            Self::time_end,
+            state.clone(),
+            logger.clone(),
+        );
+        let dir_fn = console_method(
+            context.gc_collector(),
+            Self::dir,
+            state.clone(),
+            logger.clone(),
+        );
+        let dirxml_fn = console_method(
+            context.gc_collector(),
+            Self::dir,
+            state.clone(),
+            logger.clone(),
+        );
+        let table_fn = console_method(context.gc_collector(), Self::table, state, logger.clone());
+
         ObjectInitializer::with_native_data_and_proto(
             Self::default(),
-            JsObject::with_object_proto(context.realm().intrinsics()),
+            JsObject::with_object_proto(context.gc_collector(), context.realm().intrinsics()),
             context,
         )
         .property(
@@ -376,101 +488,25 @@ impl Console {
             Self::NAME,
             Attribute::CONFIGURABLE,
         )
-        .function(
-            console_method(Self::assert, state.clone(), logger.clone()),
-            js_string!("assert"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::clear, state.clone(), logger.clone()),
-            js_string!("clear"),
-            0,
-        )
-        .function(
-            console_method(Self::debug, state.clone(), logger.clone()),
-            js_string!("debug"),
-            0,
-        )
-        .function(
-            console_method(Self::error, state.clone(), logger.clone()),
-            js_string!("error"),
-            0,
-        )
-        .function(
-            console_method(Self::info, state.clone(), logger.clone()),
-            js_string!("info"),
-            0,
-        )
-        .function(
-            console_method(Self::log, state.clone(), logger.clone()),
-            js_string!("log"),
-            0,
-        )
-        .function(
-            console_method(Self::trace, state.clone(), logger.clone()),
-            js_string!("trace"),
-            0,
-        )
-        .function(
-            console_method(Self::warn, state.clone(), logger.clone()),
-            js_string!("warn"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::count, state.clone(), logger.clone()),
-            js_string!("count"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::count_reset, state.clone(), logger.clone()),
-            js_string!("countReset"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::group, state.clone(), logger.clone()),
-            js_string!("group"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::group_collapsed, state.clone(), logger.clone()),
-            js_string!("groupCollapsed"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::group_end, state.clone(), logger.clone()),
-            js_string!("groupEnd"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::time, state.clone(), logger.clone()),
-            js_string!("time"),
-            0,
-        )
-        .function(
-            console_method(Self::time_log, state.clone(), logger.clone()),
-            js_string!("timeLog"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::time_end, state.clone(), logger.clone()),
-            js_string!("timeEnd"),
-            0,
-        )
-        .function(
-            console_method(Self::dir, state.clone(), logger.clone()),
-            js_string!("dir"),
-            0,
-        )
-        .function(
-            console_method(Self::dir, state.clone(), logger.clone()),
-            js_string!("dirxml"),
-            0,
-        )
-        .function(
-            console_method(Self::table, state, logger.clone()),
-            js_string!("table"),
-            0,
-        )
+        .function(assert_fn, js_string!("assert"), 0)
+        .function(clear_fn, js_string!("clear"), 0)
+        .function(debug_fn, js_string!("debug"), 0)
+        .function(error_fn, js_string!("error"), 0)
+        .function(info_fn, js_string!("info"), 0)
+        .function(log_fn, js_string!("log"), 0)
+        .function(trace_fn, js_string!("trace"), 0)
+        .function(warn_fn, js_string!("warn"), 0)
+        .function(count_fn, js_string!("count"), 0)
+        .function(count_reset_fn, js_string!("countReset"), 0)
+        .function(group_fn, js_string!("group"), 0)
+        .function(group_collapsed_fn, js_string!("groupCollapsed"), 0)
+        .function(group_end_fn, js_string!("groupEnd"), 0)
+        .function(time_fn, js_string!("time"), 0)
+        .function(time_log_fn, js_string!("timeLog"), 0)
+        .function(time_end_fn, js_string!("timeEnd"), 0)
+        .function(dir_fn, js_string!("dir"), 0)
+        .function(dirxml_fn, js_string!("dirxml"), 0)
+        .function(table_fn, js_string!("table"), 0)
         .build()
     }
 

@@ -103,36 +103,45 @@ impl Shape {
         None
     }
 
-    /// Create an insert property transitions returning the new transitioned [`Shape`].
+    /// Create an insert property transitions returning the new transitioned [`Shape`] using the given context.
     ///
     /// NOTE: This assumes that there is no property with the given key!
-    pub(crate) fn insert_property_transition(&self, key: TransitionKey) -> Self {
+    pub(crate) fn insert_property_transition(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: TransitionKey,
+    ) -> Self {
         match &self.inner {
             Inner::Shared(shape) => {
-                let shape = shape.insert_property_transition(key);
+                let shape = shape.insert_property_transition(mc, key);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                    return shape.to_unique().into();
+                    return shape.to_unique(mc).into();
                 }
                 shape.into()
             }
-            Inner::Unique(shape) => shape.insert_property_transition(key).into(),
+            Inner::Unique(shape) => shape.insert_property_transition(key).into(), // UniqueShape insert doesn't allocate new GC
         }
     }
 
+    /// Create an insert property transitions returning the new transitioned [`Shape`].
+    ///
+    /// NOTE: This assumes that there is no property with the given key!
+
     /// Create a change attribute property transitions returning [`ChangeTransition`] containing the new [`Shape`]
-    /// and actions to be performed
+    /// and actions to be performed, using the given context.
     ///
     /// NOTE: This assumes that there already is a property with the given key!
     pub(crate) fn change_attributes_transition(
         &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
         key: TransitionKey,
     ) -> ChangeTransition<Self> {
         match &self.inner {
             Inner::Shared(shape) => {
-                let change_transition = shape.change_attributes_transition(key);
+                let change_transition = shape.change_attributes_transition(mc, key);
                 let shape =
                     if change_transition.shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                        change_transition.shape.to_unique().into()
+                        change_transition.shape.to_unique(mc).into()
                     } else {
                         change_transition.shape.into()
                     };
@@ -141,39 +150,58 @@ impl Shape {
                     action: change_transition.action,
                 }
             }
-            Inner::Unique(shape) => shape.change_attributes_transition(&key),
+            Inner::Unique(shape) => shape.change_attributes_transition(mc, &key),
         }
     }
 
-    /// Remove a property property from the [`Shape`] returning the new transitioned [`Shape`].
+    /// Create a change attribute property transitions returning [`ChangeTransition`] containing the new [`Shape`]
+    /// and actions to be performed
     ///
     /// NOTE: This assumes that there already is a property with the given key!
-    pub(crate) fn remove_property_transition(&self, key: &PropertyKey) -> Self {
+
+    /// Remove a property from the [`Shape`] returning the new transitioned [`Shape`] using the given context.
+    ///
+    /// NOTE: This assumes that there already is a property with the given key!
+    pub(crate) fn remove_property_transition(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: &PropertyKey,
+    ) -> Self {
         match &self.inner {
             Inner::Shared(shape) => {
-                let shape = shape.remove_property_transition(key);
+                let shape = shape.remove_property_transition(mc, key);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                    return shape.to_unique().into();
+                    return shape.to_unique(mc).into();
                 }
                 shape.into()
             }
-            Inner::Unique(shape) => shape.remove_property_transition(key).into(),
+            Inner::Unique(shape) => shape.remove_property_transition(mc, key).into(),
         }
     }
 
-    /// Create a prototype transitions returning the new transitioned [`Shape`].
-    pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
+    /// Remove a property from the [`Shape`] returning the new transitioned [`Shape`].
+    ///
+    /// NOTE: This assumes that there already is a property with the given key!
+
+    /// Create a prototype transition returning the new transitioned [`Shape`] using the given context.
+    pub(crate) fn change_prototype_transition(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsPrototype,
+    ) -> Self {
         match &self.inner {
             Inner::Shared(shape) => {
-                let shape = shape.change_prototype_transition(prototype);
+                let shape = shape.change_prototype_transition(mc, prototype);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
-                    return shape.to_unique().into();
+                    return shape.to_unique(mc).into();
                 }
                 shape.into()
             }
-            Inner::Unique(shape) => shape.change_prototype_transition(prototype).into(),
+            Inner::Unique(shape) => shape.change_prototype_transition(mc, prototype).into(),
         }
     }
+
+    /// Create a prototype transition returning the new transitioned [`Shape`].
 
     /// Get the [`JsPrototype`] of the [`Shape`].
     #[must_use]
@@ -244,7 +272,7 @@ impl WeakShape {
     #[inline]
     #[must_use]
     pub(crate) fn to_addr_usize(&self) -> usize {
-        self.upgrade().as_ref().map_or(0, Shape::to_addr_usize)
+        0 // Cannot get address of WeakShape without upgrading it, which requires MutationContext
     }
 
     /// Return location in memory of the [`Shape`].
@@ -252,19 +280,19 @@ impl WeakShape {
     /// Returns `0` if the shape has been freed.
     #[inline]
     #[must_use]
-    pub(crate) fn upgrade(&self) -> Option<Shape> {
+    pub(crate) fn upgrade(&self, mc: &boa_gc::MutationContext<'static, '_>) -> Option<Shape> {
         match self {
-            WeakShape::Shared(shape) => Some(shape.upgrade()?.into()),
-            WeakShape::Unique(shape) => Some(shape.upgrade()?.into()),
+            WeakShape::Shared(shape) => Some(shape.upgrade(mc)?.into()),
+            WeakShape::Unique(shape) => Some(shape.upgrade(mc)?.into()),
         }
     }
 }
 
-impl From<&Shape> for WeakShape {
-    fn from(value: &Shape) -> Self {
+impl WeakShape {
+    pub(crate) fn new(mc: &boa_gc::MutationContext<'static, '_>, value: &Shape) -> Self {
         match &value.inner {
-            Inner::Shared(shape) => WeakShape::Shared(shape.into()),
-            Inner::Unique(shape) => WeakShape::Unique(shape.into()),
+            Inner::Shared(shape) => WeakShape::Shared(WeakSharedShape::new(mc, shape)),
+            Inner::Unique(shape) => WeakShape::Unique(WeakUniqueShape::new(mc, shape)),
         }
     }
 }

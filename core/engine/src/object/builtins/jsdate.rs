@@ -45,9 +45,13 @@ impl JsDate {
     pub fn new(context: &mut Context) -> Self {
         let prototype = context.intrinsics().constructors().date().prototype();
         let now = Date::utc_now(context);
-        let inner =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, now)
-                .upcast();
+        let inner = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            now,
+        )
+        .upcast();
 
         Self { inner }
     }
@@ -552,6 +556,7 @@ impl JsDate {
 
         Ok(Self {
             inner: JsObject::from_proto_and_data_with_shared_shape(
+                context.gc_collector(),
                 context.root_shape(),
                 prototype,
                 date_time,

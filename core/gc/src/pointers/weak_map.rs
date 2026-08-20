@@ -55,6 +55,19 @@ impl<K: Trace + ?Sized + 'static, V: Trace + 'static> WeakMap<K, V> {
     pub fn get<'a>(&'a self, key: &Gc<'_, K>) -> Option<GcRef<'a, Ephemeron<K, V>>> {
         GcRef::try_map(self.inner.borrow(), |inner| inner.get(key))
     }
+
+    /// Returns a cloned value from the ephemeron if it exists and has not been collected.
+    #[must_use]
+    #[inline]
+    pub fn get_value(&self, key: &Gc<'_, K>) -> Option<V>
+    where
+        V: Clone,
+    {
+        let ephemeron = self.get(key)?;
+        ephemeron
+            .value(&unsafe { crate::MutationContext::dummy() })
+            .map(|v| v.clone())
+    }
 }
 
 /// A hash map where the bucket type is an <code>[Ephemeron]\<K, V\></code>.

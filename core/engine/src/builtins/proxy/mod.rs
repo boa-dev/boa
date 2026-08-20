@@ -87,8 +87,8 @@ impl JsData for Proxy {
 }
 
 impl IntrinsicObject for Proxy {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(Self::revocable, js_string!("revocable"), 2)
             .build_without_prototype();
     }
@@ -181,6 +181,7 @@ impl Proxy {
         // 6. Set P.[[ProxyTarget]] to target.
         // 7. Set P.[[ProxyHandler]] to handler.
         let p = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             Self::new(target.clone(), handler.clone()),
@@ -196,6 +197,7 @@ impl Proxy {
         // 4. Set revoker.[[RevocableProxy]] to p.
 
         NativeFunction::from_copy_closure_with_captures(
+            context.gc_collector(),
             |_, _, revocable_proxy, _| {
                 // a. Let F be the active function object.
                 // b. Let p be F.[[RevocableProxy]].
@@ -215,7 +217,7 @@ impl Proxy {
             },
             GcRefCell::new(Some(proxy)),
         )
-        .to_js_function(context.realm())
+        .to_js_function(context.realm(), context.gc_collector())
     }
 
     /// `28.2.2.1 Proxy.revocable ( target, handler )`
@@ -232,7 +234,7 @@ impl Proxy {
         let revoker = Self::revoker(p.clone(), context);
 
         // 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
-        let result = JsObject::with_object_proto(context.intrinsics());
+        let result = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
 
         // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         result
@@ -546,6 +548,7 @@ pub(crate) fn proxy_exotic_get_own_property(
         extensible_target,
         result_desc.clone(),
         target_desc.clone(),
+        context.gc_collector(),
     ) {
         return Err(JsNativeError::typ()
             .with_message("Proxy trap returned unexpected property")
@@ -661,6 +664,7 @@ pub(crate) fn proxy_exotic_define_own_property(
                 extensible_target,
                 desc.clone(),
                 Some(target_desc.clone()),
+                context.gc_collector(),
             ) {
                 return Err(JsNativeError::typ()
                     .with_message("Proxy trap set property to unexpected value")

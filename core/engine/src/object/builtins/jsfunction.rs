@@ -122,14 +122,14 @@ impl JsFunction {
         Self { inner: object }
     }
 
-    /// Creates a new, empty intrinsic function object with only its function internal methods set.
-    ///
-    /// Mainly used to initialize objects before a [`Context`] is available to do so.
-    ///
-    /// [`Context`]: crate::Context
-    pub(crate) fn empty_intrinsic_function(constructor: bool) -> Self {
+    /// Creates a new, empty intrinsic function object with only its function internal methods set, using the given context.
+    pub(crate) fn empty_intrinsic_function_in(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        constructor: bool,
+    ) -> Self {
         Self {
             inner: JsObject::from_proto_and_data(
+                mc,
                 None,
                 NativeFunctionObject {
                     f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),

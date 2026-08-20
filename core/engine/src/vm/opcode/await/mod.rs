@@ -56,16 +56,15 @@ impl Await {
 
         let r#gen = GeneratorContext::from_current(context, None);
 
-        let captures = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            Cell::new(Some(r#gen)),
-        );
+        let captures = context.alloc(Cell::new(Some(r#gen)));
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
@@ -104,7 +103,9 @@ impl Await {
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
         let on_rejected = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
@@ -132,7 +133,7 @@ impl Await {
 
                     Ok(JsValue::undefined())
                 },
-                captures,
+                captures.clone(),
             ),
         )
         .name(js_string!())

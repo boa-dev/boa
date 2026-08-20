@@ -47,10 +47,10 @@ const BUF_SIZE: usize = 2200;
 pub(crate) struct Number;
 
 impl IntrinsicObject for Number {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_property(js_string!("EPSILON"), f64::EPSILON, attribute)
             .static_property(
                 js_string!("MAX_SAFE_INTEGER"),
@@ -126,8 +126,12 @@ impl BuiltInConstructor for Number {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::number, context)?;
-        let this =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
+        let this = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            data,
+        );
         Ok(this.into())
     }
 }

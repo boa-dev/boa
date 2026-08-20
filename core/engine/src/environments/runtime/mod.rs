@@ -1,3 +1,5 @@
+#![allow(clippy::trivially_copy_pass_by_ref)]
+#![allow(clippy::needless_pass_by_value)]
 use crate::{
     Context, JsResult, JsString, JsSymbol, JsValue,
     object::{JsObject, PrivateName},
@@ -205,8 +207,12 @@ impl EnvironmentStack {
     }
 
     /// Push a new object environment on the environments stack.
-    pub(crate) fn push_object(&mut self, object: JsObject) {
-        self.push_env(Environment::Object(object));
+    pub(crate) fn push_object(
+        &mut self,
+        object: JsObject,
+        mc: &boa_gc::MutationContext<'static, '_>,
+    ) {
+        self.push_env(Environment::Object(object), mc);
     }
 
     /// Push a lexical environment on the environments stack and return it's index.
@@ -214,19 +220,23 @@ impl EnvironmentStack {
         &mut self,
         bindings_count: u32,
         global: &Gc<'static, DeclarativeEnvironment>,
+        gc: &boa_gc::MutationContext<'static, '_>,
     ) -> u32 {
         let (poisoned, with) = self.compute_poisoned_with(global);
 
         let index = self.depth;
 
-        self.push_env(Environment::Declarative(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            DeclarativeEnvironment::new(
-                DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(bindings_count)),
-                poisoned,
-                with,
-            ),
-        )));
+        self.push_env(
+            Environment::Declarative(boa_gc::allocate_rooted(
+                &gc,
+                DeclarativeEnvironment::new(
+                    DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(bindings_count)),
+                    poisoned,
+                    with,
+                ),
+            )),
+            gc,
+        );
 
         index
     }
@@ -237,36 +247,43 @@ impl EnvironmentStack {
         scope: Scope,
         function_slots: FunctionSlots,
         global: &Gc<'static, DeclarativeEnvironment>,
+        gc: &boa_gc::MutationContext<'static, '_>,
     ) {
         let num_bindings = scope.num_bindings_non_local();
 
         let (poisoned, with) = self.compute_poisoned_with(global);
 
-        self.push_env(Environment::Declarative(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            DeclarativeEnvironment::new(
-                DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
-                    num_bindings,
-                    function_slots,
-                    scope,
-                )),
-                poisoned,
-                with,
-            ),
-        )));
+        self.push_env(
+            Environment::Declarative(boa_gc::allocate_rooted(
+                gc,
+                DeclarativeEnvironment::new(
+                    DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
+                        num_bindings,
+                        function_slots,
+                        scope,
+                    )),
+                    poisoned,
+                    with,
+                ),
+            )),
+            gc,
+        );
     }
 
     /// Push a module environment on the environments stack.
-    pub(crate) fn push_module(&mut self, scope: Scope) {
+    pub(crate) fn push_module(&mut self, scope: Scope, gc: &boa_gc::MutationContext<'static, '_>) {
         let num_bindings = scope.num_bindings_non_local();
-        self.push_env(Environment::Declarative(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            DeclarativeEnvironment::new(
-                DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings, scope)),
-                false,
-                false,
-            ),
-        )));
+        self.push_env(
+            Environment::Declarative(boa_gc::allocate_rooted(
+                gc,
+                DeclarativeEnvironment::new(
+                    DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings, scope)),
+                    false,
+                    false,
+                ),
+            )),
+            gc,
+        );
     }
 
     /// Pop environment from the environments stack.
@@ -412,9 +429,9 @@ impl EnvironmentStack {
     // ---- Private helpers ----
 
     /// Push an environment onto the chain.
-    fn push_env(&mut self, env: Environment) {
-        self.tip = Some(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+    fn push_env(&mut self, env: Environment, mc: &boa_gc::MutationContext<'static, '_>) {
+        self.tip = Some(boa_gc::allocate_rooted(
+            mc,
             EnvironmentNode {
                 env,
                 parent: self.tip.take(),

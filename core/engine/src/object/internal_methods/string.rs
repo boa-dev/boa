@@ -68,6 +68,7 @@ pub(crate) fn string_exotic_define_own_property(
             extensible,
             desc,
             Some(string_desc),
+            context.gc_collector(),
         ))
     } else {
         // 4. Return ! OrdinaryDefineOwnProperty(S, P, Desc).

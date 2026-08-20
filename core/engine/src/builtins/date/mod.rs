@@ -83,18 +83,18 @@ impl Date {
 }
 
 impl IntrinsicObject for Date {
-    fn init(realm: &Realm) {
-        let to_utc_string = BuiltInBuilder::callable(realm, Self::to_utc_string)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let to_utc_string = BuiltInBuilder::callable(realm, Self::to_utc_string, mc)
             .name(js_string!("toUTCString"))
             .length(0)
             .build();
 
-        let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
+        let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive, mc)
             .name(js_string!("[Symbol.toPrimitive]"))
             .length(1)
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(Self::now, js_string!("now"), 0)
             .static_method(Self::parse, js_string!("parse"), 1)
             .static_method(Self::utc, js_string!("UTC"), 7)
@@ -335,8 +335,12 @@ impl BuiltInConstructor for Date {
             get_prototype_from_constructor(new_target, StandardConstructors::date, context)?;
 
         // 7. Set O.[[DateValue]] to dv.
-        let obj =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, dv);
+        let obj = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            prototype,
+            dv,
+        );
 
         // 8. Return O.
         Ok(obj.into())

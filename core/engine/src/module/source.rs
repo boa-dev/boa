@@ -1477,7 +1477,9 @@ impl SourceTextModule {
         // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_, _, module, context| {
                     //     a. Perform AsyncModuleExecutionFulfilled(module).
                     async_module_execution_fulfilled(module, context)?;
@@ -1493,7 +1495,9 @@ impl SourceTextModule {
         // 7. Let onRejected be CreateBuiltinFunction(rejectedClosure, 0, "", « »).
         let on_rejected = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());
                     // a. Perform AsyncModuleExecutionRejected(module, error).
@@ -1645,6 +1649,7 @@ impl SourceTextModule {
         let env = source.scope().clone();
 
         let spanned_source_text = SpannedSourceText::new_source_only(source_text.clone());
+        let mc = context.gc_collector();
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1654,6 +1659,7 @@ impl SourceTextModule {
             self.code.has_tla,
             false,
             context.interner_mut(),
+            &mc,
             false,
             spanned_source_text,
             self.code.path.clone().into(),
@@ -1824,17 +1830,17 @@ impl SourceTextModule {
             compiler.compile_module_item_list(source.items());
 
             (
-                Gc::new(
-                    &unsafe { boa_gc::MutationContext::dummy() },
-                    compiler.finish(),
-                ),
+                {
+                    let finished = compiler.finish();
+                    context.alloc(finished)
+                },
                 functions,
             )
         };
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new();
-        envs.push_module(source.scope().clone());
+        envs.push_module(source.scope().clone(), unsafe { context.gc_collector() });
         drop(status);
 
         // 9. Set the Function of moduleContext to null.

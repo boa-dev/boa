@@ -47,12 +47,12 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 
-    fn init(realm: &Realm) {
-        let get_species = BuiltInBuilder::callable(realm, BuiltinTypedArray::get_species)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_species = BuiltInBuilder::callable(realm, BuiltinTypedArray::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .prototype(
                 realm
                     .intrinsics()

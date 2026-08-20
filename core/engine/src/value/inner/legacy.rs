@@ -33,8 +33,12 @@ impl Finalize for EnumBasedValue {
 #[allow(unsafe_op_in_unsafe_fn)]
 unsafe impl Trace for EnumBasedValue {
     custom_trace! {this, mark, {
-        if let Some(o) = this.as_object() {
-            mark(&o);
+        match this {
+            Self::Object(o) => mark(o),
+            Self::Symbol(s) => mark(s),
+            Self::String(s) => mark(s),
+            Self::BigInt(b) => mark(b),
+            _ => {}
         }
     }}
 }

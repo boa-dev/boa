@@ -34,11 +34,15 @@ pub(crate) struct UniqueShape {
 }
 
 impl UniqueShape {
-    /// Create a new [`UniqueShape`].
-    pub(crate) fn new(prototype: JsPrototype, property_table: PropertyTableInner) -> Self {
+    /// Create a new [`UniqueShape`] using the given context.
+    pub(crate) fn new(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsPrototype,
+        property_table: PropertyTableInner,
+    ) -> Self {
         Self {
-            inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+            inner: boa_gc::allocate_rooted(
+                mc,
                 Inner {
                     property_table: RefCell::new(property_table),
                     prototype: GcRefCell::new(prototype),
@@ -46,6 +50,8 @@ impl UniqueShape {
             ),
         }
     }
+
+    /// Create a new [`UniqueShape`].
 
     pub(crate) fn override_internal(
         &self,
@@ -58,7 +64,10 @@ impl UniqueShape {
 
     /// Get the prototype of the [`UniqueShape`].
     pub(crate) fn prototype(&self) -> JsPrototype {
-        self.inner.prototype.borrow().clone()
+        // Under `oscars_backend`, `GcRefCell::borrow()` returns `GcRef<'_, Option<JsObject>>`.
+        // Deref through the guard before cloning to get the inner `Option<JsObject>` value.
+        // This is what the `JsPrototype` return type requires.
+        (*self.inner.prototype.borrow()).clone()
     }
 
     /// Get the property table of the [`UniqueShape`].
@@ -76,7 +85,11 @@ impl UniqueShape {
     /// Remove a property from the [`UniqueShape`].
     ///
     /// This will cause the current shape to be invalidated, and a new [`UniqueShape`] will be returned.
-    pub(crate) fn remove_property_transition(&self, key: &PropertyKey) -> Self {
+    pub(crate) fn remove_property_transition(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: &PropertyKey,
+    ) -> Self {
         let mut property_table = self.property_table().borrow_mut();
         let Some((index, _attributes)) = property_table.map.remove(key) else {
             return self.clone();
@@ -116,7 +129,7 @@ impl UniqueShape {
         }
 
         let prototype = self.inner.prototype.borrow_mut().take();
-        Self::new(prototype, property_table)
+        Self::new(mc, prototype, property_table)
     }
 
     /// Does a property lookup on the [`UniqueShape`] returning the [`Slot`] where it's
@@ -137,6 +150,7 @@ impl UniqueShape {
     /// NOTE: This assumes that the property had already been inserted.
     pub(crate) fn change_attributes_transition(
         &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
         key: &TransitionKey,
     ) -> ChangeTransition<Shape> {
         let mut property_table = self.property_table().borrow_mut();
@@ -211,7 +225,7 @@ impl UniqueShape {
         }
 
         let prototype = self.inner.prototype.borrow_mut().take();
-        let shape = Self::new(prototype, property_table);
+        let shape = Self::new(mc, prototype, property_table);
 
         ChangeTransition {
             shape: shape.into(),
@@ -222,13 +236,17 @@ impl UniqueShape {
     /// Change the prototype of the [`UniqueShape`].
     ///
     /// This will cause the current shape to be invalidated, and a new [`UniqueShape`] will be returned.
-    pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
+    pub(crate) fn change_prototype_transition(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsPrototype,
+    ) -> Self {
         let mut property_table = self.inner.property_table.borrow_mut();
 
         // We need to create a new unique shape,
         // to invalidate any pointers to this shape i.e inline caches.
         let property_table = std::mem::take(&mut *property_table);
-        Self::new(prototype, property_table)
+        Self::new(mc, prototype, property_table)
     }
 
     /// Gets all keys first strings then symbols in creation order.
@@ -251,22 +269,25 @@ pub(crate) struct WeakUniqueShape {
 
 impl WeakUniqueShape {
     /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
-    /// or [`None`] if the value was already garbage collected.
+    /// or [`None`] if the value was already garbage collected, using the given context.
     #[inline]
     #[must_use]
-    pub(crate) fn upgrade(&self) -> Option<UniqueShape> {
+    pub(crate) fn upgrade(&self, mc: &boa_gc::MutationContext<'static, '_>) -> Option<UniqueShape> {
         Some(UniqueShape {
-            inner: self
-                .inner
-                .upgrade(&unsafe { boa_gc::MutationContext::dummy() })?,
+            inner: self.inner.upgrade(mc)?,
         })
     }
-}
 
-impl From<&UniqueShape> for WeakUniqueShape {
-    fn from(value: &UniqueShape) -> Self {
+    /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
+    /// or [`None`] if the value was already garbage collected.
+
+    #[allow(dead_code)]
+    pub(crate) fn is_upgradable(&self) -> bool {
+        self.inner.is_upgradable()
+    }
+    pub(crate) fn new(mc: &boa_gc::MutationContext<'static, '_>, value: &UniqueShape) -> Self {
         WeakUniqueShape {
-            inner: WeakGc::new(&unsafe { boa_gc::MutationContext::dummy() }, &value.inner),
+            inner: WeakGc::new(mc, &value.inner),
         }
     }
 }

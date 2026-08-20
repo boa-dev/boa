@@ -65,22 +65,26 @@ impl std::fmt::Debug for SyntheticModuleInitializer {
 
 impl SyntheticModuleInitializer {
     /// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure.
-    pub fn from_copy_closure<F>(closure: F) -> Self
+    pub fn from_copy_closure<F>(mc: &boa_gc::MutationContext<'_, '_>, closure: F) -> Self
     where
         F: Fn(&SyntheticModule, &mut Context) -> JsResult<()> + Copy + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
-        unsafe { Self::from_closure(closure) }
+        unsafe { Self::from_closure(mc, closure) }
     }
 
     /// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure and a list of traceable captures.
-    pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub fn from_copy_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
-        unsafe { Self::from_closure_with_captures(closure, captures) }
+        unsafe { Self::from_closure_with_captures(mc, closure, captures) }
     }
 
     /// Creates a new `SyntheticModuleInitializer` from a closure.
@@ -91,13 +95,14 @@ impl SyntheticModuleInitializer {
     /// collector could cause an use after free, memory corruption or other kinds of **Undefined
     /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
     /// on why that is the case.
-    pub unsafe fn from_closure<F>(closure: F) -> Self
+    pub unsafe fn from_closure<F>(mc: &boa_gc::MutationContext<'_, '_>, closure: F) -> Self
     where
         F: Fn(&SyntheticModule, &mut Context) -> JsResult<()> + 'static,
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
             Self::from_closure_with_captures(
+                mc,
                 move |module, (), context| closure(module, context),
                 (),
             )
@@ -112,15 +117,19 @@ impl SyntheticModuleInitializer {
     /// collector could cause an use after free, memory corruption or other kinds of **Undefined
     /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
     /// on why that is the case.
-    pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub unsafe fn from_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
-        let ptr = Gc::into_raw(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+        let ptr = Gc::into_raw(boa_gc::allocate_rooted(
+            mc,
             Callback {
                 f: closure,
                 captures,
@@ -131,7 +140,7 @@ impl SyntheticModuleInitializer {
         // meaning this is safe.
         unsafe {
             Self {
-                inner: Gc::from_raw(ptr),
+                inner: <Gc<'static, dyn TraceableCallback>>::from_raw(ptr),
             }
         }
     }
@@ -311,6 +320,7 @@ impl SyntheticModule {
 
         // TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
+        let mc = context.gc_collector();
         let compiler = ByteCompiler::new(
             js_string!("<synthetic>"),
             true,
@@ -320,6 +330,7 @@ impl SyntheticModule {
             false,
             false,
             context.interner_mut(),
+            &mc,
             false,
             // A synthetic module does not contain `SourceText`
             SpannedSourceText::new_empty(),
@@ -338,13 +349,11 @@ impl SyntheticModule {
 
         module_scope.escape_all_bindings();
 
-        let cb = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            compiler.finish(),
-        );
+        let finished = compiler.finish();
+        let cb = context.alloc(finished);
 
         let mut envs = EnvironmentStack::new();
-        envs.push_module(module_scope);
+        envs.push_module(module_scope, context.gc_collector());
 
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).

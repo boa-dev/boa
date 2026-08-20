@@ -5,7 +5,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true }
+boa_engine = { workspace = true, features = ["oscars_backend"] }
 
 [dev-dependencies]
 insta = { version = "1.47.2", features = ["filters", "glob"] }

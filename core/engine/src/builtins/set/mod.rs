@@ -123,20 +123,20 @@ impl IntrinsicObject for Set {
     fn get(intrinsics: &Intrinsics) -> JsObject {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
-    fn init(realm: &Realm) {
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        let size_getter = BuiltInBuilder::callable(realm, Self::size_getter)
+        let size_getter = BuiltInBuilder::callable(realm, Self::size_getter, mc)
             .name(js_string!("get size"))
             .build();
 
-        let values_function = BuiltInBuilder::callable(realm, Self::values)
+        let values_function = BuiltInBuilder::callable(realm, Self::values, mc)
             .name(js_string!("values"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -221,6 +221,7 @@ impl BuiltInConstructor for Set {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::set, context)?;
         let set = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             OrderedSet::default(),
@@ -841,6 +842,7 @@ impl Set {
         //     9. Set result.[[SetData]] to resultSetData.
         //     10. Return result.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
             result_set,
@@ -897,6 +899,7 @@ impl Set {
         // 9. Set result.[[SetData]] to resultSetData.
         // 10. Return result.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
             result_set,
@@ -996,6 +999,7 @@ impl Set {
         // 8. Set result.[[SetData]] to resultSetData.
         // 9. Return result.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
             result_set,
@@ -1093,6 +1097,7 @@ impl Set {
         // 8. Set result.[[SetData]] to resultSetData.
         // 9. Return result.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
             result_set,

@@ -153,6 +153,7 @@ pub(super) fn coerce_options_to_object(
     if options.is_undefined() {
         // a. Return OrdinaryObjectCreate(null).
         return Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             None,
             OrdinaryObject,

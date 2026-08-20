@@ -44,6 +44,11 @@ impl<'ctx> InternalMethodPropertyContext<'ctx> {
     pub(crate) fn slot(&mut self) -> &mut Slot {
         &mut self.slot
     }
+
+    #[inline]
+    pub(crate) fn slot_and_mc(&mut self) -> (&mut Slot, &boa_gc::MutationContext<'static, '_>) {
+        (&mut self.slot, self.context.gc_collector())
+    }
 }
 
 impl Deref for InternalMethodPropertyContext<'_> {
@@ -532,8 +537,9 @@ pub(crate) fn ordinary_get_prototype_of(
 pub(crate) fn ordinary_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
-    _: &mut Context,
+    context: &mut Context,
 ) -> JsResult<bool> {
+    let mc = context.gc_collector();
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let current be O.[[Prototype]].
     let current = obj.prototype();
@@ -573,7 +579,7 @@ pub(crate) fn ordinary_set_prototype_of(
     }
 
     // 9. Set O.[[Prototype]] to V.
-    obj.set_prototype(val);
+    obj.set_prototype(mc, val);
 
     // 10. Return true.
     Ok(true)
@@ -657,12 +663,14 @@ pub(crate) fn ordinary_define_own_property(
     let extensible = obj.__is_extensible__(context)?;
 
     // 3. Return ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current).
+    let (slot, mc) = context.slot_and_mc();
     Ok(validate_and_apply_property_descriptor(
         Some((obj, key)),
         extensible,
         desc,
         current,
-        context.slot(),
+        slot,
+        mc,
     ))
 }
 
@@ -945,7 +953,7 @@ pub(crate) fn ordinary_delete(
             // 4. If desc.[[Configurable]] is true, then
             Some(desc) if desc.expect_configurable() => {
                 // a. Remove the own property with name P from O.
-                obj.borrow_mut().remove(key);
+                obj.borrow_mut().remove(context.gc_collector(), key);
                 // b. Return true.
                 true
             }
@@ -1002,9 +1010,11 @@ pub(crate) fn is_compatible_property_descriptor(
     extensible: bool,
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
+    mc: &boa_gc::MutationContext<'_, '_>,
 ) -> bool {
     // 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
-    validate_and_apply_property_descriptor(None, extensible, desc, current, &mut Slot::new())
+    let mut dummy_slot = Slot::new();
+    validate_and_apply_property_descriptor(None, extensible, desc, current, &mut dummy_slot, mc)
 }
 
 /// Abstract operation `ValidateAndApplyPropertyDescriptor`
@@ -1019,6 +1029,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
     slot: &mut Slot,
+    mc: &boa_gc::MutationContext<'static, '_>,
 ) -> bool {
     // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
@@ -1033,6 +1044,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
 
         if let Some((obj, key)) = obj_and_key {
             obj.borrow_mut().properties.insert_with_slot(
+                mc,
                 key,
                 // c. If IsGenericDescriptor(Desc) is true or IsDataDescriptor(Desc) is true, then
                 if desc.is_generic_descriptor() || desc.is_data_descriptor() {
@@ -1153,7 +1165,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
         current.fill_with(desc);
         obj.borrow_mut()
             .properties
-            .insert_with_slot(key, current, slot);
+            .insert_with_slot(mc, key, current, slot);
         slot.attributes |= SlotAttributes::FOUND;
     }
 

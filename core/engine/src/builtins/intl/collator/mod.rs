@@ -69,12 +69,12 @@ impl Service for Collator {
 }
 
 impl IntrinsicObject for Collator {
-    fn init(realm: &Realm) {
-        let compare = BuiltInBuilder::callable(realm, Self::compare)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let compare = BuiltInBuilder::callable(realm, Self::compare, mc)
             .name(js_string!("get compare"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),
@@ -274,6 +274,7 @@ impl BuiltInConstructor for Collator {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::collator, context)?;
         let collator = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             Self {
@@ -354,9 +355,11 @@ impl Collator {
         } else {
             let bound_compare = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 // 10.3.3.1. Collator Compare Functions
                 // https://tc39.es/ecma402/#sec-collator-compare-functions
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, collator, context| {
                         // 1. Let collator be F.[[Collator]].
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
@@ -423,11 +426,11 @@ impl Collator {
             })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
-        let options = context
-            .intrinsics()
-            .templates()
-            .ordinary_object()
-            .create(OrdinaryObject, vec![]);
+        let options = context.intrinsics().templates().ordinary_object().create(
+            context.gc_collector(),
+            OrdinaryObject,
+            vec![],
+        );
 
         // 4. For each row of Table 4, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

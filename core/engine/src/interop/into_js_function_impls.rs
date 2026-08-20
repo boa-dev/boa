@@ -51,7 +51,7 @@ macro_rules! impl_into_js_function {
             unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
+                    NativeFunction::from_closure(_context.gc_collector(), move |this, args, ctx| {
                         let rest = args;
                         $(
                             let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
@@ -77,7 +77,7 @@ macro_rules! impl_into_js_function {
             unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
+                    NativeFunction::from_closure(_context.gc_collector(), move |this, args, ctx| {
                         let rest = args;
                         $(
                             let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
@@ -103,7 +103,7 @@ macro_rules! impl_into_js_function {
             unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
+                    NativeFunction::from_closure(_context.gc_collector(), move |this, args, ctx| {
                         let rest = args;
                         $(
                             let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
@@ -125,7 +125,7 @@ macro_rules! impl_into_js_function {
             unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
+                    NativeFunction::from_closure(_context.gc_collector(), move |this, args, ctx| {
                         let rest = args;
                         $(
                             let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
@@ -145,9 +145,9 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)*) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, context: &mut Context) -> NativeFunction {
                 let s = self;
-                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                NativeFunction::from_copy_closure(context.gc_collector(), move |this, args, ctx| {
                     let rest = args;
                     $(
                         let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
@@ -165,9 +165,9 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)* JsRest<'_>) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, context: &mut Context) -> NativeFunction {
                 let s = self;
-                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                NativeFunction::from_copy_closure(context.gc_collector(), move |this, args, ctx| {
                     let rest = args;
                     $(
                         let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
@@ -185,9 +185,9 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)* &mut Context) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, context: &mut Context) -> NativeFunction {
                 let s = self;
-                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                NativeFunction::from_copy_closure(context.gc_collector(), move |this, args, ctx| {
                     let rest = args;
                     $(
                         let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
@@ -205,9 +205,9 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)* JsRest<'_>, &mut Context) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, context: &mut Context) -> NativeFunction {
                 let s = self;
-                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                NativeFunction::from_copy_closure(context.gc_collector(), move |this, args, ctx| {
                     let rest = args;
                     $(
                         let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;

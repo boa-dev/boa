@@ -28,9 +28,10 @@ impl JsWeakSet {
     pub fn new(context: &mut Context) -> Self {
         Self {
             inner: JsObject::from_proto_and_data_with_shared_shape(
+                context.gc_collector(),
                 context.root_shape(),
                 context.intrinsics().constructors().weak_set().prototype(),
-                NativeWeakSet::new(&unsafe { boa_gc::MutationContext::dummy() }),
+                NativeWeakSet::new(context.gc_collector()),
             )
             .upcast(),
         }

@@ -42,3 +42,6 @@ test = false
 doc = false
 [package.metadata.docs.rs]
 all-features = true
+
+[patch."https://github.com/boa-dev/boa.git"]
+boa_string = { path = "../../core/string" }

@@ -39,7 +39,7 @@ fn get_by_name<const LENGTH: bool>(
 
     let ic = &context.vm.frame().code_block().ic[usize::from(index)];
     let object_borrowed = object.borrow();
-    if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
+    if let Some((shape, slot)) = ic.get(context.gc_collector(), object_borrowed.shape()) {
         let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
             let prototype = shape.prototype().expect("prototype should have value");
             let prototype = prototype.borrow();
@@ -73,7 +73,7 @@ fn get_by_name<const LENGTH: bool>(
         let ic = &context.vm.frame().code_block.ic[usize::from(index)];
         let object_borrowed = object.borrow();
         let shape = object_borrowed.shape();
-        ic.set(shape, slot);
+        ic.set(context.gc_collector(), shape, slot);
     }
 
     context.vm.set_register(dst.into(), result);

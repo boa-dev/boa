@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["float16"] }
+boa_engine = { workspace = true, features = ["oscars_backend", "float16"] }
 boa_runtime = { workspace = true, features = ["test262"] }
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }

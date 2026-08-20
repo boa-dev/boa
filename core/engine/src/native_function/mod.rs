@@ -191,14 +191,15 @@ impl NativeFunction {
     ///     let value = arg.to_u32(&mut context.borrow_mut())?;
     ///     Ok(JsValue::from(value * 2))
     /// }
-    /// NativeFunction::from_async_fn(test);
+    /// let mut context = Context::default();
+    /// NativeFunction::from_async_fn(context.gc_collector(), test);
     /// ```
-    pub fn from_async_fn<F>(f: F) -> Self
+    pub fn from_async_fn<F>(mc: &boa_gc::MutationContext<'_, '_>, f: F) -> Self
     where
         F: AsyncFn(&JsValue, &[JsValue], &RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
         F: Copy,
     {
-        Self::from_copy_closure(move |this, args, context| {
+        Self::from_copy_closure(mc, move |this, args, context| {
             let (promise, resolvers) = JsPromise::new_pending(context);
             let this = this.clone();
             let args = args.to_vec();
@@ -224,22 +225,26 @@ impl NativeFunction {
     }
 
     /// Creates a `NativeFunction` from a `Copy` closure.
-    pub fn from_copy_closure<F>(closure: F) -> Self
+    pub fn from_copy_closure<F>(mc: &boa_gc::MutationContext<'_, '_>, closure: F) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
-        unsafe { Self::from_closure(closure) }
+        unsafe { Self::from_closure(mc, closure) }
     }
 
     /// Creates a `NativeFunction` from a `Copy` closure and a list of traceable captures.
-    pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub fn from_copy_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
-        unsafe { Self::from_closure_with_captures(closure, captures) }
+        unsafe { Self::from_closure_with_captures(mc, closure, captures) }
     }
 
     /// Creates a new `NativeFunction` from a closure.
@@ -250,13 +255,14 @@ impl NativeFunction {
     /// collector could cause an use after free, memory corruption or other kinds of **Undefined
     /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
     /// on why that is the case.
-    pub unsafe fn from_closure<F>(closure: F) -> Self
+    pub unsafe fn from_closure<F>(mc: &boa_gc::MutationContext<'_, '_>, closure: F) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + 'static,
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
             Self::from_closure_with_captures(
+                mc,
                 move |this, args, (), context| closure(this, args, context),
                 (),
             )
@@ -271,15 +277,19 @@ impl NativeFunction {
     /// collector could cause an use after free, memory corruption or other kinds of **Undefined
     /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
     /// on why that is the case.
-    pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub unsafe fn from_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
-        let ptr = Gc::into_raw(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+        let ptr = Gc::into_raw(boa_gc::allocate_rooted(
+            mc,
             Closure {
                 f: closure,
                 captures,
@@ -289,7 +299,7 @@ impl NativeFunction {
         // meaning this is safe.
         unsafe {
             Self {
-                inner: Inner::Closure(Gc::from_raw(ptr)),
+                inner: Inner::Closure(<Gc<'static, dyn TraceableClosure>>::from_raw(ptr)),
             }
         }
     }
@@ -312,8 +322,12 @@ impl NativeFunction {
     ///
     /// Useful to create functions that will only be used once, such as callbacks.
     #[must_use]
-    pub fn to_js_function(self, realm: &Realm) -> JsFunction {
-        FunctionObjectBuilder::new(realm, self).build()
+    pub fn to_js_function(
+        self,
+        realm: &Realm,
+        mc: &boa_gc::MutationContext<'static, '_>,
+    ) -> JsFunction {
+        FunctionObjectBuilder::new(realm, mc, self).build()
     }
 }
 
@@ -340,15 +354,18 @@ pub(crate) fn native_function_call(
     context.check_runtime_limits()?;
     let this_function_object = obj.clone();
 
+    // Under `oscars_backend`, `downcast_ref` returns a `GcRef<'_, NativeFunctionObject>`.
+    // We deref through the guard with `(*guard).clone()` so we clone the inner struct
+    // (which is `Copy` friendly via `Clone`), not the `GcRef` wrapper itself
     let NativeFunctionObject {
         f: function,
         name,
         constructor,
         realm,
-    } = obj
+    } = (*obj
         .downcast_ref::<NativeFunctionObject>()
-        .expect("the object should be a native function object")
-        .clone();
+        .expect("the object should be a native function object"))
+    .clone();
 
     let pc = context.vm.frame().pc;
     let native_source_info = context.native_source_info();
@@ -395,15 +412,17 @@ fn native_function_construct(
     context.check_runtime_limits()?;
     let this_function_object = obj.clone();
 
+    // Under `oscars_backend`, `downcast_ref` returns a `GcRef<'_, NativeFunctionObject>`.
+    // We deref through the guard with `(*guard).clone()` so we clone the inner struct.
     let NativeFunctionObject {
         f: function,
         name,
         constructor,
         realm,
-    } = obj
+    } = (*obj
         .downcast_ref::<NativeFunctionObject>()
-        .expect("the object should be a native function object")
-        .clone();
+        .expect("the object should be a native function object"))
+    .clone();
 
     let pc = context.vm.frame().pc;
     let native_source_info = context.native_source_info();
@@ -438,6 +457,7 @@ fn native_function_construct(
                         context,
                     )?;
                     Ok(JsObject::from_proto_and_data_with_shared_shape(
+                        context.gc_collector(),
                         context.root_shape(),
                         prototype,
                         OrdinaryObject,

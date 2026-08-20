@@ -69,12 +69,13 @@ impl Process {
         P: ProcessProvider + 'static,
     {
         fn process_method<P: ProcessProvider + 'static>(
+            mc: &boa_gc::MutationContext<'_, '_>,
             f: fn(&JsValue, &[JsValue], &P, &mut Context) -> JsResult<JsValue>,
             provider: Rc<P>,
         ) -> NativeFunction {
             // SAFETY: `Process` doesn't contain types that need tracing.
             unsafe {
-                NativeFunction::from_closure(move |this, args, context| {
+                NativeFunction::from_closure(mc, move |this, args, context| {
                     f(this, args, &provider, context)
                 })
             }
@@ -82,10 +83,12 @@ impl Process {
 
         let provider = Rc::new(provider);
 
-        let env = JsObject::default(context.intrinsics());
+        let env = JsObject::default(context.gc_collector(), context.intrinsics());
         for (key, value) in provider.env() {
             env.set(key, JsValue::from(value), false, context)?;
         }
+
+        let gc_collector = context.gc_collector();
 
         Ok(ObjectInitializer::new(context)
             .property(
@@ -100,6 +103,7 @@ impl Process {
             )
             .function(
                 process_method(
+                    gc_collector,
                     |_, _, provider, _| provider.cwd().map(JsValue::from),
                     provider.clone(),
                 ),

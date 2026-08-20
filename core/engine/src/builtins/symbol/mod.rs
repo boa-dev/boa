@@ -93,7 +93,7 @@ impl GlobalSymbolRegistry {
 pub struct Symbol;
 
 impl IntrinsicObject for Symbol {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let symbol_async_iterator = JsSymbol::async_iterator();
         let symbol_has_instance = JsSymbol::has_instance();
         let symbol_is_concat_spreadable = JsSymbol::is_concat_spreadable();
@@ -112,16 +112,16 @@ impl IntrinsicObject for Symbol {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive)
+        let to_primitive = BuiltInBuilder::callable(realm, Self::to_primitive, mc)
             .name(js_string!("[Symbol.toPrimitive]"))
             .length(1)
             .build();
 
-        let get_description = BuiltInBuilder::callable(realm, Self::get_description)
+        let get_description = BuiltInBuilder::callable(realm, Self::get_description, mc)
             .name(js_string!("get description"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(Self::for_, js_string!("for"), 1)
             .static_method(Self::key_for, js_string!("keyFor"), 1)
             .static_property(

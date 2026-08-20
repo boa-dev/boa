@@ -133,7 +133,7 @@ fn closure_capture_clone() {
     run_test_actions([
         TestAction::inspect_context(|ctx| {
             let string = js_string!("Hello");
-            let object = JsObject::with_object_proto(ctx.intrinsics());
+            let object = JsObject::with_object_proto(ctx.gc_collector(), ctx.intrinsics());
             object
                 .define_property_or_throw(
                     js_string!("key"),
@@ -148,7 +148,9 @@ fn closure_capture_clone() {
 
             let func = FunctionObjectBuilder::new(
                 ctx.realm(),
+                ctx.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    ctx.gc_collector(),
                     |_, _, captures, context| {
                         let (string, object) = &captures;
 

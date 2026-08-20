@@ -38,6 +38,7 @@ fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsRes
 pub(super) fn create_object(context: &mut Context) -> JsObject {
     let get_constant_folding = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(get_constant_folding),
     )
     .name("get constantFolding")
@@ -45,22 +46,29 @@ pub(super) fn create_object(context: &mut Context) -> JsObject {
     .build();
     let set_constant_folding = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(set_constant_folding),
     )
     .name("set constantFolding")
     .length(1)
     .build();
 
-    let get_statistics =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_statistics))
-            .name("get statistics")
-            .length(0)
-            .build();
-    let set_statistics =
-        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_statistics))
-            .name("set statistics")
-            .length(1)
-            .build();
+    let get_statistics = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(get_statistics),
+    )
+    .name("get statistics")
+    .length(0)
+    .build();
+    let set_statistics = FunctionObjectBuilder::new(
+        context.realm(),
+        context.gc_collector(),
+        NativeFunction::from_fn_ptr(set_statistics),
+    )
+    .name("set statistics")
+    .length(1)
+    .build();
     ObjectInitializer::new(context)
         .accessor(
             js_string!("constantFolding"),

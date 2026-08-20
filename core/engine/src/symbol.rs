@@ -15,11 +15,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-symbol-value
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
 
-#![deny(
-    unsafe_op_in_unsafe_fn,
-    clippy::undocumented_unsafe_blocks,
-    clippy::missing_safety_doc
-)]
+#![deny(unsafe_op_in_unsafe_fn, clippy::missing_safety_doc)]
 
 use crate::{
     js_string,
@@ -424,7 +420,7 @@ mod tests {
         let mut context = Context::default();
         let symbol1 = JsSymbol::new(None).unwrap();
         let symbol2 = JsSymbol::new(None).unwrap();
-        let test_obj = JsObject::from_proto_and_data(None, ());
+        let test_obj = JsObject::from_proto_and_data(context.gc_collector(), None, ());
         test_obj
             .set(symbol1, js_str!("Can't see me"), false, &mut context)
             .unwrap();
@@ -448,7 +444,7 @@ mod tests {
     fn hidden_in_stringify() {
         let mut context = Context::default();
         let symbol = JsSymbol::new(None).unwrap();
-        let test_obj = JsObject::with_object_proto(context.intrinsics());
+        let test_obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
         test_obj
             .set(symbol, js_str!("This won't show up"), false, &mut context)
             .unwrap();

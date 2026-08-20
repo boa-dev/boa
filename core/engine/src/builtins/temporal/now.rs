@@ -39,13 +39,13 @@ pub struct Now;
 
 impl IntrinsicObject for Now {
     /// Initializes the `Temporal.Now` object.
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         // is an ordinary object.
         // has a [[Prototype]] internal slot whose value is %Object.prototype%.
         // is not a function object.
         // does not have a [[Construct]] internal method; it cannot be used as a constructor with the new operator.
         // does not have a [[Call]] internal method; it cannot be invoked as a function.
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::NOW_TAG,

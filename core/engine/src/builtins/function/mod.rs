@@ -308,15 +308,15 @@ impl OrdinaryFunction {
 pub struct BuiltInFunctionObject;
 
 impl IntrinsicObject for BuiltInFunctionObject {
-    fn init(realm: &Realm) {
-        let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let has_instance = BuiltInBuilder::callable(realm, Self::has_instance, mc)
             .name(js_string!("[Symbol.hasInstance]"))
             .length(1)
             .build();
 
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .method(Self::apply, js_string!("apply"), 2)
             .method(Self::bind, js_string!("bind"), 1)
             .method(Self::call, js_string!("call"), 1)
@@ -338,12 +338,15 @@ impl IntrinsicObject for BuiltInFunctionObject {
 
         let prototype = realm.intrinsics().constructors().function().prototype();
 
-        BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype)
+        BuiltInBuilder::callable_with_object(realm, prototype.clone(), Self::prototype, mc)
             .name(js_string!())
             .length(0)
             .build();
 
-        prototype.set_prototype(Some(realm.intrinsics().constructors().object().prototype()));
+        prototype.set_prototype(
+            mc,
+            Some(realm.intrinsics().constructors().object().prototype()),
+        );
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -659,6 +662,7 @@ impl BuiltInFunctionObject {
         let in_with = context.vm.frame().environments.has_object_environment();
         let spanned_source_text = SpannedSourceText::new_empty();
 
+        let mc = context.gc_collector();
         let code = FunctionCompiler::new(spanned_source_text)
             .name(js_string!("anonymous"))
             .generator(generator)
@@ -673,6 +677,7 @@ impl BuiltInFunctionObject {
                 function.scopes(),
                 function.contains_direct_eval(),
                 context.interner_mut(),
+                &mc,
             );
 
         let saved = context.vm.frame_mut().environments.pop_to_global();
@@ -1071,9 +1076,10 @@ pub(crate) fn function_call(
     let has_function_scope = context.vm.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, global);
+        let index = frame.environments.push_lexical(1, &global, mc);
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1085,12 +1091,14 @@ pub(crate) fn function_call(
 
     if has_function_scope {
         let scope = context.vm.frame().code_block().constant_scope(last_env);
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
-            global,
+            &global,
+            mc,
         );
     }
 
@@ -1139,6 +1147,7 @@ fn function_construct(
         let prototype =
             get_prototype_from_constructor(&new_target, StandardConstructors::object, context)?;
         let this = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             OrdinaryObject,
@@ -1179,9 +1188,10 @@ fn function_construct(
     let has_function_scope = context.vm.frame().code_block().has_function_scope();
 
     if has_binding_identifier {
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, global);
+        let index = frame.environments.push_lexical(1, &global, mc);
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1193,6 +1203,7 @@ fn function_construct(
 
     if has_function_scope {
         let scope = context.vm.frame().code_block().constant_scope(last_env);
+        let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
@@ -1209,7 +1220,8 @@ fn function_construct(
                         .clone(),
                 ),
             ),
-            global,
+            &global,
+            mc,
         );
     }
 

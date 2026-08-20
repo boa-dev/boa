@@ -83,13 +83,17 @@ impl std::fmt::Debug for NativeCoroutine {
 
 impl NativeCoroutine {
     /// Creates a `NativeCoroutine` from a `Copy` closure and a list of traceable captures.
-    pub(crate) fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub(crate) fn from_copy_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(CompletionRecord, &T, &mut Context) -> CoroutineState + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
-        unsafe { Self::from_closure_with_captures(closure, captures) }
+        unsafe { Self::from_closure_with_captures(mc, closure, captures) }
     }
 
     /// Create a new `NativeCoroutine` from a closure and a list of traceable captures.
@@ -100,15 +104,19 @@ impl NativeCoroutine {
     /// collector could cause an use after free, memory corruption or other kinds of **Undefined
     /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
     /// on why that is the case.
-    pub(crate) unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub(crate) unsafe fn from_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(CompletionRecord, &T, &mut Context) -> CoroutineState + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
-        let ptr = Gc::into_raw(Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
+        let ptr = Gc::into_raw(boa_gc::allocate_rooted(
+            mc,
             Coroutine {
                 f: closure,
                 captures,
@@ -118,7 +126,7 @@ impl NativeCoroutine {
         // meaning this is safe.
         unsafe {
             Self {
-                inner: Gc::from_raw(ptr),
+                inner: <Gc<'static, dyn TraceableCoroutine>>::from_raw(ptr),
             }
         }
     }

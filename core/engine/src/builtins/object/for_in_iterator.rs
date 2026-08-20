@@ -58,17 +58,21 @@ impl ForInIterator {
         context: &Context,
     ) -> (JsObject, JsValue) {
         let iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().iterator().prototype(),
             Self::new(object),
         )
         .upcast();
 
-        let next_method =
-            FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(Self::next))
-                .name(js_string!("next"))
-                .length(0)
-                .build();
+        let next_method = FunctionObjectBuilder::new(
+            context.realm(),
+            context.gc_collector(),
+            NativeFunction::from_fn_ptr(Self::next),
+        )
+        .name(js_string!("next"))
+        .length(0)
+        .build();
 
         (iterator, next_method.into())
     }

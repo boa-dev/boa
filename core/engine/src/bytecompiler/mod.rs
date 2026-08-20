@@ -489,6 +489,15 @@ impl<'a> BorrowMut<ByteCompiler<'a>> for SourcePositionGuard<'_, 'a> {
     }
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct McWrapper<'ctx>(pub(crate) &'ctx boa_gc::MutationContext<'static, 'static>);
+
+impl<'ctx> std::fmt::Debug for McWrapper<'ctx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("MutationContext").finish()
+    }
+}
+
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
@@ -556,6 +565,8 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
     pub(crate) interner: &'ctx mut Interner,
+    /// The MutationContext for GC allocations.
+    pub(crate) mc: McWrapper<'ctx>,
     spanned_source_text: SpannedSourceText,
 
     pub(crate) global_lexs: Vec<u32>,
@@ -603,6 +614,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         is_async: bool,
         is_generator: bool,
         interner: &'ctx mut Interner,
+        mc: &'ctx boa_gc::MutationContext<'static, 'static>,
         in_with: bool,
         spanned_source_text: SpannedSourceText,
         source_path: SourcePath,
@@ -674,6 +686,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             variable_scope,
             lexical_scope,
             interner,
+            mc: McWrapper(mc),
             spanned_source_text,
             source_path,
 
@@ -2441,6 +2454,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 scopes,
                 function.contains_direct_eval,
                 self.interner,
+                self.mc.0,
             );
 
         self.push_function_to_constants(code)
@@ -2522,6 +2536,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 scopes,
                 function.contains_direct_eval,
                 self.interner,
+                self.mc.0,
             );
 
         let index = self.push_function_to_constants(code);
@@ -2572,6 +2587,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 scopes,
                 function.contains_direct_eval,
                 self.interner,
+                self.mc.0,
             );
 
         let index = self.push_function_to_constants(code);

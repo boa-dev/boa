@@ -162,12 +162,12 @@ impl Service for NumberFormat {
 }
 
 impl IntrinsicObject for NumberFormat {
-    fn init(realm: &Realm) {
-        let get_format = BuiltInBuilder::callable(realm, Self::get_format)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_format = BuiltInBuilder::callable(realm, Self::get_format, mc)
             .name(js_string!("get format"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),
@@ -242,6 +242,7 @@ impl BuiltInConstructor for NumberFormat {
         let number_format = Self::new(locales, options, context)?;
 
         let number_format = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             number_format,
@@ -605,9 +606,11 @@ impl NumberFormat {
             //     c. Set nf.[[BoundFormat]] to F.
             let bound_format = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 // Number Format Functions
                 // <https://tc39.es/ecma402/#sec-number-format-functions>
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, nf, context| {
                         // 1. Let nf be F.[[NumberFormat]].
                         // 2. Assert: Type(nf) is Object and nf has an [[InitializedNumberFormat]] internal slot.

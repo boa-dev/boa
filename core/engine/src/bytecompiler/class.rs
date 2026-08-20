@@ -103,6 +103,7 @@ impl ByteCompiler<'_> {
             false,
             false,
             self.interner,
+            self.mc.0,
             self.in_with,
             spanned_source_text,
             self.source_path.clone(),
@@ -156,10 +157,7 @@ impl ByteCompiler<'_> {
             class.super_ref.is_some(),
         );
 
-        let code = Gc::new(
-            &unsafe { boa_gc::MutationContext::dummy() },
-            compiler.finish(),
-        );
+        let code = boa_gc::allocate_rooted(self.mc.0, compiler.finish());
         let index = self.push_function_to_constants(code);
 
         let class_register = self.register_allocator.alloc();
@@ -417,6 +415,7 @@ impl ByteCompiler<'_> {
                         false,
                         false,
                         self.interner,
+                        self.mc.0,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
                         self.source_path.clone(),
@@ -443,10 +442,7 @@ impl ByteCompiler<'_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = Gc::new(
-                        &unsafe { boa_gc::MutationContext::dummy() },
-                        field_compiler.finish(),
-                    );
+                    let code = boa_gc::allocate_rooted(self.mc.0, field_compiler.finish());
                     let index = self.push_function_to_constants(code);
 
                     let dst = self.register_allocator.alloc();
@@ -471,6 +467,7 @@ impl ByteCompiler<'_> {
                         false,
                         false,
                         self.interner,
+                        self.mc.0,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
                         self.source_path.clone(),
@@ -492,10 +489,7 @@ impl ByteCompiler<'_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = Gc::new(
-                        &unsafe { boa_gc::MutationContext::dummy() },
-                        field_compiler.finish(),
-                    );
+                    let code = boa_gc::allocate_rooted(self.mc.0, field_compiler.finish());
                     let index = self.push_function_to_constants(code);
                     let dst = self.register_allocator.alloc();
                     self.emit_get_function(&dst, index);
@@ -526,6 +520,7 @@ impl ByteCompiler<'_> {
                         false,
                         false,
                         self.interner,
+                        self.mc.0,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
                         self.source_path.clone(),
@@ -551,7 +546,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, code);
+                    let code = boa_gc::allocate_rooted(self.mc.0, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -570,6 +565,7 @@ impl ByteCompiler<'_> {
                         false,
                         false,
                         self.interner,
+                        self.mc.0,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
                         self.source_path.clone(),
@@ -595,7 +591,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(&unsafe { boa_gc::MutationContext::dummy() }, code);
+                    let code = boa_gc::allocate_rooted(self.mc.0, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -613,6 +609,7 @@ impl ByteCompiler<'_> {
                         false,
                         false,
                         self.interner,
+                        self.mc.0,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
                         self.source_path.clone(),
@@ -638,10 +635,7 @@ impl ByteCompiler<'_> {
                         );
                     }
 
-                    let code = Gc::new(
-                        &unsafe { boa_gc::MutationContext::dummy() },
-                        compiler.finish(),
-                    );
+                    let code = boa_gc::allocate_rooted(self.mc.0, compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));
                 }
             }

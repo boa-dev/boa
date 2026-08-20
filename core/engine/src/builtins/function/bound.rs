@@ -66,6 +66,7 @@ impl BoundFunction {
         // 9. Set obj.[[BoundArguments]] to boundArgs.
         // 10. Return obj.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             proto,
             Self {

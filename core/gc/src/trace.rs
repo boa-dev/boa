@@ -133,7 +133,11 @@ macro_rules! custom_trace {
                 }
             };
             let $this = self;
-            $body
+            // SAFETY: The implementor must ensure the trace body is safe
+            #[allow(unused_unsafe)]
+            unsafe {
+                $body
+            }
         }
         #[inline]
         unsafe fn trace_non_roots(&self) {
@@ -144,7 +148,11 @@ macro_rules! custom_trace {
                 }
             }
             let $this = self;
-            $body
+            // SAFETY: The implementor must ensure the trace body is safe
+            #[allow(unused_unsafe)]
+            unsafe {
+                $body
+            }
         }
         #[inline]
         fn run_finalizer(&self) {
