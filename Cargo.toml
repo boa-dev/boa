@@ -166,7 +166,7 @@ icu_casemap = { version = "~2.2.0", default-features = false }
 icu_segmenter = { version = "~2.2.0", default-features = false }
 icu_provider_export = { version = "~2.2.0", default-features = false }
 icu_provider_source = { version = "~2.2.0", default-features = false }
-icu_provider_adapters = { version = "~2.2.0", default-features = false }
+icu_provider_adapters = { version = "~2.3.0", default-features = false }
 icu_provider_blob = { version = "~2.2.0", default-features = false }
 icu_properties = { version = "~2.2.0", default-features = true }
 icu_normalizer = { version = "~2.2.0", default-features = false }
