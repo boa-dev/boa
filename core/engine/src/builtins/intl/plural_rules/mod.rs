@@ -300,26 +300,56 @@ impl PluralRules {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let object = this.as_object();
-        let plural_rules = object
-            .as_ref()
-            .and_then(|o| o.downcast_ref::<Self>())
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "`resolved_options` can only be called on an `Intl.PluralRules` object",
-                )
-            })?;
+        let (
+            locale_str,
+            rule_type,
+            notation,
+            minimum_integer_digits,
+            fraction_digits,
+            significant_digits,
+            rounding_increment,
+            rounding_mode,
+            rounding_priority,
+            trailing_zero_display,
+            plural_categories,
+        ) = {
+            let object = this.as_object();
+            let plural_rules = object
+                .as_ref()
+                .and_then(|o| o.downcast_ref::<Self>())
+                .ok_or_else(|| {
+                    JsNativeError::typ().with_message(
+                        "`resolved_options` can only be called on an `Intl.PluralRules` object",
+                    )
+                })?;
+
+            (
+                plural_rules.locale.to_string(),
+                plural_rules.rule_type,
+                plural_rules.notation,
+                plural_rules.format_options.minimum_integer_digits,
+                plural_rules.format_options.rounding_type.fraction_digits(),
+                plural_rules
+                    .format_options
+                    .rounding_type
+                    .significant_digits(),
+                plural_rules.format_options.rounding_increment.to_u16(),
+                plural_rules.format_options.rounding_mode,
+                plural_rules.format_options.rounding_priority,
+                plural_rules.format_options.trailing_zero_display,
+                plural_rules
+                    .native
+                    .rules()
+                    .categories()
+                    .map(|category| plural_category_to_js_string(category).into())
+                    .collect::<Vec<JsValue>>(),
+            )
+        };
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 4. Let pluralCategories be a List of Strings containing all possible results of
         //    PluralRuleSelect for the selected locale pr.[[Locale]], sorted according to the following
         //    order: "zero", "one", "two", "few", "many", "other".
-        let plural_categories = plural_rules
-            .native
-            .rules()
-            .categories()
-            .map(|category| plural_category_to_js_string(category).into());
-
         // 5. For each row of Table 30, except the header row, in table order, do
         //        a. Let p be the Property value of the current row.
         //        b. If p is "pluralCategories", then
@@ -335,12 +365,12 @@ impl PluralRules {
         options
             .property(
                 js_string!("locale"),
-                js_string!(plural_rules.locale.to_string()),
+                js_string!(locale_str),
                 Attribute::all(),
             )
             .property(
                 js_string!("type"),
-                match plural_rules.rule_type {
+                match rule_type {
                     PluralRuleType::Cardinal => js_string!("cardinal"),
                     PluralRuleType::Ordinal => js_string!("ordinal"),
                     _ => js_string!("unknown"),
@@ -349,18 +379,16 @@ impl PluralRules {
             )
             .property(
                 js_string!("notation"),
-                plural_rules.notation.to_js_string(),
+                notation.to_js_string(),
                 Attribute::all(),
             )
             .property(
                 js_string!("minimumIntegerDigits"),
-                plural_rules.format_options.minimum_integer_digits,
+                minimum_integer_digits,
                 Attribute::all(),
             );
 
-        if let Some(Extrema { minimum, maximum }) =
-            plural_rules.format_options.rounding_type.fraction_digits()
-        {
+        if let Some(Extrema { minimum, maximum }) = fraction_digits {
             options
                 .property(
                     js_string!("minimumFractionDigits"),
@@ -374,11 +402,7 @@ impl PluralRules {
                 );
         }
 
-        if let Some(Extrema { minimum, maximum }) = plural_rules
-            .format_options
-            .rounding_type
-            .significant_digits()
-        {
+        if let Some(Extrema { minimum, maximum }) = significant_digits {
             options
                 .property(
                     js_string!("minimumSignificantDigits"),
@@ -401,12 +425,12 @@ impl PluralRules {
             )
             .property(
                 js_string!("roundingIncrement"),
-                plural_rules.format_options.rounding_increment.to_u16(),
+                rounding_increment,
                 Attribute::all(),
             )
             .property(
                 js_string!("roundingMode"),
-                match plural_rules.format_options.rounding_mode {
+                match rounding_mode {
                     SignedRoundingMode::Unsigned(UnsignedRoundingMode::Expand) => {
                         js_string!("expand")
                     }
@@ -432,15 +456,12 @@ impl PluralRules {
             )
             .property(
                 js_string!("roundingPriority"),
-                js_string!(plural_rules.format_options.rounding_priority.to_js_string()),
+                js_string!(rounding_priority.to_js_string()),
                 Attribute::all(),
             )
             .property(
                 js_string!("trailingZeroDisplay"),
-                plural_rules
-                    .format_options
-                    .trailing_zero_display
-                    .to_js_string(),
+                trailing_zero_display.to_js_string(),
                 Attribute::all(),
             );
 

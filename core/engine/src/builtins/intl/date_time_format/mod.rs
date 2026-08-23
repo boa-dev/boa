@@ -365,32 +365,17 @@ impl DateTimeFormat {
         //              a. Assert: conversion is number.
         //              b. Set v to 𝔽(v).
         //          ii. Perform ! CreateDataPropertyOrThrow(options, p, v).
-        let result = {
+        let (
+            locale_str,
+            calendar_algorithm,
+            numbering_system,
+            time_zone_str,
+            hour_cycle,
+            date_style,
+            time_style,
+        ) = {
             let dtf = dtf_object.borrow();
             let dtf = dtf.data();
-
-            let mut options = ObjectInitializer::new(context);
-            options.property(
-                js_string!("locale"),
-                js_string!(dtf.locale.to_string()),
-                Attribute::all(),
-            );
-
-            if let Some(ca) = &dtf.calendar_algorithm {
-                options.property(
-                    js_string!("calendar"),
-                    js_string!(ca.as_str()),
-                    Attribute::all(),
-                );
-            }
-
-            if let Some(nu) = &dtf.numbering_system {
-                options.property(
-                    js_string!("numberingSystem"),
-                    js_string!(nu.as_str()),
-                    Attribute::all(),
-                );
-            }
 
             let time_zone_str = match &dtf.time_zone {
                 FormatTimeZone::UtcOffset(offset) => {
@@ -401,13 +386,45 @@ impl DateTimeFormat {
                 }
                 FormatTimeZone::Identifier((tz, _id)) => tz.to_string(),
             };
+
+            (
+                dtf.locale.to_string(),
+                dtf.calendar_algorithm
+                    .as_ref()
+                    .map(|ca| js_string!(ca.as_str())),
+                dtf.numbering_system
+                    .as_ref()
+                    .map(|nu| js_string!(nu.as_str())),
+                time_zone_str,
+                dtf.hour_cycle,
+                dtf.date_style,
+                dtf.time_style,
+            )
+        };
+
+        let result = {
+            let mut options = ObjectInitializer::new(context);
+            options.property(
+                js_string!("locale"),
+                js_string!(locale_str),
+                Attribute::all(),
+            );
+
+            if let Some(ca) = calendar_algorithm {
+                options.property(js_string!("calendar"), ca, Attribute::all());
+            }
+
+            if let Some(nu) = numbering_system {
+                options.property(js_string!("numberingSystem"), nu, Attribute::all());
+            }
+
             options.property(
                 js_string!("timeZone"),
                 js_string!(time_zone_str),
                 Attribute::all(),
             );
 
-            if let Some(hc) = &dtf.hour_cycle {
+            if let Some(hc) = hour_cycle {
                 options.property(
                     js_string!("hourCycle"),
                     js_string!(hc.as_str()),
@@ -418,7 +435,7 @@ impl DateTimeFormat {
                 options.property(js_string!("hour12"), hour12, Attribute::all());
             }
 
-            if let Some(ds) = dtf.date_style {
+            if let Some(ds) = date_style {
                 let ds_str = match ds {
                     DateStyle::Full => "full",
                     DateStyle::Long => "long",
@@ -432,7 +449,7 @@ impl DateTimeFormat {
                 );
             }
 
-            if let Some(ts) = dtf.time_style {
+            if let Some(ts) = time_style {
                 let ts_str = match ts {
                     TimeStyle::Full => "full",
                     TimeStyle::Long => "long",
