@@ -108,34 +108,45 @@ impl SegmentIterator {
     fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
-        let object = this.as_object();
-        let mut iter = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`next` can only be called on a `Segment Iterator` object")
-            })?;
+        let object = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`next` can only be called on a `Segment Iterator` object")
+        })?;
 
-        // 5. Let startIndex be iterator.[[IteratedStringNextSegmentCodeUnitIndex]].
-        let start = iter.next_segment_index;
+        let (string, start, end, is_word_like, finished) = {
+            let mut iter = object
+                .downcast_mut::<Self>()
+                .expect("already checked that it is a Segment Iterator object");
 
-        // 4. Let string be iterator.[[IteratedString]].
-        // 6. Let endIndex be ! FindBoundary(segmenter, string, startIndex, after).
-        let Some((end, is_word_like)) = iter.string.get(start..).and_then(|string| {
-            // 3. Let segmenter be iterator.[[IteratingSegmenter]].
-            let segmenter = iter
-                .segmenter
-                .downcast_ref::<Segmenter>()
-                .js_expect("segment iterator object should contain a segmenter")
-                .ok()?;
-            let mut segments = segmenter.native.segment(string.variant());
-            // the first elem is always 0.
-            segments.next();
-            segments
-                .next()
-                .map(|end| (start + end, segments.is_word_like()))
-        }) else {
+            // 5. Let startIndex be iterator.[[IteratedStringNextSegmentCodeUnitIndex]].
+            let start = iter.next_segment_index;
+
+            // 4. Let string be iterator.[[IteratedString]].
+            // 6. Let endIndex be ! FindBoundary(segmenter, string, startIndex, after).
+            let Some((end, is_word_like)) = iter.string.get(start..).and_then(|string| {
+                // 3. Let segmenter be iterator.[[IteratingSegmenter]].
+                let segmenter = iter
+                    .segmenter
+                    .downcast_ref::<Segmenter>()
+                    .js_expect("segment iterator object should contain a segmenter")
+                    .ok()?;
+                let mut segments = segmenter.native.segment(string.variant());
+                // the first elem is always 0.
+                segments.next();
+                segments
+                    .next()
+                    .map(|end| (start + end, segments.is_word_like()))
+            }) else {
+                return Ok((None, 0, 0, false, true));
+            };
+
+            // 8. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to endIndex.
+            iter.next_segment_index = end;
+
+            (Some(iter.string.clone()), start, end, is_word_like, false)
+        };
+
+        if finished {
             // 7. If endIndex is not finite, then
             //     a. Return CreateIterResultObject(undefined, true).
             return Ok(create_iter_result_object(
@@ -143,13 +154,12 @@ impl SegmentIterator {
                 true,
                 context,
             ));
-        };
-        // 8. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to endIndex.
-        iter.next_segment_index = end;
+        }
+
+        let string = string.expect("string is Some when not finished");
 
         // 9. Let segmentData be ! CreateSegmentDataObject(segmenter, string, startIndex, endIndex).
-        let segment_data =
-            create_segment_data_object(iter.string.clone(), start..end, is_word_like, context);
+        let segment_data = create_segment_data_object(string, start..end, is_word_like, context);
 
         // 10. Return CreateIterResultObject(segmentData, false).
         Ok(create_iter_result_object(

@@ -179,16 +179,16 @@ impl PluralRules {
     fn select(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let object = this.as_object();
-        let plural_rules = object
-            .as_ref()
-            .and_then(|o| o.downcast_ref::<Self>())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`select` can only be called on an `Intl.PluralRules` object")
-            })?;
+        let object = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`select` can only be called on an `Intl.PluralRules` object")
+        })?;
 
         let n = args.get_or_undefined(0).to_number(context)?;
+
+        let plural_rules = object
+            .downcast_ref::<Self>()
+            .expect("already checked that it is a PluralRules object");
 
         Ok(plural_category_to_js_string(resolve_plural(&plural_rules, n).category).into())
     }
@@ -206,15 +206,10 @@ impl PluralRules {
     fn select_range(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let object = this.as_object();
-        let plural_rules = object
-            .as_ref()
-            .and_then(|o| o.downcast_ref::<Self>())
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "`select_range` can only be called on an `Intl.PluralRules` object",
-                )
-            })?;
+        let object = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`select_range` can only be called on an `Intl.PluralRules` object")
+        })?;
 
         // 3. If start is undefined or end is undefined, throw a TypeError exception.
         let x = args.get_or_undefined(0);
@@ -229,6 +224,10 @@ impl PluralRules {
         let x = x.to_number(context)?;
         // 5. Let y be ? ToNumber(end).
         let y = y.to_number(context)?;
+
+        let plural_rules = object
+            .downcast_ref::<Self>()
+            .expect("already checked that it is a PluralRules object");
 
         // 6. Return ? ResolvePluralRange(pr, x, y).
         // ResolvePluralRange(pr, x, y)
