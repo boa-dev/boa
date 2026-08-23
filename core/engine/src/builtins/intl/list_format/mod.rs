@@ -364,17 +364,12 @@ impl ListFormat {
 
         // 3. Let stringList be ? StringListFromIterable(list).
         // TODO: support for UTF-16 unpaired surrogates formatting
-        // SAFETY: We must collect strings first (which runs JS / may trigger GC) and
-        // only THEN borrow `lf`.  Holding a `Ref<'_, T>` across a GC point is a UAF.
+        // SAFETY: Collect the JS strings first (runs JS / may trigger GC), before
+        // borrowing `lf`.  A Ref<'_, T> must NOT be held across any GC point.
         let strings: Vec<String> = string_list_from_iterable(args.get_or_undefined(0), context)?
             .into_iter()
             .map(|s| s.to_std_string_escaped())
             .collect();
-
-        // Borrow `lf` only after all GC-triggering operations are complete.
-        let lf = object
-            .downcast_ref::<Self>()
-            .expect("already checked above that the object is a ListFormat");
 
         // 4. Return ! FormatListToParts(lf, stringList).
 
@@ -382,19 +377,31 @@ impl ListFormat {
         // https://tc39.es/ecma402/#sec-formatlisttoparts
 
         // 1. Let parts be ! CreatePartsFromList(listFormat, list).
-        let mut parts = PartsCollector(Vec::new());
-        lf.native
-            .format(strings.into_iter())
-            .write_to_parts(&mut parts)
-            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+        //
+        // SAFETY: Perform the pure native formatting inside a scoped block so that
+        // the Ref<'_, ListFormat> borrow guard is dropped BEFORE we re-enter context
+        // (Array::array_create, context.gc_collector, create_data_property_or_throw).
+        // All of those can trigger a GC collection cycle, which would be a UAF if we
+        // still held the Ref
+        let parts = {
+            let lf = object
+                .downcast_ref::<Self>()
+                .expect("already checked above that the object is a ListFormat");
+            let mut collector = PartsCollector(Vec::new());
+            lf.native
+                .format(strings.into_iter())
+                .write_to_parts(&mut collector)
+                .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+            collector.0
+        }; // Ref<'_, ListFormat> dropped here; safe to use context below
 
-        // 2. Let result be ! ArrayCreate(0).
+        // 2. Let result be ! ArrayCreate(0).
         let result = Array::array_create(0, None, context)
             .js_expect("creating an empty array with default proto must not fail")?;
 
         // 3. Let n be 0.
         // 4. For each Record { [[Type]], [[Value]] } part in parts, do
-        for (n, part) in parts.0.into_iter().enumerate() {
+        for (n, part) in parts.into_iter().enumerate() {
             // a. Let O be OrdinaryObjectCreate(%Object.prototype%).
             let o = context.intrinsics().templates().ordinary_object().create(
                 context.gc_collector(),
@@ -402,15 +409,15 @@ impl ListFormat {
                 vec![],
             );
 
-            // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
+            // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
             o.create_data_property_or_throw(js_string!("type"), js_string!(part.typ()), context)
                 .js_expect("operation must not fail per the spec")?;
 
-            // c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
+            // c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
             o.create_data_property_or_throw(js_string!("value"), js_string!(part.value()), context)
                 .js_expect("operation must not fail per the spec")?;
 
-            // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
+            // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
             result
                 .create_data_property_or_throw(n, o, context)
                 .js_expect("operation must not fail per the spec")?;
@@ -434,15 +441,27 @@ impl ListFormat {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/resolvedOptions
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
-        // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let object = this.as_object();
-        let lf = object
-            .as_ref()
-            .and_then(|o| o.downcast_ref::<Self>())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
-            })?;
+        // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
+        //
+        // SAFETY: Extract all data from `lf` into owned values inside a scoped block so
+        // the Ref<'_, ListFormat> borrow guard is dropped BEFORE we touch `context`.
+        // GC allocations (context.gc_collector(), js_string!, create_data_property_or_throw)
+        // can trigger a collection cycle; holding a Ref<'_, T> across a GC point is a
+        // use-after-free because the GC may collect the backing object while the borrow
+        // is live.
+        let (locale_str, typ, style) = {
+            let object = this.as_object();
+            let lf = object
+                .as_ref()
+                .and_then(|o| o.downcast_ref::<Self>())
+                .ok_or_else(|| {
+                    JsNativeError::typ().with_message(
+                        "`resolvedOptions` can only be called on a `ListFormat` object",
+                    )
+                })?;
+            // Clone/copy out the cheap data we need; Ref is dropped at end of this block.
+            (lf.locale.to_string(), lf.typ, lf.style)
+        }; // ← Ref<'_, ListFormat> dropped here, safe to use context below
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         let options = context.intrinsics().templates().ordinary_object().create(
@@ -455,18 +474,14 @@ impl ListFormat {
         //     a. Let p be the Property value of the current row.
         //     b. Let v be the value of lf's internal slot whose name is the Internal Slot value of the current row.
         //     c. Assert: v is not undefined.
-        //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
+        //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         options
-            .create_data_property_or_throw(
-                js_string!("locale"),
-                js_string!(lf.locale.to_string()),
-                context,
-            )
+            .create_data_property_or_throw(js_string!("locale"), js_string!(locale_str), context)
             .js_expect("operation must not fail per the spec")?;
         options
             .create_data_property_or_throw(
                 js_string!("type"),
-                match lf.typ {
+                match typ {
                     ListFormatType::Conjunction => js_string!("conjunction"),
                     ListFormatType::Disjunction => js_string!("disjunction"),
                     ListFormatType::Unit => js_string!("unit"),
@@ -477,7 +492,7 @@ impl ListFormat {
         options
             .create_data_property_or_throw(
                 js_string!("style"),
-                match lf.style {
+                match style {
                     ListLength::Wide => js_string!("long"),
                     ListLength::Short => js_string!("short"),
                     ListLength::Narrow => js_string!("narrow"),
@@ -487,7 +502,6 @@ impl ListFormat {
             )
             .js_expect("operation must not fail per the spec")?;
 
-        // 5. Return options.
         Ok(options.into())
     }
 }

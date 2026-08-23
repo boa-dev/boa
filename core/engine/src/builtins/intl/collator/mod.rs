@@ -340,19 +340,31 @@ impl Collator {
             JsNativeError::typ()
                 .with_message("`resolvedOptions` can only be called on a `Collator` object")
         })?;
-        let collator_obj = this.clone();
-        let mut collator = this.downcast_mut::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`resolvedOptions` can only be called on a `Collator` object")
-        })?;
 
         // 3. If collator.[[BoundCompare]] is undefined, then
         //     a. Let F be a new built-in function object as defined in 10.3.3.1.
         //     b. Set F.[[Collator]] to collator.
         //     c. Set collator.[[BoundCompare]] to F.
-        let bound_compare = if let Some(f) = collator.bound_compare.clone() {
+        //
+        // SAFETY: We must NOT hold a downcast_mut borrow across context.realm() /
+        // context.gc_collector() calls, as those can trigger a GC collection that
+        // frees the backing object while the mutable borrow guard is live (UAF).
+        //
+        // Pattern: read [[BoundCompare]] in a scoped block, drop the borrow, build the
+        // function with no borrow held, then take a fresh borrow only to write back.
+        let existing = {
+            let collator = this.downcast_ref::<Self>().ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`resolvedOptions` can only be called on a `Collator` object")
+            })?;
+            collator.bound_compare.clone()
+        }; // borrow dropped here
+
+        let bound_compare = if let Some(f) = existing {
             f
         } else {
+            // Build the bound compare function with no borrow held on `this`
+            let collator_obj = this.clone();
             let bound_compare = FunctionObjectBuilder::new(
                 context.realm(),
                 context.gc_collector(),
@@ -401,7 +413,15 @@ impl Collator {
             .length(2)
             .build();
 
-            collator.bound_compare = Some(bound_compare.clone());
+            // take a fresh borrow to write back [[BoundCompare]].  No context calls
+            // follow this so the borrow is safe.
+            this.downcast_mut::<Self>()
+                .ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("`resolvedOptions` can only be called on a `Collator` object")
+                })?
+                .bound_compare = Some(bound_compare.clone());
+
             bound_compare
         };
 
