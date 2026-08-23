@@ -363,9 +363,11 @@ impl Collator {
                     |_, args, collator, context| {
                         // 1. Let collator be F.[[Collator]].
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
-                        let collator = collator
-                            .downcast_ref::<Self>()
-                            .js_expect("checked above that the object was a collator object")?;
+                        //
+                        // SAFETY: We must resolve the string arguments (which run JS /
+                        // may trigger GC) BEFORE borrowing `collator` via downcast_ref.
+                        // Holding a Ref<'_, T> across a GC point is a use-after-free
+                        // because GC can collect the backing object while the borrow is live.
 
                         // 3. If x is not provided, let x be undefined.
                         // 5. Let X be ? ToString(x).
@@ -383,8 +385,12 @@ impl Collator {
                             .iter()
                             .collect::<Vec<_>>();
 
-                        // 7. Return CompareStrings(collator, X, Y).
+                        // Borrow collator AFTER all GC-triggering work is done.
+                        let collator = collator
+                            .downcast_ref::<Self>()
+                            .js_expect("checked above that the object was a collator object")?;
 
+                        // 7. Return CompareStrings(collator, X, Y).
                         let result = collator.collator.as_borrowed().compare_utf16(&x, &y) as i32;
 
                         Ok(result.into())
