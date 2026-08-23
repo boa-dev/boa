@@ -287,6 +287,7 @@ impl Generator {
                 // 2. If state is completed, return CreateIterResultObject(undefined, true).
                 GeneratorState::Completed => {
                     r#gen.state = GeneratorState::Completed;
+                    drop(r#gen);
                     return Ok(create_iter_result_object(
                         JsValue::undefined(),
                         true,
@@ -323,6 +324,7 @@ impl Generator {
             }
             CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
+                drop(r#gen);
                 Ok(create_iter_result_object(value, true, context))
             }
             CompletionRecord::Throw(err) => {
@@ -374,6 +376,7 @@ impl Generator {
                     // b. Once a generator enters the completed state it never leaves it and its
                     // associated execution context is never resumed. Any execution state associated
                     // with generator can be discarded at this point.
+                    drop(r#gen);
 
                     // a. If abruptCompletion.[[Type]] is return, then
                     if let Ok(value) = abrupt_completion {
@@ -414,6 +417,7 @@ impl Generator {
             }
             CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
+                drop(r#gen);
                 Ok(create_iter_result_object(value, true, context))
             }
             CompletionRecord::Throw(err) => {

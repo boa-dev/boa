@@ -69,35 +69,49 @@ impl StringIterator {
 
     /// `StringIterator.prototype.next( )`
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let mut string_iterator = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<Self>)
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
+        let object = this
+            .as_object()
+            .filter(|o| o.is::<Self>())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a StringIterator"))?;
 
-        if string_iterator.string.is_empty() {
+        let (mut string, position) = {
+            let string_iterator = object
+                .downcast_ref::<Self>()
+                .expect("already checked that it is a StringIterator");
+            (string_iterator.string.clone(), string_iterator.next_index)
+        };
+
+        if string.is_empty() {
             return Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
                 context,
             ));
         }
-        let native_string = &string_iterator.string;
-        let len = native_string.len();
-        let position = string_iterator.next_index;
+        let len = string.len();
         if position >= len {
-            string_iterator.string = js_string!();
+            object
+                .downcast_mut::<Self>()
+                .expect("already checked")
+                .string = js_string!();
             return Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
                 context,
             ));
         }
-        let code_point = native_string.code_point_at(position);
-        string_iterator.next_index += code_point.code_unit_count();
+
+        let code_point = string.code_point_at(position);
+        let next_index = position + code_point.code_unit_count();
+
+        object
+            .downcast_mut::<Self>()
+            .expect("already checked")
+            .next_index = next_index;
+
         let result_string = crate::builtins::string::String::substring(
-            &string_iterator.string.clone().into(),
-            &[position.into(), string_iterator.next_index.into()],
+            &string.into(),
+            &[position.into(), next_index.into()],
             context,
         )?;
         Ok(create_iter_result_object(result_string, false, context))

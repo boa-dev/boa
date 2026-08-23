@@ -106,41 +106,54 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let mut map_iterator = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<Self>)
+        let object = this
+            .as_object()
+            .filter(|o| o.is::<Self>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a MapIterator"))?;
 
-        let item_kind = map_iterator.iteration_kind;
+        let (item_kind, element, iterated_map) = {
+            let mut map_iterator = object
+                .downcast_mut::<Self>()
+                .expect("already checked that it is a MapIterator");
 
-        if let Some(obj) = map_iterator.iterated_map.take() {
-            let e = {
-                let mut entries = obj.0.borrow_mut();
-                let entries = entries.data_mut();
-                let len = entries.full_len();
-                loop {
-                    let element = entries
-                        .get_index(map_iterator.next_index)
-                        .map(|(v, k)| (v.clone(), k.clone()));
-                    map_iterator.next_index += 1;
-                    if element.is_some() || map_iterator.next_index >= len {
-                        break element;
-                    }
-                }
-            };
-            if let Some((key, value)) = e {
-                let item = match item_kind {
-                    PropertyNameKind::Key => Ok(create_iter_result_object(key, false, context)),
-                    PropertyNameKind::Value => Ok(create_iter_result_object(value, false, context)),
-                    PropertyNameKind::KeyAndValue => {
-                        let result = Array::create_array_from_list([key, value], context);
-                        Ok(create_iter_result_object(result.into(), false, context))
+            let item_kind = map_iterator.iteration_kind;
+
+            if let Some(obj) = map_iterator.iterated_map.take() {
+                let e = {
+                    let mut entries = obj.0.borrow_mut();
+                    let entries = entries.data_mut();
+                    let len = entries.full_len();
+                    loop {
+                        let element = entries
+                            .get_index(map_iterator.next_index)
+                            .map(|(v, k)| (v.clone(), k.clone()));
+                        map_iterator.next_index += 1;
+                        if element.is_some() || map_iterator.next_index >= len {
+                            break element;
+                        }
                     }
                 };
-                map_iterator.iterated_map = Some(obj);
-                return item;
+                (item_kind, e, Some(obj))
+            } else {
+                (item_kind, None, None)
             }
+        };
+
+        if let (Some((key, value)), Some(obj)) = (element, iterated_map) {
+            object
+                .downcast_mut::<Self>()
+                .expect("already checked")
+                .iterated_map = Some(obj);
+
+            let item = match item_kind {
+                PropertyNameKind::Key => Ok(create_iter_result_object(key, false, context)),
+                PropertyNameKind::Value => Ok(create_iter_result_object(value, false, context)),
+                PropertyNameKind::KeyAndValue => {
+                    let result = Array::create_array_from_list([key, value], context);
+                    Ok(create_iter_result_object(result.into(), false, context))
+                }
+            };
+            return item;
         }
 
         Ok(create_iter_result_object(
