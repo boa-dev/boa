@@ -45,7 +45,7 @@ jobs:
         run: |
           cd boa
           mkdir -p ../results/test262
-          cargo run --release --bin boa_tester -- run -v -o ../results/test262
+          cargo run --release --bin boa_tester -- run -v --disable-parallelism -o ../results/test262
           cd ..
 
       - name: Compare results
