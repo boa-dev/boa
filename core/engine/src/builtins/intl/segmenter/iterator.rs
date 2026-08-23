@@ -113,7 +113,10 @@ impl SegmentIterator {
                 .with_message("`next` can only be called on a `Segment Iterator` object")
         })?;
 
-        let (string, start, end, is_word_like, finished) = {
+        // Extract all data inside a scoped block so the mutable borrow is dropped
+        // before we pass `context` to `create_segment_data_object` / `create_iter_result_object`
+        // (those can trigger GC, and holding a RefMut across a GC point is a UAF).
+        let result: Option<(JsString, usize, usize, Option<bool>)> = {
             let mut iter = object
                 .downcast_mut::<Self>()
                 .expect("already checked that it is a Segment Iterator object");
@@ -123,7 +126,7 @@ impl SegmentIterator {
 
             // 4. Let string be iterator.[[IteratedString]].
             // 6. Let endIndex be ! FindBoundary(segmenter, string, startIndex, after).
-            let Some((end, is_word_like)) = iter.string.get(start..).and_then(|string| {
+            let maybe_end = iter.string.get(start..).and_then(|string| {
                 // 3. Let segmenter be iterator.[[IteratingSegmenter]].
                 let segmenter = iter
                     .segmenter
@@ -136,36 +139,40 @@ impl SegmentIterator {
                 segments
                     .next()
                     .map(|end| (start + end, segments.is_word_like()))
-            }) else {
-                return Ok((None, 0, 0, false, true));
-            };
+            });
 
-            // 8. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to endIndex.
-            iter.next_segment_index = end;
-
-            (Some(iter.string.clone()), start, end, is_word_like, false)
+            if let Some((end, is_word_like)) = maybe_end {
+                // 8. Set iterator.[[IteratedStringNextSegmentCodeUnitIndex]] to endIndex.
+                iter.next_segment_index = end;
+                Some((iter.string.clone(), start, end, is_word_like))
+            } else {
+                None
+            }
         };
+        // RefMut<'_, SegmentIterator> is dropped here — safe to use context below.
 
-        if finished {
-            // 7. If endIndex is not finite, then
-            //     a. Return CreateIterResultObject(undefined, true).
-            return Ok(create_iter_result_object(
-                JsValue::undefined(),
-                true,
-                context,
-            ));
+        match result {
+            None => {
+                // 7. If endIndex is not finite, then
+                //     a. Return CreateIterResultObject(undefined, true).
+                Ok(create_iter_result_object(
+                    JsValue::undefined(),
+                    true,
+                    context,
+                ))
+            }
+            Some((string, start, end, is_word_like)) => {
+                // 9. Let segmentData be ! CreateSegmentDataObject(segmenter, string, startIndex, endIndex).
+                let segment_data =
+                    create_segment_data_object(string, start..end, is_word_like, context);
+
+                // 10. Return CreateIterResultObject(segmentData, false).
+                Ok(create_iter_result_object(
+                    segment_data.into(),
+                    false,
+                    context,
+                ))
+            }
         }
-
-        let string = string.expect("string is Some when not finished");
-
-        // 9. Let segmentData be ! CreateSegmentDataObject(segmenter, string, startIndex, endIndex).
-        let segment_data = create_segment_data_object(string, start..end, is_word_like, context);
-
-        // 10. Return CreateIterResultObject(segmentData, false).
-        Ok(create_iter_result_object(
-            segment_data.into(),
-            false,
-            context,
-        ))
     }
 }
