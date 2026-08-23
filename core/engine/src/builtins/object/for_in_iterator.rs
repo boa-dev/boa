@@ -86,16 +86,28 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let mut iterator = object
-            .as_ref()
-            .and_then(|o| o.downcast_mut::<Self>())
+        let object = this
+            .as_object()
+            .filter(|o| o.is::<Self>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ForInIterator"))?;
-        let mut object = iterator.object.to_object(context)?;
+
+        let mut current_object = {
+            let iterator = object.downcast_ref::<Self>().expect("already checked");
+            iterator.object.clone()
+        };
+
+        let mut current_object_obj = current_object.to_object(context)?;
         loop {
-            if !iterator.object_was_visited {
-                let keys = object
+            let was_visited = {
+                let iterator = object.downcast_ref::<Self>().expect("checked");
+                iterator.object_was_visited
+            };
+
+            if !was_visited {
+                let keys = current_object_obj
                     .__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
+
+                let mut iterator = object.downcast_mut::<Self>().expect("checked");
                 for k in keys {
                     match k {
                         PropertyKey::String(ref k) => {
@@ -109,23 +121,40 @@ impl ForInIterator {
                 }
                 iterator.object_was_visited = true;
             }
-            while let Some(r) = iterator.remaining_keys.pop_front() {
-                if !iterator.visited_keys.contains(&r)
-                    && let Some(desc) = object.__get_own_property__(
+
+            loop {
+                let r = {
+                    let mut iterator = object.downcast_mut::<Self>().expect("checked");
+                    iterator.remaining_keys.pop_front()
+                };
+
+                let Some(r) = r else { break };
+
+                let already_visited = {
+                    let iterator = object.downcast_ref::<Self>().expect("checked");
+                    iterator.visited_keys.contains(&r)
+                };
+
+                if !already_visited {
+                    let desc = current_object_obj.__get_own_property__(
                         &PropertyKey::from(r.clone()),
                         &mut InternalMethodPropertyContext::new(context),
-                    )?
-                {
-                    iterator.visited_keys.insert(r.clone());
-                    if desc.expect_enumerable() {
-                        return Ok(create_iter_result_object(JsValue::new(r), false, context));
+                    )?;
+
+                    if let Some(desc) = desc {
+                        let mut iterator = object.downcast_mut::<Self>().expect("checked");
+                        iterator.visited_keys.insert(r.clone());
+                        if desc.expect_enumerable() {
+                            return Ok(create_iter_result_object(JsValue::new(r), false, context));
+                        }
                     }
                 }
             }
-            let proto = object.prototype().clone();
+
+            let proto = current_object_obj.prototype().clone();
             match proto {
                 Some(o) => {
-                    object = o;
+                    current_object_obj = o;
                 }
                 _ => {
                     return Ok(create_iter_result_object(
@@ -135,7 +164,9 @@ impl ForInIterator {
                     ));
                 }
             }
-            iterator.object = JsValue::new(object.clone());
+
+            let mut iterator = object.downcast_mut::<Self>().expect("checked");
+            iterator.object = JsValue::new(current_object_obj.clone());
             iterator.object_was_visited = false;
         }
     }
