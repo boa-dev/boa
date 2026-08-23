@@ -227,25 +227,32 @@ impl ListFormat {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/format
     fn format(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
-        // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let object = this.as_object();
-        let lf = object
-            .as_ref()
-            .and_then(|o| o.downcast_ref::<Self>())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`format` can only be called on a `ListFormat` object")
-            })?;
+        // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
+        //    Validate the `this` type BEFORE collecting strings, but do NOT hold the
+        //    borrow across the iterator call below: `string_list_from_iterable` runs
+        //    arbitrary JS (iterator protocol) which can trigger GC and free/move the
+        //    GC-managed object that `downcast_ref` borrows from, causing a UAF.
+        let object = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`format` can only be called on a `ListFormat` object")
+        })?;
 
-        // 3. Let stringList be ? StringListFromIterable(list).
+        // 3. Let stringList be ? StringListFromIterable(list).
         // TODO: support for UTF-16 unpaired surrogates formatting
+        // SAFETY: We must collect strings first (which runs JS / may trigger GC) and
+        // only THEN borrow `lf`.  Holding a `Ref<'_, T>` across a GC point is a UAF.
         let strings = string_list_from_iterable(args.get_or_undefined(0), context)?;
+
+        // Borrow `lf` only after all GC-triggering operations are complete.
+        let lf = object
+            .downcast_ref::<Self>()
+            .expect("already checked above that the object is a ListFormat");
 
         let formatted = lf
             .native
             .format_to_string(strings.into_iter().map(|s| s.to_std_string_escaped()));
 
-        // 4. Return ! FormatList(lf, stringList).
+        // 4. Return ! FormatList(lf, stringList).
         Ok(js_string!(formatted).into())
     }
 
@@ -345,31 +352,39 @@ impl ListFormat {
         }
 
         // 1. Let lf be the this value.
-        // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let object = this.as_object();
-        let lf = object
-            .as_ref()
-            .and_then(|o| o.downcast_ref::<Self>())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`formatToParts` can only be called on a `ListFormat` object")
-            })?;
+        // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
+        //    Validate the `this` type BEFORE collecting strings, but do NOT hold the
+        //    borrow across the iterator call below: `string_list_from_iterable` runs
+        //    arbitrary JS (iterator protocol) which can trigger GC and free/move the
+        //    GC-managed object that `downcast_ref` borrows from, causing a UAF.
+        let object = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`formatToParts` can only be called on a `ListFormat` object")
+        })?;
 
-        // 3. Let stringList be ? StringListFromIterable(list).
+        // 3. Let stringList be ? StringListFromIterable(list).
         // TODO: support for UTF-16 unpaired surrogates formatting
-        let strings = string_list_from_iterable(args.get_or_undefined(0), context)?
+        // SAFETY: We must collect strings first (which runs JS / may trigger GC) and
+        // only THEN borrow `lf`.  Holding a `Ref<'_, T>` across a GC point is a UAF.
+        let strings: Vec<String> = string_list_from_iterable(args.get_or_undefined(0), context)?
             .into_iter()
-            .map(|s| s.to_std_string_escaped());
+            .map(|s| s.to_std_string_escaped())
+            .collect();
 
-        // 4. Return ! FormatListToParts(lf, stringList).
+        // Borrow `lf` only after all GC-triggering operations are complete.
+        let lf = object
+            .downcast_ref::<Self>()
+            .expect("already checked above that the object is a ListFormat");
+
+        // 4. Return ! FormatListToParts(lf, stringList).
 
         // Abstract operation `FormatListToParts ( listFormat, list )`
         // https://tc39.es/ecma402/#sec-formatlisttoparts
 
-        // 1. Let parts be ! CreatePartsFromList(listFormat, list).
+        // 1. Let parts be ! CreatePartsFromList(listFormat, list).
         let mut parts = PartsCollector(Vec::new());
         lf.native
-            .format(strings)
+            .format(strings.into_iter())
             .write_to_parts(&mut parts)
             .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
