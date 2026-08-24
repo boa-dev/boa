@@ -108,10 +108,7 @@ fn response_json() {
         TestAction::inspect_context(|ctx| {
             let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
             let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
-            assert_eq!(
-                format!("{}", response.display_obj(false)),
-                "{\n    hello world: 123\n}"
-            );
+            assert_eq!(response.display_obj(false), "{\n    hello world: 123\n}");
         }),
     ]);
 }

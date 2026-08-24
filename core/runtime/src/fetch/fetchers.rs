@@ -12,13 +12,15 @@ use std::rc::Rc;
 pub struct ErrorFetcher;
 
 impl Fetcher for ErrorFetcher {
-    async fn fetch(
+    fn fetch(
         self: Rc<Self>,
         _request: JsRequest,
         _signal: Option<JsObject>,
         _context: &RefCell<&mut Context>,
-    ) -> JsResult<JsResponse> {
-        Err(js_error!(ReferenceError: "ErrorFetcher used in fetch API."))
+    ) -> impl Future<Output = JsResult<JsResponse>> {
+        std::future::ready(Err(js_error!(
+            ReferenceError: "ErrorFetcher used in fetch API."
+        )))
     }
 }
 
@@ -32,60 +34,63 @@ pub struct BlockingReqwestFetcher {
 
 #[cfg(feature = "reqwest-blocking")]
 impl Fetcher for BlockingReqwestFetcher {
-    async fn fetch(
+    fn fetch(
         self: Rc<Self>,
         request: JsRequest,
         signal: Option<JsObject>,
         _context: &RefCell<&mut Context>,
-    ) -> JsResult<JsResponse> {
-        use boa_engine::{JsError, JsString};
+    ) -> impl Future<Output = JsResult<JsResponse>> {
+        let result = (|| {
+            use boa_engine::{JsError, JsString};
 
-        if let Some(ref sig) = signal
-            && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
-            && sig_ref.is_aborted()
-        {
-            return Err(JsError::from_opaque(
-                boa_engine::js_string!("AbortError").into(),
-            ));
-        }
-
-        let request = request.into_inner();
-        let url = request.uri().to_string();
-        let req = self
-            .client
-            .request(request.method().clone(), &url)
-            .headers(request.headers().clone());
-
-        let req = req
-            .body(request.body().clone())
-            .build()
-            .map_err(JsError::from_rust)?;
-
-        let resp = self.client.execute(req).map_err(JsError::from_rust)?;
-
-        if let Some(ref sig) = signal
-            && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
-            && sig_ref.is_aborted()
-        {
-            return Err(JsError::from_opaque(
-                boa_engine::js_string!("AbortError").into(),
-            ));
-        }
-
-        let status = resp.status();
-        let headers = resp.headers().clone();
-        let bytes = resp.bytes().map_err(JsError::from_rust)?;
-        let mut builder = http::Response::builder().status(status.as_u16());
-
-        for k in headers.keys() {
-            for v in headers.get_all(k) {
-                builder = builder.header(k.as_str(), v);
+            if let Some(ref sig) = signal
+                && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
+                && sig_ref.is_aborted()
+            {
+                return Err(JsError::from_opaque(
+                    boa_engine::js_string!("AbortError").into(),
+                ));
             }
-        }
 
-        builder
-            .body(bytes.to_vec())
-            .map_err(JsError::from_rust)
-            .map(|request| JsResponse::basic(JsString::from(url), request))
+            let request = request.into_inner();
+            let url = request.uri().to_string();
+            let req = self
+                .client
+                .request(request.method().clone(), &url)
+                .headers(request.headers().clone());
+
+            let req = req
+                .body(request.body().clone())
+                .build()
+                .map_err(JsError::from_rust)?;
+
+            let resp = self.client.execute(req).map_err(JsError::from_rust)?;
+
+            if let Some(ref sig) = signal
+                && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
+                && sig_ref.is_aborted()
+            {
+                return Err(JsError::from_opaque(
+                    boa_engine::js_string!("AbortError").into(),
+                ));
+            }
+
+            let status = resp.status();
+            let headers = resp.headers().clone();
+            let bytes = resp.bytes().map_err(JsError::from_rust)?;
+            let mut builder = http::Response::builder().status(status.as_u16());
+
+            for k in headers.keys() {
+                for v in headers.get_all(k) {
+                    builder = builder.header(k.as_str(), v);
+                }
+            }
+
+            builder
+                .body(bytes.to_vec())
+                .map_err(JsError::from_rust)
+                .map(|request| JsResponse::basic(JsString::from(url), request))
+        })();
+        async { result }
     }
 }

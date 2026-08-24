@@ -11,16 +11,18 @@ use boa_engine::{Context, JsResult, JsString, Module, Source, js_string};
 fn test_json_module_from_str() {
     struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
-        async fn load_imported_module(
+        fn load_imported_module(
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
             context: &RefCell<&mut Context>,
-        ) -> JsResult<Module> {
-            assert_eq!(request.specifier().to_std_string_escaped(), "basic");
-            let src = self.0.clone();
+        ) -> impl Future<Output = JsResult<Module>> {
+            std::future::ready({
+                assert_eq!(request.specifier().to_std_string_escaped(), "basic");
+                let src = self.0.clone();
 
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+                Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            })
         }
     }
 
@@ -66,22 +68,24 @@ fn test_json_module_from_str() {
 fn test_json_module_dynamic_import() {
     struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
-        async fn load_imported_module(
+        fn load_imported_module(
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
             context: &RefCell<&mut Context>,
-        ) -> JsResult<Module> {
-            assert_eq!(request.specifier().to_std_string_escaped(), "basic");
+        ) -> impl Future<Output = JsResult<Module>> {
+            std::future::ready({
+                assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
-            // Verify attributes were passed correctly
-            let type_attr = request
-                .get_attribute("type")
-                .expect("should have type attribute");
-            assert_eq!(type_attr.to_std_string_escaped(), "json");
+                // Verify attributes were passed correctly
+                let type_attr = request
+                    .get_attribute("type")
+                    .expect("should have type attribute");
+                assert_eq!(type_attr.to_std_string_escaped(), "json");
 
-            let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+                let src = self.0.clone();
+                Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            })
         }
     }
 
@@ -148,21 +152,23 @@ fn test_json_module_dynamic_import() {
 fn test_json_module_static_import_with_attributes() {
     struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
-        async fn load_imported_module(
+        fn load_imported_module(
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
             context: &RefCell<&mut Context>,
-        ) -> JsResult<Module> {
-            assert_eq!(request.specifier().to_std_string_escaped(), "basic");
+        ) -> impl Future<Output = JsResult<Module>> {
+            std::future::ready({
+                assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
-            let type_attr = request
-                .get_attribute("type")
-                .expect("should have type attribute");
-            assert_eq!(type_attr.to_std_string_escaped(), "json");
+                let type_attr = request
+                    .get_attribute("type")
+                    .expect("should have type attribute");
+                assert_eq!(type_attr.to_std_string_escaped(), "json");
 
-            let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+                let src = self.0.clone();
+                Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            })
         }
     }
 
@@ -203,21 +209,23 @@ fn test_json_module_static_import_with_attributes() {
 fn test_json_module_reexport_with_attributes() {
     struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
-        async fn load_imported_module(
+        fn load_imported_module(
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
             context: &RefCell<&mut Context>,
-        ) -> JsResult<Module> {
-            assert_eq!(request.specifier().to_std_string_escaped(), "basic");
+        ) -> impl Future<Output = JsResult<Module>> {
+            std::future::ready({
+                assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
-            let type_attr = request
-                .get_attribute("type")
-                .expect("should have type attribute");
-            assert_eq!(type_attr.to_std_string_escaped(), "json");
+                let type_attr = request
+                    .get_attribute("type")
+                    .expect("should have type attribute");
+                assert_eq!(type_attr.to_std_string_escaped(), "json");
 
-            let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+                let src = self.0.clone();
+                Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            })
         }
     }
 
@@ -367,19 +375,21 @@ fn test_dynamic_import_non_string_attribute_value() {
 fn test_dynamic_import_symbol_key() {
     struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
-        async fn load_imported_module(
+        fn load_imported_module(
             self: Rc<Self>,
             _referrer: Referrer,
             request: boa_engine::module::ModuleRequest,
             context: &RefCell<&mut Context>,
-        ) -> JsResult<Module> {
-            assert_eq!(request.specifier().to_std_string_escaped(), "basic");
+        ) -> impl Future<Output = JsResult<Module>> {
+            std::future::ready({
+                assert_eq!(request.specifier().to_std_string_escaped(), "basic");
 
-            // Verify attributes were passed correctly (symbol key should be ignored)
-            assert!(request.get_attribute("type").is_none());
+                // Verify attributes were passed correctly (symbol key should be ignored)
+                assert!(request.get_attribute("type").is_none());
 
-            let src = self.0.clone();
-            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+                let src = self.0.clone();
+                Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
+            })
         }
     }
 
