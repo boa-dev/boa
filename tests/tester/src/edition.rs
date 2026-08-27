@@ -87,6 +87,22 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-joint-iteration
     "joint-iteration" => SpecEdition::ESNext,
 
+    // Iterator Includes
+    // https://github.com/tc39/proposal-iterator-includes
+    "iterator-includes" => SpecEdition::ESNext,
+
+    // Iterator Chunking
+    // https://github.com/tc39/proposal-iterator-chunking
+    "iterator-chunking" => SpecEdition::ESNext,
+
+    // Iterator Join
+    // https://github.com/tc39/proposal-iterator-join
+    "Iterator.prototype.join" => SpecEdition::ESNext,
+
+    // Error Stack Accessor
+    // https://github.com/tc39/proposal-error-stack-accessor
+    "error-stack-accessor" => SpecEdition::ESNext,
+
     // ============================ Next ES version ============================
 
     // Error.isError
