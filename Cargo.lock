@@ -494,12 +494,14 @@ dependencies = [
 name = "boa_icu_provider"
 version = "1.0.0-dev"
 dependencies = [
+ "icu_calendar",
  "icu_casemap",
  "icu_collator",
  "icu_datetime",
  "icu_decimal",
  "icu_list",
  "icu_locale",
+ "icu_locale_fallback",
  "icu_normalizer",
  "icu_plurals",
  "icu_provider",
@@ -1539,12 +1541,14 @@ dependencies = [
 name = "gen-icu4x-data"
 version = "1.0.0-dev"
 dependencies = [
+ "icu_calendar",
  "icu_casemap",
  "icu_collator",
  "icu_datetime",
  "icu_decimal",
  "icu_list",
  "icu_locale",
+ "icu_locale_fallback",
  "icu_normalizer",
  "icu_plurals",
  "icu_provider_export",
@@ -1794,9 +1798,9 @@ dependencies = [
 
 [[package]]
 name = "icu"
-version = "2.2.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00380f83691e089bcfa4aeb03a2d96a910b1c9ea406d6f822fc19dfb8b58d1ec"
+checksum = "4867dd3a39b9d48632416cc7fc3dfa1913d89fd36cc02fe7bfc1dddc6fda3cde"
 dependencies = [
  "icu_calendar",
  "icu_casemap",
@@ -1820,16 +1824,16 @@ dependencies = [
 
 [[package]]
 name = "icu_calendar"
-version = "2.2.1"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2b2acc6263f494f1df50685b53ff8e57869e47d5c6fe39c23d518ae9a4f3e45"
+checksum = "58655df2f728e46e4eee80bddebefacf52ec3e77cdb925014b47c5a5905eb55c"
 dependencies = [
  "calendrical_calculations",
  "databake",
  "displaydoc",
  "icu_calendar_data",
- "icu_locale",
  "icu_locale_core",
+ "icu_locale_fallback",
  "icu_provider",
  "ixdtf",
  "serde",
@@ -1839,15 +1843,15 @@ dependencies = [
 
 [[package]]
 name = "icu_calendar_data"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "118577bcf3a0fa7c6ac0a7d6e951814da84ee56b9b1f68fb4d8d10b08cefaf4d"
+checksum = "dc00caaa3fb3201ff7a18aa458e8c3ab042b9da154cfdf948bdde3936c31c36e"
 
 [[package]]
 name = "icu_casemap"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "070f98b5b82798fcb93654bf96ed9f40064fc44c86f51a09ea711092cd5cc5be"
+checksum = "f2edfd120d8445de853cf53a1abec916f638f933a70a6f4bf8f7e2d7b7f884e9"
 dependencies = [
  "databake",
  "icu_collections",
@@ -1862,9 +1866,9 @@ dependencies = [
 
 [[package]]
 name = "icu_codepointtrie_builder"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dd18415f0eee16ca74696b2c702bc36056de17fbc4e1aaffc09578921e9357a"
+checksum = "d45ca35e0977df39c2aa9d8e5258051d178bc55361243ace20dbd266e5313e58"
 dependencies = [
  "icu_collections",
  "wasmi",
@@ -1874,9 +1878,9 @@ dependencies = [
 
 [[package]]
 name = "icu_collator"
-version = "2.2.1"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bbdf98e5e0aa827770acee171ebb568aaab975a36b56afdb5fd0e2f525750bb"
+checksum = "08984ed58ac439ebf3e13d2cf26b0c46a60afcd21721c1d14087c0b240344dda"
 dependencies = [
  "databake",
  "icu_collections",
@@ -1893,9 +1897,9 @@ dependencies = [
 
 [[package]]
 name = "icu_collections"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2984d1cd16c883d7935b9e07e44071dca8d917fd52ecc02c04d5fa0b5a3f191c"
+checksum = "fa68d21081c4a05d5a901a1c62add574c77048b6a1c67be3b50ce0b60d4ca513"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1909,9 +1913,9 @@ dependencies = [
 
 [[package]]
 name = "icu_datetime"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "989d56ea5bbc43ae2b4e0388874b002884eaf4ed3a76c84a6c8c5ad575e04d72"
+checksum = "c44df99c4c5297b05653d1a1629f13bdc9fd4044acfbbaf30b15194a1eed4cd6"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1934,9 +1938,9 @@ dependencies = [
 
 [[package]]
 name = "icu_decimal"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "288247df2e32aa776ac54fdd64de552149ac43cb840f2761811f0e8d09719dd4"
+checksum = "9eb8f655bba2d0c0459e43a5b0e6cd3cd388109898fb3d85d048165e8b0abd08"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1952,9 +1956,9 @@ dependencies = [
 
 [[package]]
 name = "icu_experimental"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a881116e620fd635f564fd9cb9bc36c256b9da2221df8b3f55643d8ef32140f"
+checksum = "7c09609ad18e249b97a0afa20e19502c4d11ab039e6e35f5ecf48bebd4eedd7e"
 dependencies = [
  "databake",
  "displaydoc",
@@ -1964,8 +1968,8 @@ dependencies = [
  "icu_collections",
  "icu_decimal",
  "icu_list",
- "icu_locale",
  "icu_locale_core",
+ "icu_locale_fallback",
  "icu_normalizer",
  "icu_pattern",
  "icu_plurals",
@@ -1987,9 +1991,9 @@ dependencies = [
 
 [[package]]
 name = "icu_list"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aeeaf517689324395bed4767f7c65504f5455942ed4c14ee54c2087ca00b816e"
+checksum = "5a5c625125085fac4bf9ad111888a90c6ab9dc7bcaec392ca79cab417f46e3fb"
 dependencies = [
  "databake",
  "icu_provider",
@@ -2001,18 +2005,21 @@ dependencies = [
 
 [[package]]
 name = "icu_locale"
-version = "2.2.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5a396343c7208121dc86e35623d3dfe19814a7613cfd14964994cdc9c9a2e26"
+checksum = "785f595c61ef57169a467eeed7b4b6936a66f6cacbb116a96ee86da983251bf4"
 dependencies = [
  "databake",
+ "displaydoc",
+ "either",
  "icu_collections",
  "icu_locale_core",
- "icu_locale_data",
+ "icu_locale_fallback",
+ "icu_pattern",
  "icu_provider",
- "potential_utf",
  "serde",
  "tinystr",
+ "writeable",
  "zerovec",
 ]
 
@@ -2032,16 +2039,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "icu_locale_data"
-version = "2.2.0"
+name = "icu_locale_fallback"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5fdcc9ac77c6d74ff5cf6e65ef3181d6af32003b16fce3a77fb451d2f695993"
+checksum = "251af8e57c9400e3eb58242fe5b8b1152b2a64fdf4cf632f923c38ccee6f2fa9"
+dependencies = [
+ "databake",
+ "icu_locale_core",
+ "icu_locale_fallback_data",
+ "icu_provider",
+ "potential_utf",
+ "serde",
+ "tinystr",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_locale_fallback_data"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "decf2a22ec8fa68f1a0c1129a3f8583f8f8bc24e8b9ccbe98ead99f62a4dc3a8"
 
 [[package]]
 name = "icu_normalizer"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c56e5ee99d6e3d33bd91c5d85458b6005a22140021cc324cea84dd0e72cff3b4"
+checksum = "12f9cf5f235641ed274641dd81c3f28d870e276763d0797aeeab72317b1c646f"
 dependencies = [
  "databake",
  "icu_collections",
@@ -2058,15 +2081,15 @@ dependencies = [
 
 [[package]]
 name = "icu_normalizer_data"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da3be0ae77ea334f4da67c12f149704f19f81d1adf7c51cf482943e84a2bad38"
+checksum = "1563da1ed3e0b3bf3d74c9b85917ac9c56464d2f57242270c09c9e752f8021a0"
 
 [[package]]
 name = "icu_pattern"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c4c568054ffe735398a9f4c55aec37ad7c768844553cc0978f09cc9b933a1fb"
+checksum = "2b3db611446bd92c246b03e4aa0bafa71ddb194af431ddbb42b9d70e4bfce1a0"
 dependencies = [
  "databake",
  "displaydoc",
@@ -2079,9 +2102,9 @@ dependencies = [
 
 [[package]]
 name = "icu_plurals"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a50023f1d49ad5c4333380328a0d4a19e4b9d6d842ec06639affd5ba47c8103"
+checksum = "e475e6766ef87b1d3c1f97be6363995b0bfaeddbc789671615df598a97ff0593"
 dependencies = [
  "databake",
  "displaydoc",
@@ -2093,11 +2116,12 @@ dependencies = [
 
 [[package]]
 name = "icu_properties"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bee3b67d0ea5c2cca5003417989af8996f8604e34fb9ddf96208a033901e70de"
+checksum = "7e7ca276ad3145661a65914e6daf131ca5120cd3dcee8f8f3214b8875184a148"
 dependencies = [
  "databake",
+ "displaydoc",
  "icu_collections",
  "icu_locale_core",
  "icu_properties_data",
@@ -2109,9 +2133,9 @@ dependencies = [
 
 [[package]]
 name = "icu_properties_data"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e2bbb201e0c04f7b4b3e14382af113e17ba4f63e2c9d2ee626b720cbce54a14"
+checksum = "e590f038c1464a96894fd6d10127e90a8be4509f56ff7ecef851b15cee0b7caa"
 
 [[package]]
 name = "icu_provider"
@@ -2136,19 +2160,19 @@ dependencies = [
 
 [[package]]
 name = "icu_provider_adapters"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4824c9432b167eb1f742b6557e31fb646179a02b4c7c62dc40e55601d07c0e4"
+checksum = "df887bc4f55dbc773c7c45a0c7dfa75be886f7b7812830a71ab7271cc1801820"
 dependencies = [
- "icu_locale",
+ "icu_locale_fallback",
  "icu_provider",
 ]
 
 [[package]]
 name = "icu_provider_blob"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af99a43c4436b6c9a37c27a822ff05238bbad134bcdf6176732208acfae46a3f"
+checksum = "5916b44fac319d3f58e4d8d805a627df19e27937b582cd99fcde3bb6b7ce1b0e"
 dependencies = [
  "icu_provider",
  "log",
@@ -2161,12 +2185,13 @@ dependencies = [
 
 [[package]]
 name = "icu_provider_export"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "547184e72c2ef149fee3218a18d88a6dfae166b1b8fe3ee0cc364c5dd2c4653e"
+checksum = "3f0e29e4bfc39746deff21874a4e442433b6014b7270195c464f79cfc739f506"
 dependencies = [
  "displaydoc",
- "icu_locale",
+ "icu_locale_core",
+ "icu_locale_fallback",
  "icu_provider",
  "icu_provider_blob",
  "log",
@@ -2176,15 +2201,15 @@ dependencies = [
 
 [[package]]
 name = "icu_provider_registry"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b9bcbe57266350ac59340174baedca7dbb2ad020fa62664e12f5437ce3c8f43"
+checksum = "d1afa60bf9e0ce2550845d366b6636e776075cdd0cac5ffb013f15260e454506"
 
 [[package]]
 name = "icu_provider_source"
-version = "2.2.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70e229a41d4f32b0323afdaccbb7ab3ad761c0572625fef35be10530c044a1d0"
+checksum = "332f703f97f83d2c925c965a2d213759c3cf61755ab80656c02a63d90970bcac"
 dependencies = [
  "elsa",
  "flate2",
@@ -2217,9 +2242,9 @@ dependencies = [
 
 [[package]]
 name = "icu_segmenter"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c0794db0b1a86193ac9c48768d0e6c52c54448e0870ad87907d456ee0dac964"
+checksum = "82d07aafccd67af15d02512a6adf5896fbc5ed00f2e99b471d2efa14016db3db"
 dependencies = [
  "core_maths",
  "databake",
@@ -2227,15 +2252,16 @@ dependencies = [
  "icu_provider",
  "potential_utf",
  "serde",
+ "smallvec",
  "utf8_iter",
  "zerovec",
 ]
 
 [[package]]
 name = "icu_time"
-version = "2.2.0"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec3af0c141da0a61d4f6970cd1d5f4b388b17ea22f8124f8f6049d3d5147586a"
+checksum = "af37e1c3b9f3ab564b619fdf4b22de169f6381eb0f7048e3ca454290c438126b"
 dependencies = [
  "calendrical_calculations",
  "databake",
