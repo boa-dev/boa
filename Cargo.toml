@@ -151,28 +151,29 @@ async-channel = "2.5.0"
 
 # ICU4X core
 
-icu_provider = { version = "2.2.0", default-features = false }
-icu_locale_core = { version = "2.2.0", default-features = false }
+icu_provider = { version = "2.3.1", default-features = false }
+icu_locale_core = { version = "2.3.0", default-features = false }
 
 # ICU4X component
-icu_locale = { version = "~2.2.0", default-features = false }
-icu_datetime = { version = "~2.2.0", default-features = false }
-icu_time = { version = "~2.2.0", default-features = false }
-icu_calendar = { version = "~2.2.1", default-features = false }
-icu_collator = { version = "~2.2.0", default-features = false }
-icu_plurals = { version = "~2.2.0", default-features = false }
-icu_list = { version = "~2.2.0", default-features = false }
-icu_casemap = { version = "~2.2.0", default-features = false }
-icu_segmenter = { version = "~2.2.0", default-features = false }
-icu_provider_export = { version = "~2.2.0", default-features = false }
-icu_provider_source = { version = "~2.2.0", default-features = false }
-icu_provider_adapters = { version = "~2.2.0", default-features = false }
-icu_provider_blob = { version = "~2.2.0", default-features = false }
-icu_properties = { version = "~2.2.0", default-features = true }
-icu_normalizer = { version = "~2.2.0", default-features = false }
-icu_decimal = { version = "~2.2.0", default-features = false }
-writeable = "0.6.2"
-tinystr = "0.8.2"
+icu_locale = { version = "~2.3.0", default-features = false }
+icu_datetime = { version = "~2.3.0", default-features = false }
+icu_time = { version = "~2.3.0", default-features = false }
+icu_calendar = { version = "~2.3.0", default-features = false }
+icu_collator = { version = "~2.3.1", default-features = false }
+icu_plurals = { version = "~2.3.0", default-features = false }
+icu_list = { version = "~2.3.0", default-features = false }
+icu_casemap = { version = "~2.3.0", default-features = false }
+icu_segmenter = { version = "~2.3.0", default-features = false }
+icu_provider_export = { version = "~2.3.0", default-features = false }
+icu_provider_source = { version = "~2.3.1", default-features = false }
+icu_provider_adapters = { version = "~2.3.0", default-features = false }
+icu_provider_blob = { version = "~2.3.0", default-features = false }
+icu_properties = { version = "~2.3.0", default-features = true }
+icu_normalizer = { version = "~2.3.0", default-features = false }
+icu_decimal = { version = "~2.3.0", default-features = false }
+icu_locale_fallback = { version = "~2.3.0", default-features = false }
+writeable = "0.6.4"
+tinystr = "0.8.4"
 yoke = "0.8.3"
 zerofrom = "0.1.8"
 fixed_decimal = "0.7.2"
