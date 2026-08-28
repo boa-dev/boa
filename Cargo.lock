@@ -323,7 +323,7 @@ dependencies = [
 
 [[package]]
 name = "boa_ast"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "arbitrary",
  "bitflags",
@@ -351,7 +351,7 @@ dependencies = [
 
 [[package]]
 name = "boa_cli"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "async-channel",
  "boa_engine",
@@ -377,7 +377,7 @@ dependencies = [
 
 [[package]]
 name = "boa_engine"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "aligned-vec",
  "arrayvec",
@@ -460,7 +460,7 @@ dependencies = [
 
 [[package]]
 name = "boa_examples"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "boa_ast",
  "boa_engine",
@@ -479,7 +479,7 @@ dependencies = [
 
 [[package]]
 name = "boa_gc"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "arrayvec",
  "boa_macros",
@@ -492,7 +492,7 @@ dependencies = [
 
 [[package]]
 name = "boa_icu_provider"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "icu_calendar",
  "icu_casemap",
@@ -515,7 +515,7 @@ dependencies = [
 
 [[package]]
 name = "boa_interner"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "arbitrary",
  "boa_gc",
@@ -531,7 +531,7 @@ dependencies = [
 
 [[package]]
 name = "boa_macros"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "cfg-if",
  "cow-utils",
@@ -545,7 +545,7 @@ dependencies = [
 
 [[package]]
 name = "boa_macros_tests"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -554,7 +554,7 @@ dependencies = [
 
 [[package]]
 name = "boa_parser"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "bitflags",
  "boa_ast",
@@ -572,7 +572,7 @@ dependencies = [
 
 [[package]]
 name = "boa_runtime"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -596,7 +596,7 @@ dependencies = [
 
 [[package]]
 name = "boa_string"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "fast-float2",
  "itoa",
@@ -608,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "boa_tester"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "bitflags",
  "boa_engine",
@@ -630,7 +630,7 @@ dependencies = [
 
 [[package]]
 name = "boa_wasm"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "boa_engine",
  "console_error_panic_hook",
@@ -640,7 +640,7 @@ dependencies = [
 
 [[package]]
 name = "boa_wintertc"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "base64 0.23.1",
  "boa_engine",
@@ -1539,7 +1539,7 @@ dependencies = [
 
 [[package]]
 name = "gen-icu4x-data"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "icu_calendar",
  "icu_casemap",
@@ -2328,7 +2328,7 @@ dependencies = [
 
 [[package]]
 name = "insta-bytecode"
-version = "1.0.0-dev"
+version = "0.22.0"
 dependencies = [
  "boa_engine",
  "insta",
