@@ -190,7 +190,7 @@ pub fn allocate_rooted<'gc, T: Trace + Finalize + 'gc>(
     value: T,
 ) -> Gc<'gc, T> {
     let gc = Gc::new(mc, value);
-    let _ = Local::new(gc.clone());
+    drop(Local::new(gc.clone()));
     gc
 }
 
