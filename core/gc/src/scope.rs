@@ -14,6 +14,7 @@ pub(crate) struct ErasedRoot {
 }
 
 impl ErasedRoot {
+    #[allow(clippy::needless_pass_by_value)]
     fn new<T: Trace>(gc: Gc<'_, T>) -> Self {
         unsafe fn trace_gc<T: Trace>(ptr: NonNull<()>, tracer: &mut Tracer<'_>) {
             unsafe {
