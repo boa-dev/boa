@@ -19,16 +19,18 @@ thread_local! {
 
     static DUMMY: &'static MutationContext<'static, 'static> = COLLECTOR.with(|c| {
         Box::leak(Box::new(unsafe {
-            MutationContext::from_collector_erased(*c)
+            MutationContext::from_collector_erased(c)
         }))
     });
 
-    static TRACKER: std::cell::RefCell<Option<oscars::collectors::mark_sweep_branded::Root<'static, crate::scope_tracker::HandleScopeTracker>>> = std::cell::RefCell::new(None);
+    static TRACKER: std::cell::RefCell<Option<oscars::collectors::mark_sweep_branded::Root<'static, crate::scope_tracker::HandleScopeTracker>>> = const { std::cell::RefCell::new(None) };
 }
 
 #[cfg(feature = "oscars_backend")]
 impl GcContext {
     #[must_use]
+    /// # Panics
+    /// Panics if the `HandleScope` cannot be rooted.
     pub fn new() -> Self {
         TRACKER.with(|tracker| {
             if tracker.borrow().is_none() {
@@ -77,6 +79,8 @@ unsafe impl Send for SyncWrapperDefault {}
 #[cfg(not(feature = "oscars_backend"))]
 impl GcContext {
     #[must_use]
+    /// # Panics
+    /// Panics if the `HandleScope` cannot be rooted.
     pub fn new() -> Self {
         Self
     }

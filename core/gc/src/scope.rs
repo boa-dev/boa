@@ -37,10 +37,11 @@ impl ErasedRoot {
 
 thread_local! {
     /// A stack of handle scopes for the current thread.
-    pub(crate) static SCOPE_STACK: RefCell<Vec<Vec<ErasedRoot>>> = RefCell::new(Vec::new());
+    pub(crate) static SCOPE_STACK: RefCell<Vec<Vec<ErasedRoot>>> = const { RefCell::new(Vec::new()) };
 }
 
 /// A scope for tracking local handles.
+#[derive(Debug)]
 pub struct HandleScope {
     _marker: PhantomData<*mut ()>, // Not Send or Sync
 }
@@ -69,12 +70,15 @@ impl Drop for HandleScope {
 
 /// A local handle to a GC-managed value, scoped to the current `HandleScope`.
 #[derive(Debug)]
-pub struct Local<'gc, T: Trace + 'gc> {
+pub struct Local<'gc, T: Trace> {
     inner: Gc<'gc, T>,
 }
 
 impl<'gc, T: Trace + 'gc> Local<'gc, T> {
     /// Create a new local handle from a GC pointer.
+    #[must_use]
+    /// # Panics
+    /// Panics if there is no active `HandleScope`.
     pub fn new(gc: Gc<'gc, T>) -> Self {
         SCOPE_STACK.with(|stack| {
             let mut stack = stack.borrow_mut();
@@ -88,6 +92,7 @@ impl<'gc, T: Trace + 'gc> Local<'gc, T> {
         Self { inner: gc }
     }
 
+    #[must_use]
     pub fn into_inner(self) -> Gc<'gc, T> {
         self.inner
     }

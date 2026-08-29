@@ -11,7 +11,7 @@ unsafe impl Trace for HandleScopeTracker {
     unsafe fn trace(&self, tracer: &mut Tracer<'_>) {
         SCOPE_STACK.with(|stack| {
             for scope in stack.borrow().iter() {
-                for root in scope.iter() {
+                for root in scope {
                     unsafe {
                         root.trace(tracer);
                     }
