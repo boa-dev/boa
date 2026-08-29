@@ -12,7 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-oscars = { git = "https://github.com/boa-dev/oscars.git", branch = "main", features = ["mark_sweep_branded"], optional = true }
+oscars = { git = "https://github.com/shruti2522/oscars.git", branch = "size_class", features = ["mark_sweep_branded"], optional = true }
 itoa.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
