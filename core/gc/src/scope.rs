@@ -79,7 +79,7 @@ impl<'gc, T: Trace + 'gc> Local<'gc, T> {
         SCOPE_STACK.with(|stack| {
             let mut stack = stack.borrow_mut();
             if let Some(top) = stack.last_mut() {
-                top.push(ErasedRoot::new(gc));
+                top.push(ErasedRoot::new(gc.clone()));
             } else {
                 panic!("Cannot create Local without an active HandleScope");
             }
@@ -95,11 +95,9 @@ impl<'gc, T: Trace + 'gc> Local<'gc, T> {
 
 impl<'gc, T: Trace + 'gc> Clone for Local<'gc, T> {
     fn clone(&self) -> Self {
-        Self::new(self.inner)
+        Self::new(self.inner.clone())
     }
 }
-
-impl<'gc, T: Trace + 'gc> Copy for Local<'gc, T> {}
 
 impl<'gc, T: Trace + 'gc> std::ops::Deref for Local<'gc, T> {
     type Target = Gc<'gc, T>;

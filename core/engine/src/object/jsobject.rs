@@ -70,11 +70,68 @@ impl<T: NativeObject> Clone for JsObject<T> {
 // implementation of `Debug` for `JsObject` could easily cause stack overflows,
 // so we have to force our users to debug the `JsObject` instead.
 #[allow(missing_debug_implementations)]
-#[derive(Trace, Finalize)]
+#[cfg_attr(not(feature = "oscars_backend"), derive(Trace, Finalize))]
+/// Note: We must use `repr(C)` to ensure that `VTableObject<ErasedObjectData>` and
+/// `VTableObject<T>` have the exact same prefix layout, allowing safe pointer casting.
+#[repr(C)]
 pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
-    #[unsafe_ignore_trace]
+    #[cfg_attr(not(feature = "oscars_backend"), unsafe_ignore_trace)]
     vtable: &'static InternalObjectMethods,
+    #[cfg(feature = "oscars_backend")]
+    trace_fn: fn(&VTableObject<ErasedObjectData>, &mut boa_gc::Tracer<'_>),
+    #[cfg(feature = "oscars_backend")]
+    finalize_fn: fn(&VTableObject<ErasedObjectData>),
     object: GcRefCell<Object<T>>,
+}
+
+#[cfg(feature = "oscars_backend")]
+unsafe impl<T: NativeObject + ?Sized> Trace for VTableObject<T> {
+    #[inline]
+    unsafe fn trace(&self, tracer: &mut boa_gc::Tracer<'_>) {
+        (self.trace_fn)(
+            unsafe { &*(self as *const _ as *const VTableObject<ErasedObjectData>) },
+            tracer,
+        );
+    }
+}
+
+#[cfg(feature = "oscars_backend")]
+impl<T: NativeObject + ?Sized> Finalize for VTableObject<T> {
+    fn finalize(&self) {
+        (self.finalize_fn)(unsafe {
+            &*(self as *const _ as *const VTableObject<ErasedObjectData>)
+        });
+    }
+}
+
+impl<T: NativeObject> VTableObject<T> {
+    pub(crate) fn new(object: Object<T>, vtable: &'static InternalObjectMethods) -> Self {
+        #[cfg(feature = "oscars_backend")]
+        fn trace_fn<T: NativeObject>(
+            this: &VTableObject<ErasedObjectData>,
+            tracer: &mut boa_gc::Tracer<'_>,
+        ) {
+            let this = unsafe { &*(this as *const _ as *const VTableObject<T>) };
+            unsafe {
+                boa_gc::Trace::trace(&this.object, tracer);
+            }
+        }
+
+        #[cfg(feature = "oscars_backend")]
+        fn finalize_fn<T: NativeObject>(this: &VTableObject<ErasedObjectData>) {
+            let this = unsafe { &*(this as *const _ as *const VTableObject<T>) };
+            boa_gc::Finalize::finalize(&this.object);
+        }
+
+        Self {
+            object: GcRefCell::new(object),
+            vtable,
+            #[cfg(feature = "oscars_backend")]
+            trace_fn: trace_fn::<T>,
+            #[cfg(feature = "oscars_backend")]
+            finalize_fn: finalize_fn::<T>,
+        }
+    }
 }
 
 impl JsObject {
@@ -122,13 +179,7 @@ impl JsObject {
         object: Object<T>,
         vtable: &'static InternalObjectMethods,
     ) -> Self {
-        let inner = boa_gc::allocate_rooted(
-            mc,
-            VTableObject {
-                object: GcRefCell::new(object),
-                vtable,
-            },
-        );
+        let inner = boa_gc::allocate_rooted(mc, VTableObject::new(object, vtable));
 
         JsObject { inner }.upcast()
     }
@@ -179,15 +230,15 @@ impl JsObject {
         let internal_methods = data.internal_methods();
         let inner = boa_gc::allocate_rooted(
             mc,
-            VTableObject {
-                object: GcRefCell::new(Object {
+            VTableObject::new(
+                Object {
                     data: ObjectData::new(data),
                     properties: PropertyMap::from_prototype_unique_shape(mc, prototype.into()),
                     extensible: true,
                     private_elements: ThinVec::new(),
-                }),
-                vtable: internal_methods,
-            },
+                },
+                internal_methods,
+            ),
         );
 
         JsObject { inner }.upcast()
@@ -203,8 +254,8 @@ impl JsObject {
         let internal_methods = data.internal_methods();
         let inner = boa_gc::allocate_rooted(
             mc,
-            VTableObject {
-                object: GcRefCell::new(Object {
+            VTableObject::new(
+                Object {
                     data: ObjectData::new(data),
                     properties: PropertyMap::from_prototype_with_shared_shape(
                         mc,
@@ -213,9 +264,9 @@ impl JsObject {
                     ),
                     extensible: true,
                     private_elements: ThinVec::new(),
-                }),
-                vtable: internal_methods,
-            },
+                },
+                internal_methods,
+            ),
         );
 
         JsObject { inner }
@@ -1055,8 +1106,8 @@ impl<T: NativeObject> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = boa_gc::allocate_rooted(
             mc,
-            VTableObject {
-                object: GcRefCell::new(Object {
+            VTableObject::new(
+                Object {
                     data: ObjectData::new(data),
                     properties: PropertyMap::from_prototype_with_shared_shape(
                         mc,
@@ -1065,9 +1116,9 @@ impl<T: NativeObject> JsObject<T> {
                     ),
                     extensible: true,
                     private_elements: ThinVec::new(),
-                }),
-                vtable: internal_methods,
-            },
+                },
+                internal_methods,
+            ),
         );
 
         Self { inner }
@@ -1105,15 +1156,15 @@ impl<T: NativeObject> JsObject<T> {
         let internal_methods = data.internal_methods();
         let inner = boa_gc::allocate_rooted(
             mc,
-            VTableObject {
-                object: GcRefCell::new(Object {
+            VTableObject::new(
+                Object {
                     data: ObjectData::new(data),
                     properties: PropertyMap::from_prototype_unique_shape(mc, prototype.into()),
                     extensible: true,
                     private_elements: ThinVec::new(),
-                }),
-                vtable: internal_methods,
-            },
+                },
+                internal_methods,
+            ),
         );
 
         Self { inner }

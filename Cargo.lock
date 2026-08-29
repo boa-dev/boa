@@ -2848,7 +2848,6 @@ dependencies = [
 [[package]]
 name = "oscars"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/oscars.git?branch=main#ed5f692df0356338a82c113982449a3b5f7b1927"
 dependencies = [
  "arrayvec",
  "either",
@@ -2863,7 +2862,6 @@ dependencies = [
 [[package]]
 name = "oscars_derive"
 version = "0.1.0"
-source = "git+https://github.com/boa-dev/oscars.git?branch=main#ed5f692df0356338a82c113982449a3b5f7b1927"
 dependencies = [
  "cfg-if",
  "proc-macro2",

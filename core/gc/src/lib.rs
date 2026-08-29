@@ -181,7 +181,7 @@ mod test;
 pub fn force_collect() {
     let mc = MutationContext::global();
     mc.collect();
-    crate::context::GcContext::new().force_collect();
+    GcContext::new().force_collect();
 }
 
 #[cfg(feature = "oscars_backend")]
@@ -190,7 +190,7 @@ pub fn allocate_rooted<'gc, T: Trace + Finalize + 'gc>(
     value: T,
 ) -> Gc<'gc, T> {
     let gc = Gc::new(mc, value);
-    Local::new(gc);
+    Local::new(gc.clone());
     gc
 }
 
