@@ -2826,7 +2826,7 @@ dependencies = [
 [[package]]
 name = "oscars"
 version = "0.1.0"
-source = "git+https://github.com/shruti2522/oscars.git?branch=size_class#44df52980584138e2942ddfa9edd3075f88f896e"
+source = "git+https://github.com/shruti2522/oscars.git?branch=size_class#13a3514748d4b57d099d1ebbc353d842f95a59f2"
 dependencies = [
  "arrayvec",
  "either",
@@ -2841,7 +2841,7 @@ dependencies = [
 [[package]]
 name = "oscars_derive"
 version = "0.1.0"
-source = "git+https://github.com/shruti2522/oscars.git?branch=size_class#44df52980584138e2942ddfa9edd3075f88f896e"
+source = "git+https://github.com/shruti2522/oscars.git?branch=size_class#13a3514748d4b57d099d1ebbc353d842f95a59f2"
 dependencies = [
  "cfg-if",
  "proc-macro2",
