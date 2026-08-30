@@ -339,10 +339,10 @@ impl SyntheticModule {
         module_scope.escape_all_bindings();
 
         let finished = compiler.finish();
-        let cb = Gc::new(&context.gc(), finished);
+        let cb = context.alloc(finished);
 
         let mut envs = EnvironmentStack::new();
-        envs.push_module(module_scope, context.gc());
+        envs.push_module(module_scope, unsafe { boa_gc::MutationContext::global() });
 
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).

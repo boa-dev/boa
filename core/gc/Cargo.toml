@@ -34,7 +34,7 @@ either = { workspace = true, optional = true }
 thin-vec = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
 arrayvec = { workspace = true, optional = true }
-oscars = { git = "https://github.com/boa-dev/oscars.git", branch = "main", features = ["null_collector_branded"], optional = true }
+oscars = { git = "https://github.com/boa-dev/oscars.git", branch = "main", features = ["mark_sweep_branded"], optional = true }
 typeid = { workspace = true, optional = true }
 
 [lints]

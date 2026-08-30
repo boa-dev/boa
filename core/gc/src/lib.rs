@@ -29,6 +29,9 @@ mod pointers;
 #[cfg(not(feature = "oscars_backend"))]
 mod trace;
 
+pub mod context;
+pub use context::GcContext;
+
 #[cfg(not(feature = "oscars_backend"))]
 pub(crate) mod internals;
 
@@ -54,9 +57,7 @@ pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, GcErased, MutationContext, WeakGc, WeakMap};
 
 #[cfg(feature = "oscars_backend")]
-pub use oscars::collectors::null_collector_branded::{
-    Finalize, Gc, GcBox, GcRefCell, Root, Trace, Tracer,
-};
+pub use oscars::collectors::mark_sweep_branded::{Finalize, Gc, GcRefCell, Root, Trace, Tracer};
 
 #[cfg(feature = "oscars_backend")]
 /// Re-export [`typeid::of`].
@@ -71,20 +72,20 @@ pub use typeid::of as type_id_of;
 
 #[cfg(feature = "oscars_backend")]
 /// Type alias for Ephemeron
-pub type Ephemeron<K, V> = oscars::collectors::null_collector_branded::Ephemeron<'static, K, V>;
+pub type Ephemeron<K, V> = oscars::collectors::mark_sweep_branded::Ephemeron<'static, K, V>;
 
 #[cfg(feature = "oscars_backend")]
 /// A token granting permission to allocate into the GC arena.
 /// Lifetimes are `'static` for the null collector but should be forwarded for `mark_sweep_branded`.
 pub type MutationContext<'a, 'b> =
-    oscars::collectors::null_collector_branded::MutationContext<'static, 'static>;
+    oscars::collectors::mark_sweep_branded::MutationContext<'static, 'static>;
 
 #[cfg(feature = "oscars_backend")]
 /// Type alias for `WeakGc`
-pub type WeakGc<T> = oscars::collectors::null_collector_branded::WeakGc<'static, T>;
+pub type WeakGc<T> = oscars::collectors::mark_sweep_branded::WeakGc<'static, T>;
 
 #[cfg(feature = "oscars_backend")]
-pub use oscars::collectors::null_collector_branded::cell::{GcRef, GcRefMut};
+pub use oscars::collectors::mark_sweep_branded::cell::{GcRef, GcRefMut};
 
 #[cfg(feature = "oscars_backend")]
 mod oscars_weak_map;

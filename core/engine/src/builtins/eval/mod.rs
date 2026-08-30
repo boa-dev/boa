@@ -321,7 +321,7 @@ impl Eval {
         compiler.compile_statement_list(body.statements(), true, false);
 
         let finished = compiler.finish();
-        let code_block = Gc::new(&context.gc(), finished);
+        let code_block = context.alloc(finished);
 
         // Strict calls don't need extensions, since all strict eval calls push a new
         // function environment before evaluating.

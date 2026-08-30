@@ -12,7 +12,7 @@ impl MutationContext<'_, '_> {
     /// # Safety
     /// Bypasses lifetime branding, use only as a bridge during Gc migration.
     #[must_use]
-    pub unsafe fn dummy() -> Self {
+    pub const unsafe fn dummy() -> Self {
         Self {
             _marker: PhantomData,
         }
@@ -20,7 +20,7 @@ impl MutationContext<'_, '_> {
 
     /// Creates a global context (polyfill for the oscars backend).
     #[must_use]
-    pub unsafe fn global() -> Self {
-        unsafe { Self::dummy() }
+    pub const unsafe fn global() -> Self {
+        Self::dummy()
     }
 }

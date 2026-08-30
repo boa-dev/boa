@@ -1044,10 +1044,10 @@ impl_js_string_slice_index!(
 
 #[cfg(feature = "oscars_backend")]
 // SAFETY: `JsString` does not contain any GC pointers, so an empty trace is safe.
-unsafe impl oscars::collectors::null_collector_branded::Trace for JsString {
+unsafe impl oscars::collectors::mark_sweep_branded::Trace for JsString {
     // SAFETY: Empty trace is safe.
     #[inline]
-    unsafe fn trace(&self, _tracer: &mut oscars::collectors::null_collector_branded::Tracer<'_>) {}
+    unsafe fn trace(&self, _tracer: &mut oscars::collectors::mark_sweep_branded::Tracer<'_>) {}
     // SAFETY: Empty trace is safe.
     #[inline]
     unsafe fn trace_non_roots(&self) {}
@@ -1056,4 +1056,4 @@ unsafe impl oscars::collectors::null_collector_branded::Trace for JsString {
 }
 
 #[cfg(feature = "oscars_backend")]
-impl oscars::collectors::null_collector_branded::Finalize for JsString {}
+impl oscars::collectors::mark_sweep_branded::Finalize for JsString {}
