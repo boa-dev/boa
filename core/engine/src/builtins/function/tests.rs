@@ -62,7 +62,7 @@ fn function_prototype() {
         TestAction::assert_native_error(
             "new Function.prototype()",
             JsNativeErrorKind::Type,
-            "not a constructor",
+            "function is not a constructor",
         ),
     ]);
 }
