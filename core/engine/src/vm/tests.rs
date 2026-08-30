@@ -343,6 +343,66 @@ fn loop_runtime_limit() {
     ]);
 }
 
+/// Test that the loop iteration limit allows exactly `limit` body executions
+/// and that all loop kinds agree on the count.
+///
+/// See: <https://github.com/boa-dev/boa/issues/5461>
+#[test]
+fn loop_iteration_limit_counts_body_executions() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(10);
+        }),
+        // Loops that run exactly `limit` iterations must complete without error.
+        TestAction::assert_eq("var a = 0; for (let i = 0; i < 10; ++i) { a++; } a", 10),
+        TestAction::assert_eq("var b = 0; while (b < 10) { b++; } b", 10),
+        TestAction::assert_eq("var c = 0; do { c++; } while (c < 10); c", 10),
+        TestAction::assert_eq(
+            "var d = 0; for (const x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) { d++; } d",
+            10,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                var e = 0;
+                var o = { k0: 0, k1: 0, k2: 0, k3: 0, k4: 0, k5: 0, k6: 0, k7: 0, k8: 0, k9: 0 };
+                for (const k in o) { e++; }
+                e
+            "#},
+            10,
+        ),
+        // Loops that would exceed the limit must error after exactly `limit`
+        // body executions, and `for` and `while` loops must agree.
+        TestAction::assert_runtime_limit_error(
+            "var forCount = 0; for (let i = 0; i < 1000; ++i) { forCount++; }",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("forCount", 10),
+        TestAction::assert_runtime_limit_error(
+            "var whileCount = 0; while (true) { whileCount++; }",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("whileCount", 10),
+        TestAction::assert_runtime_limit_error(
+            "var doWhileCount = 0; do { doWhileCount++; } while (true);",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("doWhileCount", 10),
+        TestAction::assert_runtime_limit_error(
+            indoc! {r#"
+                var forOfCount = 0;
+                var infinite = {
+                    [Symbol.iterator]() {
+                        return { next() { return { done: false, value: 1 }; } };
+                    }
+                };
+                for (const x of infinite) { forOfCount++; }
+            "#},
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("forOfCount", 10),
+    ]);
+}
+
 #[test]
 fn recursion_runtime_limit() {
     run_test_actions([
