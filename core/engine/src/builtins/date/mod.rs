@@ -34,7 +34,7 @@ use boa_macros::js_str;
 
 #[cfg(feature = "intl")]
 use crate::builtins::intl::date_time_format::{
-    FormatDefaults, FormatType, create_date_time_format, format_timestamp_with_dtf,
+    FormatDefaults, FormatType, create_date_time_format, format_date_time,
 };
 
 pub(crate) mod utils;
@@ -1556,7 +1556,7 @@ impl Date {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
         let dtf = create_date_time_format(locales, options, required, defaults, context)?;
-        format_timestamp_with_dtf(&dtf, x, context)
+        format_date_time(&dtf, x, context)
     }
 
     /// [`Date.prototype.toLocaleDateString()`][spec].

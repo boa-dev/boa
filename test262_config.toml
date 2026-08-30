@@ -90,6 +90,8 @@ tests = [
     "test/intl402/Locale/prototype/calendar/canonicalize.js",
     "test/intl402/Locale/constructor-non-iana-canon.js",
     "test/intl402/Locale/constructor-options-canonicalized.js",
+    # TODO: Remove when we implement `DateTimeFormat.prototype.formatRangeToParts`
+    "test/intl402/DateTimeFormat/prototype/formatRangeToParts",
     # TODO: Remove this once regress fixes the named groups parsing issue.
     "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
     # Source Phase Imports: AbstractModuleSource built-in and static `import source` not yet implemented.

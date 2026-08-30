@@ -154,6 +154,7 @@ icu_locale = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_datetime = { workspace = true, default-features = false, features = [
     "serde",
+    "unstable"
 ], optional = true }
 icu_time = { workspace = true, default-features = false, features = [
     "serde",
