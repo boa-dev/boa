@@ -7,19 +7,19 @@ input_file: tests/insta-bytecode/scripts/loop-hoisting.js
 Location     Handler      Opcode                            Operands
   000000                    StoreZero                         dst:r02
   000005                    StoreInt8                         value:100, dst:r03
-  00000b                    Jump                              address:00001a
-  000010                    IncrementLoopIteration            
-  000011                    Inc                               src:r02, dst:r02
-  00001a                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:00002c
+  00000b                    Jump                              address:000019
+  000010                    Inc                               src:r02, dst:r02
+  000019                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:00002c
+  000026                    IncrementLoopIteration            
   000027                    Jump                              address:000010
   00002c                    StoreInt8                         value:100, dst:r03
   000032                    PutLexicalValue                   src:r03, binding_index:0
   00003b                    Move                              src:r03, dst:r04
   000044                    StoreZero                         dst:r05
-  000049                    Jump                              address:000058
-  00004e                    IncrementLoopIteration            
-  00004f                    Inc                               src:r05, dst:r05
-  000058                    JumpIfNotLessThan                 lhs:r05, rhs:r04, address:00006a
+  000049                    Jump                              address:000057
+  00004e                    Inc                               src:r05, dst:r05
+  000057                    JumpIfNotLessThan                 lhs:r05, rhs:r04, address:00006a
+  000064                    IncrementLoopIteration            
   000065                    Jump                              address:00004e
   00006a                    StoreInt8                         value:100, dst:r06
   000070                    PutLexicalValue                   src:r06, binding_index:1
@@ -57,7 +57,7 @@ Bindings:
     0004: foo, scope: GlobalObject
 Handlers: <empty>
 Source Map:
-    0000: 17..79: (2, 26)
-    0001: 79..153: (5, 24)
+    0000: 16..78: (2, 26)
+    0001: 78..153: (5, 24)
     0002: 153..197: (14, 4)
     0003: 197..207: (23, 4)
