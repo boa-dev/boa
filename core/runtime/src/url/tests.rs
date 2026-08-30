@@ -1,4 +1,7 @@
+use super::Url;
 use crate::test::{TestAction, run_test_actions};
+use boa_engine::value::Convert;
+use std::panic::{RefUnwindSafe, UnwindSafe};
 
 const TEST_HARNESS: &str = r#"
 function assert(condition, message) {
@@ -16,6 +19,26 @@ function assert_eq(a, b, message) {
     }
 }
 "#;
+
+#[test]
+fn url_preserves_public_traits() {
+    fn assert_traits<T: Clone + Send + Sync + UnwindSafe + RefUnwindSafe>() {}
+
+    assert_traits::<Url>();
+}
+
+#[test]
+fn url_clone_has_independent_state() {
+    let original = Url::from(url::Url::parse("https://example.com/?a=1").unwrap());
+    let mut cloned = original.clone();
+
+    cloned.set_search(Convert("?b=2".to_owned()));
+
+    let original: url::Url = original.into();
+    let cloned: url::Url = cloned.into();
+    assert_eq!(original.query(), Some("a=1"));
+    assert_eq!(cloned.query(), Some("b=2"));
+}
 
 #[test]
 fn url_basic() {
