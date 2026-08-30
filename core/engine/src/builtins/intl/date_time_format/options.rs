@@ -12,6 +12,7 @@ use crate::{
     context::icu::IntlProvider,
     js_error, js_string,
 };
+use boa_string::JsString;
 use icu_calendar::cal::{
     Buddhist, ChineseTraditional, Coptic, Ethiopian, Gregorian, Hebrew, Hijri, Indian, Japanese,
     KoreanTraditional, Persian, Roc, hijri,
@@ -20,7 +21,7 @@ use icu_datetime::{
     DateTimeFormatterPreferences,
     fieldsets::builder::{DateFields, ZoneStyle},
     options::{Length, SubsecondDigits as IcuSubsecondDigits, TimePrecision},
-    preferences::{CalendarAlgorithm, HijriCalendarAlgorithm, HourCycle as IcuHourCycle},
+    preferences::{CalendarAlgorithm, HourCycle as IcuHourCycle},
     scaffold::CldrCalendar,
 };
 
@@ -58,10 +59,9 @@ impl TryFrom<HourCycle> for IcuHourCycle {
         match hc {
             HourCycle::H11 => Ok(IcuHourCycle::H11),
             HourCycle::H12 => Ok(IcuHourCycle::H12),
-            HourCycle::H23 => Ok(IcuHourCycle::H23),
-            // TODO: Work on support for H24, potentially remove depending on fate
-            // of H24 option.
-            HourCycle::H24 => Err(js_error!(RangeError: "h24 not currently supported.")),
+            // According to https://github.com/tc39/ecma402/issues/1002#issuecomment-3190537710
+            // the target is to make h24 fallback to h23, so we do the same here.
+            HourCycle::H23 | HourCycle::H24 => Ok(IcuHourCycle::H23),
         }
     }
 }
@@ -82,41 +82,60 @@ impl OptionType for FormatMatcher {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(super) enum DateStyle {
+pub(super) enum FieldStyle {
     Full,
     Long,
     Medium,
     Short,
 }
 
-impl OptionType for DateStyle {
+impl OptionType for FieldStyle {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_ref() {
             "full" => Ok(Self::Full),
             "long" => Ok(Self::Long),
             "medium" => Ok(Self::Medium),
             "short" => Ok(Self::Short),
-            _ => Err(js_error!(RangeError: "unknown dateStyle option")),
+            _ => Err(js_error!(RangeError: "unknown style option")),
         }
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub(super) enum TimeStyle {
-    Full,
-    Long,
-    Medium,
-    Short,
+impl FieldStyle {
+    pub(super) fn to_js_string(self) -> JsString {
+        match self {
+            FieldStyle::Full => js_string!("full"),
+            FieldStyle::Long => js_string!("long"),
+            FieldStyle::Medium => js_string!("medium"),
+            FieldStyle::Short => js_string!("short"),
+        }
+    }
 }
 
-impl OptionType for TimeStyle {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
-        match value.to_string(context)?.to_std_string_escaped().as_ref() {
-            "full" => Ok(Self::Full),
-            "long" => Ok(Self::Long),
-            "medium" => Ok(Self::Medium),
-            "short" => Ok(Self::Short),
-            _ => Err(js_error!(RangeError: "unknown timeStyle option")),
+impl From<FieldStyle> for Length {
+    fn from(value: FieldStyle) -> Self {
+        match value {
+            FieldStyle::Full | FieldStyle::Long => Length::Long,
+            FieldStyle::Medium => Length::Medium,
+            FieldStyle::Short => Length::Short,
+        }
+    }
+}
+
+impl From<FieldStyle> for DateFields {
+    fn from(value: FieldStyle) -> Self {
+        match value {
+            FieldStyle::Full => DateFields::YMDE,
+            FieldStyle::Long | FieldStyle::Medium | FieldStyle::Short => DateFields::YMD,
+        }
+    }
+}
+
+impl From<FieldStyle> for TimePrecision {
+    fn from(value: FieldStyle) -> Self {
+        match value {
+            FieldStyle::Full | FieldStyle::Long | FieldStyle::Medium => TimePrecision::Second,
+            FieldStyle::Short => TimePrecision::Minute,
         }
     }
 }
@@ -176,7 +195,7 @@ impl FormatOptions {
         context: &mut Context,
     ) -> JsResult<Self> {
         // Below is adapted and inlined from Step 24 of `CreateDateTimeFormat`
-        let week_day = get_option::<WeekDay>(options, js_string!("weekDay"), context)?;
+        let week_day = get_option::<WeekDay>(options, js_string!("weekday"), context)?;
         let era = get_option::<Era>(options, js_string!("era"), context)?;
         let year = get_option::<Year>(options, js_string!("year"), context)?;
         let month = get_option::<Month>(options, js_string!("month"), context)?;
@@ -205,6 +224,10 @@ impl FormatOptions {
             fractional_second_digits,
             time_zone_name,
         })
+    }
+
+    pub(super) fn fractional_second_digits(&self) -> Option<SubsecondDigits> {
+        self.fractional_second_digits
     }
 
     pub(super) fn set_date_defaults(&mut self) {
@@ -536,6 +559,14 @@ impl SubsecondDigits {
             _ => unreachable!("subSecondDigits must be previously constrained."),
         }
     }
+
+    pub(super) fn digits(self) -> u8 {
+        match self {
+            SubsecondDigits::S1 => 1,
+            SubsecondDigits::S2 => 2,
+            SubsecondDigits::S3 => 3,
+        }
+    }
 }
 
 impl From<SubsecondDigits> for IcuSubsecondDigits {
@@ -614,13 +645,12 @@ impl ServicePreferences for DateTimeFormatterPreferences {
             CalendarAlgorithm::Japanese => has_calendar_data_for_locale::<Japanese>(id, provider),
             CalendarAlgorithm::Persian => has_calendar_data_for_locale::<Persian>(id, provider),
             CalendarAlgorithm::Roc => has_calendar_data_for_locale::<Roc>(id, provider),
-            CalendarAlgorithm::Hijri(Some(
-                HijriCalendarAlgorithm::Civil | HijriCalendarAlgorithm::Tbla,
-            )) => has_calendar_data_for_locale::<Hijri<hijri::TabularAlgorithm>>(id, provider),
-            CalendarAlgorithm::Hijri(Some(HijriCalendarAlgorithm::Umalqura)) => {
-                has_calendar_data_for_locale::<Hijri<hijri::UmmAlQura>>(id, provider)
+            // All Hijri calendars should use the same locale data, even if they use
+            // different algorithms.
+            CalendarAlgorithm::Hijri(_) => {
+                has_calendar_data_for_locale::<Hijri<hijri::TabularAlgorithm>>(id, provider)
             }
-            CalendarAlgorithm::Hijri(Some(HijriCalendarAlgorithm::Rgsa) | None) => true,
+            CalendarAlgorithm::Iso8601 => true,
             _ => false,
         });
 
@@ -643,7 +673,7 @@ fn has_calendar_data_for_locale<C: CldrCalendar>(
 where
     IntlProvider: DryDataProvider<C::YearNamesV1>,
 {
-    use icu_datetime::provider::neo::marker_attrs;
+    use icu_datetime::provider::semantic_skeletons::marker_attrs;
     use icu_provider::prelude::{
         DataIdentifierBorrowed, DataRequest, DataRequestMetadata,
         icu_locale_core::preferences::LocalePreferences,

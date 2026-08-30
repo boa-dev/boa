@@ -1515,8 +1515,7 @@ fn typed_array_values() {
 #[test]
 fn typed_array_iterator() {
     let context = &mut Context::default();
-    let vec = vec![1u8, 2];
-    let array = JsUint8Array::from_iter(vec, context).unwrap();
+    let array = JsUint8Array::from_iter(vec![1u8, 2], context).unwrap();
     let values = array.iterator(context).unwrap();
     let mut values_vec = Vec::new();
     let next_str = crate::js_string!("next");
@@ -1549,4 +1548,56 @@ fn typed_array_iterator() {
         );
     }
     assert_eq!(values_vec, vec![JsValue::new(1), JsValue::new(2)]);
+}
+
+#[test]
+fn typed_array_to_reversed() {
+    let context = &mut Context::default();
+    let array = JsUint8Array::from_iter(vec![3u8, 1, 2], context).unwrap();
+
+    let reversed = array.to_reversed(context).unwrap();
+
+    // New array has reversed order
+    assert_eq!(reversed.at(0i64, context).unwrap(), JsValue::new(2));
+    assert_eq!(reversed.at(1i64, context).unwrap(), JsValue::new(1));
+    assert_eq!(reversed.at(2i64, context).unwrap(), JsValue::new(3));
+
+    // Original is unchanged
+    assert_eq!(array.at(0i64, context).unwrap(), JsValue::new(3));
+    assert_eq!(array.at(1i64, context).unwrap(), JsValue::new(1));
+    assert_eq!(array.at(2i64, context).unwrap(), JsValue::new(2));
+}
+
+#[test]
+fn typed_array_to_sorted() {
+    let context = &mut Context::default();
+    let array = JsUint8Array::from_iter(vec![3u8, 1, 2], context).unwrap();
+
+    let sorted = array.to_sorted(None, context).unwrap();
+
+    // New array is sorted
+    assert_eq!(sorted.at(0i64, context).unwrap(), JsValue::new(1));
+    assert_eq!(sorted.at(1i64, context).unwrap(), JsValue::new(2));
+    assert_eq!(sorted.at(2i64, context).unwrap(), JsValue::new(3));
+
+    // Original is unchanged
+    assert_eq!(array.at(0i64, context).unwrap(), JsValue::new(3));
+    assert_eq!(array.at(1i64, context).unwrap(), JsValue::new(1));
+    assert_eq!(array.at(2i64, context).unwrap(), JsValue::new(2));
+}
+
+#[test]
+fn typed_array_to_locale_string() {
+    let context = &mut Context::default();
+    let array = JsUint8Array::from_iter(vec![1u8, 2, 3], context).unwrap();
+
+    let result = array.to_locale_string(None, None, context).unwrap();
+
+    let result_str = result
+        .as_string()
+        .expect("toLocaleString should return a string");
+    assert!(
+        result_str.to_std_string_escaped().contains('1'),
+        "result should contain element values"
+    );
 }

@@ -13,6 +13,7 @@ use boa_engine::{
     js_string,
 };
 use boa_gc::{Finalize, Trace};
+use http::{HeaderName, HeaderValue, StatusCode};
 use std::rc::Rc;
 
 /// The type read-only property of the Response interface contains the type of the
@@ -95,11 +96,11 @@ impl TryIntoJs for ResponseType {
     }
 }
 
-/// A null body status is a status that is 101, 103, 204, or 304.
+/// A null body status is a status that is 101, 103, 204, 205, or 304.
 ///
 /// See <https://fetch.spec.whatwg.org/#null-body-status>
 fn is_null_body_status(status: u16) -> bool {
-    matches!(status, 101 | 103 | 204 | 304)
+    matches!(status, 101 | 103 | 204 | 205 | 304)
 }
 
 /// Validates that a string matches the `reason-phrase` token production.
@@ -238,7 +239,7 @@ fn initialize_response(
         // Step 6.1: If response's status is a null body status, throw a TypeError.
         if is_null_body_status(status) {
             return Err(
-                js_error!(TypeError: "Response body is not allowed for null body status codes (101, 103, 204, 304)."),
+                js_error!(TypeError: "Response body is not allowed for null body status codes (101, 103, 204, 205, 304)."),
             );
         }
 
@@ -293,6 +294,37 @@ impl JsResponse {
     #[boa(rename = "error")]
     fn error_() -> Self {
         Self::error()
+    }
+
+    /// `Response.redirect(url, status)` per Fetch spec §7.4.
+    #[boa(static)]
+    fn redirect(url: JsValue, status: Option<u16>, context: &mut Context) -> JsResult<Self> {
+        let status = status.unwrap_or(302);
+        if !matches!(status, 301 | 302 | 303 | 307 | 308) {
+            return Err(js_error!(RangeError: "Invalid redirect status: {}", status));
+        }
+        let url_str = url.to_string(context)?.to_std_string_escaped();
+        http::Uri::try_from(url_str.as_str())
+            .map_err(|_| js_error!(TypeError: "Invalid URL: {}", url_str))?;
+
+        let status_code = StatusCode::from_u16(status)
+            .map_err(|_| js_error!(RangeError: "Invalid status code: {}", status))?;
+
+        let mut headers = http::header::HeaderMap::new();
+        headers.insert(
+            HeaderName::from_static("location"),
+            HeaderValue::try_from(url_str)
+                .map_err(|_| js_error!(TypeError: "Invalid URL for header value"))?,
+        );
+
+        Ok(Self {
+            url: js_string!(""),
+            r#type: ResponseType::Default,
+            status: status_code.as_u16(),
+            status_text: JsString::from(status_code.canonical_reason().unwrap_or("")),
+            headers: JsHeaders::from_http(headers),
+            body: Rc::new(Vec::new()),
+        })
     }
 
     /// Creates a `Response` with a JSON-serialized body and `Content-Type: application/json`.
@@ -412,6 +444,18 @@ impl JsResponse {
         // The spec says: return true if this's response's URL list's size is greater than 1.
         // TODO: track the full URL list to implement this properly.
         false
+    }
+
+    #[boa(rename = "clone")]
+    fn clone_response(&self) -> Self {
+        Self {
+            url: self.url.clone(),
+            r#type: self.r#type,
+            status: self.status,
+            status_text: self.status_text.clone(),
+            headers: self.headers.deep_clone(),
+            body: Rc::new((*self.body).clone()),
+        }
     }
 
     fn bytes(&self, context: &mut Context) -> JsPromise {

@@ -76,12 +76,12 @@ mod miri {
                 drop(cloned_gc);
                 force_collect();
                 assert_eq!(wrap.upgrade().as_deref().map(String::as_str), Some("foo"));
-                assert_eq!(eph.value(), Some(3));
+                assert_eq!(&*eph.value().unwrap(), &3);
 
                 drop(gc_value);
                 force_collect();
                 assert!(wrap.upgrade().is_none());
-                assert_eq!(eph.value(), Some(3));
+                assert_eq!(&*eph.value().unwrap(), &3);
 
                 drop(wrap);
                 force_collect();
@@ -99,7 +99,7 @@ mod miri {
             let eph = Ephemeron::new(&gc_value, 4);
             let _fourth = Gc::new("tail");
 
-            assert_eq!(eph.value(), Some(4));
+            assert_eq!(&*eph.value().unwrap(), &4);
         });
     }
 

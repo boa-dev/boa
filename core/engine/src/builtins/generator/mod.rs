@@ -156,13 +156,7 @@ pub struct Generator {
 impl IntrinsicObject for Generator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            )
+            .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 1)
             .static_method(Self::r#return, js_string!("return"), 1)
             .static_method(Self::throw, js_string!("throw"), 1)

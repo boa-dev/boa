@@ -6,7 +6,7 @@ use hashbrown::{
     hash_table::{Entry as RawEntry, Iter as RawIter},
 };
 
-use crate::{Allocator, Ephemeron, Finalize, Gc, GcRefCell, Trace, custom_trace};
+use crate::{Allocator, Ephemeron, Finalize, Gc, GcRef, GcRefCell, Trace, custom_trace};
 use std::{fmt, hash::BuildHasher, marker::PhantomData};
 
 /// A map that holds weak references to its keys and is traced by the garbage collector.
@@ -21,7 +21,7 @@ unsafe impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Trace for WeakMap<K
     });
 }
 
-impl<K: Trace + ?Sized, V: Trace + Clone> WeakMap<K, V> {
+impl<K: Trace + ?Sized, V: Trace> WeakMap<K, V> {
     /// Creates a new `WeakMap`.
     #[must_use]
     #[inline]
@@ -35,9 +35,10 @@ impl<K: Trace + ?Sized, V: Trace + Clone> WeakMap<K, V> {
         self.inner.borrow_mut().insert(key, value);
     }
 
-    /// Removes a key from the map, returning the value at the key if the key was previously in the map.
+    /// Removes a key from the map, returning `true` if the key was previously in
+    /// the map.
     #[inline]
-    pub fn remove(&mut self, key: &Gc<K>) -> Option<V> {
+    pub fn remove(&mut self, key: &Gc<K>) -> bool {
         self.inner.borrow_mut().remove(key)
     }
 
@@ -48,11 +49,11 @@ impl<K: Trace + ?Sized, V: Trace + Clone> WeakMap<K, V> {
         self.inner.borrow().contains_key(key)
     }
 
-    /// Returns a reference to the value corresponding to the key.
+    /// Returns a reference to the ephemeron corresponding to the key.
     #[must_use]
     #[inline]
-    pub fn get(&self, key: &Gc<K>) -> Option<V> {
-        self.inner.borrow().get(key)
+    pub fn get<'a>(&'a self, key: &Gc<K>) -> Option<GcRef<'a, Ephemeron<K, V>>> {
+        GcRef::try_map(self.inner.borrow(), |inner| inner.get(key))
     }
 }
 
@@ -222,7 +223,7 @@ where
 impl<K, V, S> RawWeakMap<K, V, S>
 where
     K: Trace + ?Sized + 'static,
-    V: Trace + Clone + 'static,
+    V: Trace + 'static,
     S: BuildHasher,
 {
     /// Reserves capacity for at least `additional` more elements to be inserted
@@ -275,14 +276,13 @@ where
             .shrink_to(min_capacity, make_hasher::<_, V, S>(&self.hash_builder));
     }
 
-    /// Returns the value corresponding to the supplied key.
-    // TODO: make this return a reference instead of cloning.
-    pub(crate) fn get(&self, k: &Gc<K>) -> Option<V> {
+    /// Returns the ephemeron corresponding to the supplied key.
+    pub(crate) fn get(&self, k: &Gc<K>) -> Option<&Ephemeron<K, V>> {
         if self.table.is_empty() {
             None
         } else {
             let hash = make_hash_from_gc(&self.hash_builder, k);
-            self.table.find(hash, equivalent_key(k))?.value()
+            self.table.find(hash, equivalent_key(k))
         }
     }
 
@@ -313,16 +313,16 @@ where
         old
     }
 
-    /// Removes a key from the map, returning the value at the key if the key
+    /// Removes a key from the map, returning `true` if the key
     /// was previously in the map. Keeps the allocated memory for reuse.
-    pub(crate) fn remove(&mut self, k: &Gc<K>) -> Option<V> {
+    pub(crate) fn remove(&mut self, k: &Gc<K>) -> bool {
         let hash = make_hash_from_gc(&self.hash_builder, k);
-        self.table
-            .find_entry(hash, equivalent_key(k))
-            .ok()?
-            .remove()
-            .0
-            .value()
+        if let Ok(entry) = self.table.find_entry(hash, equivalent_key(k)) {
+            entry.remove();
+            true
+        } else {
+            false
+        }
     }
 
     /// Clears all the expired keys in the map.

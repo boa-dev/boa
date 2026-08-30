@@ -171,6 +171,7 @@ pub struct StandardConstructors {
     weak_map: StandardConstructor,
     weak_set: StandardConstructor,
     iterator: StandardConstructor,
+    finalization_registry: StandardConstructor,
     #[cfg(feature = "intl")]
     collator: StandardConstructor,
     #[cfg(feature = "intl")]
@@ -266,6 +267,7 @@ impl Default for StandardConstructors {
             weak_map: StandardConstructor::default(),
             weak_set: StandardConstructor::default(),
             iterator: StandardConstructor::default(),
+            finalization_registry: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             collator: StandardConstructor::default(),
             #[cfg(feature = "intl")]
@@ -854,6 +856,18 @@ impl StandardConstructors {
     #[must_use]
     pub const fn iterator(&self) -> &StandardConstructor {
         &self.iterator
+    }
+
+    /// Returns the `FinalizationRegistry` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-finalization-registry-constructor
+    #[inline]
+    #[must_use]
+    pub const fn finalization_registry(&self) -> &StandardConstructor {
+        &self.finalization_registry
     }
 
     /// Returns the `Intl.Collator` constructor.

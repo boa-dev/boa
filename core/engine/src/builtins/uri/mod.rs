@@ -379,12 +379,10 @@ where
     // 4. Repeat,
     loop {
         // a. If k = strLen, return R.
-        if k == str_len {
-            return Ok(js_string!(&r[..]));
-        }
-
         // b. Let C be the code unit at index k within string.
-        let c = string.code_point_at(k).as_u32() as u16;
+        let Some(c) = string.code_unit_at(k) else {
+            return Ok(js_string!(&r[..]));
+        };
 
         // c. If C is not the code unit 0x0025 (PERCENT SIGN), then
         #[allow(clippy::if_not_else)]
@@ -588,5 +586,19 @@ mod tests {
         let err = decode(&s, |_| false).expect_err("should error on incomplete escape");
         let native = err.as_native().expect("error should be native");
         assert!(matches!(native.kind(), JsNativeErrorKind::Uri));
+    }
+
+    #[test]
+    fn decode_preserves_non_bmp_characters() {
+        let s = js_string!("\u{1F600}");
+        let decoded = decode(&s, |_| false).expect("decode should succeed");
+        assert_eq!(decoded, s);
+    }
+
+    #[test]
+    fn decode_preserves_non_bmp_characters_for_decode_uri_set() {
+        let s = js_string!("\u{1F600}");
+        let decoded = decode(&s, is_uri_reserved_or_number_sign).expect("decode should succeed");
+        assert_eq!(decoded, s);
     }
 }

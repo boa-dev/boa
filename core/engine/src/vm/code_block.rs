@@ -396,6 +396,7 @@ impl CodeBlock {
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
             | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
+            Instruction::ToInt32 { dst, src } => format!("dst:{dst}, src:{src}"),
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -513,9 +514,9 @@ impl CodeBlock {
             | Instruction::SuperCall { argument_count } => {
                 format!("argument_count:{argument_count}")
             }
-            Instruction::DefVar { binding_index } | Instruction::GetLocator { binding_index } => {
-                format!("binding_index:{binding_index}")
-            }
+            Instruction::DefVar { binding_index }
+            | Instruction::DefEvalVar { binding_index }
+            | Instruction::GetLocator { binding_index } => format!("binding_index:{binding_index}"),
             Instruction::DefInitVar { src, binding_index }
             | Instruction::PutLexicalValue { src, binding_index }
             | Instruction::SetName { src, binding_index } => {
@@ -654,7 +655,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("dst:{dst}, value:{value}, ic:{ic}",)
+                format!("dst:{dst}, value:{value}, ic:{ic}")
             }
             Instruction::GetPropertyByNameWithThis {
                 dst,
@@ -663,7 +664,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("dst:{dst}, receiver:{receiver}, value:{value}, ic:{ic}",)
+                format!("dst:{dst}, receiver:{receiver}, value:{value}, ic:{ic}")
             }
             Instruction::SetPropertyByName {
                 value,
@@ -671,7 +672,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("object:{object}, value:{value}, ic:{ic}",)
+                format!("object:{object}, value:{value}, ic:{ic}")
             }
             Instruction::SetPropertyByNameWithThis {
                 value,
@@ -928,9 +929,7 @@ impl CodeBlock {
             | Instruction::Reserved58
             | Instruction::Reserved59
             | Instruction::Reserved60
-            | Instruction::Reserved61
-            | Instruction::Reserved62
-            | Instruction::Reserved63 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

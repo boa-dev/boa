@@ -117,7 +117,9 @@ impl JumpRecord {
                     finally_throw_flag,
                     finally_throw_index,
                 } => {
-                    let index = value as i32;
+                    // Note: +1 because 0 is reserved for the fallthrough entry of the
+                    // jump table emitted in `pop_try_with_finally_control_info`.
+                    let index = value as i32 + 1;
                     compiler
                         .bytecode
                         .emit_store_false(finally_throw_flag.into());
@@ -608,26 +610,32 @@ impl ByteCompiler<'_> {
             self.patch_jump_with_target(*label, finally_start);
         }
 
+        // The jump table holds `info.jumps.len() + 1` entries. Entry 0 is the
+        // fallthrough target, taken when no `break`, `continue`, or `return`
+        // inside the protected region selected a jump record (the index
+        // register keeps its initial value of `0`). Entries `1..=N` correspond
+        // to the registered jump records and are selected by `HandleFinally`.
         // NOTE: +4 to jump past the index operand.
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
         self.bytecode.emit_jump_table(
             finally_throw_index,
-            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
+            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len() + 1],
         );
 
-        // We are assuming any indices outside our jump table will fallback
-        // to executing the next available op. Since we kinda control the jump
-        // table index here, this doesn't matter too much, but we _could_ also
-        // throw a PanicError on the next instruction.
+        // Skip the jump-record handlers when falling through.
+        let fallthrough = self.jump();
 
-        let mut patch_jumps = Vec::with_capacity(info.jumps.len());
+        let mut patch_jumps = vec![Self::DUMMY_ADDRESS; info.jumps.len() + 1];
         // Handle breaks/continue/returns in a finally block
         for i in 0..info.jumps.len() {
-            patch_jumps.push(self.next_opcode_location());
+            patch_jumps[i + 1] = self.next_opcode_location();
 
             let jump_record = info.jumps[i].clone();
             jump_record.perform_actions(Self::DUMMY_ADDRESS, self);
         }
+
+        self.patch_jump(fallthrough);
+        patch_jumps[0] = self.next_opcode_location();
 
         self.bytecode
             .patch_jump_table(jump_table_index, &patch_jumps);

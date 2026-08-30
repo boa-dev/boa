@@ -42,7 +42,27 @@ impl ByteCompiler<'_> {
                     ExportDeclaration::VarStatement(var) => self.compile_var_decl(var),
                     ExportDeclaration::Declaration(decl) => self.compile_decl(decl, false),
                     ExportDeclaration::DefaultClassDeclaration(cl) => {
-                        self.compile_class(cl.as_ref().into(), None);
+                        // 2. Let className be the sole element of BoundNames of ClassDeclaration.
+                        // 3. If className is "*default*", then
+                        if cl.name().sym() == Sym::DEFAULT_EXPORT {
+                            let class = self.register_allocator.alloc();
+
+                            // 1. Let value be ? BindingClassDeclarationEvaluation of ClassDeclaration.
+                            self.compile_class(cl.as_ref().into(), Some(&class));
+
+                            // a. Let env be the running execution context's LexicalEnvironment.
+                            // b. Perform ? InitializeBoundName("*default*", value, env).
+                            let default_export = self
+                                .interner()
+                                .resolve_expect(Sym::DEFAULT_EXPORT)
+                                .into_common(false);
+                            self.emit_binding(BindingOpcode::InitLexical, default_export, &class);
+
+                            self.register_allocator.dealloc(class);
+                        } else {
+                            // 1. Let value be ? BindingClassDeclarationEvaluation of ClassDeclaration.
+                            self.compile_class(cl.as_ref().into(), None);
+                        }
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
                         let function = self.register_allocator.alloc();

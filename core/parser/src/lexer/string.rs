@@ -182,9 +182,7 @@ impl StringLiteral {
             0x0027 /* ' */ => (Some(0x0027 /* ' */), EscapeSequence::OTHER),
             0x005C /* \ */ => (Some(0x005C /* \ */), EscapeSequence::OTHER),
             0x0030 /* 0 */ if cursor
-                .peek_char()?
-                .filter(|c| (0x30..=0x39 /* 0..=9 */).contains(c))
-                .is_none() =>
+                .peek_char()?.as_ref().is_none_or(|c| !(0x30..=0x39 /* 0..=9 */).contains(c)) =>
                 (Some(0x0000 /* NULL */), EscapeSequence::OTHER),
             0x0078 /* x */ => {
                 (Some(Self::take_hex_escape_sequence(cursor, start_pos)?), EscapeSequence::OTHER)

@@ -1,7 +1,7 @@
 use boa_macros::js_str;
 
 use crate::{
-    Context, JsResult,
+    Context, JsExpect, JsResult,
     builtins::function::{OrdinaryFunction, set_function_name},
     object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
@@ -23,7 +23,7 @@ impl DefineClassStaticGetterByName {
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
         let class = context.vm.get_register(class.into()).clone();
-        let class = class.as_object().expect("class must be object");
+        let class = class.as_object().js_expect("class must be object")?;
         let key = context
             .vm
             .frame()
@@ -33,11 +33,11 @@ impl DefineClassStaticGetterByName {
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
+                .js_expect("method must be function object")?;
             set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class.clone());
         }
         let set = class
@@ -80,7 +80,7 @@ impl DefineClassGetterByName {
     ) -> JsResult<()> {
         let function = context.vm.get_register(function.into()).clone();
         let class_proto = context.vm.get_register(class_proto.into()).clone();
-        let class_proto = class_proto.as_object().expect("class must be object");
+        let class_proto = class_proto.as_object().js_expect("class must be object")?;
         let key = context
             .vm
             .frame()
@@ -90,11 +90,11 @@ impl DefineClassGetterByName {
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
+                .js_expect("method must be function object")?;
             set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class_proto.clone());
         }
         let set = class_proto
@@ -138,18 +138,16 @@ impl DefineClassStaticGetterByValue {
         let function = context.vm.get_register(function.into()).clone();
         let key = context.vm.get_register(key.into()).clone();
         let class = context.vm.get_register(class.into()).clone();
-        let class = class.as_object().expect("class must be object");
-        let key = key
-            .to_property_key(context)
-            .expect("property key must already be valid");
+        let class = class.as_object().js_expect("class must be object")?;
+        let key = key.to_property_key(context)?;
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
+                .js_expect("method must be function object")?;
             set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class.clone());
         }
 
@@ -194,18 +192,16 @@ impl DefineClassGetterByValue {
         let function = context.vm.get_register(function.into()).clone();
         let key = context.vm.get_register(key.into()).clone();
         let class_proto = context.vm.get_register(class_proto.into()).clone();
-        let class_proto = class_proto.as_object().expect("class must be object");
-        let key = key
-            .to_property_key(context)
-            .expect("property key must already be valid");
+        let class_proto = class_proto.as_object().js_expect("class must be object")?;
+        let key = key.to_property_key(context)?;
         {
             let function_object = function
                 .as_object()
-                .expect("method must be function object");
+                .js_expect("method must be function object")?;
             set_function_name(&function_object, &key, Some(js_str!("get")), context)?;
             function_object
                 .downcast_mut::<OrdinaryFunction>()
-                .expect("method must be function object")
+                .js_expect("method must be function object")?
                 .set_home_object(class_proto.clone());
         }
         let set = class_proto

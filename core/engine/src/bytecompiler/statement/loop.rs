@@ -122,8 +122,6 @@ impl ByteCompiler<'_> {
             }
         }
 
-        self.bytecode.emit_increment_loop_iteration();
-
         if let Some(final_expr) = for_loop.final_expr() {
             self.compile_expr_for_side_effects(final_expr);
         }
@@ -133,6 +131,11 @@ impl ByteCompiler<'_> {
         let exit = for_loop
             .condition()
             .map(|condition| self.compile_condition_and_branch(condition, hoisted.as_ref()));
+
+        // Count the iteration after the condition check but before the body, so the
+        // limit counts body executions (including the first, which skips the loop
+        // preamble via `initial_jump`) and loops that finish within the limit pass.
+        self.bytecode.emit_increment_loop_iteration();
 
         self.compile_stmt(for_loop.body(), use_expr, true);
 
@@ -183,7 +186,6 @@ impl ByteCompiler<'_> {
 
         let start_address = self.next_opcode_location();
         self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
-        self.bytecode.emit_increment_loop_iteration();
 
         self.iterator_next(true);
 
@@ -191,6 +193,10 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_iterator_done(done_reg.variable());
         let exit = self.jump_if_true(&done_reg);
         self.register_allocator.dealloc(done_reg);
+
+        // Count the iteration only after the done check, so exhausting the iterator
+        // within the limit does not raise a limit error.
+        self.bytecode.emit_increment_loop_iteration();
 
         let outer_scope = self.push_declarative_scope(for_in_loop.scope());
 
@@ -285,7 +291,6 @@ impl ByteCompiler<'_> {
         } else {
             self.push_loop_control_info_for_of_in_loop(label, start_address, use_expr);
         }
-        self.bytecode.emit_increment_loop_iteration();
 
         self.iterator_next(true);
         if for_of_loop.r#await() {
@@ -323,6 +328,10 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_iterator_done(done_reg.variable());
         let exit = self.jump_if_true(&done_reg);
         self.register_allocator.dealloc(done_reg);
+
+        // Count the iteration only after the done check, so exhausting the iterator
+        // within the limit does not raise a limit error.
+        self.bytecode.emit_increment_loop_iteration();
 
         let outer_scope = self.push_declarative_scope(for_of_loop.scope());
 
@@ -444,10 +453,13 @@ impl ByteCompiler<'_> {
         let hoisted = self.try_hoist_loop_condition(Some(while_loop.condition()));
 
         let start_address = self.next_opcode_location();
-        self.bytecode.emit_increment_loop_iteration();
         self.push_loop_control_info(label, start_address, use_expr);
 
         let exit = self.compile_condition_and_branch(while_loop.condition(), hoisted.as_ref());
+
+        // Count the iteration after the condition check but before the body, so the
+        // limit counts body executions and loops that finish within the limit pass.
+        self.bytecode.emit_increment_loop_iteration();
 
         self.compile_stmt(while_loop.body(), use_expr, true);
 
@@ -477,11 +489,15 @@ impl ByteCompiler<'_> {
         self.push_loop_control_info(label, start_address, use_expr);
 
         let condition_label_address = self.next_opcode_location();
-        self.bytecode.emit_increment_loop_iteration();
 
         let exit = self.compile_condition_and_branch(do_while_loop.cond(), hoisted.as_ref());
 
         self.patch_jump(initial_label);
+
+        // Count the iteration after the condition check but before the body, so the
+        // limit counts body executions (including the first, which skips the condition
+        // via `initial_label`) and loops that finish within the limit pass.
+        self.bytecode.emit_increment_loop_iteration();
 
         self.compile_stmt(do_while_loop.body(), use_expr, true);
 

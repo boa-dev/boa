@@ -4,7 +4,7 @@ use std::sync::atomic::Ordering;
 
 use crate::{
     Context, JsExpect, JsNativeError, JsResult, JsString, JsValue,
-    builtins::array_buffer::BufferObject,
+    builtins::array_buffer::{BufferObject, BufferRef},
     object::{
         JsData, JsObject,
         internal_methods::{
@@ -279,6 +279,26 @@ impl TypedArray {
         // 4. Return true.
         Some(index)
     }
+
+    /// Abstract operation `IsTypedArrayFixedLength ( O )`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-istypedarrayfixedlength
+    fn is_fixed_length(&self) -> bool {
+        // 1. If O.[[ArrayLength]] is auto, return false.
+        if self.is_auto_length() {
+            return false;
+        }
+
+        // 2. Let buffer be O.[[ViewedArrayBuffer]].
+        match self.viewed_array_buffer().as_buffer() {
+            // 3. If IsFixedLengthArrayBuffer(buffer) is false and IsSharedArrayBuffer(buffer) is false, return false.
+            BufferRef::Buffer(buf) => buf.is_fixed_len(),
+            BufferRef::SharedBuffer(_) => true,
+        }
+    }
 }
 
 // Integer-Indexed Exotic Objects [[PreventExtensions]] ( O )
@@ -295,8 +315,9 @@ pub(crate) fn typed_array_exotic_prevent_extensions(
             .downcast_ref::<TypedArray>()
             .js_expect("must be a TypedArray")?;
 
-        ta.viewed_array_buffer().as_buffer().is_fixed_len()
-    };
+        ta.is_fixed_length()
+    }; // Note: this block ensures that the borrow of obj is dropped
+    // so it may be re-borrowed in step 3
 
     // 1. If IsTypedArrayFixedLength(O) is false, return false.
     if !is_fixed_length {
