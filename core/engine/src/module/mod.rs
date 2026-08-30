@@ -287,7 +287,7 @@ impl Module {
 
         Ok(Self {
             inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                &context.gc(),
                 ModuleRepr {
                     realm,
                     namespace: GcRefCell::default(),
@@ -319,7 +319,7 @@ impl Module {
 
         Self {
             inner: Gc::new(
-                &unsafe { boa_gc::MutationContext::dummy() },
+                &context.gc(),
                 ModuleRepr {
                     realm,
                     namespace: GcRefCell::default(),
@@ -826,10 +826,7 @@ fn into_js_module() {
     let bar_count = Rc::new(RefCell::new(0));
     let dad_count = Rc::new(RefCell::new(0));
 
-    context.insert_data(Gc::new(
-        &unsafe { boa_gc::MutationContext::dummy() },
-        GcRefCell::new(JsValue::undefined()),
-    ));
+    context.insert_data(Gc::new(&context.gc(), GcRefCell::new(JsValue::undefined())));
 
     let module = unsafe {
         vec![
@@ -912,7 +909,10 @@ fn into_js_module() {
         promise_result.state()
     );
 
-    let result = context.get_data::<ResultType>().unwrap().borrow().clone();
+    // Under `oscars_backend`, `borrow()` returns `GcRef<'_, JsValue>`.
+    // Deref through the guard before cloning to clone the inner `JsValue`. If we clone
+    // the guard instead, the `GcRef` (and immutable borrow) stays alive, causing error.
+    let result = (*context.get_data::<ResultType>().unwrap().borrow()).clone();
 
     assert_eq!(*foo_count.borrow(), 2);
     assert_eq!(*bar_count.borrow(), 15);

@@ -30,7 +30,7 @@ impl JsWeakMap {
             inner: JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 context.intrinsics().constructors().weak_map().prototype(),
-                NativeWeakMap::new(&unsafe { boa_gc::MutationContext::dummy() }),
+                NativeWeakMap::new(&context.gc()),
             )
             .upcast(),
         }

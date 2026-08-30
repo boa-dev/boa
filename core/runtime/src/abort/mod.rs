@@ -124,8 +124,7 @@ impl JsAbortSignal {
         if !self.aborted.get() {
             return JsValue::undefined();
         }
-        self.reason
-            .borrow()
+        (*self.reason.borrow())
             .clone()
             .unwrap_or_else(|| make_abort_error(context))
     }

@@ -1073,7 +1073,9 @@ pub(crate) fn function_call(
     if has_binding_identifier {
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, global);
+        let index = frame
+            .environments
+            .push_lexical(1, global, unsafe { boa_gc::MutationContext::global() });
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1091,6 +1093,7 @@ pub(crate) fn function_call(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
             global,
+            unsafe { boa_gc::MutationContext::global() },
         );
     }
 
@@ -1181,7 +1184,9 @@ fn function_construct(
     if has_binding_identifier {
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, global);
+        let index = frame
+            .environments
+            .push_lexical(1, global, unsafe { boa_gc::MutationContext::global() });
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1210,6 +1215,7 @@ fn function_construct(
                 ),
             ),
             global,
+            unsafe { boa_gc::MutationContext::global() },
         );
     }
 

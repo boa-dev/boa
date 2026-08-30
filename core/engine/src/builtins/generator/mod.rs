@@ -46,7 +46,7 @@ pub(crate) enum GeneratorState {
 // Need to manually implement, since `Trace` adds a `Drop` impl which disallows destructuring.
 unsafe impl Trace for GeneratorState {
     custom_trace!(this, mark, {
-        match &this {
+        match this {
             Self::SuspendedStart { context } | Self::SuspendedYield { context } => mark(context),
             Self::Executing | Self::Completed => {}
         }
