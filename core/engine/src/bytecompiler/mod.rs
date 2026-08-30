@@ -1174,6 +1174,33 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.patch_jump(jump_to_end);
     }
 
+    /// Generates the `if`-`else` pattern directly from a condition expression,
+    /// fusing a relational condition into the branch when possible.
+    ///
+    /// For a relational condition (`<`, `<=`, `>`, `>=`) this emits a single
+    /// fused comparison+branch opcode (e.g. `if (a < b)` becomes one
+    /// `JumpIfNotLessThan`) instead of computing a boolean into a register with
+    /// `LessThan` and then testing it with `JumpIfFalse` — saving a dispatch and
+    /// a register. Non-relational conditions fall back to compiling the
+    /// condition into a temporary register followed by `JumpIfFalse`.
+    pub(crate) fn compile_if_else(
+        &mut self,
+        condition: &Expression,
+        true_case: impl FnOnce(&mut ByteCompiler<'_>),
+        false_case: impl FnOnce(&mut ByteCompiler<'_>),
+    ) {
+        let jump_false = self.compile_condition_and_branch(condition, None);
+
+        // if true, jump to end to avoid running the code for the `else`
+        true_case(self);
+        let jump_to_end = self.jump();
+
+        // if false, we should be already at the end so no need to do anything.
+        self.patch_jump(jump_false);
+        false_case(self);
+        self.patch_jump(jump_to_end);
+    }
+
     pub(crate) fn jump_if_false(&mut self, value: &Register) -> Label {
         let index = self.next_opcode_location();
         self.bytecode
@@ -1194,7 +1221,10 @@ impl<'ctx> ByteCompiler<'ctx> {
         condition: &Expression,
         hoisted: Option<&HoistedOperand>,
     ) -> Label {
-        if let Expression::Binary(binary) = condition
+        // `flatten()` strips outer parentheses so that conditions like
+        // `(a < b)` (common in ternaries and hand-parenthesized code) still
+        // reach the fused comparison+branch path.
+        if let Expression::Binary(binary) = condition.flatten()
             && let BinaryOp::Relational(op) = binary.op()
             && let Some(label) = self.try_fused_comparison_branch(op, binary, hoisted)
         {

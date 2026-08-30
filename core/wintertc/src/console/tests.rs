@@ -1,6 +1,5 @@
-use super::{Console, ConsoleState, formatter};
+use super::{Console, ConsoleState, Logger, NullLogger, formatter};
 use crate::test::{TestAction, run_test_actions, run_test_actions_with};
-use crate::{Logger, NullLogger};
 use boa_engine::{Context, JsError, JsResult, JsValue, js_string, property::Attribute};
 use boa_gc::{Gc, GcRefCell};
 use indoc::indoc;
@@ -839,6 +838,24 @@ fn console_table_map_ignores_properties_filter() {
     assert!(logs.contains("(iteration index)"));
     assert!(logs.contains("Key"));
     assert!(logs.contains("Values"));
+}
+
+/// exception should be an alias for error.
+#[test]
+fn console_exception_is_alias_for_error() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+                console.exception("hello world");
+            "#})],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(logs, "hello world\n");
 }
 
 /// Set should ignore the properties filter and keep its fixed column layout.

@@ -38,19 +38,21 @@ impl TestFetcher {
 }
 
 impl crate::fetch::Fetcher for TestFetcher {
-    async fn fetch(
+    fn fetch(
         self: Rc<Self>,
         request: JsRequest,
         _signal: Option<boa_engine::JsObject>,
         _context: &RefCell<&mut Context>,
-    ) -> JsResult<JsResponse> {
+    ) -> impl Future<Output = JsResult<JsResponse>> {
         let request = request.into_inner();
         self.requests_received.borrow_mut().push(request.clone());
         let url = request.uri();
-        self.request_mapper
-            .get(url)
-            .cloned()
-            .map(|response| JsResponse::basic(JsString::from(url.to_string()), response))
-            .ok_or_else(|| js_error!("No response found for URL"))
+        std::future::ready(
+            self.request_mapper
+                .get(url)
+                .cloned()
+                .map(|response| JsResponse::basic(JsString::from(url.to_string()), response))
+                .ok_or_else(|| js_error!("No response found for URL")),
+        )
     }
 }
