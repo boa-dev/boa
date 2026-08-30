@@ -432,7 +432,7 @@ impl JsString {
     // We check the size, so this should never panic.
     #[allow(clippy::missing_panics_doc)]
     pub fn ends_with(&self, needle: JsStr<'_>) -> bool {
-        self.as_str().starts_with(needle)
+        self.as_str().ends_with(needle)
     }
 
     /// Get the `u16` code unit at index. This does not parse any characters if there

@@ -37,6 +37,7 @@ fn main() {
 }
 
 /// Converts the value lossly
+#[allow(dead_code)]
 fn lossy_conversion(value: &JsValue, _context: &mut Context) -> JsResult<i16> {
     match value.variant() {
         JsVariant::Float64(r) => Ok(r.round() as i16),

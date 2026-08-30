@@ -83,11 +83,15 @@ impl SetNameByLocator {
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let frame = context.vm.frame_mut();
         let strict = frame.code_block.strict();
-        let binding_locator = frame
+        let mut binding_locator = frame
             .binding_stack
             .pop()
             .js_expect("locator should have been popped before")?;
         let value = context.vm.get_register(value.into()).clone();
+
+        if context.is_deleted_binding(&binding_locator) {
+            context.find_runtime_binding(&mut binding_locator)?;
+        }
 
         verify_initialized(&binding_locator, context)?;
 
