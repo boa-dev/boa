@@ -19,6 +19,132 @@ fn empty_function_returns_undefined() {
 }
 
 #[test]
+fn implicit_return_does_not_leak_last_evaluated_expression() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            let seen;
+
+            function g(inner) {
+                seen = inner;
+            }
+
+            function f() {}
+
+            5;
+            let outer = g(f());
+            seen;
+        "#},
+        JsValue::undefined(),
+    )]);
+}
+
+#[test]
+fn implicit_constructor_return_uses_constructed_object() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        let seen;
+
+        function g(inner) {
+            seen = inner;
+        }
+
+        function f() {}
+
+        ({});
+        let outer = g(new f());
+        Object.getPrototypeOf(seen) === f.prototype;
+    "#})]);
+}
+
+#[test]
+fn implicit_return_does_not_leak_from_previous_eval() {
+    run_test_actions([
+        TestAction::run("function f() {}"),
+        TestAction::run("let seen; function g(inner) { seen = inner; }"),
+        TestAction::run("5;"),
+        TestAction::run("let outer = g(f());"),
+        TestAction::assert_eq("seen", JsValue::undefined()),
+    ]);
+}
+
+#[test]
+fn implicit_return_does_not_leak_completion_value_from_same_eval() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            eval(`
+                function f() {}
+                globalThis.seen = "initial";
+                function g(inner) { globalThis.seen = inner; }
+                5;
+                let outer = g(f());
+            `);
+        "#}),
+        TestAction::assert_eq("globalThis.seen", JsValue::undefined()),
+    ]);
+}
+
+#[test]
+fn implicit_constructor_return_does_not_leak_completion_value_from_same_eval() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            eval(`
+                function f() {}
+                globalThis.prototype_matches = false;
+                function g(inner) {
+                    globalThis.prototype_matches = Object.getPrototypeOf(inner) === f.prototype;
+                }
+                ({});
+                let outer = g(new f());
+            `);
+        "#}),
+        TestAction::assert("globalThis.prototype_matches"),
+    ]);
+}
+
+/// Regression test for issue #4485.
+/// Checks that generator resumption via `g.next(f())` is not affected
+/// by resetting the accumulator in `push_frame`.
+#[test]
+fn generator_resumption_not_affected_by_return_value_reset() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        let seen;
+
+        function* gen() {
+            seen = yield 1;
+        }
+
+        function f() {}
+
+        5;
+        var g = gen();
+        g.next();
+        g.next(f());
+        seen === undefined;
+    "#})]);
+}
+
+/// Regression test for issue #4485.
+/// Checks that generator resumption via `g.next(new f())` receives
+/// the constructed object, not a stale caller expression.
+#[test]
+fn generator_resumption_with_constructor_not_affected_by_return_value_reset() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        let seen;
+
+        function* gen() {
+            seen = yield 1;
+        }
+
+        function f() {}
+
+        ({});
+        var g = gen();
+        g.next();
+        g.next(new f());
+        Object.getPrototypeOf(seen) === f.prototype;
+    "#})]);
+}
+
+#[test]
 fn property_accessor_member_expression_dot_notation_on_function() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"

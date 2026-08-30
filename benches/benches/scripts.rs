@@ -10,6 +10,10 @@ use std::{path::Path, time::Duration};
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
+#[cfg(target_os = "macos")]
+#[global_allocator]
+static ALLOC: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+
 struct PreparedScriptBench {
     context: Context,
     function: JsObject,

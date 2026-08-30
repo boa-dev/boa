@@ -24,6 +24,8 @@ icu_locale = { workspace = true, features = ["serde", "datagen"] }
 icu_normalizer = { workspace = true, features = ["serde", "datagen"] }
 icu_plurals = { workspace = true, features = ["serde", "datagen", "unstable"] }
 icu_segmenter = { workspace = true, features = ["serde", "datagen"] }
+icu_locale_fallback = { workspace = true, features = ["serde", "datagen"] }
+icu_calendar = { workspace = true, features = ["serde", "datagen"] }
 once_cell = { workspace = true, default-features = false, features = ["critical-section"] }
 pastey.workspace = true
 
