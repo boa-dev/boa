@@ -696,7 +696,7 @@ impl Url {
 
 impl Display for Url {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &*self.0.read())
+        write!(f, "{}", *self.0.read())
     }
 }
 
@@ -872,12 +872,12 @@ impl Url {
     }
 
     fn to_string(&self) -> JsString {
-        JsString::from(format!("{}", &*self.0.read()))
+        JsString::from(self.0.read().as_str())
     }
 
     #[boa(rename = "toJSON")]
     fn to_json(&self) -> JsString {
-        JsString::from(format!("{}", &*self.0.read()))
+        JsString::from(self.0.read().as_str())
     }
 
     #[boa(static)]
