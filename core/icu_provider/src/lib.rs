@@ -94,7 +94,7 @@ impl DynamicDryDataProvider<BufferMarker> for LazyBufferProvider {
 /// A macro that creates a [`LazyBufferProvider`] from an icu4x crate.
 macro_rules! provider_from_icu_crate {
     ($service:path) => {
-        paste::paste! {
+        pastey::paste! {
             LazyBufferProvider {
                 provider: OnceCell::new(),
                 bytes: include_bytes!(concat!(
@@ -123,45 +123,18 @@ static PROVIDER: Lazy<LocaleFallbackProvider<MultiForkByMarkerProvider<LazyBuffe
             provider_from_icu_crate!(icu_normalizer),
             provider_from_icu_crate!(icu_plurals),
             provider_from_icu_crate!(icu_segmenter),
+            provider_from_icu_crate!(icu_locale_fallback),
+            provider_from_icu_crate!(icu_calendar),
         ]);
         let fallbacker = LocaleFallbacker::try_new_with_buffer_provider(&provider)
             .expect("The statically compiled data file should be valid.");
         LocaleFallbackProvider::new(provider, fallbacker)
     });
 
-#[derive(Debug)]
-struct Wrapper<T: 'static>(&'static T);
-
-impl<T> DynamicDataProvider<BufferMarker> for Wrapper<T>
-where
-    T: DynamicDataProvider<BufferMarker>,
-{
-    fn load_data(
-        &self,
-        marker: DataMarkerInfo,
-        req: DataRequest<'_>,
-    ) -> Result<DataResponse<BufferMarker>, DataError> {
-        self.0.load_data(marker, req)
-    }
-}
-
-impl<T> DynamicDryDataProvider<BufferMarker> for Wrapper<T>
-where
-    T: DynamicDryDataProvider<BufferMarker>,
-{
-    fn dry_load_data(
-        &self,
-        marker: DataMarkerInfo,
-        req: DataRequest<'_>,
-    ) -> Result<DataResponseMetadata, DataError> {
-        self.0.dry_load_data(marker, req)
-    }
-}
-
 /// Gets the default data provider stored as a [`DynamicDryDataProvider<BufferMarker>`].
 ///
 /// [`DynamicDryDataProvider<BufferMarker>`]: icu_provider::DynamicDryDataProvider
 #[must_use]
 pub fn buffer() -> impl DynamicDryDataProvider<BufferMarker> {
-    Wrapper(&*PROVIDER)
+    &*PROVIDER
 }

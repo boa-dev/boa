@@ -207,6 +207,10 @@ impl FormatOptions {
         })
     }
 
+    pub(super) fn fractional_second_digits(&self) -> Option<SubsecondDigits> {
+        self.fractional_second_digits
+    }
+
     pub(super) fn set_date_defaults(&mut self) {
         self.year = Some(Year::Numeric);
         self.month = Some(Month::Numeric);
@@ -536,6 +540,14 @@ impl SubsecondDigits {
             _ => unreachable!("subSecondDigits must be previously constrained."),
         }
     }
+
+    pub(super) fn digits(self) -> u8 {
+        match self {
+            SubsecondDigits::S1 => 1,
+            SubsecondDigits::S2 => 2,
+            SubsecondDigits::S3 => 3,
+        }
+    }
 }
 
 impl From<SubsecondDigits> for IcuSubsecondDigits {
@@ -643,7 +655,7 @@ fn has_calendar_data_for_locale<C: CldrCalendar>(
 where
     IntlProvider: DryDataProvider<C::YearNamesV1>,
 {
-    use icu_datetime::provider::neo::marker_attrs;
+    use icu_datetime::provider::semantic_skeletons::marker_attrs;
     use icu_provider::prelude::{
         DataIdentifierBorrowed, DataRequest, DataRequestMetadata,
         icu_locale_core::preferences::LocalePreferences,

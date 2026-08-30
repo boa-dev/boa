@@ -170,6 +170,8 @@ fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<
 
     for item in mod_.content.map_or_else(Vec::new, |c| c.1).as_mut_slice() {
         // Check for skip attributes.
+        #[allow(clippy::collapsible_match)]
+        // Allowed because take_path_attr would borrow attrs as mutable
         match item {
             Item::Const(ItemConst { attrs, .. })
             | Item::Enum(ItemEnum { attrs, .. })

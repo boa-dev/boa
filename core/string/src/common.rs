@@ -2,7 +2,7 @@
 
 use super::JsString;
 use crate::{JsStr, StaticString};
-use paste::paste;
+use pastey::paste;
 use rustc_hash::FxHashMap;
 use std::sync::LazyLock;
 

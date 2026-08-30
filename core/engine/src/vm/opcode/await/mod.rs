@@ -5,6 +5,7 @@ use crate::{
         Promise, async_generator::AsyncGenerator, generator::GeneratorContext,
         promise::PromiseCapability,
     },
+    error::PanicError,
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
@@ -34,9 +35,15 @@ impl Await {
             value.clone(),
             context,
         ) {
-            Ok(promise) => promise
-                .downcast::<Promise>()
-                .expect("%Promise% constructor must return a `Promise` object"),
+            Ok(promise) => match promise.downcast::<Promise>().ok() {
+                Some(v) => v,
+                None => {
+                    return context.handle_error(
+                        PanicError::new("%Promise% constructor must return a `Promise` object")
+                            .into(),
+                    );
+                }
+            },
             Err(err) => return context.handle_error(err),
         };
 
@@ -61,7 +68,7 @@ impl Await {
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
-                    let mut r#gen = captures.take().expect("should only run once");
+                    let mut r#gen = captures.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object()?;
@@ -75,7 +82,7 @@ impl Await {
                     if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
-                            .expect("must be async generator")
+                            .js_expect("must be async generator")?
                             .context = Some(r#gen);
                     }
 
@@ -102,7 +109,7 @@ impl Await {
                     // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
-                    let mut r#gen = captures.take().expect("should only run once");
+                    let mut r#gen = captures.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = r#gen.async_generator_object()?;
@@ -116,7 +123,7 @@ impl Await {
                     if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
-                            .expect("must be async generator")
+                            .js_expect("must be async generator")?
                             .context = Some(r#gen);
                     }
 

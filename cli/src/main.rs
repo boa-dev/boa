@@ -65,11 +65,11 @@ use jemallocator as _;
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-#[cfg(all(target_os = "windows", feature = "dhat"))]
+#[cfg(all(any(target_os = "windows", target_os = "macos"), feature = "dhat"))]
 use mimalloc_safe as _;
 
 #[cfg(all(
-    target_os = "windows",
+    any(target_os = "windows", target_os = "macos"),
     feature = "fast-allocator",
     not(feature = "dhat")
 ))]
@@ -152,6 +152,14 @@ struct Opt {
     /// Inject debugging object `$boa`.
     #[arg(long)]
     debug_object: bool,
+
+    /// Inject the test262 host object `$262`.
+    #[arg(long)]
+    test262_object: bool,
+
+    /// Disallow the main thread from blocking (e.g. `Atomics.wait`).
+    #[arg(long)]
+    no_can_block: bool,
 
     /// Treats the input files as modules.
     #[arg(long, short = 'm', group = "mod")]
@@ -285,13 +293,18 @@ impl Drop for Counters {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> Result<()> {
+fn dump<R: ReadChar>(
+    src: Source<'_, R>,
+    args: &Opt,
+    is_module: bool,
+    context: &mut Context,
+) -> Result<()> {
     if let Some(arg) = args.dump_ast {
         let mut counters = Counters::new(args.time);
         let arg = arg.unwrap_or_default();
         let mut parser = boa_parser::Parser::new(src);
         let dump =
-            if args.module {
+            if is_module {
                 let scope = context.realm().scope().clone();
                 let module = {
                     let _timer = counters.new_timer("Parsing");
@@ -386,7 +399,7 @@ fn evaluate_expr(
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
     if args.has_dump_flag() {
-        dump(Source::from_bytes(line), args, context)?;
+        dump(Source::from_bytes(line), args, args.module, context)?;
     } else if let Some(flowgraph) = args.flowgraph {
         match generate_flowgraph(
             context,
@@ -411,15 +424,22 @@ fn evaluate_expr(
                     let result = script.evaluate(context);
                     if let Err(err) = context.run_jobs() {
                         printer.print(uncaught_job_error(&err));
+                        return Err(eyre!("execution failed"));
                     }
                     result
                 };
                 match result {
                     Ok(v) => printer.print(format!("{}\n", v.display())),
-                    Err(ref v) => printer.print(uncaught_error(v)),
+                    Err(v) => {
+                        printer.print(uncaught_error(&v));
+                        return Err(eyre!("execution failed"));
+                    }
                 }
             }
-            Err(ref v) => printer.print(uncaught_error(v)),
+            Err(v) => {
+                printer.print(uncaught_error(&v));
+                return Err(eyre!("parsing failed"));
+            }
         }
     }
 
@@ -433,8 +453,11 @@ fn evaluate_file(
     loader: &SimpleModuleLoader,
     printer: &SharedExternalPrinterLogger,
 ) -> Result<()> {
+    // Treat files with .mjs extension automatically as modules.
+    let is_module = args.module || file.extension().is_some_and(|ext| ext == "mjs");
+
     if args.has_dump_flag() {
-        return dump(Source::from_filepath(file)?, args, context);
+        return dump(Source::from_filepath(file)?, args, is_module, context);
     }
 
     if let Some(flowgraph) = args.flowgraph {
@@ -450,7 +473,7 @@ fn evaluate_file(
         return Ok(());
     }
 
-    if args.module {
+    if is_module {
         let source = Source::from_filepath(file)?;
         let mut counters = Counters::new(args.time);
         let module = {
@@ -503,7 +526,10 @@ fn evaluate_file(
                 println!("{}", v.display());
             }
         }
-        Err(v) => printer.print(uncaught_error(&v)),
+        Err(v) => {
+            printer.print(uncaught_error(&v));
+            return Err(eyre!("execution failed"));
+        }
     }
 
     Ok(())
@@ -546,6 +572,7 @@ fn main() -> Result<()> {
     let context = &mut ContextBuilder::new()
         .job_executor(executor.clone())
         .module_loader(loader.clone())
+        .can_block(!args.no_can_block)
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
 
@@ -560,6 +587,20 @@ fn main() -> Result<()> {
 
     if args.debug_object {
         init_boa_debug_object(context);
+    }
+
+    if args.test262_object {
+        boa_runtime::test262::register_js262(
+            boa_runtime::test262::WorkerHandles::new(),
+            true, // register `console` in $262.agent worker threads
+            context,
+        );
+
+        // Add print() that test262 uses to report errors and async success.
+        // boa_tester handles it internally, but CLI should just print messages.
+        context
+            .eval(Source::from_bytes("var print = console.log.bind(console);"))
+            .expect("failed to define print");
     }
 
     // Configure optimizer options

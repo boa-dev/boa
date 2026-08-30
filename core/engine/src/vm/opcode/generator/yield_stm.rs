@@ -3,6 +3,7 @@ use std::ops::ControlFlow;
 use crate::{
     Context, JsValue,
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
+    error::PanicError,
     vm::{
         CompletionRecord, GeneratorResumeKind,
         opcode::{Operation, RegisterOperand},
@@ -54,13 +55,17 @@ impl AsyncGeneratorYield {
         // 2. Assert: genContext is the execution context of a generator.
         // 3. Let generator be the value of the Generator component of genContext.
         // 4. Assert: GetGeneratorKind() is async.
-        let async_generator_object = context
-            .vm
-            .async_generator_object()
-            .expect("`AsyncGeneratorYield` must only be called inside async generators");
-        let async_generator_object = async_generator_object
-            .downcast::<AsyncGenerator>()
-            .expect("must be async generator object");
+        let Some(async_generator_object) = context.vm.async_generator_object() else {
+            return context.handle_error(
+                PanicError::new(
+                    "`AsyncGeneratorYield` must only be called inside async generators",
+                )
+                .into(),
+            );
+        };
+        let Ok(async_generator_object) = async_generator_object.downcast::<AsyncGenerator>() else {
+            return context.handle_error(PanicError::new("must be async generator object").into());
+        };
 
         // 5. Let completion be NormalCompletion(value).
         let value = context.vm.get_register(value.into());
