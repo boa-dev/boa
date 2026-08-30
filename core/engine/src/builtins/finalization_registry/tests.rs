@@ -1,3 +1,5 @@
+// oscars_backend currently implements `boa_gc::force_collect()` as a no-op, which prevents
+// the FinalizationRegistry callbacks from being triggered during these tests.
 #[cfg(not(feature = "oscars_backend"))]
 mod miri {
 

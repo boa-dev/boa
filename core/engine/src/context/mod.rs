@@ -474,10 +474,9 @@ impl Context {
         self.gc.alloc(value)
     }
 
-    /// Returns the active collector.
-    #[inline]
+    /// Gets the GC collector.
     #[must_use]
-    pub fn gc_collector(&self) -> &boa_gc::MutationContext<'static, 'static> {
+    pub fn gc_collector(&self) -> &'static boa_gc::MutationContext<'static, 'static> {
         self.gc.gc_collector()
     }
 
@@ -549,7 +548,9 @@ impl Context {
 
     /// Create a new Realm with the default global bindings.
     pub fn create_realm(&mut self) -> JsResult<Realm> {
-        let realm = Realm::create(self.host_hooks.as_ref(), &self.root_shape)?;
+        let realm = Realm::create(self.host_hooks.as_ref(), &self.root_shape, &unsafe {
+            boa_gc::MutationContext::global()
+        })?;
 
         let old_realm = self.enter_realm(realm);
 
@@ -1223,12 +1224,14 @@ impl ContextBuilder {
             CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() + 1);
         }
 
-        let root_shape = RootShape::default();
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+        let mc = unsafe { boa_gc::MutationContext::global() };
+        let root_shape = RootShape::new_in(&mc);
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
         let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));
-        let realm = Realm::create(host_hooks.as_ref(), &root_shape)?;
-        let vm = Vm::new(realm);
+        let realm = Realm::create(host_hooks.as_ref(), &root_shape, &mc)?;
+        let vm = Vm::new(realm, &mc);
 
         let module_loader: Rc<dyn DynModuleLoader> = if let Some(loader) = self.module_loader {
             loader

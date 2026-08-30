@@ -27,10 +27,24 @@ impl ObjectTemplate {
         }
     }
 
+    /// Create and [`ObjectTemplate`] with a prototype using the given context.
+    pub(crate) fn with_prototype_in(
+        mc: &boa_gc::MutationContext<'static, '_>,
+        shape: &SharedShape,
+        prototype: JsObject,
+    ) -> Self {
+        let shape = shape.change_prototype_transition_in(mc, Some(prototype));
+        Self { shape }
+    }
+
     /// Create and [`ObjectTemplate`] with a prototype.
     pub(crate) fn with_prototype(shape: &SharedShape, prototype: JsObject) -> Self {
-        let shape = shape.change_prototype_transition(Some(prototype));
-        Self { shape }
+        Self::with_prototype_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+            &unsafe { boa_gc::MutationContext::global() },
+            shape,
+            prototype,
+        )
     }
 
     /// Check if the shape has a specific, prototype.
@@ -38,12 +52,26 @@ impl ObjectTemplate {
         self.shape.has_prototype(prototype)
     }
 
+    /// Set the prototype of the [`ObjectTemplate`] using the given context.
+    ///
+    /// This assumes that the prototype has not been set yet.
+    pub(crate) fn set_prototype_in(
+        &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsObject,
+    ) -> &mut Self {
+        self.shape = self
+            .shape
+            .change_prototype_transition_in(mc, Some(prototype));
+        self
+    }
+
     /// Set the prototype of the [`ObjectTemplate`].
     ///
     /// This assumes that the prototype has not been set yet.
     pub(crate) fn set_prototype(&mut self, prototype: JsObject) -> &mut Self {
-        self.shape = self.shape.change_prototype_transition(Some(prototype));
-        self
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+        self.set_prototype_in(&unsafe { boa_gc::MutationContext::global() }, prototype)
     }
 
     /// Returns the inner shape of the [`ObjectTemplate`].
@@ -51,33 +79,52 @@ impl ObjectTemplate {
         &self.shape
     }
 
+    /// Add a data property to the [`ObjectTemplate`] using the given context.
+    ///
+    /// This assumes that the property with the given key was not previously set
+    /// and that it's a string or symbol.
+    pub(crate) fn property_in(
+        &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: PropertyKey,
+        attributes: Attribute,
+    ) -> &mut Self {
+        debug_assert!(!matches!(&key, PropertyKey::Index(_)));
+
+        let transition = TransitionKey {
+            property_key: key,
+            attributes: SlotAttributes::from_bits_truncate(attributes.bits()),
+        };
+        self.shape = self.shape.insert_property_transition_in(mc, transition);
+        self
+    }
+
     /// Add a data property to the [`ObjectTemplate`].
     ///
     /// This assumes that the property with the given key was not previously set
     /// and that it's a string or symbol.
     pub(crate) fn property(&mut self, key: PropertyKey, attributes: Attribute) -> &mut Self {
-        debug_assert!(!matches!(&key, PropertyKey::Index(_)));
-
-        let attributes = SlotAttributes::from_bits_truncate(attributes.bits());
-        self.shape = self.shape.insert_property_transition(TransitionKey {
-            property_key: key,
+        self.property_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+            &unsafe { boa_gc::MutationContext::global() },
+            key,
             attributes,
-        });
-        self
+        )
     }
 
     /// Add a accessor property to the [`ObjectTemplate`].
     ///
     /// This assumes that the property with the given key was not previously set
     /// and that it's a string or symbol.
-    pub(crate) fn accessor(
+    /// Add a accessor property to the [`ObjectTemplate`] using the given context.
+    pub(crate) fn accessor_in(
         &mut self,
+        mc: &boa_gc::MutationContext<'static, '_>,
         key: PropertyKey,
         get: bool,
         set: bool,
         attributes: Attribute,
     ) -> &mut Self {
-        // TODO: We don't support indexed keys.
         debug_assert!(!matches!(&key, PropertyKey::Index(_)));
 
         let attributes = {
@@ -97,29 +144,68 @@ impl ObjectTemplate {
             result
         };
 
-        self.shape = self.shape.insert_property_transition(TransitionKey {
-            property_key: key,
-            attributes,
-        });
+        self.shape = self.shape.insert_property_transition_in(
+            mc,
+            TransitionKey {
+                property_key: key,
+                attributes,
+            },
+        );
         self
+    }
+
+    /// Add a accessor property to the [`ObjectTemplate`].
+    ///
+    /// This assumes that the property with the given key was not previously set
+    /// and that it's a string or symbol.
+    pub(crate) fn accessor(
+        &mut self,
+        key: PropertyKey,
+        get: bool,
+        set: bool,
+        attributes: Attribute,
+    ) -> &mut Self {
+        self.accessor_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+            &unsafe { boa_gc::MutationContext::global() },
+            key,
+            get,
+            set,
+            attributes,
+        )
+    }
+
+    /// Create an object from the [`ObjectTemplate`] using the given context.
+    pub(crate) fn create_in<T: NativeObject>(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        data: T,
+        storage: Vec<JsValue>,
+    ) -> JsObject {
+        let internal_methods = data.internal_methods();
+
+        let mut properties = PropertyMap::new(
+            self.shape.clone().into(),
+            crate::object::IndexedProperties::default(),
+        );
+        properties.storage = storage;
+
+        let mut object = Object {
+            data: ObjectData::new(data),
+            extensible: true,
+            properties,
+            private_elements: ThinVec::new(),
+        };
+
+        JsObject::from_object_and_vtable_in(mc, object, internal_methods)
     }
 
     /// Create an object from the [`ObjectTemplate`]
     ///
     /// The storage must match the properties provided.
     pub(crate) fn create<T: NativeObject>(&self, data: T, storage: Vec<JsValue>) -> JsObject {
-        let internal_methods = data.internal_methods();
-
-        let mut object = Object {
-            data: ObjectData::new(data),
-            extensible: true,
-            properties: PropertyMap::new(self.shape.clone().into(), IndexedProperties::default()),
-            private_elements: ThinVec::new(),
-        };
-
-        object.properties.storage = storage;
-
-        JsObject::from_object_and_vtable(object, internal_methods)
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+        self.create_in(&unsafe { boa_gc::MutationContext::global() }, data, storage)
     }
 
     /// Create an object from the [`ObjectTemplate`]

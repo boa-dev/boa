@@ -103,33 +103,46 @@ impl Shape {
         None
     }
 
-    /// Create an insert property transitions returning the new transitioned [`Shape`].
+    /// Create an insert property transitions returning the new transitioned [`Shape`] using the given context.
     ///
     /// NOTE: This assumes that there is no property with the given key!
-    pub(crate) fn insert_property_transition(&self, key: TransitionKey) -> Self {
+    pub(crate) fn insert_property_transition_in(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: TransitionKey,
+    ) -> Self {
         match &self.inner {
             Inner::Shared(shape) => {
-                let shape = shape.insert_property_transition(key);
+                let shape = shape.insert_property_transition_in(mc, key);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
                     return shape.to_unique().into();
                 }
                 shape.into()
             }
-            Inner::Unique(shape) => shape.insert_property_transition(key).into(),
+            Inner::Unique(shape) => shape.insert_property_transition(key).into(), // UniqueShape insert doesn't allocate new GC
         }
     }
 
+    /// Create an insert property transitions returning the new transitioned [`Shape`].
+    ///
+    /// NOTE: This assumes that there is no property with the given key!
+    pub(crate) fn insert_property_transition(&self, key: TransitionKey) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+        self.insert_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
+    }
+
     /// Create a change attribute property transitions returning [`ChangeTransition`] containing the new [`Shape`]
-    /// and actions to be performed
+    /// and actions to be performed, using the given context.
     ///
     /// NOTE: This assumes that there already is a property with the given key!
-    pub(crate) fn change_attributes_transition(
+    pub(crate) fn change_attributes_transition_in(
         &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
         key: TransitionKey,
     ) -> ChangeTransition<Self> {
         match &self.inner {
             Inner::Shared(shape) => {
-                let change_transition = shape.change_attributes_transition(key);
+                let change_transition = shape.change_attributes_transition_in(mc, key);
                 let shape =
                     if change_transition.shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
                         change_transition.shape.to_unique().into()
@@ -145,13 +158,29 @@ impl Shape {
         }
     }
 
-    /// Remove a property property from the [`Shape`] returning the new transitioned [`Shape`].
+    /// Create a change attribute property transitions returning [`ChangeTransition`] containing the new [`Shape`]
+    /// and actions to be performed
     ///
     /// NOTE: This assumes that there already is a property with the given key!
-    pub(crate) fn remove_property_transition(&self, key: &PropertyKey) -> Self {
+    pub(crate) fn change_attributes_transition(
+        &self,
+        key: TransitionKey,
+    ) -> ChangeTransition<Self> {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+        self.change_attributes_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
+    }
+
+    /// Remove a property from the [`Shape`] returning the new transitioned [`Shape`] using the given context.
+    ///
+    /// NOTE: This assumes that there already is a property with the given key!
+    pub(crate) fn remove_property_transition_in(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        key: &PropertyKey,
+    ) -> Self {
         match &self.inner {
             Inner::Shared(shape) => {
-                let shape = shape.remove_property_transition(key);
+                let shape = shape.remove_property_transition_in(mc, key);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
                     return shape.to_unique().into();
                 }
@@ -161,11 +190,23 @@ impl Shape {
         }
     }
 
-    /// Create a prototype transitions returning the new transitioned [`Shape`].
-    pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
+    /// Remove a property from the [`Shape`] returning the new transitioned [`Shape`].
+    ///
+    /// NOTE: This assumes that there already is a property with the given key!
+    pub(crate) fn remove_property_transition(&self, key: &PropertyKey) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+        self.remove_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
+    }
+
+    /// Create a prototype transition returning the new transitioned [`Shape`] using the given context.
+    pub(crate) fn change_prototype_transition_in(
+        &self,
+        mc: &boa_gc::MutationContext<'static, '_>,
+        prototype: JsPrototype,
+    ) -> Self {
         match &self.inner {
             Inner::Shared(shape) => {
-                let shape = shape.change_prototype_transition(prototype);
+                let shape = shape.change_prototype_transition_in(mc, prototype);
                 if shape.transition_count() >= Self::TRANSITION_COUNT_MAX {
                     return shape.to_unique().into();
                 }
@@ -173,6 +214,15 @@ impl Shape {
             }
             Inner::Unique(shape) => shape.change_prototype_transition(prototype).into(),
         }
+    }
+
+    /// Create a prototype transition returning the new transitioned [`Shape`].
+    pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
+        self.change_prototype_transition_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+            &unsafe { boa_gc::MutationContext::global() },
+            prototype,
+        )
     }
 
     /// Get the [`JsPrototype`] of the [`Shape`].

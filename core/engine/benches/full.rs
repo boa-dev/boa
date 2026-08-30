@@ -19,7 +19,11 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 fn create_realm(c: &mut Criterion) {
     c.bench_function("Create Realm", move |b| {
         let root_shape = RootShape::default();
-        b.iter(|| Realm::create(&DefaultHooks, &root_shape));
+        b.iter(|| {
+            Realm::create(&DefaultHooks, &root_shape, &unsafe {
+                boa_gc::MutationContext::global()
+            })
+        });
     });
 }
 

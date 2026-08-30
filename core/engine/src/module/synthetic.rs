@@ -120,6 +120,7 @@ impl SyntheticModuleInitializer {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
         let ptr = Gc::into_raw(Gc::new(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             Callback {
                 f: closure,
@@ -311,6 +312,7 @@ impl SyntheticModule {
 
         // TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
+        let mc = context.gc_collector();
         let compiler = ByteCompiler::new(
             js_string!("<synthetic>"),
             true,
@@ -320,6 +322,7 @@ impl SyntheticModule {
             false,
             false,
             context.interner_mut(),
+            &mc,
             false,
             // A synthetic module does not contain `SourceText`
             SpannedSourceText::new_empty(),
@@ -342,7 +345,8 @@ impl SyntheticModule {
         let cb = context.alloc(finished);
 
         let mut envs = EnvironmentStack::new();
-        envs.push_module(module_scope, unsafe { boa_gc::MutationContext::global() });
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
+        envs.push_module(module_scope, &unsafe { boa_gc::MutationContext::global() });
 
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).
