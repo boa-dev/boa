@@ -4,6 +4,7 @@ on:
     types: [published]
 
 permissions:
+  id-token: write # Required for OIDC auth
   contents: read
 
 jobs:
@@ -73,10 +74,9 @@ jobs:
       - name: Set-up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: "20"
-
-      - name: Set-up npm config for publishing
-        run: npm config set -- '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
+          node-version: "24"
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
 
       - name: Check if the npm version already exists
         run: |
@@ -126,7 +126,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
       - name: Build
         run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
