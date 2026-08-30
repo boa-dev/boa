@@ -62,9 +62,27 @@ impl RequestInit {
         }
 
         if let Some(Convert(ref method)) = self.method.take() {
-            builder = builder.method(method.to_std_string().map_err(
+            let method = method.to_std_string().map_err(
                 |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
-            )?.as_str());
+            )?;
+
+            // 25. If init["method"] exists, then:
+            //     1. Let method be init["method"].
+            //     2. If method is not a method or method is a forbidden method, throw a TypeError.
+            //     3. Normalize method.
+            //     4. Set request's method to method.
+            // https://fetch.spec.whatwg.org/#dom-request
+            if method.eq_ignore_ascii_case("CONNECT")
+                || method.eq_ignore_ascii_case("TRACE")
+                || method.eq_ignore_ascii_case("TRACK")
+            {
+                return Err(js_error!(
+                    TypeError: "'{}' HTTP method is unsupported.",
+                    method
+                ));
+            }
+
+            builder = builder.method(method.as_str());
         }
 
         if let Some(body) = &self.body {

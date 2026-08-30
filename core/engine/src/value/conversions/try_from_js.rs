@@ -9,6 +9,28 @@ mod collections;
 mod tuples;
 
 /// This trait adds a fallible and efficient conversions from a [`JsValue`] to Rust types.
+///
+/// # Floating-point types
+///
+/// [`TryFromJs`] is implemented for [`f64`] because JavaScript numbers are IEEE-754
+/// double-precision values, so that conversion is exact.
+///
+/// It is intentionally **not** implemented for [`f32`]. Converting a JS number to
+/// `f32` can lose precision, and Rust prefers that loss to be explicit. Convert to
+/// [`f64`] first, then cast with `as f32`:
+///
+/// ```
+/// # use boa_engine::{Context, JsResult, JsValue, value::TryFromJs};
+/// fn to_f32(value: &JsValue, context: &mut Context) -> JsResult<f32> {
+///     Ok(f64::try_from_js(value, context)? as f32)
+/// }
+/// ```
+///
+/// For derived structs with an `f32` field, use
+/// `#[boa(from_js_with = "...")]` to supply a custom converter.
+///
+/// If you want JavaScript-style coercion (for example accepting numeric strings),
+/// use [`JsValue::to_f32`] instead. That path is also lossy by design.
 pub trait TryFromJs: Sized {
     /// This function tries to convert a JavaScript value into `Self`.
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self>;

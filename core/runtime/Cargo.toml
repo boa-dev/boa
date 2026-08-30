@@ -12,8 +12,8 @@ rust-version.workspace = true
 
 [dependencies]
 boa_engine.workspace = true
-base64.workspace = true
 boa_gc.workspace = true
+boa_wintertc.workspace = true
 bus = { workspace = true, optional = true }
 bytemuck.workspace = true
 either = { workspace = true, optional = true }
