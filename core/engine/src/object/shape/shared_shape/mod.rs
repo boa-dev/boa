@@ -172,6 +172,7 @@ impl SharedShape {
 
     /// Create a new [`SharedShape`].
     fn new(inner: Inner) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::new_in(&unsafe { boa_gc::MutationContext::global() }, inner)
     }
 
@@ -196,6 +197,7 @@ impl SharedShape {
     /// Create a root [`SharedShape`].
     #[must_use]
     pub(crate) fn root() -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::root_in(&unsafe { boa_gc::MutationContext::global() })
     }
 
@@ -232,6 +234,7 @@ impl SharedShape {
     /// Create a [`SharedShape`] change prototype transition.
     pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
         self.change_prototype_transition_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             prototype,
         )
@@ -276,6 +279,7 @@ impl SharedShape {
 
     /// Create a [`SharedShape`] insert property transition.
     pub(crate) fn insert_property_transition(&self, key: TransitionKey) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.insert_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
     }
 
@@ -284,6 +288,7 @@ impl SharedShape {
         &self,
         key: TransitionKey,
     ) -> ChangeTransition<Self> {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.change_attributes_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
     }
 
@@ -482,6 +487,7 @@ impl SharedShape {
 
     /// Remove a property from [`SharedShape`], returning the new [`SharedShape`].
     pub(crate) fn remove_property_transition(&self, key: &PropertyKey) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.remove_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
     }
 
@@ -551,6 +557,7 @@ impl WeakSharedShape {
     #[inline]
     #[must_use]
     pub(crate) fn upgrade(&self) -> Option<SharedShape> {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.upgrade_in(&unsafe { boa_gc::MutationContext::global() })
     }
 
@@ -567,6 +574,7 @@ impl WeakSharedShape {
 
 impl From<&SharedShape> for WeakSharedShape {
     fn from(value: &SharedShape) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::new_in(&unsafe { boa_gc::MutationContext::global() }, value)
     }
 }

@@ -1077,6 +1077,7 @@ pub(crate) fn function_call(
         let global = frame.realm.environment();
         let index = frame
             .environments
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             .push_lexical(1, &global, &unsafe { boa_gc::MutationContext::global() });
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
@@ -1095,6 +1096,7 @@ pub(crate) fn function_call(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
             &global,
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
         );
     }
@@ -1188,6 +1190,7 @@ fn function_construct(
         let global = frame.realm.environment();
         let index = frame
             .environments
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             .push_lexical(1, &global, &unsafe { boa_gc::MutationContext::global() });
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
@@ -1217,6 +1220,7 @@ fn function_construct(
                 ),
             ),
             &global,
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
         );
     }

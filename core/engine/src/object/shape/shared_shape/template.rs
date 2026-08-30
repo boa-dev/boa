@@ -40,6 +40,7 @@ impl ObjectTemplate {
     /// Create and [`ObjectTemplate`] with a prototype.
     pub(crate) fn with_prototype(shape: &SharedShape, prototype: JsObject) -> Self {
         Self::with_prototype_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             shape,
             prototype,
@@ -69,6 +70,7 @@ impl ObjectTemplate {
     ///
     /// This assumes that the prototype has not been set yet.
     pub(crate) fn set_prototype(&mut self, prototype: JsObject) -> &mut Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.set_prototype_in(&unsafe { boa_gc::MutationContext::global() }, prototype)
     }
 
@@ -103,6 +105,7 @@ impl ObjectTemplate {
     /// and that it's a string or symbol.
     pub(crate) fn property(&mut self, key: PropertyKey, attributes: Attribute) -> &mut Self {
         self.property_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             key,
             attributes,
@@ -163,6 +166,7 @@ impl ObjectTemplate {
         attributes: Attribute,
     ) -> &mut Self {
         self.accessor_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             key,
             get,
@@ -200,6 +204,7 @@ impl ObjectTemplate {
     ///
     /// The storage must match the properties provided.
     pub(crate) fn create<T: NativeObject>(&self, data: T, storage: Vec<JsValue>) -> JsObject {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.create_in(&unsafe { boa_gc::MutationContext::global() }, data, storage)
     }
 

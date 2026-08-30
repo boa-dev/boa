@@ -120,6 +120,7 @@ impl SyntheticModuleInitializer {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
         let ptr = Gc::into_raw(Gc::new(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             Callback {
                 f: closure,
@@ -344,6 +345,7 @@ impl SyntheticModule {
         let cb = context.alloc(finished);
 
         let mut envs = EnvironmentStack::new();
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         envs.push_module(module_scope, &unsafe { boa_gc::MutationContext::global() });
 
         for locator in exports {

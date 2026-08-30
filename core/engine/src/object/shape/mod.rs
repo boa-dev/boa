@@ -127,6 +127,7 @@ impl Shape {
     ///
     /// NOTE: This assumes that there is no property with the given key!
     pub(crate) fn insert_property_transition(&self, key: TransitionKey) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.insert_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
     }
 
@@ -165,6 +166,7 @@ impl Shape {
         &self,
         key: TransitionKey,
     ) -> ChangeTransition<Self> {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.change_attributes_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
     }
 
@@ -192,6 +194,7 @@ impl Shape {
     ///
     /// NOTE: This assumes that there already is a property with the given key!
     pub(crate) fn remove_property_transition(&self, key: &PropertyKey) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.remove_property_transition_in(&unsafe { boa_gc::MutationContext::global() }, key)
     }
 
@@ -216,6 +219,7 @@ impl Shape {
     /// Create a prototype transition returning the new transitioned [`Shape`].
     pub(crate) fn change_prototype_transition(&self, prototype: JsPrototype) -> Self {
         self.change_prototype_transition_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             prototype,
         )

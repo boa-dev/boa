@@ -54,6 +54,7 @@ impl UniqueShape {
     /// Create a new [`UniqueShape`].
     pub(crate) fn new(prototype: JsPrototype, property_table: PropertyTableInner) -> Self {
         Self::new_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             prototype,
             property_table,
@@ -284,6 +285,7 @@ impl WeakUniqueShape {
     #[inline]
     #[must_use]
     pub(crate) fn upgrade(&self) -> Option<UniqueShape> {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.upgrade_in(&unsafe { boa_gc::MutationContext::global() })
     }
 
@@ -300,6 +302,7 @@ impl WeakUniqueShape {
 
 impl From<&UniqueShape> for WeakUniqueShape {
     fn from(value: &UniqueShape) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::new_in(&unsafe { boa_gc::MutationContext::global() }, value)
     }
 }

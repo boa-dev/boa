@@ -1224,6 +1224,7 @@ impl ContextBuilder {
             CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() + 1);
         }
 
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         let mc = unsafe { boa_gc::MutationContext::global() };
         let root_shape = RootShape::new_in(&mc);
 

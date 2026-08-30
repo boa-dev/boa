@@ -139,6 +139,7 @@ impl JsObject {
         vtable: &'static InternalObjectMethods,
     ) -> Self {
         Self::from_object_and_vtable_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             object,
             vtable,
@@ -196,6 +197,7 @@ impl JsObject {
     #[inline]
     #[must_use]
     pub fn with_null_proto() -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::with_null_proto_in(&unsafe { boa_gc::MutationContext::global() })
     }
 
@@ -253,6 +255,7 @@ impl JsObject {
         data: T,
     ) -> Self {
         Self::from_proto_and_data_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             prototype,
             data,
@@ -302,6 +305,7 @@ impl JsObject {
         data: T,
     ) -> JsObject<T> {
         Self::from_proto_and_data_with_shared_shape_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             root_shape,
             prototype,
@@ -1159,6 +1163,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self {
         Self::new_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             root_shape,
             prototype,
@@ -1208,6 +1213,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self {
         Self::new_unique_in(
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             &unsafe { boa_gc::MutationContext::global() },
             prototype,
             data,

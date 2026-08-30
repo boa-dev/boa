@@ -65,6 +65,7 @@ impl GcContext {
     }
 
     pub fn alloc<T: crate::Trace>(&self, value: T) -> crate::Gc<'static, T> {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         let mc = unsafe { crate::MutationContext::global() };
         crate::Gc::new(&mc, value)
     }
@@ -72,6 +73,7 @@ impl GcContext {
     #[must_use]
     pub fn gc_collector(&self) -> &'static crate::MutationContext<'static, 'static> {
         static DUMMY: SyncWrapperDefault =
+            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
             SyncWrapperDefault(unsafe { crate::MutationContext::global() });
         &DUMMY.0
     }

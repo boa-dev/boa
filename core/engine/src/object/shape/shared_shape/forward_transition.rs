@@ -78,6 +78,7 @@ impl ForwardTransition {
         key: TransitionKey,
         value: &Gc<'static, SharedShapeInner>,
     ) {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.insert_property_in(&unsafe { boa_gc::MutationContext::global() }, key, value)
     }
 
@@ -100,6 +101,7 @@ impl ForwardTransition {
 
     /// Insert a prototype transition.
     pub(super) fn insert_prototype(&self, key: JsPrototype, value: &Gc<'static, SharedShapeInner>) {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         self.insert_prototype_in(&unsafe { boa_gc::MutationContext::global() }, key, value)
     }
 

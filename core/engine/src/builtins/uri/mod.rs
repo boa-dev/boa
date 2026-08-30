@@ -49,6 +49,7 @@ pub struct UriFunctions {
 
 impl Default for UriFunctions {
     fn default() -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::uninit_in(&unsafe { boa_gc::MutationContext::global() })
     }
 }

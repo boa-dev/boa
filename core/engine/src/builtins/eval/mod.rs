@@ -353,6 +353,7 @@ impl Eval {
             frame.environments.push_lexical(
                 lexical_scope.num_bindings_non_local(),
                 &global,
+                // SAFETY: The global mutation context is used as a fallback during the context threading migration.
                 &unsafe { boa_gc::MutationContext::global() },
             );
         }

@@ -81,6 +81,7 @@ pub struct StandardConstructor {
 
 impl Default for StandardConstructor {
     fn default() -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::uninit(&unsafe { boa_gc::MutationContext::global() })
     }
 }
@@ -111,6 +112,7 @@ impl StandardConstructor {
 
     /// Build a constructor with a defined prototype.
     fn with_prototype(prototype: JsObject) -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::with_prototype_in(&unsafe { boa_gc::MutationContext::global() }, prototype)
     }
 

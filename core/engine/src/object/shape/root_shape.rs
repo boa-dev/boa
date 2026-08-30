@@ -13,6 +13,7 @@ pub struct RootShape {
 impl Default for RootShape {
     #[inline]
     fn default() -> Self {
+        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         Self::new_in(&unsafe { boa_gc::MutationContext::global() })
     }
 }
