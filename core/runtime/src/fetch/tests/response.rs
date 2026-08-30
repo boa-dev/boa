@@ -108,10 +108,7 @@ fn response_json() {
         TestAction::inspect_context(|ctx| {
             let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
             let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
-            assert_eq!(
-                format!("{}", response.display_obj(false)),
-                "{\n    hello world: 123\n}"
-            );
+            assert_eq!(response.display_obj(false), "{\n    hello world: 123\n}");
         }),
     ]);
 }
@@ -174,6 +171,83 @@ fn response_getter() {
             response.as_promise().unwrap().await_blocking(ctx).unwrap();
 
             // Assertions made in JavaScript.
+        }),
+    ]);
+}
+
+#[test]
+fn fetch_request_uses_request_signal() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(
+                &[("http://unit.test", Response::new(b"Hello World".to_vec()))],
+                ctx,
+            );
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const ctrl = new AbortController();
+                    const request = new Request("http://unit.test", { signal: ctrl.signal });
+                    ctrl.abort("stop");
+
+                    try {
+                        await fetch(request);
+                        return "fulfilled";
+                    } catch (e) {
+                        return e;
+                    }
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
+            assert_eq!(
+                response.as_string().map(|s| s.to_std_string_escaped()),
+                Some("stop".into())
+            );
+        }),
+    ]);
+}
+
+#[test]
+fn fetch_options_signal_overrides_request_signal() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            register(
+                &[("http://unit.test", Response::new(b"Hello World".to_vec()))],
+                ctx,
+            );
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const requestCtrl = new AbortController();
+                    const fetchCtrl = new AbortController();
+                    const request = new Request("http://unit.test", {
+                        signal: requestCtrl.signal,
+                    });
+                    fetchCtrl.abort("fetch stop");
+
+                    try {
+                        await fetch(request, { signal: fetchCtrl.signal });
+                        return "fulfilled";
+                    } catch (e) {
+                        return e;
+                    }
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
+            assert_eq!(
+                response.as_string().map(|s| s.to_std_string_escaped()),
+                Some("fetch stop".into())
+            );
         }),
     ]);
 }
@@ -381,6 +455,29 @@ fn response_clone_preserves_status() {
                     assertEq(cloned.type, response.type);
                     assertEq(cloned.url, response.url);
                     assertEq(cloned.ok, response.ok);
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn response_constructor_with_body_and_status() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const response = new Response('Hello World', { status: 404 });
+                    assertEq(response.status, 404);
+                    assertEq(response.type, "default");
+                    const text = await response.text();
+                    assertEq(text, "Hello World");
                 })();
             "#,
         ),

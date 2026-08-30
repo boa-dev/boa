@@ -196,9 +196,9 @@ impl Clock for StdClock {
     }
 
     fn system_time_millis(&self) -> i64 {
-        let now = std::time::SystemTime::now();
+        let now = crate::sys::time::SystemTime::now();
         let duration = now
-            .duration_since(std::time::UNIX_EPOCH)
+            .duration_since(crate::sys::time::UNIX_EPOCH)
             .expect("System clock is before Unix epoch");
         duration.as_millis() as i64
     }

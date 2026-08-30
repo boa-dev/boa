@@ -2159,6 +2159,12 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
+    /// Declare `var` type variable during eval declaration instantiation.
+    ///
+    /// - Operands:
+    ///   - binding_index: `IndexOperand`
+    DefEvalVar { binding_index: IndexOperand },
+
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
     /// Reserved [`Opcode`].
@@ -2275,6 +2281,4 @@ generate_opcodes! {
     Reserved57 => Reserved,
     /// Reserved [`Opcode`].
     Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
 }

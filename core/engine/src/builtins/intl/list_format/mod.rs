@@ -329,7 +329,7 @@ impl ListFormat {
                 part: writeable::Part,
                 mut f: impl FnMut(&mut Self::SubPartsWrite) -> core::fmt::Result,
             ) -> core::fmt::Result {
-                assert!(part.category == "list");
+                assert_eq!(part.category, "list");
                 let mut string = WriteString(String::new());
                 f(&mut string)?;
                 if !string.0.is_empty() {

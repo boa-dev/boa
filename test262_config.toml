@@ -1,4 +1,4 @@
-commit = "5c8206929d81b2d3d727ca6aac56c18358c8d790"
+commit = "d86b2294eb0a17eaa281ff12c73c473ec864c72f"
 
 [ignored]
 # Not implemented yet:
@@ -21,7 +21,6 @@ features = [
     # https://github.com/tc39/proposal-import-bytes
     "import-bytes",
 
-
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
 
@@ -37,10 +36,6 @@ features = [
     # https://github.com/tc39/proposal-decorators
     "decorators",
 
-    # Uint8Array Base64
-    # https://github.com/tc39/proposal-arraybuffer-base64
-    "uint8array-base64",
-
     # Source Phase Imports
     # test262 special specifier
     "source-phase-imports-module-source",
@@ -48,6 +43,22 @@ features = [
     # Immutable Array Buffer
     # https://github.com/tc39/proposal-immutable-arraybuffer
     "immutable-arraybuffer",
+
+    # Iterator Includes
+    # https://github.com/tc39/proposal-iterator-includes
+    "iterator-includes",
+
+    # Iterator Chunking
+    # https://github.com/tc39/proposal-iterator-chunking
+    "iterator-chunking",
+
+    # Iterator Join
+    # https://github.com/tc39/proposal-iterator-join
+    "Iterator.prototype.join",
+
+    # Error Stack Accessor
+    # https://github.com/tc39/proposal-error-stack-accessor
+    "error-stack-accessor",
 
     ### Non-standard
     "caller",
@@ -79,6 +90,8 @@ tests = [
     "test/intl402/Locale/prototype/calendar/canonicalize.js",
     "test/intl402/Locale/constructor-non-iana-canon.js",
     "test/intl402/Locale/constructor-options-canonicalized.js",
+    # TODO: Remove when we implement `DateTimeFormat.prototype.formatRangeToParts`
+    "test/intl402/DateTimeFormat/prototype/formatRangeToParts",
     # TODO: Remove this once regress fixes the named groups parsing issue.
     "test/built-ins/RegExp/named-groups/non-unicode-property-names-valid.js",
     # Source Phase Imports: AbstractModuleSource built-in and static `import source` not yet implemented.

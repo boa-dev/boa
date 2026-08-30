@@ -205,15 +205,15 @@ pub trait ModuleLoader: Any {
 pub struct IdleModuleLoader;
 
 impl ModuleLoader for IdleModuleLoader {
-    async fn load_imported_module(
+    fn load_imported_module(
         self: Rc<Self>,
         _referrer: Referrer,
         _request: ModuleRequest,
         _context: &RefCell<&mut Context>,
-    ) -> JsResult<Module> {
-        Err(JsNativeError::typ()
+    ) -> impl Future<Output = JsResult<Module>> {
+        std::future::ready(Err(JsNativeError::typ()
             .with_message("module resolution is disabled for this context")
-            .into())
+            .into()))
     }
 }
 

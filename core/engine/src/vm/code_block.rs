@@ -514,9 +514,9 @@ impl CodeBlock {
             | Instruction::SuperCall { argument_count } => {
                 format!("argument_count:{argument_count}")
             }
-            Instruction::DefVar { binding_index } | Instruction::GetLocator { binding_index } => {
-                format!("binding_index:{binding_index}")
-            }
+            Instruction::DefVar { binding_index }
+            | Instruction::DefEvalVar { binding_index }
+            | Instruction::GetLocator { binding_index } => format!("binding_index:{binding_index}"),
             Instruction::DefInitVar { src, binding_index }
             | Instruction::PutLexicalValue { src, binding_index }
             | Instruction::SetName { src, binding_index } => {
@@ -655,7 +655,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("dst:{dst}, value:{value}, ic:{ic}",)
+                format!("dst:{dst}, value:{value}, ic:{ic}")
             }
             Instruction::GetPropertyByNameWithThis {
                 dst,
@@ -664,7 +664,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("dst:{dst}, receiver:{receiver}, value:{value}, ic:{ic}",)
+                format!("dst:{dst}, receiver:{receiver}, value:{value}, ic:{ic}")
             }
             Instruction::SetPropertyByName {
                 value,
@@ -672,7 +672,7 @@ impl CodeBlock {
                 ic_index,
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
-                format!("object:{object}, value:{value}, ic:{ic}",)
+                format!("object:{object}, value:{value}, ic:{ic}")
             }
             Instruction::SetPropertyByNameWithThis {
                 value,
@@ -933,8 +933,7 @@ impl CodeBlock {
             | Instruction::Reserved55
             | Instruction::Reserved56
             | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
