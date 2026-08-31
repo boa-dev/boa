@@ -26,8 +26,8 @@ fn main() {
     // nodes to their JS wrappers so that the same node keeps yielding the same object, while still
     // letting the engine collect a wrapper once nothing else references it.
     let mut registry: HashMap<u32, WeakJsObject> = HashMap::new();
-    registry.insert(1, WeakJsObject::new(&first));
-    registry.insert(2, WeakJsObject::new(&second));
+    registry.insert(1, WeakJsObject::new(&first, context.gc_collector()));
+    registry.insert(2, WeakJsObject::new(&second, context.gc_collector()));
 
     // While the strong handles live, the registry can hand the objects back.
     println!("id 1 upgradable? {}", registry[&1].is_upgradable());
@@ -45,7 +45,9 @@ fn main() {
 
     // The surviving object still round-trips through its weak reference. Upgrading yields a strong
     // handle, which keeps the object alive for as long as it is held.
-    let recovered = registry[&2].upgrade().expect("`second` is still alive");
+    let recovered = registry[&2]
+        .upgrade(context.gc_collector())
+        .expect("`second` is still alive");
     let name = recovered.get(js_string!("name"), &mut context).unwrap();
     println!("  id 2 name = {}", name.display());
 

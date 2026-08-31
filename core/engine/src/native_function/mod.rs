@@ -281,7 +281,7 @@ impl NativeFunction {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
         let ptr = Gc::into_raw(Gc::new(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             Closure {
                 f: closure,
                 captures,
@@ -371,7 +371,10 @@ pub(crate) fn native_function_call(
     // Push a lightweight frame for the native call so the frame stack
     // correctly represents the spec's execution context stack (§10.3).
     let native_frame = CallFrame::new(
-        Gc::new(CodeBlock::new(JsString::default(), 0, true)),
+        Gc::new(
+            context.gc_collector(),
+            CodeBlock::new(JsString::default(), 0, true),
+        ),
         None,
         EnvironmentStack::new(),
         realm,
@@ -436,7 +439,10 @@ fn native_function_construct(
 
     // Push a lightweight frame for the native construct call.
     let native_frame = CallFrame::new(
-        Gc::new(CodeBlock::new(JsString::default(), 0, true)),
+        Gc::new(
+            context.gc_collector(),
+            CodeBlock::new(JsString::default(), 0, true),
+        ),
         None,
         EnvironmentStack::new(),
         realm,

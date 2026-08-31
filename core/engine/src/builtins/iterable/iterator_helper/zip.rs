@@ -249,7 +249,7 @@ impl Zip {
                     ZipResultKind::Keyed(keys) => {
                         // `Iterator.zipKeyed ( iterables [ , options ] )`
                         // 15.a. Let obj be OrdinaryObjectCreate(null).
-                        let obj = JsObject::with_null_proto();
+                        let obj = JsObject::with_null_proto(context.gc_collector());
 
                         // 15.b. For each integer i such that 0 ≤ i < iterCount, in ascending order, do
                         for (key, value) in keys.iter().zip(results) {

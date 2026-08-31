@@ -4,7 +4,7 @@
 //! reference to an object without keeping it alive across garbage collections.
 
 use super::{ErasedObjectData, JsObject, NativeObject, jsobject::VTableObject};
-use boa_gc::{Finalize, Trace, WeakGc};
+use boa_gc::{Finalize, MutationContext, Trace, WeakGc};
 use std::fmt::{self, Debug};
 
 /// A weak reference to a [`JsObject`].
@@ -33,9 +33,9 @@ impl<T: NativeObject> WeakJsObject<T> {
     /// Creates a new weak reference to the given [`JsObject`].
     #[inline]
     #[must_use]
-    pub fn new(object: &JsObject<T>) -> Self {
+    pub fn new(object: &JsObject<T>, mc: &MutationContext<'_, '_>) -> Self {
         Self {
-            inner: WeakGc::new(object.inner()),
+            inner: WeakGc::new(mc, object.inner()),
         }
     }
 
@@ -43,8 +43,8 @@ impl<T: NativeObject> WeakJsObject<T> {
     /// or returns `None` if it was already garbage collected.
     #[inline]
     #[must_use]
-    pub fn upgrade(&self) -> Option<JsObject<T>> {
-        self.inner.upgrade().map(JsObject::from_inner)
+    pub fn upgrade(&self, mc: &MutationContext<'_, '_>) -> Option<JsObject<T>> {
+        self.inner.upgrade(mc).map(JsObject::from_inner)
     }
 
     /// Checks whether this weak reference can still be upgraded to a live [`JsObject`].
@@ -52,12 +52,6 @@ impl<T: NativeObject> WeakJsObject<T> {
     #[must_use]
     pub fn is_upgradable(&self) -> bool {
         self.inner.is_upgradable()
-    }
-}
-
-impl<T: NativeObject> From<&JsObject<T>> for WeakJsObject<T> {
-    fn from(object: &JsObject<T>) -> Self {
-        Self::new(object)
     }
 }
 
@@ -81,8 +75,6 @@ impl<T: NativeObject> Clone for WeakJsObject<T> {
 // overflowing the stack on cyclic object graphs. A collected referent prints as `None`.
 impl<T: NativeObject> Debug for WeakJsObject<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("WeakJsObject")
-            .field(&self.upgrade())
-            .finish()
+        f.debug_tuple("WeakJsObject[unknown]").finish()
     }
 }

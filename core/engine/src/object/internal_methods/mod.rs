@@ -1013,7 +1013,7 @@ pub(crate) fn is_compatible_property_descriptor(
 ) -> bool {
     // 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
     let mut dummy_slot = Slot::new();
-    let dummy_mc = unsafe { boa_gc::MutationContext::global() };
+    let dummy_mc = boa_gc::MutationContext::global();
     validate_and_apply_property_descriptor(
         None,
         extensible,

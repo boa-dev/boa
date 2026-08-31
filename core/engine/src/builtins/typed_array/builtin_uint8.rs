@@ -83,6 +83,7 @@ impl BuiltinUint8Array {
 
         // Create Uint8Array
         let uint8_array = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context
                 .intrinsics()
@@ -342,6 +343,7 @@ impl BuiltinUint8Array {
 
         // Create Uint8Array
         let uint8_array = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context
                 .intrinsics()
@@ -664,7 +666,7 @@ impl BuiltinUint8Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // Create { read, written } object
-        let obj = JsObject::with_object_proto(context.intrinsics());
+        let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
         obj.set(js_string!("read"), read, false, context)?;
         obj.set(js_string!("written"), written, false, context)?;
         Ok(obj.into())

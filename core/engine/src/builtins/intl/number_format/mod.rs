@@ -712,11 +712,11 @@ impl NumberFormat {
         //     e. Set n to n + 1.
         for (n, (typ, value)) in collector.0.into_iter().enumerate() {
             // a. Let partObj be OrdinaryObjectCreate(%Object.prototype%).
-            let part_obj = context
-                .intrinsics()
-                .templates()
-                .ordinary_object()
-                .create(OrdinaryObject, vec![]);
+            let part_obj = context.intrinsics().templates().ordinary_object().create(
+                context.gc_collector(),
+                OrdinaryObject,
+                vec![],
+            );
             // b. Perform ! CreateDataPropertyOrThrow(partObj, "type", part.[[Type]]).
             part_obj
                 .create_data_property_or_throw(js_string!("type"), JsString::from(typ), context)

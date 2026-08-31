@@ -407,7 +407,7 @@ fn parse_options(
     context: &mut Context,
 ) -> JsResult<(ZipMode, Option<JsObject>)> {
     // 2. Set options to ? GetOptionsObject(options).
-    let options = get_options_object(options)?;
+    let options = get_options_object(options, context.gc_collector())?;
 
     // 3. Let mode be ? Get(options, "mode").
     let mode = options.get(js_string!("mode"), context)?;

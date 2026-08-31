@@ -146,12 +146,9 @@ impl JsFunction {
     /// Mainly used to initialize objects before a [`Context`] is available to do so.
     ///
     /// [`Context`]: crate::Context
-    pub(crate) fn empty_intrinsic_function(constructor: bool) -> Self {
-        Self::empty_intrinsic_function_in(
-            // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-            &unsafe { boa_gc::MutationContext::global() },
-            constructor,
-        )
+    #[expect(dead_code)]
+    pub(crate) fn empty_intrinsic_function(constructor: bool, context: &mut Context) -> Self {
+        Self::empty_intrinsic_function_in(context.gc_collector(), constructor)
     }
 
     /// Creates a [`JsFunction`] from a [`JsObject`], or returns `None` if the object is not a function.

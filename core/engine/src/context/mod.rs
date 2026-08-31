@@ -107,7 +107,7 @@ pub struct Context {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
-    pub gc: boa_gc::GcContext,
+    pub(crate) gc: boa_gc::GcContext,
 
     can_block: bool,
 

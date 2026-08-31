@@ -128,15 +128,11 @@ fn hash_rational() {
 
 #[test]
 fn hash_object() {
-    let object1 = JsValue::new(JsObject::with_null_proto(&unsafe {
-        boa_gc::MutationContext::global()
-    }));
+    let object1 = JsValue::new(JsObject::with_null_proto(&boa_gc::MutationContext::global()));
     assert_eq!(object1, object1);
     assert_eq!(object1, object1.clone());
 
-    let object2 = JsValue::new(JsObject::with_null_proto(&unsafe {
-        boa_gc::MutationContext::global()
-    }));
+    let object2 = JsValue::new(JsObject::with_null_proto(&boa_gc::MutationContext::global()));
     assert_ne!(object1, object2);
 
     assert_eq!(hash_value(&object1), hash_value(&object1.clone()));

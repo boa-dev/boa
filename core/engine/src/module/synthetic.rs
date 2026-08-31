@@ -121,7 +121,7 @@ impl SyntheticModuleInitializer {
         // future: https://github.com/rust-lang/rust/issues/18598
         let ptr = Gc::into_raw(Gc::new(
             // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             Callback {
                 f: closure,
                 captures,
@@ -346,7 +346,7 @@ impl SyntheticModule {
 
         let mut envs = EnvironmentStack::new();
         // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-        envs.push_module(module_scope, &unsafe { boa_gc::MutationContext::global() });
+        envs.push_module(module_scope, &boa_gc::MutationContext::global());
 
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).

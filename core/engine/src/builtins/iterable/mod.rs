@@ -92,7 +92,7 @@ pub struct IteratorPrototypes {
 impl Default for IteratorPrototypes {
     fn default() -> Self {
         // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-        Self::uninit_in(&unsafe { boa_gc::MutationContext::global() })
+        Self::uninit_in(&boa_gc::MutationContext::global())
     }
 }
 
@@ -336,7 +336,11 @@ impl JsObject {
         let next_method = iterator_obj.get(js_string!("next"), context)?;
         // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 5. Return iteratorRecord.
-        Ok(IteratorRecord::new(iterator_obj.clone(), next_method))
+        Ok(IteratorRecord::new(
+            iterator_obj.clone(),
+            next_method,
+            context.gc_collector(),
+        ))
     }
 
     /// `JsValue::get_iterator`, but specialized for `JsObject`.

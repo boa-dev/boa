@@ -271,6 +271,8 @@ impl WeakShape {
     /// Returns `0` if the shape has been freed.
     #[inline]
     #[must_use]
+    #[expect(dead_code)]
+    #[expect(clippy::unused_self)]
     pub(crate) fn to_addr_usize(&self) -> usize {
         0 // Cannot get address of WeakShape without upgrading it, which requires MutationContext
     }
