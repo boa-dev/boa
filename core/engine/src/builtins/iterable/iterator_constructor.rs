@@ -44,7 +44,7 @@ use crate::{JsVariant, PanicError, builtins::options::get_options_object, proper
 
 /// [`IfAbruptCloseIterators ( value, iteratorRecords )`][spec]
 ///
-/// IfAbruptCloseIterators is a shorthand for a sequence of algorithm steps that
+/// `IfAbruptCloseIterators` is a shorthand for a sequence of algorithm steps that
 /// use a list of Iterator Records.
 ///
 ///  [spec]: https://tc39.es/proposal-joint-iteration/#sec-ifabruptcloseiterators
@@ -268,7 +268,7 @@ impl IteratorConstructor {
             .ok_or_else(|| js_error!(TypeError: "Iterator.zip requires an iterable object"))?;
 
         // 2 - 7 in options.
-        let (mode, padding_option) = parse_options(&options, context)?;
+        let (mode, padding_option) = parse_options(options, context)?;
 
         // 8. Let iters be a new empty List.
         let mut iters: Vec<super::IteratorRecord> = Vec::new();
@@ -327,7 +327,7 @@ impl IteratorConstructor {
             .ok_or_else(|| js_error!(TypeError: "Iterator.zip requires an iterable object"))?;
 
         // 2 - 7 in options.
-        let (mode, padding_option) = parse_options(&options, context)?;
+        let (mode, padding_option) = parse_options(options, context)?;
 
         // 8. Let iters be a new empty List.
         let mut iters: Vec<super::IteratorRecord> = Vec::new();
@@ -486,17 +486,18 @@ fn build_padding_zip(
         // 14.b.iv.1. If usingIterator is true, then
         // 14.b.iv.1.a. Set next to Completion(IteratorStepValue(paddingIter)).
         // 14.b.iv.1.b. IfAbruptCloseIterators(next, iters).
-        match if_abrupt_close_iterators!(padding_iter.step_value(context), iters, context) {
+        if let Some(next) =
+            if_abrupt_close_iterators!(padding_iter.step_value(context), iters, context)
+        {
             // 14.b.iv.1.d. Else,
             // 14.b.iv.1.d.i. Append next to padding.
-            Some(next) => padding.push(next),
+            padding.push(next);
+        } else {
             // 14.b.iv.1.c. If next is done, then
             // 14.b.iv.1.c.i. Set usingIterator to false.
-            None => {
-                using_iterator = false;
-                // 14.b.iv.2. If usingIterator is false, append undefined to padding.
-                padding.push(JsValue::undefined())
-            }
+            using_iterator = false;
+            // 14.b.iv.2. If usingIterator is false, append undefined to padding.
+            padding.push(JsValue::undefined());
         }
     }
 

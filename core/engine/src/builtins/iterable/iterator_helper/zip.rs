@@ -74,7 +74,7 @@ impl Zip {
                     } => (iters, mode, padding, result_kind),
                 };
                 // 3.a. If iterCount = 0, return ReturnCompletion(undefined).
-                if iters.len() == 0 {
+                if iters.is_empty() {
                     return ControlFlow::Break(Ok(()));
                 }
                 // 3.b.vi. If completion is an abrupt completion, then
@@ -252,7 +252,7 @@ impl Zip {
                         let obj = JsObject::with_null_proto();
 
                         // 15.b. For each integer i such that 0 ≤ i < iterCount, in ascending order, do
-                        for (key, value) in keys.iter().zip(results.into_iter()) {
+                        for (key, value) in keys.iter().zip(results) {
                             // 15.b.i. Perform ! CreateDataPropertyOrThrow(obj, keys[i], results[i]).
                             obj.create_data_property_or_throw(key.clone(), value, context)
                                 .js_expect("cannot fail per the spec")
