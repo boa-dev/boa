@@ -55,7 +55,6 @@ mod filter;
 mod flat_map;
 mod map;
 mod take;
-#[cfg(feature = "experimental")]
 mod zip;
 
 pub(crate) use concat::{Concat, IterableRecord};
@@ -64,7 +63,6 @@ pub(crate) use filter::Filter;
 pub(crate) use flat_map::FlatMap;
 pub(crate) use map::Map;
 pub(crate) use take::Take;
-#[cfg(feature = "experimental")]
 pub(crate) use zip::{Zip, ZipMode, ZipResultKind};
 
 #[derive(Debug, Finalize, Trace)]

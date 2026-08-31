@@ -33,13 +33,11 @@ use super::{
     wrap_for_valid_iterator::WrapForValidIterator,
 };
 
-#[cfg(feature = "experimental")]
 use super::{
     IteratorHint,
     iterator_helper::{ZipMode, ZipResultKind},
 };
 
-#[cfg(feature = "experimental")]
 use crate::{JsVariant, builtins::options::get_options_object, property::PropertyKey};
 
 /// [`IfAbruptCloseIterators ( value, iteratorRecords )`][spec]
@@ -48,7 +46,6 @@ use crate::{JsVariant, builtins::options::get_options_object, property::Property
 /// use a list of Iterator Records.
 ///
 ///  [spec]: https://tc39.es/proposal-joint-iteration/#sec-ifabruptcloseiterators
-#[cfg(feature = "experimental")]
 macro_rules! if_abrupt_close_iterators {
     ($value:expr, $iterators:expr, $context:expr) => {
         // 1. Assert: value is a Completion Record.
@@ -87,18 +84,13 @@ pub(crate) struct IteratorConstructor;
 impl IntrinsicObject for IteratorConstructor {
     fn init(realm: &Realm) {
         let iterator_prototype = realm.intrinsics().constructors().iterator().prototype();
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(Some(iterator_prototype.clone()))
             // Static methods
             .static_method(Self::from, js_string!("from"), 1)
-            .static_method(Self::concat, js_string!("concat"), 0);
-
-        #[cfg(feature = "experimental")]
-        let builder = builder
+            .static_method(Self::concat, js_string!("concat"), 0)
             .static_method(Self::zip, js_string!("zip"), 1)
-            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1);
-
-        builder
+            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1)
             .static_property(PROTOTYPE, iterator_prototype, Attribute::empty())
             .build_without_prototype();
     }
@@ -255,8 +247,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [TC39 proposal][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zip
-    #[cfg(feature = "experimental")]
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.zip
     fn zip(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let iterables = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -314,8 +305,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [TC39 proposal][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zipkeyed
-    #[cfg(feature = "experimental")]
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.zipkeyed
     fn zip_keyed(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let iterables = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -404,7 +394,6 @@ impl IteratorConstructor {
 }
 
 /// Parses the `mode` option from the options object.
-#[cfg(feature = "experimental")]
 fn parse_options(
     options: &JsValue,
     context: &mut Context,
@@ -444,7 +433,6 @@ fn parse_options(
 }
 
 /// Builds the padding list for "longest" mode on zip
-#[cfg(feature = "experimental")]
 fn build_padding_zip(
     mode: ZipMode,
     padding_option: Option<JsObject>,
@@ -518,7 +506,6 @@ fn build_padding_zip(
 }
 
 /// Builds the padding list for "longest" mode on zipKeyed
-#[cfg(feature = "experimental")]
 fn build_padding_zip_keyed(
     mode: ZipMode,
     padding_option: Option<JsObject>,
