@@ -39,7 +39,7 @@ impl GcContext {
 
             static DUMMY: &'static MutationContext<'static, 'static> = COLLECTOR.with(|c| {
                 Box::leak(Box::new(unsafe {
-                    oscars::collectors::mark_sweep_branded::MutationContext::from_collector_erased(*c)
+                    MutationContext::from_collector_erased(c)
                 }))
             });
         }
