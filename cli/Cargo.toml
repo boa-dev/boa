@@ -48,7 +48,7 @@ fetch = ["boa_runtime/fetch", "boa_runtime/reqwest-blocking"]
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator = { workspace = true, optional = true }
 
-[target.'cfg(target_os = "windows")'.dependencies]
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 mimalloc-safe = { workspace = true, optional = true, features = [
     "skip_collect_on_exit",
 ] }

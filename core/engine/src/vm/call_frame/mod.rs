@@ -33,6 +33,10 @@ bitflags::bitflags! {
 
         /// If the `this` value has been cached.
         const THIS_VALUE_CACHED = 0b0000_1000;
+
+        /// This is a lightweight frame pushed for a native function call.
+        /// It only exists to hold the function's realm on the frame stack.
+        const NATIVE_FRAME = 0b0001_0000;
     }
 }
 

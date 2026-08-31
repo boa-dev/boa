@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult,
+    Context, JsExpect, JsResult,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
@@ -28,7 +28,7 @@ impl GetPrivateField {
             .frame()
             .environments
             .resolve_private_identifier(name)
-            .expect("private name must be in environment");
+            .js_expect("private name must be in environment")?;
 
         let result = object.private_get(&name, context)?;
         context.vm.set_register(dst.into(), result);

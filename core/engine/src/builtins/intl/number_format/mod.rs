@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::{cell::Cell, fmt};
 
 use boa_gc::{Finalize, Trace, custom_trace};
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
@@ -13,7 +13,7 @@ use icu_locale::{Locale, extensions::unicode::Value};
 use icu_provider::{DataMarker, DataMarkerAttributes, DynamicDataProvider, buf::BufferMarker};
 use num_bigint::BigInt;
 use num_traits::Num;
-use writeable::Writeable;
+use writeable::{PartsWrite, Writeable, adapters::CoreWriteAsPartsWrite};
 
 use super::{
     Service,
@@ -21,16 +21,16 @@ use super::{
     options::{IntlOptions, coerce_options_to_object},
 };
 use crate::{
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    NativeFunction,
+    Context, JsArgs, JsData, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue, NativeFunction,
     builtins::{
-        BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltInBuilder,
-        options::get_option,
+        BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        builder::BuiltInBuilder, options::get_option,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
-        FunctionObjectBuilder, JsFunction, ObjectInitializer,
+        FunctionObjectBuilder, JsArray, JsFunction, ObjectInitializer,
         internal_methods::get_prototype_from_constructor,
     },
     property::{Attribute, PropertyDescriptor},
@@ -59,7 +59,7 @@ impl<T: Writeable> Writeable for FormattedNumber<'_, T> {
         }
     }
 
-    fn write_to_parts<S: writeable::PartsWrite + ?Sized>(&self, sink: &mut S) -> core::fmt::Result {
+    fn write_to_parts<S: PartsWrite + ?Sized>(&self, sink: &mut S) -> core::fmt::Result {
         match self {
             FormattedNumber::Decimal(d) => d.write_to_parts(sink),
             FormattedNumber::Compact(c) => c.write_to_parts(sink),
@@ -185,6 +185,7 @@ impl IntrinsicObject for NumberFormat {
                 Attribute::CONFIGURABLE,
             )
             .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .method(Self::format_to_parts, js_string!("formatToParts"), 1)
             .build();
     }
 
@@ -199,7 +200,7 @@ impl BuiltInObject for NumberFormat {
 
 impl BuiltInConstructor for NumberFormat {
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 4;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 5;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
@@ -635,6 +636,102 @@ impl NumberFormat {
 
         // 5. Return nf.[[BoundFormat]].
         Ok(bound_format.into())
+    }
+
+    /// [`Intl.NumberFormat.prototype.formatToParts ( value )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat.prototype.formattoparts
+    fn format_to_parts(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        #[derive(Debug, Clone)]
+        struct PartsCollector(Vec<(&'static str, String)>);
+
+        impl fmt::Write for PartsCollector {
+            // TODO: is this the correct way to catch literals?
+            fn write_str(&mut self, s: &str) -> fmt::Result {
+                self.0.push(("literal", String::from(s)));
+                Ok(())
+            }
+        }
+
+        impl PartsWrite for PartsCollector {
+            type SubPartsWrite = CoreWriteAsPartsWrite<String>;
+
+            fn with_part(
+                &mut self,
+                part: writeable::Part,
+                mut f: impl FnMut(&mut Self::SubPartsWrite) -> fmt::Result,
+            ) -> fmt::Result {
+                let mut string = CoreWriteAsPartsWrite(String::new());
+                f(&mut string)?;
+                if string.0.is_empty() || (part.category != "decimal") {
+                    return Ok(());
+                }
+
+                self.0.push((part.value, string.0));
+
+                Ok(())
+            }
+        }
+
+        // 1. Let nf be the this value.
+        // 2. Perform ? RequireInternalSlot(nf, [[InitializedNumberFormat]]).
+        let nf = this
+            .as_object()
+            .and_then(|o| o.downcast::<Self>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError:
+                    "value was not an initialized `Intl.NumberFormat` object"
+                )
+            })?;
+        // 3. Let x be ? ToIntlMathematicalValue(value).
+        let mut x = to_intl_mathematical_value(args.get_or_undefined(0), context)?;
+
+        // 4. Return FormatNumericToParts(nf, x).
+        //
+        // `FormatNumericToParts ( numberFormat, x )`
+        // <https://tc39.es/ecma402/#sec-formatnumbertoparts>
+        //
+        // 1. Let parts be PartitionNumberPattern(numberFormat, x).
+        let nf = nf.borrow();
+        let parts = nf.data().format(&mut x);
+        let mut collector = PartsCollector(Vec::new());
+        parts
+            .write_to_parts(&mut collector)
+            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+        // 2. Let result be ! ArrayCreate(0).
+        let result = JsArray::new(context)?;
+
+        // 3. Let n be 0.
+        // 4. For each Record { [[Type]], [[Value]] } part of parts, do
+        //     e. Set n to n + 1.
+        for (n, (typ, value)) in collector.0.into_iter().enumerate() {
+            // a. Let partObj be OrdinaryObjectCreate(%Object.prototype%).
+            let part_obj = context
+                .intrinsics()
+                .templates()
+                .ordinary_object()
+                .create(OrdinaryObject, vec![]);
+            // b. Perform ! CreateDataPropertyOrThrow(partObj, "type", part.[[Type]]).
+            part_obj
+                .create_data_property_or_throw(js_string!("type"), JsString::from(typ), context)
+                .js_expect("cannot fail to create property on new ordinary object")?;
+            // c. Perform ! CreateDataPropertyOrThrow(partObj, "value", part.[[Value]]).
+            part_obj
+                .create_data_property_or_throw(js_string!("value"), JsString::from(value), context)
+                .js_expect("cannot fail to create property on new ordinary object")?;
+            // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(𝔽(n)), partObj).
+            result
+                .create_data_property_or_throw(n, part_obj, context)
+                .js_expect("cannot fail to push element on array")?;
+        }
+        // 5. Return result.
+        Ok(result.into())
     }
 
     /// [`Intl.NumberFormat.prototype.resolvedOptions ( )`][spec].

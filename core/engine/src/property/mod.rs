@@ -611,7 +611,9 @@ impl From<PropertyDescriptorBuilder> for PropertyDescriptor {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
-#[derive(Finalize, PartialEq, Debug, Clone, Eq, Hash)]
+#[derive(Trace, Finalize, PartialEq, Debug, Clone, Eq, Hash)]
+// SAFETY: this type only contains non-GC'd types.
+#[boa_gc(unsafe_empty_trace)]
 pub enum PropertyKey {
     /// A string property key.
     String(JsString),
