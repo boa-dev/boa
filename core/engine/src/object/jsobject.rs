@@ -106,7 +106,7 @@ impl JsObject {
     /// ```
     /// # use boa_engine::{Context, JsObject};
     /// let context = &mut Context::default();
-    /// let obj = JsObject::default(context.intrinsics());
+    /// let obj = JsObject::default(context.gc_collector(), context.intrinsics());
     ///
     /// assert!(obj.is_ordinary());
     /// ```
@@ -235,6 +235,7 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Downcast consumes the object on success.
@@ -242,6 +243,7 @@ impl JsObject {
     /// assert!(typed.is_ok());
     ///
     /// // Downcast fails for a wrong type, returning the original object.
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     /// let result = obj.downcast::<CustomStruct>();
     /// assert!(result.is_err());
@@ -288,6 +290,7 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Downcast ref succeeds for the correct type.
@@ -325,6 +328,7 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Downcast mut succeeds for the correct type.
@@ -361,6 +365,7 @@ impl JsObject {
     /// #[derive(Debug, Trace, Finalize, JsData)]
     /// struct CustomStruct;
     ///
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// assert!(obj.is::<OrdinaryObject>());
@@ -773,6 +778,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Multiple immutable borrows are allowed.
@@ -799,8 +805,9 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::{Context, JsObject};
     /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let context = &mut Context::default();
+    /// # let context = &mut Context::default();
     /// let obj = JsObject::from_proto_and_data(
+    ///     context.gc_collector(),
     ///     context.intrinsics().constructors().object().prototype(),
     ///     OrdinaryObject,
     /// );
@@ -828,6 +835,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Non-panicking immutable borrow.
@@ -851,6 +859,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Non-panicking mutable borrow.
@@ -872,6 +881,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// # let context = &mut boa_engine::Context::default();
     /// let obj = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     /// let clone = obj.clone();
     ///
@@ -879,6 +889,7 @@ impl<T: NativeObject> JsObject<T> {
     /// assert!(JsObject::equals(&obj, &clone));
     ///
     /// // A separate object is different, even with identical data.
+    /// # let context = &mut boa_engine::Context::default();
     /// let other = JsObject::from_proto_and_data(context.gc_collector(), None, OrdinaryObject);
     /// assert!(!JsObject::equals(&obj, &other));
     /// ```
@@ -1075,6 +1086,7 @@ impl<T: NativeObject> JsObject<T> {
     /// let context = &mut Context::default();
     ///
     /// let typed_obj = JsObject::new(
+    ///     context.gc_collector(),
     ///     context.root_shape(),
     ///     context.intrinsics().constructors().object().prototype(),
     ///     OrdinaryObject,
@@ -1117,6 +1129,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
+    /// # let context = &mut boa_engine::Context::default();
     /// let typed_obj = JsObject::new_unique(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Upcast to an erased JsObject.
@@ -1133,6 +1146,7 @@ impl<T: NativeObject> JsObject<T> {
     /// # use boa_engine::JsObject;
     /// # use boa_engine::builtins::object::OrdinaryObject;
     /// // Create a typed JsObject<OrdinaryObject>.
+    /// # let context = &mut boa_engine::Context::default();
     /// let typed_obj = JsObject::new_unique(context.gc_collector(), None, OrdinaryObject);
     ///
     /// // Upcast erases the type, producing an untyped JsObject.

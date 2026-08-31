@@ -677,7 +677,7 @@ impl BuiltInFunctionObject {
                 function.scopes(),
                 function.contains_direct_eval(),
                 context.interner_mut(),
-                &mc,
+                mc,
             );
 
         let saved = context.vm.frame_mut().environments.pop_to_global();

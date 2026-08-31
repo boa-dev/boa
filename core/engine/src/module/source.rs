@@ -1657,7 +1657,7 @@ impl SourceTextModule {
             self.code.has_tla,
             false,
             context.interner_mut(),
-            &mc,
+            mc,
             false,
             spanned_source_text,
             self.code.path.clone().into(),

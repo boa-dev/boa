@@ -223,7 +223,7 @@ impl EnvironmentStack {
         let index = self.depth;
 
         self.push_env(Environment::Declarative(Gc::new(
-            &gc,
+            gc,
             DeclarativeEnvironment::new(
                 DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(bindings_count)),
                 poisoned,

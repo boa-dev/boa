@@ -284,7 +284,7 @@ impl Eval {
             false,
             false,
             context.interner_mut(),
-            &mc,
+            mc,
             in_with,
             spanned_source_text,
             // TODO: Could give more information from previous shadow stack.

@@ -33,6 +33,7 @@ use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 ///     counter: usize,
 /// }
 ///
+/// # let context = &mut boa_engine::Context::default();
 /// let object =
 ///     JsObject::from_proto_and_data(context.gc_collector(), None, CustomStruct { counter: 5 });
 ///

@@ -548,9 +548,11 @@ impl Context {
 
     /// Create a new Realm with the default global bindings.
     pub fn create_realm(&mut self) -> JsResult<Realm> {
-        let realm = Realm::create(self.host_hooks.as_ref(), &self.root_shape, &unsafe {
-            boa_gc::MutationContext::global()
-        })?;
+        let realm = Realm::create(
+            self.host_hooks.as_ref(),
+            &self.root_shape,
+            self.gc_collector(),
+        )?;
 
         let old_realm = self.enter_realm(realm);
 

@@ -65,7 +65,7 @@ impl<K: Trace + ?Sized + 'static, V: Trace + 'static> WeakMap<K, V> {
     {
         let ephemeron = self.get(key)?;
         ephemeron
-            .value(&unsafe { crate::MutationContext::dummy() })
+            .value(&unsafe { crate::MutationContext::global() })
             .map(|v| v.clone())
     }
 }

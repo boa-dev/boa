@@ -292,7 +292,8 @@ impl JsValue {
     /// ```
     /// use boa_engine::{JsValue, object::JsObject};
     ///
-    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// # let context = &mut boa_engine::Context::default();
+    /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// assert!(obj.is_object());
     ///
     /// let number = JsValue::new(42);
@@ -311,7 +312,8 @@ impl JsValue {
     /// ```
     /// use boa_engine::{JsValue, object::JsObject};
     ///
-    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// # let context = &mut boa_engine::Context::default();
+    /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// assert!(obj.as_object().is_some());
     ///
     /// let number = JsValue::new(42);
@@ -330,7 +332,8 @@ impl JsValue {
     /// ```
     /// use boa_engine::{JsValue, object::JsObject};
     ///
-    /// let obj = JsValue::new(JsObject::with_null_proto());
+    /// # let context = &mut boa_engine::Context::default();
+    /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// let inner = obj.into_object();
     /// assert!(inner.is_some());
     ///
@@ -357,7 +360,7 @@ impl JsValue {
     ///
     /// let context = &mut Context::default();
     /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
-    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.is_callable());
     ///
     /// let number = JsValue::new(42);
@@ -378,7 +381,7 @@ impl JsValue {
     ///
     /// let context = &mut Context::default();
     /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
-    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.as_callable().is_some());
     ///
     /// let number = JsValue::new(42);
@@ -400,7 +403,7 @@ impl JsValue {
     ///
     /// let context = &mut Context::default();
     /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
-    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm()));
+    /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.as_function().is_some());
     ///
     /// let number = JsValue::new(42);
