@@ -112,9 +112,6 @@ impl BuiltInObject for IteratorConstructor {
 
 impl BuiltInConstructor for IteratorConstructor {
     const PROTOTYPE_STORAGE_SLOTS: usize = 0;
-    #[cfg(not(feature = "experimental"))]
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
-    #[cfg(feature = "experimental")]
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 5;
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =

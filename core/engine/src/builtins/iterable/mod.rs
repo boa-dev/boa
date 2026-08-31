@@ -822,12 +822,15 @@ pub(crate) fn get_iterator_flattenable(
 /// <https://tc39.es/ecma262/#sec-iteratorcloseall>
 #[cfg(feature = "experimental")]
 pub(crate) fn iterator_close_all(
-    iters: impl IntoIterator<Item = IteratorRecord>,
+    iters: impl IntoIterator<Item = IteratorRecord, IntoIter: DoubleEndedIterator>,
     mut completion: JsResult<JsValue>,
     context: &mut Context,
 ) -> JsResult<()> {
-    for iterator in iters {
+    // 1. For each element iterator of iterators, in reverse List order, do
+    for iterator in iters.into_iter().rev() {
+        // 1.a. Set completion to Completion(IteratorClose(iterator, completion)).
         completion = iterator.close(completion, context);
     }
+    // 2. Return ? completion.
     completion.map(|_| ())
 }
