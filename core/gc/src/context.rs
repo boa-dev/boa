@@ -13,13 +13,6 @@ impl Default for GcContext {
 }
 
 #[cfg(feature = "oscars_backend")]
-struct SyncWrapper(MutationContext<'static, 'static>);
-#[cfg(feature = "oscars_backend")] // SAFETY: TODO
-unsafe impl Sync for SyncWrapper {}
-#[cfg(feature = "oscars_backend")] // SAFETY: TODO
-unsafe impl Send for SyncWrapper {}
-
-#[cfg(feature = "oscars_backend")]
 impl GcContext {
     #[must_use]
     pub fn new() -> Self {
