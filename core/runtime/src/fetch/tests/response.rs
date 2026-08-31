@@ -108,10 +108,7 @@ fn response_json() {
         TestAction::inspect_context(|ctx| {
             let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
             let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
-            assert_eq!(
-                format!("{}", response.display_obj(false)),
-                "{\n    hello world: 123\n}"
-            );
+            assert_eq!(response.display_obj(false), "{\n    hello world: 123\n}");
         }),
     ]);
 }
@@ -458,6 +455,29 @@ fn response_clone_preserves_status() {
                     assertEq(cloned.type, response.type);
                     assertEq(cloned.url, response.url);
                     assertEq(cloned.ok, response.ok);
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn response_constructor_with_body_and_status() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| register(&[], ctx)),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const response = new Response('Hello World', { status: 404 });
+                    assertEq(response.status, 404);
+                    assertEq(response.type, "default");
+                    const text = await response.text();
+                    assertEq(text, "Hello World");
                 })();
             "#,
         ),

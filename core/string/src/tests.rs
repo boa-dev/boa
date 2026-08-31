@@ -402,7 +402,7 @@ fn clone_builder() {
     // clone_from(empty) == origin(empty)
     let mut cloned_from = Latin1JsStringBuilder::new();
     cloned_from.clone_from(&empty_origin);
-    assert!(cloned_from.capacity() == 0);
+    assert_eq!(cloned_from.capacity(), 0);
     assert_eq!(empty_origin, cloned_from);
 
     // utf16 builder -- test
@@ -432,7 +432,7 @@ fn clone_builder() {
     // clone_from(empty) == origin(empty)
     let mut cloned_from = Utf16JsStringBuilder::new();
     cloned_from.clone_from(&empty_origin);
-    assert!(cloned_from.capacity() == 0);
+    assert_eq!(cloned_from.capacity(), 0);
     assert_eq!(empty_origin, cloned_from);
 }
 
@@ -552,4 +552,16 @@ fn trim() {
     // Very basic test for trimming. The extensive testing is done by `boa_engine`.
     let base_str = JsString::from(" \u{000B} Hello World \t ");
     assert_eq!(base_str.trim(), JsString::from("Hello World"));
+}
+
+#[test]
+fn starts_with_and_ends_with_basic() {
+    let basic = JsString::from("abcdef");
+    let start_needle = JsStr::latin1("abc".as_bytes());
+    assert!(basic.starts_with(start_needle));
+    assert!(!basic.ends_with(start_needle));
+
+    let end_needle = JsStr::latin1("def".as_bytes());
+    assert!(!basic.starts_with(end_needle));
+    assert!(basic.ends_with(end_needle));
 }

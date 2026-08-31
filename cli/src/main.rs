@@ -65,11 +65,11 @@ use jemallocator as _;
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-#[cfg(all(target_os = "windows", feature = "dhat"))]
+#[cfg(all(any(target_os = "windows", target_os = "macos"), feature = "dhat"))]
 use mimalloc_safe as _;
 
 #[cfg(all(
-    target_os = "windows",
+    any(target_os = "windows", target_os = "macos"),
     feature = "fast-allocator",
     not(feature = "dhat")
 ))]
@@ -424,15 +424,22 @@ fn evaluate_expr(
                     let result = script.evaluate(context);
                     if let Err(err) = context.run_jobs() {
                         printer.print(uncaught_job_error(&err));
+                        return Err(eyre!("execution failed"));
                     }
                     result
                 };
                 match result {
                     Ok(v) => printer.print(format!("{}\n", v.display())),
-                    Err(ref v) => printer.print(uncaught_error(v)),
+                    Err(v) => {
+                        printer.print(uncaught_error(&v));
+                        return Err(eyre!("execution failed"));
+                    }
                 }
             }
-            Err(ref v) => printer.print(uncaught_error(v)),
+            Err(v) => {
+                printer.print(uncaught_error(&v));
+                return Err(eyre!("parsing failed"));
+            }
         }
     }
 
@@ -519,7 +526,10 @@ fn evaluate_file(
                 println!("{}", v.display());
             }
         }
-        Err(v) => printer.print(uncaught_error(&v)),
+        Err(v) => {
+            printer.print(uncaught_error(&v));
+            return Err(eyre!("execution failed"));
+        }
     }
 
     Ok(())
