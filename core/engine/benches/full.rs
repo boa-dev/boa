@@ -20,9 +20,11 @@ fn create_realm(c: &mut Criterion) {
     c.bench_function("Create Realm", move |b| {
         let root_shape = RootShape::new(&boa_gc::MutationContext::global());
         b.iter(|| {
-            Realm::create(&DefaultHooks, &root_shape, &unsafe {
-                boa_gc::MutationContext::global()
-            })
+            Realm::create(
+                &DefaultHooks,
+                &root_shape,
+                &boa_gc::MutationContext::global(),
+            )
         });
     });
 }

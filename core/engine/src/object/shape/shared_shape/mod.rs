@@ -117,29 +117,35 @@ impl SharedShape {
     fn property_table(&self) -> &PropertyTable {
         &self.inner.property_table
     }
+
     /// Return the property count that this shape owns in the [`PropertyTable`].
     fn property_count(&self) -> u32 {
         self.inner.property_count
     }
+
     /// Return the index to the property in the [`PropertyTable`].
     fn property_index(&self) -> u32 {
         self.inner.property_count.saturating_sub(1)
     }
+
     /// Getter for the transition count field.
     #[must_use]
     pub fn transition_count(&self) -> u16 {
         self.inner.transition_count
     }
+
     /// Getter for the previous field.
     #[must_use]
     pub fn previous(&self) -> Option<&Self> {
         self.inner.previous.as_ref()
     }
+
     /// Get the prototype of the shape.
     #[must_use]
     pub fn prototype(&self) -> JsPrototype {
         self.inner.prototype.clone()
     }
+
     /// Get the property this [`SharedShape`] refers to.
     pub(crate) fn property(&self) -> (PropertyKey, Slot) {
         let inner = self.property_table().inner().borrow();
@@ -149,14 +155,17 @@ impl SharedShape {
             .expect("There should be a property");
         (key.clone(), *slot)
     }
+
     /// Get the flags of the shape.
     fn flags(&self) -> ShapeFlags {
         self.inner.flags
     }
+
     /// Getter for the [`ForwardTransition`] field.
     fn forward_transitions(&self) -> &ForwardTransition {
         &self.inner.forward_transitions
     }
+
     /// Check if the shape has the given prototype.
     #[must_use]
     pub fn has_prototype(&self, prototype: &JsObject) -> bool {
@@ -169,8 +178,6 @@ impl SharedShape {
             inner: Gc::new(mc, inner),
         }
     }
-
-    /// Create a new [`SharedShape`].
 
     /// Create a root [`SharedShape`] using the given context.
     #[must_use]
@@ -189,8 +196,6 @@ impl SharedShape {
             },
         )
     }
-
-    /// Create a root [`SharedShape`].
 
     /// Create a [`SharedShape`] change prototype transition using the given context.
     pub(crate) fn change_prototype_transition(
@@ -221,8 +226,6 @@ impl SharedShape {
 
         new_shape
     }
-
-    /// Create a [`SharedShape`] change prototype transition.
 
     /// Create a [`SharedShape`] insert property transition using the given context.
     pub(crate) fn insert_property_transition(
@@ -260,10 +263,6 @@ impl SharedShape {
 
         new_shape
     }
-
-    /// Create a [`SharedShape`] insert property transition.
-
-    /// Create a [`SharedShape`] change prototype transition, returning [`ChangeTransition`].
 
     /// Create a [`SharedShape`] change prototype transition using the given context, returning [`ChangeTransition`].
     pub(crate) fn change_attributes_transition(
@@ -458,8 +457,6 @@ impl SharedShape {
         base
     }
 
-    /// Remove a property from [`SharedShape`], returning the new [`SharedShape`].
-
     /// Do a property lookup, returns [`None`] if property not found.
     pub(crate) fn lookup(&self, key: &PropertyKey) -> Option<Slot> {
         let property_count = self.property_count();
@@ -521,11 +518,11 @@ impl WeakSharedShape {
 
     /// Upgrade returns a [`SharedShape`] pointer for the internal value if the pointer is still live,
     /// or [`None`] if the value was already garbage collected.
-
     #[allow(dead_code)]
     pub(crate) fn is_upgradable(&self) -> bool {
         self.inner.is_upgradable()
     }
+
     pub(crate) fn new(mc: &boa_gc::MutationContext<'static, '_>, value: &SharedShape) -> Self {
         WeakSharedShape {
             inner: WeakGc::new(mc, &value.inner),
