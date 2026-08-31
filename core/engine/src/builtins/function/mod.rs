@@ -677,7 +677,7 @@ impl BuiltInFunctionObject {
                 function.scopes(),
                 function.contains_direct_eval(),
                 context.interner_mut(),
-                &mc,
+                mc,
             );
 
         let saved = context.vm.frame_mut().environments.pop_to_global();
@@ -1079,7 +1079,7 @@ pub(crate) fn function_call(
         let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, &global, mc);
+        let index = frame.environments.push_lexical(1, global, mc);
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1097,7 +1097,7 @@ pub(crate) fn function_call(
         frame.environments.push_function(
             scope,
             FunctionSlots::new(this, function_object.clone(), None),
-            &global,
+            global,
             mc,
         );
     }
@@ -1191,7 +1191,7 @@ fn function_construct(
         let mc = context.gc_collector();
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
-        let index = frame.environments.push_lexical(1, &global, mc);
+        let index = frame.environments.push_lexical(1, global, mc);
         frame.environments.put_lexical_value(
             BindingLocatorScope::Stack(index),
             0,
@@ -1220,7 +1220,7 @@ fn function_construct(
                         .clone(),
                 ),
             ),
-            &global,
+            global,
             mc,
         );
     }

@@ -1228,12 +1228,12 @@ impl ContextBuilder {
 
         let gc = boa_gc::GcContext::new();
         let mc = gc.gc_collector();
-        let root_shape = RootShape::new(&mc);
+        let root_shape = RootShape::new(mc);
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
         let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));
-        let realm = Realm::create(host_hooks.as_ref(), &root_shape, &mc)?;
-        let vm = Vm::new(realm, &mc);
+        let realm = Realm::create(host_hooks.as_ref(), &root_shape, mc)?;
+        let vm = Vm::new(realm, mc);
 
         let module_loader: Rc<dyn DynModuleLoader> = if let Some(loader) = self.module_loader {
             loader

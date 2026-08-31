@@ -11,7 +11,6 @@ use crate::{
     object::FunctionObjectBuilder,
     vm::{CompletionRecord, GeneratorResumeKind, opcode::Operation},
 };
-use boa_gc::Gc;
 use std::{cell::Cell, ops::ControlFlow};
 
 /// `Await` implements the Opcode Operation for `Opcode::Await`

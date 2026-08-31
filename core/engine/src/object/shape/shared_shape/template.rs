@@ -148,11 +148,11 @@ impl ObjectTemplate {
 
         let mut properties = PropertyMap::new(
             self.shape.clone().into(),
-            crate::object::IndexedProperties::default(),
+            IndexedProperties::default(),
         );
         properties.storage = storage;
 
-        let mut object = Object {
+        let object = Object {
             data: ObjectData::new(data),
             extensible: true,
             properties,

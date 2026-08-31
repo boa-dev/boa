@@ -18,7 +18,7 @@ use std::{borrow::Cow, iter::once};
 use rustc_hash::FxHashSet;
 
 use boa_ast::scope::Scope;
-use boa_gc::{Finalize, Gc, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
 use itertools::Itertools;
 

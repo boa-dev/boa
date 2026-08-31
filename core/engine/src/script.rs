@@ -153,7 +153,7 @@ impl Script {
                 self.inner
                     .path
                     .as_deref()
-                    .map(std::path::Path::to_path_buf)
+                    .map(Path::to_path_buf)
                     .into(),
             );
 

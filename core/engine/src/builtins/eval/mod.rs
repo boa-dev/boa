@@ -27,7 +27,6 @@ use boa_ast::{
     operations::{ContainsSymbol, contains, contains_arguments},
     scope::Scope,
 };
-use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 
 use super::{BuiltInBuilder, IntrinsicObject};
@@ -284,7 +283,7 @@ impl Eval {
             false,
             false,
             context.interner_mut(),
-            &mc,
+            mc,
             in_with,
             spanned_source_text,
             // TODO: Could give more information from previous shadow stack.
@@ -352,7 +351,7 @@ impl Eval {
             let global = frame.realm.environment();
             frame
                 .environments
-                .push_lexical(lexical_scope.num_bindings_non_local(), &global, mc);
+                .push_lexical(lexical_scope.num_bindings_non_local(), global, mc);
         }
 
         context

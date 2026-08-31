@@ -492,7 +492,7 @@ impl<'a> BorrowMut<ByteCompiler<'a>> for SourcePositionGuard<'_, 'a> {
 #[derive(Clone, Copy)]
 pub(crate) struct McWrapper<'ctx>(pub(crate) &'ctx boa_gc::MutationContext<'static, 'static>);
 
-impl<'ctx> std::fmt::Debug for McWrapper<'ctx> {
+impl std::fmt::Debug for McWrapper<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("MutationContext").finish()
     }
@@ -565,7 +565,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
     pub(crate) interner: &'ctx mut Interner,
-    /// The MutationContext for GC allocations.
+    /// The `MutationContext` for GC allocations.
     pub(crate) mc: McWrapper<'ctx>,
     spanned_source_text: SpannedSourceText,
 
