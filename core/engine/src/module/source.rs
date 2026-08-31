@@ -1838,6 +1838,7 @@ impl SourceTextModule {
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new();
+        // SAFETY: TODO - Add safety comment for this block
         envs.push_module(source.scope().clone(), unsafe { context.gc_collector() });
         drop(status);
 

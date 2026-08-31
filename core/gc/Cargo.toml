@@ -21,7 +21,7 @@ boa_string = ["dep:boa_string"]
 either = ["dep:either", "oscars?/either"]
 # Enable default implementations of trace and finalize for the arrayvec crate
 arrayvec = ["dep:arrayvec", "oscars?/arrayvec"]
-default = ["oscars_backend"]
+default = []
 boa_gc_backend = []
 oscars_backend = ["dep:oscars", "dep:typeid", "oscars?/std", "boa_string?/oscars_backend"]
 

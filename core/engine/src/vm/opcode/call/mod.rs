@@ -451,7 +451,7 @@ async fn load_dyn_import(
     let mc = context.borrow().gc_collector();
     let on_rejected = FunctionObjectBuilder::new(
         context.borrow().realm(),
-        &mc,
+        mc,
         NativeFunction::from_copy_closure_with_captures(
             |_, args, cap, context| {
                 //     a. Perform ! Call(promiseCapability.[[Reject]], undefined, « reason »).
@@ -472,7 +472,7 @@ async fn load_dyn_import(
     let mc = context.borrow().gc_collector();
     let link_evaluate = FunctionObjectBuilder::new(
         context.borrow().realm(),
-        &mc,
+        mc,
         NativeFunction::from_copy_closure_with_captures(
             |_, _, (module, cap, on_rejected), context| {
                 // a. Let link be Completion(module.Link()).
