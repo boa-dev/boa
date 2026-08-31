@@ -146,10 +146,8 @@ impl ObjectTemplate {
     ) -> JsObject {
         let internal_methods = data.internal_methods();
 
-        let mut properties = PropertyMap::new(
-            self.shape.clone().into(),
-            IndexedProperties::default(),
-        );
+        let mut properties =
+            PropertyMap::new(self.shape.clone().into(), IndexedProperties::default());
         properties.storage = storage;
 
         let object = Object {
