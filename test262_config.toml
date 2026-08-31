@@ -47,10 +47,6 @@ features = [
     # https://github.com/tc39/proposal-iterator-chunking
     "iterator-chunking",
 
-    # Iterator Join
-    # https://github.com/tc39/proposal-iterator-join
-    "Iterator.prototype.join",
-
     # Error Stack Accessor
     # https://github.com/tc39/proposal-error-stack-accessor
     "error-stack-accessor",
