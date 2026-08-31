@@ -14,7 +14,6 @@ features = [
     "Intl.DurationFormat",
     "regexp-duplicate-named-groups",
     "explicit-resource-management",
-    "joint-iteration",
 
     ### Pending proposals
 
@@ -43,10 +42,6 @@ features = [
     # Immutable Array Buffer
     # https://github.com/tc39/proposal-immutable-arraybuffer
     "immutable-arraybuffer",
-
-    # Iterator Includes
-    # https://github.com/tc39/proposal-iterator-includes
-    "iterator-includes",
 
     # Iterator Chunking
     # https://github.com/tc39/proposal-iterator-chunking
