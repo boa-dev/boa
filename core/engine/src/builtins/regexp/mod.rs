@@ -60,44 +60,44 @@ impl RegExp {
 }
 
 impl IntrinsicObject for RegExp {
-    fn init(realm: &Realm) {
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_has_indices = BuiltInBuilder::callable(realm, Self::get_has_indices)
+        let get_has_indices = BuiltInBuilder::callable(realm, Self::get_has_indices, mc)
             .name(js_string!("get hasIndices"))
             .build();
-        let get_global = BuiltInBuilder::callable(realm, Self::get_global)
+        let get_global = BuiltInBuilder::callable(realm, Self::get_global, mc)
             .name(js_string!("get global"))
             .build();
-        let get_ignore_case = BuiltInBuilder::callable(realm, Self::get_ignore_case)
+        let get_ignore_case = BuiltInBuilder::callable(realm, Self::get_ignore_case, mc)
             .name(js_string!("get ignoreCase"))
             .build();
-        let get_multiline = BuiltInBuilder::callable(realm, Self::get_multiline)
+        let get_multiline = BuiltInBuilder::callable(realm, Self::get_multiline, mc)
             .name(js_string!("get multiline"))
             .build();
-        let get_dot_all = BuiltInBuilder::callable(realm, Self::get_dot_all)
+        let get_dot_all = BuiltInBuilder::callable(realm, Self::get_dot_all, mc)
             .name(js_string!("get dotAll"))
             .build();
-        let get_unicode = BuiltInBuilder::callable(realm, Self::get_unicode)
+        let get_unicode = BuiltInBuilder::callable(realm, Self::get_unicode, mc)
             .name(js_string!("get unicode"))
             .build();
-        let get_unicode_sets = BuiltInBuilder::callable(realm, Self::get_unicode_sets)
+        let get_unicode_sets = BuiltInBuilder::callable(realm, Self::get_unicode_sets, mc)
             .name(js_string!("get unicodeSets"))
             .build();
-        let get_sticky = BuiltInBuilder::callable(realm, Self::get_sticky)
+        let get_sticky = BuiltInBuilder::callable(realm, Self::get_sticky, mc)
             .name(js_string!("get sticky"))
             .build();
-        let get_flags = BuiltInBuilder::callable(realm, Self::get_flags)
+        let get_flags = BuiltInBuilder::callable(realm, Self::get_flags, mc)
             .name(js_string!("get flags"))
             .build();
-        let get_source = BuiltInBuilder::callable(realm, Self::get_source)
+        let get_source = BuiltInBuilder::callable(realm, Self::get_source, mc)
             .name(js_string!("get source"))
             .build();
-        let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(Self::escape, js_string!("escape"), 1)
             .static_accessor(
                 JsSymbol::species(),
@@ -425,14 +425,14 @@ impl RegExp {
                 .templates()
                 .regexp_without_proto()
                 .clone();
-            template.set_prototype(prototype);
-            template.create(regexp, vec![0.into()])
+            template.set_prototype(context.gc_collector(), prototype);
+            template.create(context.gc_collector(), regexp, vec![0.into()])
         } else {
-            context
-                .intrinsics()
-                .templates()
-                .regexp()
-                .create(regexp, vec![0.into()])
+            context.intrinsics().templates().regexp().create(
+                context.gc_collector(),
+                regexp,
+                vec![0.into()],
+            )
         };
 
         // 23. Return obj.
@@ -1270,8 +1270,8 @@ impl RegExp {
         #[allow(clippy::if_not_else)]
         let (groups, group_names) = if !named_groups.clone().is_empty() {
             // a. Let groups be OrdinaryObjectCreate(null).
-            let groups = JsObject::with_null_proto();
-            let group_names = JsObject::with_null_proto();
+            let groups = JsObject::with_null_proto(context.gc_collector());
+            let group_names = JsObject::with_null_proto(context.gc_collector());
 
             // e. If the ith capture of R was defined with a GroupName, then
             // i. Let s be the CapturingGroupName of that GroupName.

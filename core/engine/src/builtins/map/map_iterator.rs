@@ -52,8 +52,8 @@ pub(crate) struct MapIterator {
 }
 
 impl IntrinsicObject for MapIterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 0)
             .static_property(
@@ -89,6 +89,7 @@ impl MapIterator {
             iteration_kind: kind,
         };
         let map_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().objects().iterator_prototypes().map(),
             iter,

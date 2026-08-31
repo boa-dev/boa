@@ -368,7 +368,7 @@ impl Console {
 
         ObjectInitializer::with_native_data_and_proto(
             Self::default(),
-            JsObject::with_object_proto(context.realm().intrinsics()),
+            JsObject::with_object_proto(context.gc_collector(), context.realm().intrinsics()),
             context,
         )
         .property(

@@ -56,7 +56,7 @@ pub(super) struct ForwardTransition {
 
 impl ForwardTransition {
     /// Insert a property transition using the given context.
-    pub(super) fn insert_property_in(
+    pub(super) fn insert_property(
         &self,
         mc: &boa_gc::MutationContext<'static, '_>,
         key: TransitionKey,
@@ -73,17 +73,9 @@ impl ForwardTransition {
     }
 
     /// Insert a property transition.
-    pub(super) fn insert_property(
-        &self,
-        key: TransitionKey,
-        value: &Gc<'static, SharedShapeInner>,
-    ) {
-        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-        self.insert_property_in(&unsafe { boa_gc::MutationContext::global() }, key, value)
-    }
 
     /// Insert a prototype transition using the given context.
-    pub(super) fn insert_prototype_in(
+    pub(super) fn insert_prototype(
         &self,
         mc: &boa_gc::MutationContext<'static, '_>,
         key: JsPrototype,
@@ -100,10 +92,6 @@ impl ForwardTransition {
     }
 
     /// Insert a prototype transition.
-    pub(super) fn insert_prototype(&self, key: JsPrototype, value: &Gc<'static, SharedShapeInner>) {
-        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-        self.insert_prototype_in(&unsafe { boa_gc::MutationContext::global() }, key, value)
-    }
 
     /// Get a property transition, return [`None`] otherwise.
     #[allow(clippy::cloned_instead_of_copied)]

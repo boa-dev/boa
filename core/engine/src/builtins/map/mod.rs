@@ -41,20 +41,20 @@ mod tests;
 pub(crate) struct Map;
 
 impl IntrinsicObject for Map {
-    fn init(realm: &Realm) {
-        let get_species = BuiltInBuilder::callable(realm, Self::get_species)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_species = BuiltInBuilder::callable(realm, Self::get_species, mc)
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        let get_size = BuiltInBuilder::callable(realm, Self::get_size)
+        let get_size = BuiltInBuilder::callable(realm, Self::get_size, mc)
             .name(js_string!("get size"))
             .build();
 
-        let entries_function = BuiltInBuilder::callable(realm, Self::entries)
+        let entries_function = BuiltInBuilder::callable(realm, Self::entries, mc)
             .name(js_string!("entries"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .static_method(Self::group_by, js_string!("groupBy"), 2)
             .static_accessor(
                 JsSymbol::species(),
@@ -144,6 +144,7 @@ impl BuiltInConstructor for Map {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::map, context)?;
         let map = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             prototype,
             <OrderedMap<JsValue>>::new(),
@@ -797,10 +798,13 @@ impl Map {
         let proto = context.intrinsics().constructors().map().prototype();
 
         // 4. Return map.
-        Ok(
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, map)
-                .into(),
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
+            context.root_shape(),
+            proto,
+            map,
         )
+        .into())
     }
 }
 

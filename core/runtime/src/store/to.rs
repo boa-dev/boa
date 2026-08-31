@@ -30,7 +30,7 @@ fn try_fields_into_js_object(
     seen: &mut ReverseSeenMap,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let dolly = JsObject::with_object_proto(context.intrinsics());
+    let dolly = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
     seen.insert(store, dolly.clone());
 
     for (k, v) in fields {

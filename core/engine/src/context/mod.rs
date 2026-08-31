@@ -291,7 +291,7 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self.realm(), body)
+        let function = FunctionObjectBuilder::new(self.realm(), self.gc_collector(), body)
             .name(name.clone())
             .length(length)
             .constructor(true)
@@ -324,7 +324,7 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> JsResult<()> {
-        let function = FunctionObjectBuilder::new(self.realm(), body)
+        let function = FunctionObjectBuilder::new(self.realm(), self.gc_collector(), body)
             .name(name.clone())
             .length(length)
             .constructor(false)
@@ -548,9 +548,11 @@ impl Context {
 
     /// Create a new Realm with the default global bindings.
     pub fn create_realm(&mut self) -> JsResult<Realm> {
-        let realm = Realm::create(self.host_hooks.as_ref(), &self.root_shape, &unsafe {
-            boa_gc::MutationContext::global()
-        })?;
+        let realm = Realm::create(
+            self.host_hooks.as_ref(),
+            &self.root_shape,
+            self.gc_collector(),
+        )?;
 
         let old_realm = self.enter_realm(realm);
 
@@ -1226,7 +1228,7 @@ impl ContextBuilder {
 
         // SAFETY: The global mutation context is used as a fallback during the context threading migration.
         let mc = unsafe { boa_gc::MutationContext::global() };
-        let root_shape = RootShape::new_in(&mc);
+        let root_shape = RootShape::new(&mc);
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
         let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));

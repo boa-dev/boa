@@ -394,21 +394,28 @@ impl JsProxyBuilder {
     /// [`JsObject`] in case there's a need to manipulate the returned object
     /// inside Rust code.
     pub fn build(self, context: &mut Context) -> JsResult<JsProxy> {
-        let handler = JsObject::with_object_proto(context.intrinsics());
+        let handler = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
 
         if let Some(apply) = self.apply {
-            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(apply))
-                .length(3)
-                .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                context.gc_collector(),
+                NativeFunction::from_fn_ptr(apply),
+            )
+            .length(3)
+            .build();
             handler
                 .create_data_property_or_throw(js_string!("apply"), f, context)
                 .js_expect("new object should be writable")?;
         }
         if let Some(construct) = self.construct {
-            let f =
-                FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(construct))
-                    .length(3)
-                    .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                context.gc_collector(),
+                NativeFunction::from_fn_ptr(construct),
+            )
+            .length(3)
+            .build();
             handler
                 .create_data_property_or_throw(js_string!("construct"), f, context)
                 .js_expect("new object should be writable")?;
@@ -416,6 +423,7 @@ impl JsProxyBuilder {
         if let Some(define_property) = self.define_property {
             let f = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_fn_ptr(define_property),
             )
             .length(3)
@@ -427,6 +435,7 @@ impl JsProxyBuilder {
         if let Some(delete_property) = self.delete_property {
             let f = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_fn_ptr(delete_property),
             )
             .length(2)
@@ -436,9 +445,13 @@ impl JsProxyBuilder {
                 .js_expect("new object should be writable")?;
         }
         if let Some(get) = self.get {
-            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get))
-                .length(3)
-                .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                context.gc_collector(),
+                NativeFunction::from_fn_ptr(get),
+            )
+            .length(3)
+            .build();
             handler
                 .create_data_property_or_throw(js_string!("get"), f, context)
                 .js_expect("new object should be writable")?;
@@ -446,6 +459,7 @@ impl JsProxyBuilder {
         if let Some(get_own_property_descriptor) = self.get_own_property_descriptor {
             let f = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_fn_ptr(get_own_property_descriptor),
             )
             .length(2)
@@ -457,6 +471,7 @@ impl JsProxyBuilder {
         if let Some(get_prototype_of) = self.get_prototype_of {
             let f = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_fn_ptr(get_prototype_of),
             )
             .length(1)
@@ -466,9 +481,13 @@ impl JsProxyBuilder {
                 .js_expect("new object should be writable")?;
         }
         if let Some(has) = self.has {
-            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(has))
-                .length(2)
-                .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                context.gc_collector(),
+                NativeFunction::from_fn_ptr(has),
+            )
+            .length(2)
+            .build();
             handler
                 .create_data_property_or_throw(js_string!("has"), f, context)
                 .js_expect("new object should be writable")?;
@@ -476,6 +495,7 @@ impl JsProxyBuilder {
         if let Some(is_extensible) = self.is_extensible {
             let f = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_fn_ptr(is_extensible),
             )
             .length(1)
@@ -485,10 +505,13 @@ impl JsProxyBuilder {
                 .js_expect("new object should be writable")?;
         }
         if let Some(own_keys) = self.own_keys {
-            let f =
-                FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(own_keys))
-                    .length(1)
-                    .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                context.gc_collector(),
+                NativeFunction::from_fn_ptr(own_keys),
+            )
+            .length(1)
+            .build();
             handler
                 .create_data_property_or_throw(js_string!("ownKeys"), f, context)
                 .js_expect("new object should be writable")?;
@@ -496,6 +519,7 @@ impl JsProxyBuilder {
         if let Some(prevent_extensions) = self.prevent_extensions {
             let f = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_fn_ptr(prevent_extensions),
             )
             .length(1)
@@ -505,9 +529,13 @@ impl JsProxyBuilder {
                 .js_expect("new object should be writable")?;
         }
         if let Some(set) = self.set {
-            let f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set))
-                .length(4)
-                .build();
+            let f = FunctionObjectBuilder::new(
+                context.realm(),
+                context.gc_collector(),
+                NativeFunction::from_fn_ptr(set),
+            )
+            .length(4)
+            .build();
             handler
                 .create_data_property_or_throw(js_string!("set"), f, context)
                 .js_expect("new object should be writable")?;
@@ -515,6 +543,7 @@ impl JsProxyBuilder {
         if let Some(set_prototype_of) = self.set_prototype_of {
             let f = FunctionObjectBuilder::new(
                 context.realm(),
+                context.gc_collector(),
                 NativeFunction::from_fn_ptr(set_prototype_of),
             )
             .length(2)
@@ -525,6 +554,7 @@ impl JsProxyBuilder {
         }
 
         let proxy = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
             Proxy::new(self.target, handler),

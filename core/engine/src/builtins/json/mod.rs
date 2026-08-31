@@ -200,11 +200,11 @@ impl<'ast> boa_ast::visitor::Visitor<'ast> for JsonSourceVisitor<'_> {
 pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
-    fn init(realm: &Realm) {
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_method(Self::parse, js_string!("parse"), 2)
             .static_method(Self::stringify, js_string!("stringify"), 3)
             .static_method(Self::raw_json, js_string!("rawJSON"), 1)
@@ -303,8 +303,8 @@ impl Json {
                 false,
                 false,
                 context.interner_mut(),
-                &gc,
-                false,
+                gc,
+                in_with,
                 spanned_source_text,
                 SourcePath::Json,
             );
@@ -338,7 +338,7 @@ impl Json {
         // 11. If IsCallable(reviver) is true, then
         if let Some(obj) = args.get_or_undefined(1).as_callable() {
             // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
-            let root = JsObject::with_object_proto(context.intrinsics());
+            let root = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
 
             // b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
@@ -467,7 +467,7 @@ impl Json {
         // For objects/arrays or modified values: context = {} (no source property)
         // Per spec, source is only provided when the value is still the same
         // primitive that was produced by parsing the original JSON text.
-        let ctx_obj = JsObject::with_object_proto(context.intrinsics());
+        let ctx_obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
         if let Some(JsonNode::Primitive(source_text)) = source_node {
             // Check if the current value matches what the source text produces.
             // If the reviver modified the value, it won't match and we skip source.
@@ -571,7 +571,7 @@ impl Json {
 
         // 3. Let internalSlotsList be « [[IsRawJSON]] ».
         // 4. Let obj be OrdinaryObjectCreate(null, internalSlotsList).
-        let obj = JsObject::from_proto_and_data(None::<JsObject>, RawJson);
+        let obj = JsObject::from_proto_and_data(context.gc_collector(), None::<JsObject>, RawJson);
 
         // 5. Perform ! CreateDataPropertyOrThrow(obj, "rawJSON", jsonString).
         obj.create_data_property_or_throw(js_string!("rawJSON"), json_string, context)
@@ -738,7 +738,7 @@ impl Json {
         };
 
         // 9. Let wrapper be ! OrdinaryObjectCreate(%Object.prototype%).
-        let wrapper = JsObject::with_object_proto(context.intrinsics());
+        let wrapper = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
 
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper

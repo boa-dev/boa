@@ -74,8 +74,8 @@ impl IntrinsicObject for FinalizationRegistry {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
 
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("FinalizationRegistry"),
@@ -149,6 +149,7 @@ impl BuiltInConstructor for FinalizationRegistry {
         let (sender, receiver) = async_channel::bounded(1);
 
         let registry = JsObject::new_unique(
+            context.gc_collector(),
             prototype,
             FinalizationRegistry {
                 realm,

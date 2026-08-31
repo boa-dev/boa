@@ -100,6 +100,7 @@ impl ModuleNamespace {
 
         // 10. Return M.
         context.intrinsics().templates().namespace().create(
+            context.gc_collector(),
             Self {
                 module,
                 exports,

@@ -26,8 +26,8 @@ pub(crate) struct AsyncFromSyncIterator {
 }
 
 impl IntrinsicObject for AsyncFromSyncIterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .prototype(
                 realm
                     .intrinsics()
@@ -63,6 +63,7 @@ impl AsyncFromSyncIterator {
         // 1. Let asyncIterator be OrdinaryObjectCreate(%AsyncFromSyncIteratorPrototype%, « [[SyncIteratorRecord]] »).
         // 2. Set asyncIterator.[[SyncIteratorRecord]] to syncIteratorRecord.
         let async_iterator = JsObject::from_proto_and_data_with_shared_shape(
+            context.gc_collector(),
             context.root_shape(),
             context
                 .intrinsics()
@@ -82,7 +83,7 @@ impl AsyncFromSyncIterator {
 
         // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 5. Return iteratorRecord.
-        IteratorRecord::new(async_iterator, next_method)
+        IteratorRecord::new(async_iterator, next_method, context.gc_collector())
     }
 
     /// `%AsyncFromSyncIteratorPrototype%.next ( [ value ] )`
@@ -362,6 +363,7 @@ impl AsyncFromSyncIterator {
         // 10. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure(move |_this, args, context| {
                 // a. Return CreateIterResultObject(value, done).
                 Ok(create_iter_result_object(
@@ -393,6 +395,7 @@ impl AsyncFromSyncIterator {
             Some(
                 FunctionObjectBuilder::new(
                     context.realm(),
+                    context.gc_collector(),
                     NativeFunction::from_copy_closure_with_captures(
                         |_this, args, iter, context| {
                             // i. Return ? IteratorClose(syncIteratorRecord, ThrowCompletion(error)).

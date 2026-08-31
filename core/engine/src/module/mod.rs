@@ -658,7 +658,7 @@ impl Module {
                         },
                         self.clone(),
                     )
-                    .to_js_function(context.realm()),
+                    .to_js_function(context.realm(), context.gc_collector()),
                 ),
                 None,
                 context,
@@ -670,7 +670,7 @@ impl Module {
                         |_, _, module, context| Ok(module.evaluate(context)?.into()),
                         self.clone(),
                     )
-                    .to_js_function(context.realm()),
+                    .to_js_function(context.realm(), context.gc_collector()),
                 ),
                 None,
                 context,
@@ -784,8 +784,12 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
             unsafe {
                 SyntheticModuleInitializer::from_closure(move |module, context| {
                     for (name, f) in names.iter().zip(fns.iter()) {
-                        module
-                            .set_export(name, f.clone().to_js_function(context.realm()).into())?;
+                        module.set_export(
+                            name,
+                            f.clone()
+                                .to_js_function(context.realm(), context.gc_collector())
+                                .into(),
+                        )?;
                     }
                     Ok(())
                 })

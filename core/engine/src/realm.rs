@@ -86,7 +86,7 @@ impl Realm {
             JsNativeError::typ().with_message("failed to create the realm intrinsics")
         })?;
 
-        let global_object = hooks.create_global_object(&intrinsics);
+        let global_object = hooks.create_global_object(mc, &intrinsics);
         let global_this = hooks
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
@@ -110,7 +110,7 @@ impl Realm {
             ),
         };
 
-        realm.initialize();
+        realm.initialize(mc);
 
         Ok(realm)
     }

@@ -48,17 +48,17 @@ mod tests;
 pub struct OrdinaryObject;
 
 impl IntrinsicObject for OrdinaryObject {
-    fn init(realm: &Realm) {
-        let legacy_proto_getter = BuiltInBuilder::callable(realm, Self::legacy_proto_getter)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let legacy_proto_getter = BuiltInBuilder::callable(realm, Self::legacy_proto_getter, mc)
             .name(js_string!("get __proto__"))
             .build();
 
-        let legacy_setter_proto = BuiltInBuilder::callable(realm, Self::legacy_proto_setter)
+        let legacy_setter_proto = BuiltInBuilder::callable(realm, Self::legacy_proto_setter, mc)
             .name(js_string!("set __proto__"))
             .length(1)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .inherits(None)
             .accessor(
                 js_string!("__proto__"),
@@ -172,6 +172,7 @@ impl BuiltInConstructor for OrdinaryObject {
             let prototype =
                 get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
             let object = JsObject::from_proto_and_data_with_shared_shape(
+                context.gc_collector(),
                 context.root_shape(),
                 prototype,
                 OrdinaryObject,
@@ -183,7 +184,7 @@ impl BuiltInConstructor for OrdinaryObject {
 
         // 2. If value is undefined or null, return OrdinaryObjectCreate(%Object.prototype%).
         if value.is_null_or_undefined() {
-            Ok(JsObject::with_object_proto(context.intrinsics()).into())
+            Ok(JsObject::with_object_proto(context.gc_collector(), context.intrinsics()).into())
         } else {
             // 3. Return ! ToObject(value).
             value.to_object(context).map(JsValue::from)
@@ -440,7 +441,7 @@ impl OrdinaryObject {
         }
     }
 
-    /// `Object.create( proto, [propertiesObject] )`
+    /// `Object.create( context.gc_collector(), proto, [propertiesObject] )`
     ///
     /// Creates a new object from the provided prototype.
     ///
@@ -457,6 +458,7 @@ impl OrdinaryObject {
         let obj = match prototype.variant() {
             JsVariant::Object(_) | JsVariant::Null => {
                 JsObject::from_proto_and_data_with_shared_shape(
+                    context.gc_collector(),
                     context.root_shape(),
                     prototype.as_object(),
                     OrdinaryObject,
@@ -532,7 +534,7 @@ impl OrdinaryObject {
             obj.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
         // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
-        let descriptors = JsObject::with_object_proto(context.intrinsics());
+        let descriptors = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
 
         // 4. For each element key of ownKeys, do
         for key in own_keys {
@@ -573,7 +575,7 @@ impl OrdinaryObject {
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.
-        let obj = JsObject::with_object_proto(context.intrinsics());
+        let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
 
         // 4. If Desc has a [[Value]] field, then
         if let Some(value) = desc.value() {
@@ -1299,12 +1301,13 @@ impl OrdinaryObject {
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.
-        let obj = JsObject::with_object_proto(context.intrinsics());
+        let obj = JsObject::with_object_proto(context.gc_collector(), context.intrinsics());
 
         // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
         let closure = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
                 |_, args, obj, context| {
                     let key = args.get_or_undefined(0);
@@ -1413,7 +1416,7 @@ impl OrdinaryObject {
         }
 
         // 2. Let obj be OrdinaryObjectCreate(null).
-        let obj = JsObject::with_null_proto();
+        let obj = JsObject::with_null_proto(context.gc_collector());
 
         // 3. For each Record { [[Key]], [[Elements]] } g of groups, do
         for (key, elements) in groups {

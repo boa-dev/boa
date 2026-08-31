@@ -105,6 +105,7 @@ fn create_operations_module(context: &mut Context) -> Module {
     // on that below.
     let sum = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             args.get_or_undefined(0).add(args.get_or_undefined(1), ctx)
         }),
@@ -114,6 +115,7 @@ fn create_operations_module(context: &mut Context) -> Module {
     .build();
     let sub = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             args.get_or_undefined(0).sub(args.get_or_undefined(1), ctx)
         }),
@@ -123,6 +125,7 @@ fn create_operations_module(context: &mut Context) -> Module {
     .build();
     let mult = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             args.get_or_undefined(0).mul(args.get_or_undefined(1), ctx)
         }),
@@ -132,6 +135,7 @@ fn create_operations_module(context: &mut Context) -> Module {
     .build();
     let div = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             args.get_or_undefined(0).div(args.get_or_undefined(1), ctx)
         }),
@@ -141,6 +145,7 @@ fn create_operations_module(context: &mut Context) -> Module {
     .build();
     let sqrt = FunctionObjectBuilder::new(
         context.realm(),
+        context.gc_collector(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             let a = args.get_or_undefined(0).to_number(ctx)?;
             Ok(JsValue::from(a.sqrt()))

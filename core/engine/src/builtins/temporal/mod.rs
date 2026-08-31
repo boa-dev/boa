@@ -82,8 +82,8 @@ impl BuiltInObject for Temporal {
 }
 
 impl IntrinsicObject for Temporal {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::with_intrinsic::<Self>(realm, mc)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

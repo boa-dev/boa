@@ -128,7 +128,7 @@ impl JsFunction {
         constructor: bool,
     ) -> Self {
         Self {
-            inner: JsObject::from_proto_and_data_in(
+            inner: JsObject::from_proto_and_data(
                 mc,
                 None,
                 NativeFunctionObject {

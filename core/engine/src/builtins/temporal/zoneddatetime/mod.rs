@@ -71,120 +71,122 @@ impl BuiltInObject for ZonedDateTime {
 }
 
 impl IntrinsicObject for ZonedDateTime {
-    fn init(realm: &Realm) {
-        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id, mc)
             .name(js_string!("get calendarId"))
             .build();
 
-        let get_timezone_id = BuiltInBuilder::callable(realm, Self::get_timezone_id)
+        let get_timezone_id = BuiltInBuilder::callable(realm, Self::get_timezone_id, mc)
             .name(js_string!("get timeZoneId"))
             .build();
 
-        let get_era = BuiltInBuilder::callable(realm, Self::get_era)
+        let get_era = BuiltInBuilder::callable(realm, Self::get_era, mc)
             .name(js_string!("get era"))
             .build();
 
-        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year)
+        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year, mc)
             .name(js_string!("get eraYear"))
             .build();
 
-        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
+        let get_year = BuiltInBuilder::callable(realm, Self::get_year, mc)
             .name(js_string!("get year"))
             .build();
 
-        let get_month = BuiltInBuilder::callable(realm, Self::get_month)
+        let get_month = BuiltInBuilder::callable(realm, Self::get_month, mc)
             .name(js_string!("get month"))
             .build();
 
-        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
+        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code, mc)
             .name(js_string!("get monthCode"))
             .build();
 
-        let get_day = BuiltInBuilder::callable(realm, Self::get_day)
+        let get_day = BuiltInBuilder::callable(realm, Self::get_day, mc)
             .name(js_string!("get day"))
             .build();
 
-        let get_hour = BuiltInBuilder::callable(realm, Self::get_hour)
+        let get_hour = BuiltInBuilder::callable(realm, Self::get_hour, mc)
             .name(js_string!("get hour"))
             .build();
 
-        let get_minute = BuiltInBuilder::callable(realm, Self::get_minute)
+        let get_minute = BuiltInBuilder::callable(realm, Self::get_minute, mc)
             .name(js_string!("get minute"))
             .build();
 
-        let get_second = BuiltInBuilder::callable(realm, Self::get_second)
+        let get_second = BuiltInBuilder::callable(realm, Self::get_second, mc)
             .name(js_string!("get second"))
             .build();
 
-        let get_millisecond = BuiltInBuilder::callable(realm, Self::get_millisecond)
+        let get_millisecond = BuiltInBuilder::callable(realm, Self::get_millisecond, mc)
             .name(js_string!("get millisecond"))
             .build();
 
-        let get_microsecond = BuiltInBuilder::callable(realm, Self::get_microsecond)
+        let get_microsecond = BuiltInBuilder::callable(realm, Self::get_microsecond, mc)
             .name(js_string!("get microsecond"))
             .build();
 
-        let get_nanosecond = BuiltInBuilder::callable(realm, Self::get_nanosecond)
+        let get_nanosecond = BuiltInBuilder::callable(realm, Self::get_nanosecond, mc)
             .name(js_string!("get nanosecond"))
             .build();
 
-        let get_epoch_milliseconds = BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds)
-            .name(js_string!("get epochMilliseconds"))
-            .build();
+        let get_epoch_milliseconds =
+            BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds, mc)
+                .name(js_string!("get epochMilliseconds"))
+                .build();
 
-        let get_epoch_nanoseconds = BuiltInBuilder::callable(realm, Self::get_epoch_nanoseconds)
-            .name(js_string!("get epochNanoseconds"))
-            .build();
+        let get_epoch_nanoseconds =
+            BuiltInBuilder::callable(realm, Self::get_epoch_nanoseconds, mc)
+                .name(js_string!("get epochNanoseconds"))
+                .build();
 
-        let get_day_of_week = BuiltInBuilder::callable(realm, Self::get_day_of_week)
+        let get_day_of_week = BuiltInBuilder::callable(realm, Self::get_day_of_week, mc)
             .name(js_string!("get dayOfWeek"))
             .build();
 
-        let get_day_of_year = BuiltInBuilder::callable(realm, Self::get_day_of_year)
+        let get_day_of_year = BuiltInBuilder::callable(realm, Self::get_day_of_year, mc)
             .name(js_string!("get dayOfYear"))
             .build();
 
-        let get_week_of_year = BuiltInBuilder::callable(realm, Self::get_week_of_year)
+        let get_week_of_year = BuiltInBuilder::callable(realm, Self::get_week_of_year, mc)
             .name(js_string!("get weekOfYear"))
             .build();
 
-        let get_hours_in_day = BuiltInBuilder::callable(realm, Self::get_hours_in_day)
+        let get_hours_in_day = BuiltInBuilder::callable(realm, Self::get_hours_in_day, mc)
             .name(js_string!("get daysInWeek"))
             .build();
 
-        let get_year_of_week = BuiltInBuilder::callable(realm, Self::get_year_of_week)
+        let get_year_of_week = BuiltInBuilder::callable(realm, Self::get_year_of_week, mc)
             .name(js_string!("get yearOfWeek"))
             .build();
 
-        let get_days_in_week = BuiltInBuilder::callable(realm, Self::get_days_in_week)
+        let get_days_in_week = BuiltInBuilder::callable(realm, Self::get_days_in_week, mc)
             .name(js_string!("get daysInWeek"))
             .build();
 
-        let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month)
+        let get_days_in_month = BuiltInBuilder::callable(realm, Self::get_days_in_month, mc)
             .name(js_string!("get daysInMonth"))
             .build();
 
-        let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year)
+        let get_days_in_year = BuiltInBuilder::callable(realm, Self::get_days_in_year, mc)
             .name(js_string!("get daysInYear"))
             .build();
 
-        let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year)
+        let get_months_in_year = BuiltInBuilder::callable(realm, Self::get_months_in_year, mc)
             .name(js_string!("get monthsInYear"))
             .build();
 
-        let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
+        let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year, mc)
             .name(js_string!("get inLeapYear"))
             .build();
 
-        let get_offset_nanos = BuiltInBuilder::callable(realm, Self::get_offset_nanoseconds)
+        let get_offset_nanos = BuiltInBuilder::callable(realm, Self::get_offset_nanoseconds, mc)
             .name(js_string!("get offsetNanoseconds"))
             .build();
 
-        let get_offset = BuiltInBuilder::callable(realm, Self::get_offset)
+        let get_offset = BuiltInBuilder::callable(realm, Self::get_offset, mc)
             .name(js_string!("get offset"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::ZONED_DT_TAG,
@@ -1214,7 +1216,8 @@ impl ZonedDateTime {
         )?;
 
         // 19. Let resolvedOptions be ? GetOptionsObject(options).
-        let resolved_options = get_options_object(args.get_or_undefined(1))?;
+        let resolved_options =
+            get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         // 20. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
         let disambiguation =
             get_option::<Disambiguation>(&resolved_options, js_string!("disambiguation"), context)?;
@@ -1345,7 +1348,7 @@ impl ZonedDateTime {
 
         let duration = to_temporal_duration(args.get_or_undefined(0), context)?;
 
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         let result =
@@ -1376,7 +1379,7 @@ impl ZonedDateTime {
 
         let duration = to_temporal_duration(args.get_or_undefined(0), context)?;
 
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         let overflow = get_option::<Overflow>(&options, js_string!("overflow"), context)?;
 
         let result =
@@ -1407,7 +1410,7 @@ impl ZonedDateTime {
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
 
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         let settings = get_difference_settings(&options, context)?;
 
         let result =
@@ -1438,7 +1441,7 @@ impl ZonedDateTime {
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
 
-        let options = get_options_object(args.get_or_undefined(1))?;
+        let options = get_options_object(args.get_or_undefined(1), context.gc_collector())?;
         let settings = get_difference_settings(&options, context)?;
 
         let result =
@@ -1482,7 +1485,7 @@ impl ZonedDateTime {
             // a. Let paramString be roundTo.
             let param_string = param_string.clone();
             // b. Set roundTo to OrdinaryObjectCreate(null).
-            let new_round_to = JsObject::with_null_proto();
+            let new_round_to = JsObject::with_null_proto(context.gc_collector());
             // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
             new_round_to.create_data_property_or_throw(
                 js_string!("smallestUnit"),
@@ -1493,7 +1496,7 @@ impl ZonedDateTime {
         } else {
             // 5. Else,
             // a. Set roundTo to ? GetOptionsObject(roundTo).
-            get_options_object(round_to_arg)?
+            get_options_object(round_to_arg, context.gc_collector())?
         };
 
         // 6. NOTE: The following steps read options and perform independent validation
@@ -1571,7 +1574,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let options = get_options_object(args.get_or_undefined(0))?;
+        let options = get_options_object(args.get_or_undefined(0), context.gc_collector())?;
 
         let show_calendar =
             get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
@@ -1741,7 +1744,7 @@ impl ZonedDateTime {
         let options_obj = if let Some(param_str) = direction_param.as_string() {
             // a. Let paramString be directionParam.
             // b. Set directionParam to OrdinaryObjectCreate(null).
-            let obj = JsObject::with_null_proto();
+            let obj = JsObject::with_null_proto(context.gc_collector());
             // c. Perform ! CreateDataPropertyOrThrow(directionParam, "direction", paramString).
             obj.create_data_property_or_throw(
                 js_string!("direction"),
@@ -1752,7 +1755,7 @@ impl ZonedDateTime {
         // 6. Else,
         } else {
             // a. Set directionParam to ? GetOptionsObject(directionParam).
-            get_options_object(direction_param)?
+            get_options_object(direction_param, context.gc_collector())?
         };
 
         // TODO: step 7
@@ -1902,7 +1905,8 @@ pub(crate) fn create_temporal_zoneddatetime(
     // 4. Set object.[[EpochNanoseconds]] to epochNanoseconds.
     // 5. Set object.[[TimeZone]] to timeZone.
     // 6. Set object.[[Calendar]] to calendar.
-    let obj = JsObject::from_proto_and_data(prototype, ZonedDateTime::new(inner));
+    let obj =
+        JsObject::from_proto_and_data(context.gc_collector(), prototype, ZonedDateTime::new(inner));
 
     // 7. Return object.
     Ok(obj)
@@ -1927,7 +1931,10 @@ pub(crate) fn to_temporal_zoneddatetime(
                 // (GetTemporalDisambiguationOption reads "disambiguation", GetTemporalOffsetOption
                 // reads "offset", and GetTemporalOverflowOption reads "overflow").
                 // ii. Let resolvedOptions be ? GetOptionsObject(options).
-                let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
+                let options = get_options_object(
+                    options.unwrap_or(&JsValue::undefined()),
+                    context.gc_collector(),
+                )?;
                 // iii. Perform ? GetTemporalDisambiguationOption(resolvedOptions).
                 let _disambiguation =
                     get_option::<Disambiguation>(&options, js_string!("disambiguation"), context)?
@@ -1946,7 +1953,10 @@ pub(crate) fn to_temporal_zoneddatetime(
             // f. If offsetString is unset, the
             // i. Set offsetBehaviour to wall.
             // g. Let resolvedOptions be ? GetOptionsObject(options).
-            let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
+            let options = get_options_object(
+                options.unwrap_or(&JsValue::undefined()),
+                context.gc_collector(),
+            )?;
             // h. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
             let disambiguation =
                 get_option::<Disambiguation>(&options, js_string!("disambiguation"), context)?;
@@ -1985,7 +1995,10 @@ pub(crate) fn to_temporal_zoneddatetime(
             // k. Set calendar to ? CanonicalizeCalendar(calendar).
             // l. Set matchBehaviour to match-minutes.
             // m. Let resolvedOptions be ? GetOptionsObject(options).
-            let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
+            let options = get_options_object(
+                options.unwrap_or(&JsValue::undefined()),
+                context.gc_collector(),
+            )?;
             // n. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
             let disambiguation =
                 get_option::<Disambiguation>(&options, js_string!("disambiguation"), context)?

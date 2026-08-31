@@ -1477,6 +1477,7 @@ impl SourceTextModule {
         // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
         let on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
                 |_, _, module, context| {
                     //     a. Perform AsyncModuleExecutionFulfilled(module).
@@ -1493,6 +1494,7 @@ impl SourceTextModule {
         // 7. Let onRejected be CreateBuiltinFunction(rejectedClosure, 0, "", « »).
         let on_rejected = FunctionObjectBuilder::new(
             context.realm(),
+            context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());
@@ -1655,7 +1657,7 @@ impl SourceTextModule {
             self.code.has_tla,
             false,
             context.interner_mut(),
-            &mc,
+            mc,
             false,
             spanned_source_text,
             self.code.path.clone().into(),

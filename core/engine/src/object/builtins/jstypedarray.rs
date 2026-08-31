@@ -517,6 +517,7 @@ impl JsTypedArray {
     ///
     /// let greater_than_10_predicate = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
@@ -575,6 +576,7 @@ impl JsTypedArray {
     ///
     /// let lower_than_200_predicate = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
@@ -625,6 +627,7 @@ impl JsTypedArray {
     ///
     /// let lower_than_200_predicate = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
     ///         let element = args
     ///             .first()
@@ -682,6 +685,7 @@ impl JsTypedArray {
     ///
     /// let js_function = FunctionObjectBuilder::new(
     ///     context.realm(),
+    ///     context.gc_collector(),
     ///     NativeFunction::from_copy_closure_with_captures(
     ///         |_, args, captures, inner_context| {
     ///             let element = args

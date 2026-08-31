@@ -58,7 +58,7 @@ impl JsSharedArrayBuffer {
             .shared_array_buffer()
             .prototype();
 
-        let inner = JsObject::new(context.root_shape(), proto, buffer);
+        let inner = JsObject::new(context.gc_collector(), context.root_shape(), proto, buffer);
 
         Self { inner }
     }

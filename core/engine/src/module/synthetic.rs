@@ -322,7 +322,7 @@ impl SyntheticModule {
             false,
             false,
             context.interner_mut(),
-            &mc,
+            mc,
             false,
             // A synthetic module does not contain `SourceText`
             SpannedSourceText::new_empty(),

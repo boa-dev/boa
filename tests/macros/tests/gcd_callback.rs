@@ -40,7 +40,7 @@ fn gcd_callback() {
 
     let function = callback_from_js
         .into_js_function_copied(context)
-        .to_js_function(context.realm());
+        .to_js_function(context.realm(), context.gc_collector());
 
     result.store(0, Ordering::Relaxed);
     assert_eq!(js_gcd.call(context, (6, 9, function.clone())), Ok(()));

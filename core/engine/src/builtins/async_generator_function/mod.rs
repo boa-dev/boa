@@ -24,8 +24,8 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 pub struct AsyncGeneratorFunction;
 
 impl IntrinsicObject for AsyncGeneratorFunction {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+    fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .inherits(Some(
                 realm.intrinsics().constructors().function().prototype(),
             ))

@@ -10,20 +10,12 @@ pub struct RootShape {
     shape: SharedShape,
 }
 
-impl Default for RootShape {
-    #[inline]
-    fn default() -> Self {
-        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-        Self::new_in(&unsafe { boa_gc::MutationContext::global() })
-    }
-}
-
 impl RootShape {
     /// Create a new root shape using the given context.
     #[inline]
-    pub(crate) fn new_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
+    pub fn new(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {
-            shape: SharedShape::root_in(mc),
+            shape: SharedShape::root(mc),
         }
     }
     /// Gets the inner [`SharedShape`].
