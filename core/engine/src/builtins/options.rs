@@ -1,4 +1,8 @@
 //! Utilities to parse, validate and get options in builtins.
+#![allow(
+    unused,
+    reason = "easier to allow unused items than to split the module apart"
+)]
 
 use std::{fmt, str::FromStr};
 
