@@ -4,7 +4,6 @@ use boa_engine::{Context, Source, js_string, object::WeakJsObject};
 use boa_gc::force_collect;
 use std::collections::HashMap;
 
-#[expect(clippy::drop_non_drop)] // TODO: This may need to be fixed?
 fn main() {
     let mut context = Context::default();
 
