@@ -11,7 +11,7 @@ use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 use std::ops::Deref;
 
 #[doc(inline)]
-pub use crate::builtins::array_buffer::AlignedVec;
+pub use crate::builtins::array_buffer::{AlignedVec, AtomicU8};
 
 /// `JsArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -132,6 +132,169 @@ impl JsArrayBuffer {
         Ok(Self { inner: obj })
     }
 
+    /// Creates an `ArrayBuffer` that aliases a region of embedder-owned memory.
+    ///
+    /// Unlike [`JsArrayBuffer::from_byte_block`], this does **not** copy nor take
+    /// ownership of the memory: the bytes of the resulting `ArrayBuffer` are the
+    /// provided region itself. Writes performed by JavaScript code are immediately
+    /// visible to the embedder and vice versa, enabling zero-copy sharing of memory
+    /// regions like `WebAssembly` linear memories, memory-mapped files or GPU-mapped
+    /// buffers.
+    ///
+    /// The engine accesses the region with normal (non-atomic) loads, stores and
+    /// copies, exactly like Boa-owned memory. The exclusive `&'static mut` reference
+    /// is what makes this sound: by passing it, the embedder gives up its own access
+    /// to the region for as long as the buffer (or a view over it) can reach it.
+    /// Embedders that need to keep accessing the region while the buffer is alive
+    /// must either synchronize every access with the JavaScript code that may access
+    /// the buffer, or use [`JsArrayBuffer::from_external_ptr`]. For regions that are
+    /// concurrently accessed from other threads, create a
+    /// [`JsSharedArrayBuffer`](crate::object::builtins::JsSharedArrayBuffer) instead,
+    /// which accesses its region with atomic operations.
+    ///
+    /// The resulting buffer is always fixed-length and cannot be resized nor
+    /// transferred; those operations throw a `TypeError`. It **can** be detached,
+    /// which is the way for an embedder to guarantee that the engine can no longer
+    /// access the region; see [`JsArrayBuffer::detach`].
+    ///
+    /// [`JsArrayBuffer::data`] and [`JsArrayBuffer::data_mut`] return `None` for
+    /// externally-backed buffers; use [`JsArrayBuffer::to_vec`] to copy the contents
+    /// out, or read the region directly since the embedder owns it.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # property::Attribute,
+    /// # Context, JsResult, Source, js_string,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// # let context = &mut Context::default();
+    /// // The backing region must be 8-byte aligned.
+    /// #[repr(align(8))]
+    /// struct Backing([u8; 4]);
+    /// let backing: &'static mut Backing = Box::leak(Box::new(Backing([0; 4])));
+    ///
+    /// let array_buffer = JsArrayBuffer::from_external_data(&mut backing.0, context);
+    /// assert!(array_buffer.is_external());
+    ///
+    /// context.register_global_property(js_string!("buf"), array_buffer.clone(), Attribute::all())?;
+    /// context.eval(Source::from_bytes("new Uint8Array(buf)[1] = 42;"))?;
+    ///
+    /// // The embedder gave up its reference to the region, so the contents are
+    /// // read back through the buffer itself.
+    /// assert_eq!(array_buffer.to_vec().as_deref(), Some(&[0u8, 42, 0, 0][..]));
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the region is non-empty and its base address is not aligned to 8
+    /// bytes. Typed array views perform aligned accesses of up to 8 bytes on the
+    /// backing memory, so the base address must satisfy the largest alignment those
+    /// accesses need.
+    #[must_use]
+    pub fn from_external_data(data: &'static mut [u8], context: &mut Context) -> Self {
+        let prototype = context
+            .intrinsics()
+            .constructors()
+            .array_buffer()
+            .prototype();
+
+        let data = ArrayBuffer::from_external_data(data);
+
+        let obj = JsObject::new(context.root_shape(), prototype, data);
+
+        Self { inner: obj }
+    }
+
+    /// Creates an `ArrayBuffer` that aliases `len` bytes of embedder-owned memory
+    /// starting at `ptr`.
+    ///
+    /// This is a convenience wrapper that builds the `&'static mut [u8]` slice from
+    /// its raw parts and delegates to [`JsArrayBuffer::from_external_data`]; see that
+    /// method for the aliasing and threading guarantees of the returned buffer.
+    ///
+    /// # Safety
+    ///
+    /// The caller must guarantee that:
+    ///
+    /// - `ptr` is valid for reads and writes of `len` bytes, and the region stays
+    ///   valid **and unmoved** at the same address for the whole lifetime of the
+    ///   returned buffer (and of every object that shares its data, e.g. typed arrays
+    ///   or `DataView`s constructed over it). Note that the garbage collector may keep
+    ///   the buffer alive for an unbounded amount of time after it becomes
+    ///   unreachable, and that regions that can relocate, like a growable
+    ///   `WebAssembly` linear memory that moves its base address on `memory.grow`,
+    ///   silently invalidate the buffer unless the embedder guarantees that no
+    ///   relocation happens while the buffer is alive.
+    /// - The region is not accessed from other threads while JavaScript code that may
+    ///   access the buffer is executing, unless all accesses (the engine's and the
+    ///   embedder's) are synchronized with a happens-before relationship (e.g. a
+    ///   mutex). Regions that are concurrently accessed from other threads, like
+    ///   shared `WebAssembly` linear memories, must instead back a
+    ///   [`JsSharedArrayBuffer`](crate::object::builtins::JsSharedArrayBuffer); see
+    ///   [`JsSharedArrayBuffer::from_external_ptr`](crate::object::builtins::JsSharedArrayBuffer::from_external_ptr).
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::{AlignedVec, JsArrayBuffer},
+    /// # property::Attribute,
+    /// # Context, JsResult, Source, js_string,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// # let context = &mut Context::default();
+    /// // `AlignedVec` allocations are 64-byte aligned, which satisfies the required
+    /// // 8-byte alignment of external regions.
+    /// let mut backing: AlignedVec<u8> = AlignedVec::from_iter(0, [0u8; 8]);
+    ///
+    /// // SAFETY: `backing` stays alive and unmoved for the whole lifetime of the
+    /// // context that can reach the buffer.
+    /// let array_buffer = unsafe {
+    ///     JsArrayBuffer::from_external_ptr(backing.as_mut_ptr(), backing.len(), context)
+    /// };
+    ///
+    /// context.register_global_property(js_string!("buf"), array_buffer, Attribute::all())?;
+    /// context.eval(Source::from_bytes("new Uint8Array(buf).fill(42);"))?;
+    ///
+    /// assert_eq!(&backing[..], &[42u8; 8]);
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `ptr` is null, if `len` is bigger than `isize::MAX`, or if the region
+    /// is non-empty and `ptr` is not aligned to 8 bytes.
+    #[must_use]
+    pub unsafe fn from_external_ptr(ptr: *mut u8, len: usize, context: &mut Context) -> Self {
+        let prototype = context
+            .intrinsics()
+            .constructors()
+            .array_buffer()
+            .prototype();
+
+        // SAFETY: The caller upholds the invariants of `ArrayBuffer::from_external_ptr`.
+        let data = unsafe { ArrayBuffer::from_external_ptr(ptr, len) };
+
+        let obj = JsObject::new(context.root_shape(), prototype, data);
+
+        Self { inner: obj }
+    }
+
+    /// Returns `true` if this buffer is backed by embedder-owned memory.
+    ///
+    /// See [`JsArrayBuffer::from_external_data`].
+    #[inline]
+    #[must_use]
+    pub fn is_external(&self) -> bool {
+        self.inner.borrow().data().is_external()
+    }
+
     /// Set a maximum length for the underlying array buffer.
     #[inline]
     #[must_use]
@@ -192,6 +355,13 @@ impl JsArrayBuffer {
     /// This tries to detach the pre-existing `JsArrayBuffer`, meaning the original detach
     /// key is required. By default, the key is set to `undefined`.
     ///
+    /// For a buffer backed by embedder-owned memory (see
+    /// [`JsArrayBuffer::from_external_data`]), this returns a copy of the region's
+    /// contents and drops the engine's reference into the region; the embedder remains
+    /// the owner of the region itself. This is the way for an embedder to guarantee
+    /// that the engine can no longer access the region, e.g. before unmapping or
+    /// freeing it.
+    ///
     /// ```
     /// # use boa_engine::{
     /// # object::builtins::{JsArrayBuffer, AlignedVec},
@@ -230,7 +400,10 @@ impl JsArrayBuffer {
 
     /// Get an immutable reference to the [`JsArrayBuffer`]'s data.
     ///
-    /// Returns `None` if detached.
+    /// Returns `None` if the buffer is detached or backed by embedder-owned memory
+    /// (see [`JsArrayBuffer::from_external_data`]); the embedder already owns an
+    /// externally-backed region and can read it directly, or copy it out with
+    /// [`JsArrayBuffer::to_vec`].
     ///
     /// ```
     /// # use boa_engine::{
@@ -259,7 +432,8 @@ impl JsArrayBuffer {
 
     /// Copies the contents of this [`JsArrayBuffer`] into a new [`Vec<u8>`].
     ///
-    /// Returns `None` if the buffer has been detached.
+    /// Returns `None` if the buffer has been detached. This works for both Boa-owned
+    /// and externally-backed buffers.
     ///
     /// See also [`crate::object::builtins::JsUint8Array::to_vec`] and
     /// [`crate::object::builtins::JsSharedArrayBuffer::to_vec`].
@@ -283,12 +457,17 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn to_vec(&self) -> Option<Vec<u8>> {
-        self.data().map(|data| data.to_vec())
+        self.inner
+            .borrow()
+            .data()
+            .slice_ref()
+            .map(crate::builtins::array_buffer::utils::SliceRef::to_vec)
     }
 
     /// Get a mutable reference to the [`JsArrayBuffer`]'s data.
     ///
-    /// Returns `None` if detached.
+    /// Returns `None` if the buffer is detached or backed by embedder-owned memory
+    /// (see [`JsArrayBuffer::from_external_data`]).
     ///
     /// ```
     /// # use boa_engine::{
