@@ -551,7 +551,7 @@ impl Iterator {
 
         // 6. Let R be the empty String.
         // 7. Let first be true.
-        let mut r = Vec::new();
+        let mut r = crate::string::CommonJsStringBuilder::new();
         let mut first = true;
 
         // 8. Repeat,
@@ -578,12 +578,7 @@ impl Iterator {
         }
 
         // 9. Return R.
-        if r.is_empty() {
-            return Ok(js_string!().into());
-        }
-
-        let strs: Vec<_> = r.iter().map(crate::JsString::as_str).collect();
-        Ok(crate::JsString::concat_array(&strs).into())
+        Ok(r.build().into())
     }
 
     /// `Iterator.prototype.reduce ( reducer [ , initialValue ] )`
