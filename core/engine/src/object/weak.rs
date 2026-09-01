@@ -17,12 +17,15 @@ use std::fmt::{self, Debug};
 /// # Examples
 ///
 /// ```
-/// # use boa_engine::object::{JsObject, WeakJsObject};
-/// let object = JsObject::with_null_proto();
-/// let weak = WeakJsObject::new(&object);
+/// # use boa_engine::{object::{JsObject, WeakJsObject}, Context};
+///
+/// let context = &mut Context::default();
+///
+/// let object = JsObject::with_null_proto(context.gc_collector());
+/// let weak = WeakJsObject::new(&object, context.gc_collector());
 ///
 /// // While `object` is alive, the weak reference can be upgraded.
-/// assert!(weak.upgrade().is_some());
+/// assert!(weak.upgrade(context.gc_collector()).is_some());
 /// ```
 #[derive(Trace, Finalize)]
 pub struct WeakJsObject<T: NativeObject = ErasedObjectData> {
