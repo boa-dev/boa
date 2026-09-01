@@ -46,7 +46,7 @@ impl Animal {
     #[boa(method)]
     #[boa(length = 11)]
     fn method(context: &mut Context) -> JsObject {
-        let obj = JsObject::with_null_proto(&unsafe { boa_gc::MutationContext::global() });
+        let obj = JsObject::with_null_proto(&boa_gc::MutationContext::global());
         obj.set(js_string!("key"), 43, false, context).unwrap();
         obj
     }

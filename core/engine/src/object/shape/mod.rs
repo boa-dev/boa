@@ -123,10 +123,6 @@ impl Shape {
         }
     }
 
-    /// Create an insert property transitions returning the new transitioned [`Shape`].
-    ///
-    /// NOTE: This assumes that there is no property with the given key!
-
     /// Create a change attribute property transitions returning [`ChangeTransition`] containing the new [`Shape`]
     /// and actions to be performed, using the given context.
     ///
@@ -154,11 +150,6 @@ impl Shape {
         }
     }
 
-    /// Create a change attribute property transitions returning [`ChangeTransition`] containing the new [`Shape`]
-    /// and actions to be performed
-    ///
-    /// NOTE: This assumes that there already is a property with the given key!
-
     /// Remove a property from the [`Shape`] returning the new transitioned [`Shape`] using the given context.
     ///
     /// NOTE: This assumes that there already is a property with the given key!
@@ -179,10 +170,6 @@ impl Shape {
         }
     }
 
-    /// Remove a property from the [`Shape`] returning the new transitioned [`Shape`].
-    ///
-    /// NOTE: This assumes that there already is a property with the given key!
-
     /// Create a prototype transition returning the new transitioned [`Shape`] using the given context.
     pub(crate) fn change_prototype_transition(
         &self,
@@ -202,7 +189,7 @@ impl Shape {
     }
 
     /// Create a prototype transition returning the new transitioned [`Shape`].
-
+    ///
     /// Get the [`JsPrototype`] of the [`Shape`].
     #[must_use]
     pub fn prototype(&self) -> JsPrototype {
@@ -271,6 +258,8 @@ impl WeakShape {
     /// Returns `0` if the shape has been freed.
     #[inline]
     #[must_use]
+    #[expect(dead_code)]
+    #[expect(clippy::unused_self)]
     pub(crate) fn to_addr_usize(&self) -> usize {
         0 // Cannot get address of WeakShape without upgrading it, which requires MutationContext
     }

@@ -108,7 +108,7 @@ impl NativeCoroutine {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
         let ptr = Gc::into_raw(Gc::new(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             Coroutine {
                 f: closure,
                 captures,

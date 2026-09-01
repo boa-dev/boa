@@ -103,8 +103,6 @@ impl StandardConstructor {
         }
     }
 
-    /// Build a constructor with a defined prototype.
-
     /// Return the prototype of the constructor object.
     ///
     /// This is the same as `Object.prototype`, `Array.prototype`, etc.

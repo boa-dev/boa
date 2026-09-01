@@ -767,6 +767,13 @@ generate_opcodes! {
     ///   - Input: array
     PushIteratorToArray { array: RegisterOperand },
 
+    /// Convert the value into a int32.
+    ///
+    /// - Registers
+    ///   - Input: src
+    ///   - Output: dst
+    ToInt32 { dst: RegisterOperand, src: RegisterOperand },
+
     /// Binary `+` operator.
     ///
     /// - Registers
@@ -2152,6 +2159,12 @@ generate_opcodes! {
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
 
+    /// Declare `var` type variable during eval declaration instantiation.
+    ///
+    /// - Operands:
+    ///   - binding_index: `IndexOperand`
+    DefEvalVar { binding_index: IndexOperand },
+
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
     /// Reserved [`Opcode`].
@@ -2268,11 +2281,4 @@ generate_opcodes! {
     Reserved57 => Reserved,
     /// Reserved [`Opcode`].
     Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
-    /// Declare `var` type variable during eval declaration instantiation.
-    ///
-    /// - Operands:
-    ///   - binding_index: `IndexOperand`
-    DefEvalVar { binding_index: IndexOperand },
 }

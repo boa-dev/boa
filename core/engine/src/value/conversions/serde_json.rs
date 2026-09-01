@@ -308,7 +308,7 @@ mod tests {
     #[test]
     fn to_json_cyclic() {
         let mut context = Context::default();
-        let obj = JsObject::with_null_proto(&unsafe { boa_gc::MutationContext::global() });
+        let obj = JsObject::with_null_proto(context.gc_collector());
         obj.create_data_property(js_string!("a"), obj.clone(), &mut context)
             .expect("should create data property");
 
@@ -339,7 +339,7 @@ mod tests {
             //     "outer_c": [2, undefined, 3, { "inner_a": undefined }]
             // }
 
-            let inner = JsObject::with_null_proto(&unsafe { boa_gc::MutationContext::global() });
+            let inner = JsObject::with_null_proto(context.gc_collector());
             inner
                 .create_data_property(js_string!("inner_a"), JsValue::undefined(), &mut context)
                 .expect("should add property");
@@ -352,7 +352,7 @@ mod tests {
             array.push(3, &mut context).expect("should push");
             array.push(inner, &mut context).expect("should push");
 
-            let outer = JsObject::with_null_proto(&unsafe { boa_gc::MutationContext::global() });
+            let outer = JsObject::with_null_proto(context.gc_collector());
             outer
                 .create_data_property(js_string!("outer_a"), JsValue::new(1), &mut context)
                 .expect("should add property");

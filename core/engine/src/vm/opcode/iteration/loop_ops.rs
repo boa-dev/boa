@@ -15,7 +15,7 @@ impl IncrementLoopIteration {
         let frame = context.vm.frame_mut();
         let previous_iteration_count = frame.loop_iteration_count;
 
-        if previous_iteration_count > max {
+        if previous_iteration_count >= max {
             return Err(RuntimeLimitError::LoopIteration.into());
         }
 

@@ -4,7 +4,6 @@ use crate::{
     environments::PrivateEnvironment,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
-use boa_gc::Gc;
 use thin_vec::ThinVec;
 
 /// `PushScope` implements the Opcode Operation for `Opcode::PushScope`
@@ -45,7 +44,8 @@ impl PushObjectEnvironment {
     pub(crate) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let object = context.vm.get_register(value.into()).clone();
         let object = object.to_object(context)?;
-        context.vm.frame_mut().environments.push_object(object);
+        let mc = context.gc_collector();
+        context.vm.frame_mut().environments.push_object(object, mc);
         Ok(())
     }
 }

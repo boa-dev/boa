@@ -593,7 +593,6 @@ impl PropertyMap {
     }
 
     /// Insert the given property descriptor with the given key [`PropertyMap`].
-
     pub fn insert(
         &mut self,
         mc: &boa_gc::MutationContext<'static, '_>,

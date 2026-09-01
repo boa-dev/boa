@@ -107,7 +107,7 @@ pub struct Context {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
-    pub gc: boa_gc::GcContext,
+    pub(crate) gc: boa_gc::GcContext,
 
     can_block: bool,
 
@@ -535,9 +535,16 @@ impl Context {
     /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
+        use crate::vm::CallFrameFlags;
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
-        // so skip the dummy frame and return the reversed list so that the most recent frames are first.
-        self.vm.frames.iter().skip(1).rev()
+        // so skip the dummy frame, filter out lightweight native frames, and return the reversed
+        // list so that the most recent frames are first.
+        self.vm
+            .frames
+            .iter()
+            .skip(1)
+            .filter(|f| !f.flags.contains(CallFrameFlags::NATIVE_FRAME))
+            .rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
@@ -667,11 +674,6 @@ impl Context {
     /// Gets the current module loader.
     pub(crate) fn module_loader(&self) -> Rc<dyn DynModuleLoader> {
         self.module_loader.clone()
-    }
-
-    /// Swaps the currently active realm with `realm`.
-    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm.frame_mut().realm, realm);
     }
 
     /// Increment and get the parser identifier.
@@ -1226,14 +1228,14 @@ impl ContextBuilder {
             CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() + 1);
         }
 
-        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-        let mc = unsafe { boa_gc::MutationContext::global() };
-        let root_shape = RootShape::new(&mc);
+        let gc = boa_gc::GcContext::new();
+        let mc = gc.gc_collector();
+        let root_shape = RootShape::new(mc);
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
         let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));
-        let realm = Realm::create(host_hooks.as_ref(), &root_shape, &mc)?;
-        let vm = Vm::new(realm, &mc);
+        let realm = Realm::create(host_hooks.as_ref(), &root_shape, mc)?;
+        let vm = Vm::new(realm, mc);
 
         let module_loader: Rc<dyn DynModuleLoader> = if let Some(loader) = self.module_loader {
             loader
@@ -1282,7 +1284,7 @@ impl ContextBuilder {
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
             parser_identifier: 0,
-            gc: boa_gc::GcContext::new(),
+            gc,
             can_block: self.can_block,
             data: HostDefined::default(),
         };

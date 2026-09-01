@@ -27,7 +27,6 @@ use boa_ast::{
     operations::{ContainsSymbol, contains, contains_arguments},
     scope::Scope,
 };
-use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 
 use super::{BuiltInBuilder, IntrinsicObject};
@@ -350,12 +349,9 @@ impl Eval {
         {
             let frame = context.vm.frame_mut();
             let global = frame.realm.environment();
-            frame.environments.push_lexical(
-                lexical_scope.num_bindings_non_local(),
-                &global,
-                // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-                &unsafe { boa_gc::MutationContext::global() },
-            );
+            frame
+                .environments
+                .push_lexical(lexical_scope.num_bindings_non_local(), global, mc);
         }
 
         context

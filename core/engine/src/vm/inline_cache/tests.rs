@@ -18,7 +18,7 @@ fn get_own_property_internal_method() {
     let context = &mut Context::default();
 
     let o = context.intrinsics().templates().ordinary_object().create(
-        &unsafe { boa_gc::MutationContext::global() },
+        context.gc_collector(),
         OrdinaryObject,
         Vec::default(),
     );
@@ -63,7 +63,7 @@ fn get_internal_method() {
     let context = &mut Context::default();
 
     let o = context.intrinsics().templates().ordinary_object().create(
-        &unsafe { boa_gc::MutationContext::global() },
+        context.gc_collector(),
         OrdinaryObject,
         Vec::default(),
     );
@@ -108,7 +108,7 @@ fn get_internal_method_in_prototype() {
     let context = &mut Context::default();
 
     let o = context.intrinsics().templates().ordinary_object().create(
-        &unsafe { boa_gc::MutationContext::global() },
+        context.gc_collector(),
         OrdinaryObject,
         Vec::default(),
     );
@@ -156,7 +156,7 @@ fn define_own_property_internal_method_non_existent_property() {
     let context = &mut Context::default();
 
     let o = context.intrinsics().templates().ordinary_object().create(
-        &unsafe { boa_gc::MutationContext::global() },
+        context.gc_collector(),
         OrdinaryObject,
         Vec::default(),
     );
@@ -210,7 +210,7 @@ fn define_own_property_internal_method_existing_property_property() {
     let context = &mut Context::default();
 
     let o = context.intrinsics().templates().ordinary_object().create(
-        &unsafe { boa_gc::MutationContext::global() },
+        context.gc_collector(),
         OrdinaryObject,
         Vec::default(),
     );
@@ -276,7 +276,7 @@ fn set_internal_method() {
     let context = &mut Context::default();
 
     let o = context.intrinsics().templates().ordinary_object().create(
-        &unsafe { boa_gc::MutationContext::global() },
+        context.gc_collector(),
         OrdinaryObject,
         Vec::default(),
     );
@@ -343,7 +343,7 @@ fn set_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     assert_eq!(
         code.ic[0].entries.borrow()[0]
             .shape
-            .upgrade(&unsafe { boa_gc::MutationContext::global() })
+            .upgrade(context.gc_collector())
             .unwrap()
             .to_addr_usize(),
         o_shape.to_addr_usize()
@@ -372,7 +372,7 @@ fn get_property_by_name_set_inline_cache_on_property_load() -> JsResult<()> {
     assert_eq!(
         code.ic[0].entries.borrow()[0]
             .shape
-            .upgrade(&unsafe { boa_gc::MutationContext::global() })
+            .upgrade(context.gc_collector())
             .unwrap()
             .to_addr_usize(),
         o_shape.to_addr_usize()

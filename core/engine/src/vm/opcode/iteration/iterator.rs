@@ -144,7 +144,7 @@ impl IteratorNext {
             .frame_mut()
             .iterators
             .pop()
-            .expect("iterator stack should have at least an iterator");
+            .js_expect("iterator stack should have at least an iterator")?;
 
         iterator.step(context)?;
 
@@ -179,7 +179,7 @@ impl IteratorFinishAsyncNext {
             .frame_mut()
             .iterators
             .pop()
-            .expect("iterator on the call frame must exist");
+            .js_expect("iterator on the call frame must exist")?;
 
         let resume_kind = context
             .vm
@@ -250,7 +250,7 @@ impl IteratorValue {
             .frame_mut()
             .iterators
             .pop()
-            .expect("iterator on the call frame must exist");
+            .js_expect("iterator on the call frame must exist")?;
 
         let iter_value = iterator.value(context)?;
         context.vm.set_register(value.into(), iter_value);
@@ -359,7 +359,7 @@ impl IteratorToArray {
             .frame_mut()
             .iterators
             .pop()
-            .expect("iterator on the call frame must exist");
+            .js_expect("iterator on the call frame must exist")?;
 
         let mut values = Vec::new();
 

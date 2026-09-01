@@ -13,13 +13,6 @@ impl Default for GcContext {
 }
 
 #[cfg(feature = "oscars_backend")]
-struct SyncWrapper(MutationContext<'static, 'static>);
-#[cfg(feature = "oscars_backend")]
-unsafe impl Sync for SyncWrapper {}
-#[cfg(feature = "oscars_backend")]
-unsafe impl Send for SyncWrapper {}
-
-#[cfg(feature = "oscars_backend")]
 impl GcContext {
     #[must_use]
     pub fn new() -> Self {
@@ -33,9 +26,17 @@ impl GcContext {
 
     #[must_use]
     pub fn gc_collector(&self) -> &'static MutationContext<'static, 'static> {
-        static DUMMY: std::sync::LazyLock<SyncWrapper> =
-            std::sync::LazyLock::new(|| SyncWrapper(MutationContext::global()));
-        &DUMMY.0
+        thread_local! {
+            static COLLECTOR: &'static oscars::collectors::mark_sweep_branded::Collector =
+                Box::leak(Box::new(oscars::collectors::mark_sweep_branded::Collector::new()));
+
+            static DUMMY: &'static MutationContext<'static, 'static> = COLLECTOR.with(|c| {
+                Box::leak(Box::new(unsafe {
+                    MutationContext::from_collector_erased(c)
+                }))
+            });
+        }
+        DUMMY.with(|dummy| *dummy)
     }
 }
 

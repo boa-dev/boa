@@ -172,7 +172,7 @@ impl BuiltInConstructor for FinalizationRegistry {
                 };
 
                 let Some(registry) = weak_registry
-                    .upgrade(&unsafe { boa_gc::MutationContext::global() })
+                    .upgrade(context.borrow().gc_collector())
                     .map(JsObject::from_inner)
                 else {
                     return Ok(JsValue::undefined());

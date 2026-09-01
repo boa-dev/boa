@@ -36,6 +36,7 @@ mod datatypes;
 mod jsobject;
 mod operations;
 mod property_map;
+mod weak;
 
 pub mod shape;
 
@@ -43,6 +44,7 @@ pub(crate) use builtins::*;
 
 pub use datatypes::JsData;
 pub use jsobject::*;
+pub use weak::WeakJsObject;
 
 /// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
 pub const CONSTRUCTOR: JsString = js_string!("constructor");
@@ -410,6 +412,7 @@ where
 }
 
 /// Builder for creating native function objects
+#[expect(missing_debug_implementations)]
 pub struct FunctionObjectBuilder<'realm> {
     realm: &'realm Realm,
     mc: &'realm boa_gc::MutationContext<'static, 'realm>,

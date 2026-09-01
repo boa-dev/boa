@@ -150,11 +150,7 @@ impl Script {
                 mc,
                 false,
                 spanned_source_text,
-                self.inner
-                    .path
-                    .as_deref()
-                    .map(std::path::Path::to_path_buf)
-                    .into(),
+                self.inner.path.as_deref().map(Path::to_path_buf).into(),
             );
 
             #[cfg(feature = "annex-b")]

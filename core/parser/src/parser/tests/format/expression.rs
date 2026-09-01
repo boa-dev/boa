@@ -137,6 +137,23 @@ fn object() {
 }
 
 #[test]
+fn object_non_identifier_keys() {
+    // Property keys that are not a valid `IdentifierName` must round-trip as quoted
+    // string literals, otherwise the emitted source is not parsable (see issue #3975).
+    test_formatting(
+        r#"
+        let obj = {
+            normal: 1,
+            "a-b": 2,
+            ":checked + div": 3,
+            "": 4,
+        };
+        obj;
+        "#,
+    );
+}
+
+#[test]
 fn array_literal_empty() {
     test_formatting(
         r"

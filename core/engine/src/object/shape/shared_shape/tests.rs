@@ -4,7 +4,7 @@ use super::{SharedShape, TransitionKey};
 
 #[test]
 fn test_prune_property_on_counter_limit() {
-    let shape = SharedShape::root(&unsafe { boa_gc::MutationContext::global() });
+    let shape = SharedShape::root(&boa_gc::MutationContext::global());
 
     for i in 0..255 {
         assert_eq!(
@@ -13,7 +13,7 @@ fn test_prune_property_on_counter_limit() {
         );
 
         shape.insert_property_transition(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             TransitionKey {
                 property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
                 attributes: SlotAttributes::all(),
@@ -30,7 +30,7 @@ fn test_prune_property_on_counter_limit() {
 
     {
         shape.insert_property_transition(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             TransitionKey {
                 property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
                 attributes: SlotAttributes::all(),
@@ -45,7 +45,7 @@ fn test_prune_property_on_counter_limit() {
 
     {
         shape.insert_property_transition(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             TransitionKey {
                 property_key: PropertyKey::Symbol(JsSymbol::new(None).unwrap()),
                 attributes: SlotAttributes::all(),
@@ -68,7 +68,7 @@ fn test_prune_property_on_counter_limit() {
 
 #[test]
 fn test_prune_prototype_on_counter_limit() {
-    let shape = SharedShape::root(&unsafe { boa_gc::MutationContext::global() });
+    let shape = SharedShape::root(&boa_gc::MutationContext::global());
 
     assert_eq!(
         shape.forward_transitions().prototype_transitions_count(),
@@ -82,7 +82,7 @@ fn test_prune_prototype_on_counter_limit() {
         );
 
         shape.change_prototype_transition(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             Some(JsObject::with_null_proto(&unsafe {
                 boa_gc::MutationContext::global()
             })),
@@ -98,7 +98,7 @@ fn test_prune_prototype_on_counter_limit() {
 
     {
         shape.change_prototype_transition(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             Some(JsObject::with_null_proto(&unsafe {
                 boa_gc::MutationContext::global()
             })),
@@ -112,7 +112,7 @@ fn test_prune_prototype_on_counter_limit() {
 
     {
         shape.change_prototype_transition(
-            &unsafe { boa_gc::MutationContext::global() },
+            &boa_gc::MutationContext::global(),
             Some(JsObject::with_null_proto(&unsafe {
                 boa_gc::MutationContext::global()
             })),

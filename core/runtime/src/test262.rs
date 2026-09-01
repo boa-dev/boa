@@ -127,11 +127,7 @@ pub fn register_js262(handles: WorkerHandles, console: bool, context: &mut Conte
     js262
         .create_data_property_or_throw(
             js_string!("IsHTMLDDA"),
-            JsObject::from_proto_and_data(
-                &unsafe { boa_gc::MutationContext::global() },
-                None,
-                IsHTMLDDA,
-            ),
+            JsObject::from_proto_and_data(&boa_gc::MutationContext::global(), None, IsHTMLDDA),
             context,
         )
         .expect("the IsHTMLDDA property must be definable");

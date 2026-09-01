@@ -13,6 +13,7 @@ pub struct RootShape {
 impl RootShape {
     /// Create a new root shape using the given context.
     #[inline]
+    #[must_use]
     pub fn new(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {
             shape: SharedShape::root(mc),

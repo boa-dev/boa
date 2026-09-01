@@ -51,8 +51,6 @@ impl UniqueShape {
         }
     }
 
-    /// Create a new [`UniqueShape`].
-
     pub(crate) fn override_internal(
         &self,
         property_table: PropertyTableInner,
@@ -278,13 +276,12 @@ impl WeakUniqueShape {
         })
     }
 
-    /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
-    /// or [`None`] if the value was already garbage collected.
-
+    /// Checks if `WeakGc` is upgradeable
     #[allow(dead_code)]
     pub(crate) fn is_upgradable(&self) -> bool {
         self.inner.is_upgradable()
     }
+
     pub(crate) fn new(mc: &boa_gc::MutationContext<'static, '_>, value: &UniqueShape) -> Self {
         WeakUniqueShape {
             inner: WeakGc::new(mc, &value.inner),

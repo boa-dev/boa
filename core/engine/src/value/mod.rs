@@ -290,9 +290,9 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{JsValue, object::JsObject};
+    /// use boa_engine::{Context, JsValue, object::JsObject};
     ///
-    /// # let context = &mut boa_engine::Context::default();
+    /// let context = &mut Context::default();
     /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// assert!(obj.is_object());
     ///
@@ -310,9 +310,9 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{JsValue, object::JsObject};
+    /// use boa_engine::{Context, JsValue, object::JsObject};
     ///
-    /// # let context = &mut boa_engine::Context::default();
+    /// let context = &mut Context::default();
     /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// assert!(obj.as_object().is_some());
     ///
@@ -330,9 +330,9 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::{JsValue, object::JsObject};
+    /// use boa_engine::{Context, JsValue, object::JsObject};
     ///
-    /// # let context = &mut boa_engine::Context::default();
+    /// let context = &mut Context::default();
     /// let obj = JsValue::new(JsObject::with_null_proto(context.gc_collector()));
     /// let inner = obj.into_object();
     /// assert!(inner.is_some());

@@ -452,7 +452,7 @@ fn run_test_suite(
 
         if versioned {
             let mut table = comfy_table::Table::new();
-            table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
+            table.load_style(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
             table.set_header(vec![
                 "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
             ]);
