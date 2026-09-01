@@ -8,7 +8,7 @@ use crate::{
         function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
-    error::JsNativeError,
+    error::{JsNativeError, PanicError},
     native_function::NativeFunctionObject,
     object::{CONSTRUCTOR, JsObject, PROTOTYPE, PrivateElement, PrivateName},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
@@ -656,7 +656,9 @@ impl JsObject {
         // NOTE: This is an optimization, most of the cases that `LengthOfArrayLike` will be called
         //       is for arrays. The "length" property of an array is stored in the first index.
         if self.is_array() {
-            let borrowed_object = self.borrow();
+            let borrowed_object = self
+                .try_borrow()
+                .map_err(|e| PanicError::new(e.to_string()))?;
             // NOTE: using `to_u32` instead of `to_length` is an optimization,
             //       since arrays are limited to [0, 2^32 - 1] range.
             return borrowed_object.properties().storage[0]
@@ -906,7 +908,7 @@ impl JsObject {
         // 4. Let from be ! ToObject(source).
         let from = source
             .to_object(context)
-            .expect("function ToObject should never complete abruptly here");
+            .js_expect("function ToObject should never complete abruptly here")?;
 
         // 5. Let keys be ? from.[[OwnPropertyKeys]]().
         // 6. For each element nextKey of keys, do
@@ -939,7 +941,9 @@ impl JsObject {
 
                     // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
                     self.create_data_property_or_throw(key, prop_value, context)
-                        .expect("CreateDataPropertyOrThrow should never complete abruptly here");
+                        .js_expect(
+                            "CreateDataPropertyOrThrow should never complete abruptly here",
+                        )?;
                 }
             }
         }
@@ -1019,7 +1023,8 @@ impl JsObject {
         }
 
         // 5. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
-        self.borrow_mut()
+        self.try_borrow_mut()
+            .map_err(|e| PanicError::new(e.to_string()))?
             .private_elements
             .push((name.clone(), PrivateElement::Field(value)));
 
@@ -1090,7 +1095,8 @@ impl JsObject {
         }
 
         // 5. Append method to O.[[PrivateElements]].
-        self.borrow_mut()
+        self.try_borrow_mut()
+            .map_err(|e| PanicError::new(e.to_string()))?
             .append_private_element(name.clone(), method.clone());
 
         // 6. Return unused.
@@ -1155,7 +1161,9 @@ impl JsObject {
     ) -> JsResult<()> {
         // 1. Let entry be PrivateElementFind(O, P).
         // Note: This function is inlined here for mutable access.
-        let mut object_mut = self.borrow_mut();
+        let mut object_mut = self
+            .try_borrow_mut()
+            .map_err(|e| PanicError::new(e.to_string()))?;
         let entry = object_mut
             .private_elements
             .iter_mut()
