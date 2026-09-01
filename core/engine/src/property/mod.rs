@@ -400,6 +400,55 @@ impl PropertyDescriptor {
             },
         }
     }
+
+    /// Fills the fields of the `PropertyDescriptor` that are not set
+    /// with fields from the given `PropertyDescriptor`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the given `PropertyDescriptor` is not compatible with this one.
+    #[inline]
+    pub fn fill_with(&mut self, mut desc: Self) {
+        match (&mut self.kind, &mut desc.kind) {
+            (
+                DescriptorKind::Data { value, writable },
+                DescriptorKind::Data {
+                    value: desc_value,
+                    writable: desc_writable,
+                },
+            ) => {
+                if desc_value.is_some() {
+                    std::mem::swap(value, desc_value);
+                }
+                if desc_writable.is_some() {
+                    std::mem::swap(writable, desc_writable);
+                }
+            }
+            (
+                DescriptorKind::Accessor { get, set },
+                DescriptorKind::Accessor {
+                    get: desc_get,
+                    set: desc_set,
+                },
+            ) => {
+                if desc_get.is_some() {
+                    std::mem::swap(get, desc_get);
+                }
+                if desc_set.is_some() {
+                    std::mem::swap(set, desc_set);
+                }
+            }
+            (_, DescriptorKind::Generic) => {}
+            _ => panic!("Tried to fill a descriptor with an incompatible descriptor"),
+        }
+
+        if let Some(enumerable) = desc.enumerable {
+            self.enumerable = Some(enumerable);
+        }
+        if let Some(configurable) = desc.configurable {
+            self.configurable = Some(configurable);
+        }
+    }
 }
 
 /// A builder for [`PropertyDescriptor`].

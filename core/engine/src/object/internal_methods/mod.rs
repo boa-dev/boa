@@ -1136,7 +1136,6 @@ pub(crate) fn validate_and_apply_property_descriptor<const APPLY: bool>(
 
                 // SKIP: a. For each field of Desc that is present, set the corresponding attribute of the
                 // property named P of object O to the value of the field.
-                // let current = current.fill_with(desc);
                 obj.borrow_mut()
                     .properties
                     .insert_with_slot(key, current, slot);
