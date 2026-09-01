@@ -13,37 +13,17 @@ use crate::read::{MetaData, TestFlag};
 static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // =============================== Proposals ===============================
 
-    // Import bytes proposal
-    // https://github.com/tc39/proposal-import-bytes
-    "import-bytes"  => SpecEdition::ESNext,
-
-    // Await dictionary proposal
-    // https://github.com/tc39/proposal-await-dictionary
-    "await-dictionary"  => SpecEdition::ESNext,
-
-    // Intl.Locale Info
-    // https://github.com/tc39/proposal-intl-locale-info
-    "Intl.Locale-info"  => SpecEdition::ESNext,
+    // Intl.Era-monthcode
+    // https://github.com/tc39/proposal-intl-era-monthcode
+    "Intl.Era-monthcode" => SpecEdition::ESNext,
 
     // Legacy RegExp features
     // https://github.com/tc39/proposal-regexp-legacy-features
     "legacy-regexp"  => SpecEdition::ESNext,
 
-    // Import Defer
-    // https://tc39.es/proposal-defer-import-eval
-    "import-defer" => SpecEdition::ESNext,
-
-    // Import Text
-    // https://github.com/tc39/proposal-import-text
-    "import-text" => SpecEdition::ESNext,
-
     // Time Zone Canonicalization
     // https://github.com/tc39/proposal-canonical-tz
     "canonical-tz" => SpecEdition::ESNext,
-
-    // Temporal
-    // https://github.com/tc39/proposal-temporal
-    "Temporal" => SpecEdition::ESNext,
 
     // ShadowRealm, née Callable Boundary Realms
     // https://github.com/tc39/proposal-realms
@@ -53,65 +33,73 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-decorators
     "decorators" => SpecEdition::ESNext,
 
-    // Array.fromAsync
-    // https://github.com/tc39/proposal-array-from-async
-    "Array.fromAsync" => SpecEdition::ESNext,
-
-    // Explicit Resource Management
-    // https://github.com/tc39/proposal-explicit-resource-management
-    "explicit-resource-management" => SpecEdition::ESNext,
-
-    // Math.sumPrecise
-    // https://github.com/tc39/proposal-math-sum
-    "Math.sumPrecise" => SpecEdition::ESNext,
-
     // Source Phase Imports
     // https://github.com/tc39/proposal-source-phase-imports
     "source-phase-imports" => SpecEdition::ESNext,
     // test262 special specifier
     "source-phase-imports-module-source" => SpecEdition::ESNext,
 
-    // Atomics.pause
-    // https://github.com/tc39/proposal-atomics-microwait
-    "Atomics.pause" => SpecEdition::ESNext,
+    // Import Defer
+    // https://tc39.es/proposal-defer-import-eval
+    "import-defer" => SpecEdition::ESNext,
+
+    // Export Defer
+    // https://tc39.es/proposal-deferred-reexports
+    "export-defer" => SpecEdition::ESNext,
+
+    // Import Text
+    // https://github.com/tc39/proposal-import-text
+    "import-text" => SpecEdition::ESNext,
 
     // Immutable Array Buffer
     // https://github.com/tc39/proposal-immutable-arraybuffer
     "immutable-arraybuffer" => SpecEdition::ESNext,
 
+    // Import bytes proposal
+    // https://github.com/tc39/proposal-import-bytes
+    "import-bytes"  => SpecEdition::ESNext,
+
     // Non-extensible Applies to Private
     // https://github.com/tc39/proposal-nonextensible-applies-to-private
     "nonextensible-applies-to-private" => SpecEdition::ESNext,
 
-    // Joint iteration
-    // https://github.com/tc39/proposal-joint-iteration
-    "joint-iteration" => SpecEdition::ESNext,
+    // Await dictionary proposal
+    // https://github.com/tc39/proposal-await-dictionary
+    "await-dictionary"  => SpecEdition::ESNext,
+
+    // Error Stack Accessor
+    // https://github.com/tc39/proposal-error-stack-accessor
+    "error-stack-accessor" => SpecEdition::ESNext,
+
+    // Iterator Includes
+    // https://github.com/tc39/proposal-iterator-includes
+    "iterator-includes" => SpecEdition::ESNext,
+
+    // Iterator Chunking
+    // https://github.com/tc39/proposal-iterator-chunking
+    "iterator-chunking" => SpecEdition::ESNext,
+
+    // Iterator Join
+    // https://github.com/tc39/proposal-iterator-join
+    "Iterator.prototype.join" => SpecEdition::ESNext,
 
     // ============================ Next ES version ============================
 
-    // Error.isError
-    // https://github.com/tc39/proposal-is-error
-    "Error.isError" => SpecEdition::ESNext,
+    // Explicit Resource Management
+    // https://github.com/tc39/proposal-explicit-resource-management
+    "explicit-resource-management" => SpecEdition::ESNext,
 
-    // Intl.Era-monthcode
-    // https://github.com/tc39/proposal-intl-era-monthcode
-    "Intl.Era-monthcode" => SpecEdition::ESNext,
+    // Temporal
+    // https://github.com/tc39/proposal-temporal
+    "Temporal" => SpecEdition::ESNext,
 
-    // Iterator sequencing
-    // https://github.com/tc39/proposal-iterator-sequencing
-    "iterator-sequencing" => SpecEdition::ESNext,
+    // Atomics.pause
+    // https://github.com/tc39/proposal-atomics-microwait
+    "Atomics.pause" => SpecEdition::ESNext,
 
-    // Upsert
-    // https://github.com/tc39/proposal-upsert
-    "upsert" => SpecEdition::ESNext,
-
-    // JSON.parse with source
-    // https://github.com/tc39/proposal-json-parse-with-source
-    "json-parse-with-source" => SpecEdition::ESNext,
-
-    // Uint8Array Base64
-    // https://github.com/tc39/proposal-arraybuffer-base64
-    "uint8array-base64" => SpecEdition::ESNext,
+    // Joint iteration
+    // https://github.com/tc39/proposal-joint-iteration
+    "joint-iteration" => SpecEdition::ESNext,
 
     // ====================== Standard Language Features =======================
 
@@ -123,6 +111,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "array-grouping" => SpecEdition::ES15,
     "ArrayBuffer" => SpecEdition::ES6,
     "array-find-from-last" => SpecEdition::ES14,
+    "Array.fromAsync" => SpecEdition::ES17,
     "Array.prototype.at" => SpecEdition::ES13,
     "Array.prototype.flat" => SpecEdition::ES10,
     "Array.prototype.flatMap" => SpecEdition::ES10,
@@ -163,6 +152,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "destructuring-binding" => SpecEdition::ES6,
     "dynamic-import" => SpecEdition::ES11,
     "error-cause" => SpecEdition::ES13,
+    "Error.isError" => SpecEdition::ES17,
     "exponentiation" => SpecEdition::ES7,
     "export-star-as-namespace-from-module" => SpecEdition::ES11,
     "FinalizationRegistry" => SpecEdition::ES12,
@@ -177,6 +167,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "import.meta" => SpecEdition::ES11,
     "import-attributes" => SpecEdition::ES16,
     "iterator-helpers" => SpecEdition::ES16,
+    "iterator-sequencing" => SpecEdition::ES17,
     "Int8Array" => SpecEdition::ES6,
     "Int16Array" => SpecEdition::ES6,
     "Int32Array" => SpecEdition::ES6,
@@ -192,15 +183,18 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "Intl.DurationFormat" => SpecEdition::ES16,
     "Intl.ListFormat" => SpecEdition::ES12,
     "Intl.Locale" => SpecEdition::ES12,
+    "Intl.Locale-info"  => SpecEdition::ES13,
     "Intl.NumberFormat-unified" => SpecEdition::ES11,
     "Intl.NumberFormat-v3" => SpecEdition::ES14,
     "Intl.RelativeTimeFormat" => SpecEdition::ES11,
     "Intl.Segmenter" => SpecEdition::ES13,
     "json-modules"  => SpecEdition::ES16,
+    "json-parse-with-source" => SpecEdition::ES17,
     "json-superset" => SpecEdition::ES10,
     "let" => SpecEdition::ES6,
     "logical-assignment-operators" => SpecEdition::ES12,
     "Map" => SpecEdition::ES6,
+    "Math.sumPrecise" => SpecEdition::ES17,
     "new.target" => SpecEdition::ES6,
     "numeric-separator-literal" => SpecEdition::ES12,
     "object-rest" => SpecEdition::ES9,
@@ -273,9 +267,11 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "TypedArray.prototype.at" => SpecEdition::ES13,
     "u180e" => SpecEdition::ES7,
     "Uint8Array" => SpecEdition::ES6,
+    "uint8array-base64" => SpecEdition::ES17,
     "Uint16Array" => SpecEdition::ES6,
     "Uint32Array" => SpecEdition::ES6,
     "Uint8ClampedArray" => SpecEdition::ES6,
+    "upsert" => SpecEdition::ES17,
     "WeakMap" => SpecEdition::ES6,
     "WeakRef" => SpecEdition::ES12,
     "WeakSet" => SpecEdition::ES6,
@@ -354,6 +350,10 @@ pub(crate) enum SpecEdition {
     ///
     /// <https://262.ecma-international.org/16.0>
     ES16,
+    /// ECMAScript 17th Edition
+    ///
+    /// <https://262.ecma-international.org/17.0>
+    ES17,
     /// The edition being worked on right now.
     ///
     /// A draft is currently available [here](https://tc39.es/ecma262).
@@ -419,6 +419,7 @@ impl SpecEdition {
             Self::ES14,
             Self::ES15,
             Self::ES16,
+            Self::ES17,
             Self::ESNext,
         ]
         .into_iter()

@@ -215,8 +215,35 @@ fn should_type_error_when_new_is_not_constructor() {
     run_test_actions([TestAction::assert_native_error(
         "new ''()",
         JsNativeErrorKind::Type,
-        "not a constructor",
+        "string is not a constructor",
     )]);
+}
+
+#[test]
+fn new_on_non_constructor_reports_the_value_type() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "new 5()",
+            JsNativeErrorKind::Type,
+            "number is not a constructor",
+        ),
+        TestAction::assert_native_error(
+            "new undefined()",
+            JsNativeErrorKind::Type,
+            "undefined is not a constructor",
+        ),
+        TestAction::assert_native_error(
+            "new true()",
+            JsNativeErrorKind::Type,
+            "boolean is not a constructor",
+        ),
+        // A callable object without a [[Construct]] slot, such as an arrow function.
+        TestAction::assert_native_error(
+            "new (() => {})()",
+            JsNativeErrorKind::Type,
+            "function is not a constructor",
+        ),
+    ]);
 }
 
 #[test]

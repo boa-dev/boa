@@ -396,6 +396,7 @@ impl CodeBlock {
             | Instruction::CreateUnmappedArgumentsObject { dst }
             | Instruction::RestParameterInit { dst }
             | Instruction::StoreNewArray { dst } => format!("dst:{dst}"),
+            Instruction::ToInt32 { dst, src } => format!("dst:{dst}, src:{src}"),
             Instruction::Add { lhs, rhs, dst }
             | Instruction::Sub { lhs, rhs, dst }
             | Instruction::Div { lhs, rhs, dst }
@@ -816,16 +817,9 @@ impl CodeBlock {
             Instruction::IteratorDone { dst }
             | Instruction::IteratorValue { dst }
             | Instruction::IteratorResult { dst }
-            | Instruction::IteratorToArray { dst }
             | Instruction::IteratorStackEmpty { dst }
             | Instruction::StoreEmptyObject { dst } => {
                 format!("dst:{dst}")
-            }
-            Instruction::IteratorFinishAsyncNext { resume_kind, value } => {
-                format!("resume_kind:{resume_kind}, value:{value}")
-            }
-            Instruction::IteratorReturn { value, called } => {
-                format!("value:{value}, called:{called}")
             }
             Instruction::PushPrivateEnvironment {
                 class,
@@ -933,7 +927,9 @@ impl CodeBlock {
             | Instruction::Reserved56
             | Instruction::Reserved57
             | Instruction::Reserved58
-            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved59
+            | Instruction::Reserved60
+            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

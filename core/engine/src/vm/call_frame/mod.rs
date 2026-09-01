@@ -33,6 +33,10 @@ bitflags::bitflags! {
 
         /// If the `this` value has been cached.
         const THIS_VALUE_CACHED = 0b0000_1000;
+
+        /// This is a lightweight frame pushed for a native function call.
+        /// It only exists to hold the function's realm on the frame stack.
+        const NATIVE_FRAME = 0b0001_0000;
     }
 }
 
@@ -240,26 +244,5 @@ pub enum GeneratorResumeKind {
 impl From<GeneratorResumeKind> for JsValue {
     fn from(value: GeneratorResumeKind) -> Self {
         Self::new(value as u8)
-    }
-}
-
-impl JsValue {
-    /// Convert value to [`GeneratorResumeKind`].
-    ///
-    /// # Panics
-    ///
-    /// If not a integer type or not in the range `0..=2`.
-    #[track_caller]
-    pub(crate) fn to_generator_resume_kind(&self) -> GeneratorResumeKind {
-        if let Some(value) = self.as_i32() {
-            match value {
-                0 => return GeneratorResumeKind::Normal,
-                1 => return GeneratorResumeKind::Throw,
-                2 => return GeneratorResumeKind::Return,
-                _ => unreachable!("generator kind must be an integer between 1..=2, got {value}"),
-            }
-        }
-
-        unreachable!("generator kind must be an integer type")
     }
 }

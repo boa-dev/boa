@@ -115,7 +115,7 @@ pub trait Logger: Trace {
     /// Returning an error will throw an exception in JavaScript.
     fn table(&self, data: TableData, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
         let mut table = Table::new();
-        table.load_preset(comfy_table::presets::UTF8_FULL);
+        table.load_style(comfy_table::presets::UTF8_FULL);
         table.set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
         table.set_header(&data.col_names);
 
