@@ -338,7 +338,7 @@ impl JsRequest {
                 let ctx = &mut context.borrow_mut();
                 let form_obj = JsObject::default(ctx.intrinsics());
 
-                for (key, value) in form_urlencoded::parse(&body) {
+                for (key, value) in url::form_urlencoded::parse(&body) {
                     form_obj.set(
                         JsString::from(key.as_ref()),
                         JsString::from(value.as_ref()),
