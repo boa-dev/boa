@@ -816,7 +816,6 @@ pub(crate) fn get_iterator_flattenable(
 }
 
 /// <https://tc39.es/ecma262/#sec-iteratorcloseall>
-#[cfg(feature = "experimental")]
 pub(crate) fn iterator_close_all(
     iters: impl IntoIterator<Item = IteratorRecord, IntoIter: DoubleEndedIterator>,
     mut completion: JsResult<JsValue>,

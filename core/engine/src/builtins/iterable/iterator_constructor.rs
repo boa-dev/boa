@@ -33,14 +33,12 @@ use super::{
     wrap_for_valid_iterator::WrapForValidIterator,
 };
 
-#[cfg(feature = "experimental")]
 use super::{
     IteratorHint,
     iterator_helper::{ZipMode, ZipResultKind},
 };
 
-#[cfg(feature = "experimental")]
-use crate::{JsVariant, PanicError, builtins::options::get_options_object, property::PropertyKey};
+use crate::{JsVariant, builtins::options::get_options_object, property::PropertyKey};
 
 /// [`IfAbruptCloseIterators ( value, iteratorRecords )`][spec]
 ///
@@ -48,7 +46,6 @@ use crate::{JsVariant, PanicError, builtins::options::get_options_object, proper
 /// use a list of Iterator Records.
 ///
 ///  [spec]: https://tc39.es/proposal-joint-iteration/#sec-ifabruptcloseiterators
-#[cfg(feature = "experimental")]
 macro_rules! if_abrupt_close_iterators {
     ($value:expr, $iterators:expr, $context:expr) => {
         // 1. Assert: value is a Completion Record.
@@ -56,11 +53,13 @@ macro_rules! if_abrupt_close_iterators {
             // 2. If value is an abrupt completion, return ? IteratorCloseAll(iteratorRecords, value).
             Err(err) => {
                 let mut completion = Err(err);
-                for iterator in $iterators {
+                // 1. For each element iterator of iterators, in reverse List order, do
+                for iterator in $iterators.rev() {
+                    // 1.a. Set completion to Completion(IteratorClose(iterator, completion)).
                     completion = iterator.close(completion, $context);
                 }
                 return match completion {
-                    Ok(_) => Err(PanicError::new(
+                    Ok(_) => Err($crate::PanicError::new(
                         "closing an iterator with an error should yield the error",
                     )
                     .into()),
@@ -85,18 +84,13 @@ pub(crate) struct IteratorConstructor;
 impl IntrinsicObject for IteratorConstructor {
     fn init(realm: &Realm) {
         let iterator_prototype = realm.intrinsics().constructors().iterator().prototype();
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(Some(iterator_prototype.clone()))
             // Static methods
             .static_method(Self::from, js_string!("from"), 1)
-            .static_method(Self::concat, js_string!("concat"), 0);
-
-        #[cfg(feature = "experimental")]
-        let builder = builder
+            .static_method(Self::concat, js_string!("concat"), 0)
             .static_method(Self::zip, js_string!("zip"), 1)
-            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1);
-
-        builder
+            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1)
             .static_property(PROTOTYPE, iterator_prototype, Attribute::empty())
             .build_without_prototype();
     }
@@ -253,8 +247,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [TC39 proposal][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zip
-    #[cfg(feature = "experimental")]
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.zip
     fn zip(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let iterables = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -281,7 +274,7 @@ impl IteratorConstructor {
         // 12.a. Set next to Completion(IteratorStepValue(inputIter)).
         // 12.b. IfAbruptCloseIterators(next, iters).
         while let Some(next) =
-            if_abrupt_close_iterators!(input_iter.step_value(context), iters, context)
+            if_abrupt_close_iterators!(input_iter.step_value(context), iters.iter(), context)
         {
             // 12.c. If next is not done, then
             // 12.c.i. Let iter be Completion(GetIteratorFlattenable(next, reject-primitives)).
@@ -289,7 +282,7 @@ impl IteratorConstructor {
             // 12.c.iii. Append iter to iters.
             let iter = if_abrupt_close_iterators!(
                 get_iterator_flattenable(&next, false, context),
-                iters,
+                std::iter::once(&input_iter).chain(iters.iter()),
                 context
             );
             iters.push(iter);
@@ -312,8 +305,7 @@ impl IteratorConstructor {
     /// More information:
     ///  - [TC39 proposal][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zipkeyed
-    #[cfg(feature = "experimental")]
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.zipkeyed
     fn zip_keyed(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let iterables = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -343,7 +335,7 @@ impl IteratorConstructor {
             // 12.b. IfAbruptCloseIterators(desc, iters).
             let Some(desc) = if_abrupt_close_iterators!(
                 iterables.__get_own_property__(&key, &mut context.into()),
-                iters,
+                iters.iter(),
                 context
             ) else {
                 continue;
@@ -357,8 +349,11 @@ impl IteratorConstructor {
             // 12.c.i. Let value be Completion(Get(iterables, key)).
             // 12.c.ii. IfAbruptCloseIterators(value, iters).
             // 12.c.iii. If value is not undefined, then
-            let value =
-                if_abrupt_close_iterators!(iterables.get(key.clone(), context), iters, context);
+            let value = if_abrupt_close_iterators!(
+                iterables.get(key.clone(), context),
+                iters.iter(),
+                context
+            );
             if value.is_undefined() {
                 continue;
             }
@@ -370,7 +365,7 @@ impl IteratorConstructor {
             // 12.c.iii.3. IfAbruptCloseIterators(iter, iters).
             let iter = if_abrupt_close_iterators!(
                 get_iterator_flattenable(&value, false, context),
-                iters,
+                iters.iter(),
                 context
             );
 
@@ -399,7 +394,6 @@ impl IteratorConstructor {
 }
 
 /// Parses the `mode` option from the options object.
-#[cfg(feature = "experimental")]
 fn parse_options(
     options: &JsValue,
     context: &mut Context,
@@ -439,7 +433,6 @@ fn parse_options(
 }
 
 /// Builds the padding list for "longest" mode on zip
-#[cfg(feature = "experimental")]
 fn build_padding_zip(
     mode: ZipMode,
     padding_option: Option<JsObject>,
@@ -465,7 +458,7 @@ fn build_padding_zip(
     // 14.b.ii. IfAbruptCloseIterators(paddingIter, iters).
     let mut padding_iter = if_abrupt_close_iterators!(
         padding_option.get_iterator(IteratorHint::Sync, context),
-        iters,
+        iters.iter(),
         context
     );
     let mut padding = Vec::new();
@@ -484,7 +477,7 @@ fn build_padding_zip(
         // 14.b.iv.1.a. Set next to Completion(IteratorStepValue(paddingIter)).
         // 14.b.iv.1.b. IfAbruptCloseIterators(next, iters).
         if let Some(next) =
-            if_abrupt_close_iterators!(padding_iter.step_value(context), iters, context)
+            if_abrupt_close_iterators!(padding_iter.step_value(context), iters.iter(), context)
         {
             // 14.b.iv.1.d. Else,
             // 14.b.iv.1.d.i. Append next to padding.
@@ -504,7 +497,7 @@ fn build_padding_zip(
         // 14.b.iv.2.v.2. IfAbruptCloseIterators(completion, iters).
         if_abrupt_close_iterators!(
             padding_iter.close(Ok(JsValue::undefined()), context),
-            iters,
+            iters.iter(),
             context
         );
     }
@@ -513,7 +506,6 @@ fn build_padding_zip(
 }
 
 /// Builds the padding list for "longest" mode on zipKeyed
-#[cfg(feature = "experimental")]
 fn build_padding_zip_keyed(
     mode: ZipMode,
     padding_option: Option<JsObject>,
@@ -541,8 +533,11 @@ fn build_padding_zip_keyed(
     for key in keys {
         // 14.b.i.1. Let value be Completion(Get(paddingOption, key)).
         // 14.b.i.2. IfAbruptCloseIterators(value, iters).
-        let value =
-            if_abrupt_close_iterators!(padding_option.get(key.clone(), context), iters, context);
+        let value = if_abrupt_close_iterators!(
+            padding_option.get(key.clone(), context),
+            iters.iter(),
+            context
+        );
 
         // 14.b.i.3. Append value to padding.
         padding.push(value);
