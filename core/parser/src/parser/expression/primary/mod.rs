@@ -609,6 +609,14 @@ fn expression_to_formal_parameters(
                     span.start(),
                 ));
             }
+            // Annex B: a Call as assignment target is not valid in a formal parameter list.
+            #[cfg(feature = "annex-b")]
+            AssignTarget::Call(_) => {
+                return Err(Error::general(
+                    "invalid initialization expression in formal parameter list",
+                    span.start(),
+                ));
+            }
         },
         ast::Expression::ObjectLiteral(object) => {
             let pattern = object.to_pattern(strict).ok_or_else(|| {
