@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult,
+    Context, JsExpect, JsResult,
     builtins::function::OrdinaryFunction,
     object::JsFunction,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
@@ -31,17 +31,19 @@ impl PushClassField {
         let name = name.to_property_key(context)?;
         let function = function
             .as_object()
-            .expect("field value must be function object");
-        let class = class.as_object().expect("class must be function object");
+            .js_expect("field value must be function object")?;
+        let class = class
+            .as_object()
+            .js_expect("class must be function object")?;
 
         function
             .downcast_mut::<OrdinaryFunction>()
-            .expect("field value must be function object")
+            .js_expect("field value must be function object")?
             .set_home_object(class.clone());
 
         class
             .downcast_mut::<OrdinaryFunction>()
-            .expect("class must be function object")
+            .js_expect("class must be function object")?
             .push_field(
                 name.clone(),
                 JsFunction::from_object_unchecked(function.clone()),
@@ -73,7 +75,7 @@ impl PushClassFieldPrivate {
     pub(crate) fn operation(
         (class, function, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let class = context.vm.get_register(class.into());
         let function = context.vm.get_register(function.into());
         let name = context
@@ -84,21 +86,24 @@ impl PushClassFieldPrivate {
 
         let function = function
             .as_object()
-            .expect("field value must be function object");
-        let class = class.as_object().expect("class must be function object");
+            .js_expect("field value must be function object")?;
+        let class = class
+            .as_object()
+            .js_expect("class must be function object")?;
 
         function
             .downcast_mut::<OrdinaryFunction>()
-            .expect("field value must be function object")
+            .js_expect("field value must be function object")?
             .set_home_object(class.clone());
 
         class
             .downcast_mut::<OrdinaryFunction>()
-            .expect("class must be function object")
+            .js_expect("class must be function object")?
             .push_field_private(
                 class.private_name(name),
                 JsFunction::from_object_unchecked(function.clone()),
             );
+        Ok(())
     }
 }
 

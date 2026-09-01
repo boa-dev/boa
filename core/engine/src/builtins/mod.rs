@@ -248,9 +248,6 @@ impl Realm {
         Iterator::init(self);
         AsyncIterator::init(self);
         AsyncFromSyncIterator::init(self);
-        // IteratorConstructor must init first — IteratorHelper and WrapForValidIterator
-        // set their [[Prototype]] to Iterator.prototype (the constructor's prototype),
-        // so the constructor must be fully initialized first.
         IteratorConstructor::init(self);
         WrapForValidIterator::init(self);
         IteratorHelper::init(self);

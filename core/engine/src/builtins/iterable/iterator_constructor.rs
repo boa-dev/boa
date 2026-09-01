@@ -8,15 +8,19 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-iterator-constructor
 
+use std::collections::VecDeque;
+
 use crate::{
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::{
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, object::OrdinaryObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        iterable::iterator_helper::{self, IterableRecord},
+        object::OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    js_string,
-    object::JsObject,
+    js_error, js_string,
+    object::{JsFunction, JsObject, PROTOTYPE, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
@@ -25,10 +29,49 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 use super::{
-    if_abrupt_close_iterator,
-    iterator_helper::{IteratorHelper, IteratorHelperOp},
+    get_iterator_flattenable, iterator_helper::IteratorHelper,
     wrap_for_valid_iterator::WrapForValidIterator,
 };
+
+#[cfg(feature = "experimental")]
+use super::{
+    IteratorHint,
+    iterator_helper::{ZipMode, ZipResultKind},
+};
+
+#[cfg(feature = "experimental")]
+use crate::{JsVariant, PanicError, builtins::options::get_options_object, property::PropertyKey};
+
+/// [`IfAbruptCloseIterators ( value, iteratorRecords )`][spec]
+///
+/// `IfAbruptCloseIterators` is a shorthand for a sequence of algorithm steps that
+/// use a list of Iterator Records.
+///
+///  [spec]: https://tc39.es/proposal-joint-iteration/#sec-ifabruptcloseiterators
+#[cfg(feature = "experimental")]
+macro_rules! if_abrupt_close_iterators {
+    ($value:expr, $iterators:expr, $context:expr) => {
+        // 1. Assert: value is a Completion Record.
+        match $value {
+            // 2. If value is an abrupt completion, return ? IteratorCloseAll(iteratorRecords, value).
+            Err(err) => {
+                let mut completion = Err(err);
+                for iterator in $iterators {
+                    completion = iterator.close(completion, $context);
+                }
+                return match completion {
+                    Ok(_) => Err(PanicError::new(
+                        "closing an iterator with an error should yield the error",
+                    )
+                    .into()),
+                    Err(err) => Err(err),
+                };
+            },
+            // 3. Else, set value to value.[[Value]].
+            Ok(value) => value,
+        }
+    };
+}
 
 /// The `Iterator` constructor.
 ///
@@ -41,57 +84,21 @@ pub(crate) struct IteratorConstructor;
 
 impl IntrinsicObject for IteratorConstructor {
     fn init(realm: &Realm) {
-        let get_constructor = BuiltInBuilder::callable(realm, Self::get_constructor)
-            .name(js_string!("get constructor"))
-            .build();
-        let set_constructor = BuiltInBuilder::callable(realm, Self::set_constructor)
-            .name(js_string!("set constructor"))
-            .build();
-        let get_to_string_tag = BuiltInBuilder::callable(realm, Self::get_to_string_tag)
-            .name(js_string!("get [Symbol.toStringTag]"))
-            .build();
-        let set_to_string_tag = BuiltInBuilder::callable(realm, Self::set_to_string_tag)
-            .name(js_string!("set [Symbol.toStringTag]"))
-            .build();
-
-        // Per the spec, `Iterator.prototype.constructor` must be a configurable,
-        // non-enumerable get/set accessor (web-compat requirement).  We use the
-        // builder's `constructor_accessor` support so the property is part of the
-        // shared-shape allocation rather than a post-build override.
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .inherits(Some(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            ))
+        let iterator_prototype = realm.intrinsics().constructors().iterator().prototype();
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .inherits(Some(iterator_prototype.clone()))
             // Static methods
             .static_method(Self::from, js_string!("from"), 1)
-            .static_method(Self::concat, js_string!("concat"), 0)
-            // Prototype methods — lazy (return IteratorHelper)
-            .method(Self::map, js_string!("map"), 1)
-            .method(Self::filter, js_string!("filter"), 1)
-            .method(Self::take, js_string!("take"), 1)
-            .method(Self::drop, js_string!("drop"), 1)
-            .method(Self::flat_map, js_string!("flatMap"), 1)
-            // Prototype methods — eager (consume the iterator)
-            .method(Self::reduce, js_string!("reduce"), 1)
-            .method(Self::to_array, js_string!("toArray"), 0)
-            .method(Self::for_each, js_string!("forEach"), 1)
-            .method(Self::some, js_string!("some"), 1)
-            .method(Self::every, js_string!("every"), 1)
-            .method(Self::find, js_string!("find"), 1)
-            // Accessor: Iterator.prototype[@@toStringTag]
-            .accessor(
-                JsSymbol::to_string_tag(),
-                Some(get_to_string_tag),
-                Some(set_to_string_tag),
-                Attribute::CONFIGURABLE,
-            )
-            // Accessor: Iterator.prototype.constructor (web-compat, 2 slots)
-            .constructor_accessor(get_constructor, set_constructor)
-            .build();
+            .static_method(Self::concat, js_string!("concat"), 0);
+
+        #[cfg(feature = "experimental")]
+        let builder = builder
+            .static_method(Self::zip, js_string!("zip"), 1)
+            .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1);
+
+        builder
+            .static_property(PROTOTYPE, iterator_prototype, Attribute::empty())
+            .build_without_prototype();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -104,8 +111,8 @@ impl BuiltInObject for IteratorConstructor {
 }
 
 impl BuiltInConstructor for IteratorConstructor {
-    const PROTOTYPE_STORAGE_SLOTS: usize = 14; // 11 methods + @@toStringTag accessor (2 slots) + constructor accessor (2 slots)
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 2;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 0;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 5;
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::iterator;
@@ -139,11 +146,8 @@ impl BuiltInConstructor for IteratorConstructor {
         }
 
         // 2. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Iterator.prototype%").
-        let prototype = crate::object::internal_methods::get_prototype_from_constructor(
-            new_target,
-            StandardConstructors::iterator,
-            context,
-        )?;
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::iterator, context)?;
 
         // Create an ordinary object (Iterator instances have no internal data slots).
         Ok(JsObject::from_proto_and_data_with_shared_shape(
@@ -157,8 +161,6 @@ impl BuiltInConstructor for IteratorConstructor {
 }
 
 impl IteratorConstructor {
-    // ==================== Static Methods ====================
-
     /// `Iterator.from ( O )`
     ///
     /// More information:
@@ -169,7 +171,7 @@ impl IteratorConstructor {
         let o = args.get_or_undefined(0);
 
         // 1. Let iteratorRecord be ? GetIteratorFlattenable(O, iterate-strings).
-        let iterator_record = super::get_iterator_flattenable(o, true, context)?;
+        let iterator_record = get_iterator_flattenable(o, true, context)?;
 
         // 2. Let hasInstance be ? OrdinaryHasInstance(%Iterator%, iteratorRecord.[[Iterator]]).
         let iterator_constructor = context.intrinsics().constructors().iterator().constructor();
@@ -203,30 +205,34 @@ impl IteratorConstructor {
         Ok(wrapper.into())
     }
 
+    /// `Iterator.concat ( ...items )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iterator.concat
     fn concat(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let iterables be a new empty List.
-        let mut iterables = Vec::with_capacity(args.len());
+        let mut iterables = VecDeque::with_capacity(args.len());
 
         // 2. For each element item of items, do
         for item in args {
             // a. If item is not an Object, throw a TypeError exception.
-            if !item.is_object() {
-                return Err(JsNativeError::typ()
-                    .with_message("Iterator.concat requires iterable objects")
-                    .into());
-            }
+            let Some(item) = item.as_object() else {
+                return Err(js_error!(TypeError: "Iterator.concat requires iterable objects"));
+            };
 
             // b. Let method be ? GetMethod(item, %Symbol.iterator%).
             // c. If method is undefined, throw a TypeError exception.
-            let method = item
-                .get_method(JsSymbol::iterator(), context)?
-                .ok_or_else(|| {
-                    JsNativeError::typ()
-                        .with_message("Iterator.concat requires objects with @@iterator")
-                })?;
+            let method = item.get_method(JsSymbol::iterator(), context)?.ok_or_else(
+                || js_error!(TypeError: "Iterator.concat requires objects with @@iterator"),
+            )?;
 
             // d. Append the Record { [[OpenMethod]]: method, [[Iterable]]: item } to iterables.
-            iterables.push((method, item.clone()));
+            iterables.push_back(IterableRecord {
+                iterable: item,
+                open_method: JsFunction::from_object_unchecked(method),
+            });
         }
 
         // 3. Let closure be a new Abstract Closure with no parameters that captures iterables
@@ -234,737 +240,313 @@ impl IteratorConstructor {
         //    (implemented via IteratorHelperOp::Concat in execute_next)
         // 4-5. Let result be CreateIteratorFromClosure(closure, "Iterator Helper", ...)
         //      with [[UnderlyingIterators]] set to a new empty List.
-        let helper = IteratorHelper::create(
-            vec![],
-            IteratorHelperOp::Concat {
-                iterables,
-                current_index: 0,
-                inner: None,
-            },
-            context,
-        );
+        let helper = IteratorHelper::create(iterator_helper::Concat::new(iterables), context);
 
         // 6. Return result.
         Ok(helper.into())
     }
 
-    // ==================== Prototype Accessor Properties ====================
+    // ==================== Static Methods — Experimental ====================
 
-    /// `get Iterator.prototype.constructor`
+    /// `Iterator.zip ( iterables [ , options ] )`
     ///
     /// More information:
-    ///  - [ECMAScript reference][spec]
+    ///  - [TC39 proposal][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.constructor
-    #[allow(clippy::unnecessary_wraps)]
-    fn get_constructor(
-        _this: &JsValue,
-        _args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Ok(context
-            .intrinsics()
-            .constructors()
-            .iterator()
-            .constructor()
-            .into())
-    }
+    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zip
+    #[cfg(feature = "experimental")]
+    fn zip(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let iterables = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
 
-    /// `set Iterator.prototype.constructor`
-    ///
-    /// `SetterThatIgnoresPrototypeProperties(this, %Iterator.prototype%, "constructor", v)`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.constructor
-    fn set_constructor(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Self::setter_that_ignores_prototype_properties(
-            this,
-            &context.intrinsics().constructors().iterator().prototype(),
-            js_string!("constructor"),
-            args.get_or_undefined(0),
-            context,
-        )
-    }
+        // 1. If iterables is not an Object, throw a TypeError exception.
+        let iterables = iterables
+            .as_object()
+            .ok_or_else(|| js_error!(TypeError: "Iterator.zip requires an iterable object"))?;
 
-    /// `get Iterator.prototype[@@toStringTag]`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype-%40%40tostringtag
-    #[allow(clippy::unnecessary_wraps)]
-    fn get_to_string_tag(
-        _this: &JsValue,
-        _args: &[JsValue],
-        _context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Ok(js_string!("Iterator").into())
-    }
+        // 2 - 7 in options.
+        let (mode, padding_option) = parse_options(options, context)?;
 
-    /// `set Iterator.prototype[@@toStringTag]`
-    ///
-    /// `SetterThatIgnoresPrototypeProperties(this, %Iterator.prototype%, @@toStringTag, v)`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype-%40%40tostringtag
-    fn set_to_string_tag(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Self::setter_that_ignores_prototype_properties(
-            this,
-            &context.intrinsics().constructors().iterator().prototype(),
-            JsSymbol::to_string_tag(),
-            args.get_or_undefined(0),
-            context,
-        )
-    }
+        // 8. Let iters be a new empty List.
+        let mut iters: Vec<super::IteratorRecord> = Vec::new();
 
-    /// `SetterThatIgnoresPrototypeProperties ( this, home, p, v )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-SetterThatIgnoresPrototypeProperties
-    fn setter_that_ignores_prototype_properties<K: Into<crate::property::PropertyKey>>(
-        this: &JsValue,
-        home: &JsObject,
-        p: K,
-        v: &JsValue,
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        let p = p.into();
+        // 9. Let padding be a new empty List.
+        // (padding list built later in build_padding)
 
-        // 1. If this is not an Object, then
-        let Some(this_obj) = this.as_object() else {
-            // a. Throw a TypeError exception.
-            return Err(JsNativeError::typ()
-                .with_message("Cannot set property on a non-object")
-                .into());
-        };
+        // 10. Let inputIter be ? GetIterator(iterables, sync).
+        let mut input_iter = iterables.get_iterator(IteratorHint::Sync, context)?;
 
-        // 2. If this is home, then
-        if JsObject::equals(&this_obj, home) {
-            // a. NOTE: Throwing here emulates the behavior of a Set handler ...
-            // b. Throw a TypeError exception.
-            return Err(JsNativeError::typ()
-                .with_message("Cannot set property directly on the prototype")
-                .into());
+        // 11. Let next be not-started.
+        // 12. Repeat, while next is not done,
+        // 12.a. Set next to Completion(IteratorStepValue(inputIter)).
+        // 12.b. IfAbruptCloseIterators(next, iters).
+        while let Some(next) =
+            if_abrupt_close_iterators!(input_iter.step_value(context), iters, context)
+        {
+            // 12.c. If next is not done, then
+            // 12.c.i. Let iter be Completion(GetIteratorFlattenable(next, reject-primitives)).
+            // 12.c.ii. IfAbruptCloseIterators(iter, the list-concatenation of « inputIter » and iters).
+            // 12.c.iii. Append iter to iters.
+            let iter = if_abrupt_close_iterators!(
+                get_iterator_flattenable(&next, false, context),
+                iters,
+                context
+            );
+            iters.push(iter);
         }
 
-        // 3. Let desc be ? this.[[GetOwnProperty]](p).
-        let desc = this_obj.__get_own_property__(&p, &mut context.into())?;
+        // 13 - 14 in build_padding_zip
+        let padding = build_padding_zip(mode, padding_option, &iters, context)?;
 
-        // 4. If desc is undefined, then
-        if desc.is_none() {
-            // a. Perform ? CreateDataPropertyOrThrow(this, p, v).
-            this_obj.create_data_property_or_throw(p, v.clone(), context)?;
+        // 15. Let finishResults be a new Abstract Closure ... (handled in ZipIterator::create_zip_iterator)
+        // 16. Return ? IteratorZip(iters, mode, padding, finishResults).
+        let helper = IteratorHelper::create(
+            iterator_helper::Zip::new(iters, mode, padding, ZipResultKind::Array),
+            context,
+        );
+        Ok(helper.into())
+    }
+
+    /// `Iterator.zipKeyed ( iterables [ , options ] )`
+    ///
+    /// More information:
+    ///  - [TC39 proposal][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-joint-iteration/#sec-iterator.zipkeyed
+    #[cfg(feature = "experimental")]
+    fn zip_keyed(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let iterables = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
+        // 1. If iterables is not an Object, throw a TypeError exception.
+        let iterables = iterables
+            .as_object()
+            .ok_or_else(|| js_error!(TypeError: "Iterator.zip requires an iterable object"))?;
+
+        // 2 - 7 in options.
+        let (mode, padding_option) = parse_options(options, context)?;
+
+        // 8. Let iters be a new empty List.
+        let mut iters: Vec<super::IteratorRecord> = Vec::new();
+
+        // 9. Let padding be a new empty List.
+        // (padding list built later in build_padding)
+
+        // 10. Let allKeys be ? iterables.[[OwnPropertyKeys]]().
+        let all_keys = iterables.own_property_keys(context)?;
+
+        // 11. Let keys be a new empty List.
+        let mut keys = Vec::new();
+        // 12. For each element key of allKeys, do
+        for key in all_keys {
+            // 12.a. Let desc be Completion(iterables.[[GetOwnProperty]](key)).
+            // 12.b. IfAbruptCloseIterators(desc, iters).
+            let Some(desc) = if_abrupt_close_iterators!(
+                iterables.__get_own_property__(&key, &mut context.into()),
+                iters,
+                context
+            ) else {
+                continue;
+            };
+
+            // 12.c. If desc is not undefined and desc.[[Enumerable]] is true, then
+            if desc.enumerable() != Some(true) {
+                continue;
+            }
+
+            // 12.c.i. Let value be Completion(Get(iterables, key)).
+            // 12.c.ii. IfAbruptCloseIterators(value, iters).
+            // 12.c.iii. If value is not undefined, then
+            let value =
+                if_abrupt_close_iterators!(iterables.get(key.clone(), context), iters, context);
+            if value.is_undefined() {
+                continue;
+            }
+
+            // 12.c.iii.1. Append key to keys.
+            keys.push(key);
+
+            // 12.c.iii.2. Let iter be Completion(GetIteratorFlattenable(value, reject-primitives)).
+            // 12.c.iii.3. IfAbruptCloseIterators(iter, iters).
+            let iter = if_abrupt_close_iterators!(
+                get_iterator_flattenable(&value, false, context),
+                iters,
+                context
+            );
+
+            // 12.c.iii.4. Append iter to iters.
+            iters.push(iter);
+        }
+
+        // 13 - 14 in build_padding_zip_keyed
+        let padding = build_padding_zip_keyed(mode, padding_option, &iters, &keys, context)?;
+
+        // 15. Let finishResults be a new Abstract Closure with parameters (results) that
+        //     captures keys and iterCount and performs the following steps when called:
+        // 15.a. Let obj be OrdinaryObjectCreate(null).
+        // 15.b. For each integer i such that 0 ≤ i < iterCount, in ascending order, do
+        // 15.b.i. Perform ! CreateDataPropertyOrThrow(obj, keys[i], results[i]).
+        // 15.b.c. Return obj.
+        // All this is done within `Zip`.
+        let helper = IteratorHelper::create(
+            iterator_helper::Zip::new(iters, mode, padding, ZipResultKind::Keyed(keys)),
+            context,
+        );
+
+        // 16. Return IteratorZip(iters, mode, padding, finishResults).
+        Ok(helper.into())
+    }
+}
+
+/// Parses the `mode` option from the options object.
+#[cfg(feature = "experimental")]
+fn parse_options(
+    options: &JsValue,
+    context: &mut Context,
+) -> JsResult<(ZipMode, Option<JsObject>)> {
+    // 2. Set options to ? GetOptionsObject(options).
+    let options = get_options_object(options)?;
+
+    // 3. Let mode be ? Get(options, "mode").
+    let mode = options.get(js_string!("mode"), context)?;
+    let mode = match mode.variant() {
+        // 4. If mode is undefined, set mode to "shortest".
+        JsVariant::Undefined => ZipMode::Shortest,
+        JsVariant::String(mode) if mode == "shortest" => ZipMode::Shortest,
+        JsVariant::String(mode) if mode == "longest" => ZipMode::Longest,
+        JsVariant::String(mode) if mode == "strict" => ZipMode::Strict,
+        // 5. If mode is not one of "shortest", "longest", or "strict", throw a TypeError exception.
+        _ => {
+            return Err(js_error!(TypeError: r#"mode must be "shortest", "longest", or "strict""#));
+        }
+    };
+
+    // 6. Let paddingOption be undefined.
+    // 7. If mode is "longest", then
+    // 7.a. Set paddingOption to ? Get(options, "padding").
+    // 7.b. If paddingOption is not undefined and paddingOption is not an Object, throw a TypeError exception.
+    let padding_option = if mode == ZipMode::Longest {
+        match options.get(js_string!("padding"), context)?.variant() {
+            JsVariant::Undefined => None,
+            JsVariant::Object(o) => Some(o),
+            _ => return Err(js_error!(TypeError: "padding must be an object")),
+        }
+    } else {
+        None
+    };
+
+    Ok((mode, padding_option))
+}
+
+/// Builds the padding list for "longest" mode on zip
+#[cfg(feature = "experimental")]
+fn build_padding_zip(
+    mode: ZipMode,
+    padding_option: Option<JsObject>,
+    iters: &[super::IteratorRecord],
+    context: &mut Context,
+) -> JsResult<Vec<JsValue>> {
+    // 13. Let iterCount be the number of elements in iters.
+    let iter_count = iters.len();
+    let padding_option = match padding_option {
+        // 14. If mode is "longest", then
+        Some(pad) if mode == ZipMode::Longest => pad,
+        // 14.a. If paddingOption is undefined, then
+        None if mode == ZipMode::Longest => {
+            // 14.a.i. Perform the following steps iterCount times:
+            // 14.a.i.1. Append undefined to padding.
+            return Ok(vec![JsValue::undefined(); iter_count]);
+        }
+        _ => return Ok(Vec::new()),
+    };
+
+    // 14.b. Else,
+    // 14.b.i. Let paddingIter be Completion(GetIterator(paddingOption, sync)).
+    // 14.b.ii. IfAbruptCloseIterators(paddingIter, iters).
+    let mut padding_iter = if_abrupt_close_iterators!(
+        padding_option.get_iterator(IteratorHint::Sync, context),
+        iters,
+        context
+    );
+    let mut padding = Vec::new();
+    // 14.b.iii. Let usingIterator be true.
+    let mut using_iterator = true;
+
+    // 14.b.iv. Perform the following steps iterCount times:
+    for _ in 0..iter_count {
+        // 14.b.iv.2. If usingIterator is false, append undefined to padding.
+        if !using_iterator {
+            padding.push(JsValue::undefined());
+            continue;
+        }
+
+        // 14.b.iv.1. If usingIterator is true, then
+        // 14.b.iv.1.a. Set next to Completion(IteratorStepValue(paddingIter)).
+        // 14.b.iv.1.b. IfAbruptCloseIterators(next, iters).
+        if let Some(next) =
+            if_abrupt_close_iterators!(padding_iter.step_value(context), iters, context)
+        {
+            // 14.b.iv.1.d. Else,
+            // 14.b.iv.1.d.i. Append next to padding.
+            padding.push(next);
         } else {
-            // 5. Else,
-            // a. Perform ? Set(this, p, v, true).
-            this_obj.set(p, v.clone(), true, context)?;
+            // 14.b.iv.1.c. If next is done, then
+            // 14.b.iv.1.c.i. Set usingIterator to false.
+            using_iterator = false;
+            // 14.b.iv.2. If usingIterator is false, append undefined to padding.
+            padding.push(JsValue::undefined());
         }
-
-        // 6. Return undefined.
-        Ok(JsValue::undefined())
     }
 
-    // ==================== Prototype Methods — Lazy ====================
-
-    /// `Iterator.prototype.map ( mapper )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.map
-    fn map(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.map called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(mapper) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let mapper = args.get_or_undefined(0);
-        let Some(mapper_obj) = mapper.as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.map: mapper is not callable")
-                    .into()),
-                context,
-            );
-        };
-
-        // 5-17. Create IteratorHelper with map operation.
-        let helper = IteratorHelper::create(
-            vec![iterated],
-            IteratorHelperOp::Map {
-                mapper: mapper_obj.clone(),
-                counter: 0,
-            },
-            context,
+    // 14.b.iv.2.v. If usingIterator is true, then
+    if using_iterator {
+        // 14.b.iv.2.v.1. Let completion be Completion(IteratorClose(paddingIter, NormalCompletion(unused))).
+        // 14.b.iv.2.v.2. IfAbruptCloseIterators(completion, iters).
+        if_abrupt_close_iterators!(
+            padding_iter.close(Ok(JsValue::undefined()), context),
+            iters,
+            context
         );
-
-        Ok(helper.into())
     }
 
-    /// `Iterator.prototype.filter ( predicate )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.filter
-    fn filter(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.filter called on non-object")
-        })?;
+    Ok(padding)
+}
 
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(predicate) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let predicate = args.get_or_undefined(0);
-        let Some(predicate_obj) = predicate.as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.filter: predicate is not callable")
-                    .into()),
-                context,
-            );
-        };
-
-        // 5-13. Create IteratorHelper with filter operation.
-        let helper = IteratorHelper::create(
-            vec![iterated],
-            IteratorHelperOp::Filter {
-                predicate: predicate_obj.clone(),
-                counter: 0,
-            },
-            context,
-        );
-
-        Ok(helper.into())
-    }
-
-    /// `Iterator.prototype.take ( limit )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.take
-    fn take(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.take called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. Let numLimit be ? ToNumber(limit).
-        let limit = args.get_or_undefined(0);
-        let num_limit = if_abrupt_close_iterator!(limit.to_number(context), iterated, context);
-
-        // 5. If numLimit is NaN, throw a RangeError exception.
-        if num_limit.is_nan() {
-            return iterated.close(
-                Err(JsNativeError::range()
-                    .with_message("Iterator.prototype.take: limit is NaN")
-                    .into()),
-                context,
-            );
+/// Builds the padding list for "longest" mode on zipKeyed
+#[cfg(feature = "experimental")]
+fn build_padding_zip_keyed(
+    mode: ZipMode,
+    padding_option: Option<JsObject>,
+    iters: &[super::IteratorRecord],
+    keys: &[PropertyKey],
+    context: &mut Context,
+) -> JsResult<Vec<JsValue>> {
+    // 13. Let iterCount be the number of elements in iters.
+    let iter_count = iters.len();
+    let padding_option = match padding_option {
+        // 14. If mode is "longest", then
+        Some(pad) if mode == ZipMode::Longest => pad,
+        // 14.a. If paddingOption is undefined, then
+        None if mode == ZipMode::Longest => {
+            // 14.a.i. Perform the following steps iterCount times:
+            // 14.a.i.1. Append undefined to padding.
+            return Ok(vec![JsValue::undefined(); iter_count]);
         }
+        _ => return Ok(Vec::new()),
+    };
 
-        // 6. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
-        let integer_limit =
-            if_abrupt_close_iterator!(limit.to_integer_or_infinity(context), iterated, context);
+    let mut padding = Vec::new();
 
-        // 7. If integerLimit < 0, throw a RangeError exception.
-        let integer_limit = match integer_limit {
-            crate::value::IntegerOrInfinity::Integer(n) if n < 0 => {
-                return iterated.close(
-                    Err(JsNativeError::range()
-                        .with_message("Iterator.prototype.take: limit is negative")
-                        .into()),
-                    context,
-                );
-            }
-            crate::value::IntegerOrInfinity::Integer(n) => n as u64,
-            crate::value::IntegerOrInfinity::PositiveInfinity => u64::MAX,
-            crate::value::IntegerOrInfinity::NegativeInfinity => {
-                return iterated.close(
-                    Err(JsNativeError::range()
-                        .with_message("Iterator.prototype.take: limit is negative infinity")
-                        .into()),
-                    context,
-                );
-            }
-        };
+    // 14.b.i. For each element key of keys, do
+    for key in keys {
+        // 14.b.i.1. Let value be Completion(Get(paddingOption, key)).
+        // 14.b.i.2. IfAbruptCloseIterators(value, iters).
+        let value =
+            if_abrupt_close_iterators!(padding_option.get(key.clone(), context), iters, context);
 
-        // 8-10. Return CreateIteratorHelper with a take closure.
-        let helper = IteratorHelper::create(
-            vec![iterated],
-            IteratorHelperOp::Take {
-                remaining: integer_limit,
-            },
-            context,
-        );
-
-        Ok(helper.into())
+        // 14.b.i.3. Append value to padding.
+        padding.push(value);
     }
 
-    /// `Iterator.prototype.drop ( limit )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.drop
-    fn drop(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.drop called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. Let numLimit be ? ToNumber(limit).
-        let limit = args.get_or_undefined(0);
-        let num_limit = if_abrupt_close_iterator!(limit.to_number(context), iterated, context);
-
-        // 5. If numLimit is NaN, throw a RangeError exception.
-        if num_limit.is_nan() {
-            return iterated.close(
-                Err(JsNativeError::range()
-                    .with_message("Iterator.prototype.drop: limit is NaN")
-                    .into()),
-                context,
-            );
-        }
-
-        // 6. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
-        let integer_limit =
-            if_abrupt_close_iterator!(limit.to_integer_or_infinity(context), iterated, context);
-
-        // 7. If integerLimit < 0, throw a RangeError exception.
-        let integer_limit = match integer_limit {
-            crate::value::IntegerOrInfinity::Integer(n) if n < 0 => {
-                return iterated.close(
-                    Err(JsNativeError::range()
-                        .with_message("Iterator.prototype.drop: limit is negative")
-                        .into()),
-                    context,
-                );
-            }
-            crate::value::IntegerOrInfinity::Integer(n) => n as u64,
-            crate::value::IntegerOrInfinity::PositiveInfinity => u64::MAX,
-            crate::value::IntegerOrInfinity::NegativeInfinity => {
-                return iterated.close(
-                    Err(JsNativeError::range()
-                        .with_message("Iterator.prototype.drop: limit is negative infinity")
-                        .into()),
-                    context,
-                );
-            }
-        };
-
-        // 8-10. Return CreateIteratorHelper with a drop closure.
-        let helper = IteratorHelper::create(
-            vec![iterated],
-            IteratorHelperOp::Drop {
-                remaining: integer_limit,
-                done_dropping: false,
-            },
-            context,
-        );
-
-        Ok(helper.into())
-    }
-
-    /// `Iterator.prototype.flatMap ( mapper )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.flatmap
-    fn flat_map(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.flatMap called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(mapper) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let mapper = args.get_or_undefined(0);
-        let Some(mapper_obj) = mapper.as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.flatMap: mapper is not callable")
-                    .into()),
-                context,
-            );
-        };
-
-        // 5+. Create IteratorHelper with flatMap operation.
-        let helper = IteratorHelper::create(
-            vec![iterated],
-            IteratorHelperOp::FlatMap {
-                mapper: mapper_obj.clone(),
-                counter: 0,
-                inner_iterator: None,
-            },
-            context,
-        );
-
-        Ok(helper.into())
-    }
-
-    // ==================== Prototype Methods — Eager (Consuming) ====================
-
-    /// `Iterator.prototype.reduce ( reducer [ , initialValue ] )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.reduce
-    fn reduce(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.reduce called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let mut iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(reducer) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let Some(reducer) = args.get_or_undefined(0).as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.reduce: reducer is not callable")
-                    .into()),
-                context,
-            );
-        };
-
-        let mut accumulator;
-        let mut counter;
-
-        // If initialValue is not present
-        if args.len() < 2 {
-            // Let accumulator be ? IteratorStepValue(iterated).
-            let first = iterated.step_value(context)?;
-            match first {
-                None => {
-                    return Err(JsNativeError::typ()
-                        .with_message(
-                            "Iterator.prototype.reduce: reduce of empty iterator with no initial value",
-                        )
-                        .into());
-                }
-                Some(val) => {
-                    accumulator = val;
-                    counter = 1u64;
-                }
-            }
-        } else {
-            accumulator = args.get_or_undefined(1).clone();
-            counter = 0;
-        }
-
-        // Repeat
-        loop {
-            let value = iterated.step_value(context)?;
-            match value {
-                None => return Ok(accumulator),
-                Some(value) => {
-                    let result = reducer.call(
-                        &JsValue::undefined(),
-                        &[accumulator, value, JsValue::new(counter)],
-                        context,
-                    );
-
-                    match result {
-                        Ok(val) => {
-                            accumulator = val;
-                        }
-                        Err(err) => {
-                            return iterated.close(Err(err), context);
-                        }
-                    }
-
-                    counter += 1;
-                }
-            }
-        }
-    }
-
-    /// `Iterator.prototype.toArray ( )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.toarray
-    fn to_array(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.toArray called on non-object")
-        })?;
-
-        let iterated = super::get_iterator_direct(&o, context)?;
-
-        // Let items be a new empty List.
-        // Repeat ... append to items.
-        let items = iterated.into_list(context)?;
-
-        // Return CreateArrayFromList(items).
-        Ok(crate::builtins::array::Array::create_array_from_list(items, context).into())
-    }
-
-    /// `Iterator.prototype.forEach ( fn )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.foreach
-    fn for_each(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.forEach called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let mut iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(fn) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let Some(func) = args.get_or_undefined(0).as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.forEach: argument is not callable")
-                    .into()),
-                context,
-            );
-        };
-        let mut counter = 0u64;
-
-        loop {
-            let value = iterated.step_value(context)?;
-            match value {
-                None => return Ok(JsValue::undefined()),
-                Some(value) => {
-                    let result = func.call(
-                        &JsValue::undefined(),
-                        &[value, JsValue::new(counter)],
-                        context,
-                    );
-
-                    if let Err(err) = result {
-                        return iterated.close(Err(err), context);
-                    }
-
-                    counter += 1;
-                }
-            }
-        }
-    }
-
-    /// `Iterator.prototype.some ( predicate )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.some
-    fn some(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.some called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let mut iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(predicate) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let Some(predicate) = args.get_or_undefined(0).as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.some: predicate is not callable")
-                    .into()),
-                context,
-            );
-        };
-        let mut counter = 0u64;
-
-        loop {
-            let value = iterated.step_value(context)?;
-            match value {
-                None => return Ok(JsValue::new(false)),
-                Some(value) => {
-                    let result = predicate.call(
-                        &JsValue::undefined(),
-                        &[value, JsValue::new(counter)],
-                        context,
-                    );
-
-                    match result {
-                        Ok(val) => {
-                            if val.to_boolean() {
-                                return iterated.close(Ok(JsValue::new(true)), context);
-                            }
-                        }
-                        Err(err) => {
-                            return iterated.close(Err(err), context);
-                        }
-                    }
-
-                    counter += 1;
-                }
-            }
-        }
-    }
-
-    /// `Iterator.prototype.every ( predicate )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.every
-    fn every(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.every called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let mut iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(predicate) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let Some(predicate) = args.get_or_undefined(0).as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.every: predicate is not callable")
-                    .into()),
-                context,
-            );
-        };
-        let mut counter = 0u64;
-
-        loop {
-            let value = iterated.step_value(context)?;
-            match value {
-                None => return Ok(JsValue::new(true)),
-                Some(value) => {
-                    let result = predicate.call(
-                        &JsValue::undefined(),
-                        &[value, JsValue::new(counter)],
-                        context,
-                    );
-
-                    match result {
-                        Ok(val) => {
-                            if !val.to_boolean() {
-                                return iterated.close(Ok(JsValue::new(false)), context);
-                            }
-                        }
-                        Err(err) => {
-                            return iterated.close(Err(err), context);
-                        }
-                    }
-
-                    counter += 1;
-                }
-            }
-        }
-    }
-
-    /// `Iterator.prototype.find ( predicate )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.find
-    fn find(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let O be the this value.
-        // 2. If O is not an Object, throw a TypeError exception.
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Iterator.prototype.find called on non-object")
-        })?;
-
-        // 3. Let iterated be ? GetIteratorDirect(O).
-        let mut iterated = super::get_iterator_direct(&o, context)?;
-
-        // 4. If IsCallable(predicate) is false, then
-        //    a. Let error be ThrowCompletion(a newly created TypeError object).
-        //    b. Return ? IteratorClose(iterated, error).
-        let Some(predicate) = args.get_or_undefined(0).as_callable() else {
-            return iterated.close(
-                Err(JsNativeError::typ()
-                    .with_message("Iterator.prototype.find: predicate is not callable")
-                    .into()),
-                context,
-            );
-        };
-        let mut counter = 0u64;
-
-        loop {
-            let value = iterated.step_value(context)?;
-            match value {
-                None => return Ok(JsValue::undefined()),
-                Some(value) => {
-                    let result = predicate.call(
-                        &JsValue::undefined(),
-                        &[value.clone(), JsValue::new(counter)],
-                        context,
-                    );
-
-                    match result {
-                        Ok(val) => {
-                            if val.to_boolean() {
-                                return iterated.close(Ok(value), context);
-                            }
-                        }
-                        Err(err) => {
-                            return iterated.close(Err(err), context);
-                        }
-                    }
-
-                    counter += 1;
-                }
-            }
-        }
-    }
+    Ok(padding)
 }

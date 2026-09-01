@@ -315,3 +315,30 @@ fn json_parse_with_no_args_throws_syntax_error() {
         "expected value at line 1 column 1",
     )]);
 }
+
+#[test]
+fn json_stringify_cyclic_object_throws_type_error() {
+    run_test_actions([TestAction::assert_native_error(
+        "var a = {}; a.a = a; JSON.stringify(a);",
+        JsNativeErrorKind::Type,
+        "cyclic object value",
+    )]);
+}
+
+#[test]
+fn json_stringify_cyclic_array_throws_type_error() {
+    run_test_actions([TestAction::assert_native_error(
+        "var a = []; a[0] = a; JSON.stringify(a);",
+        JsNativeErrorKind::Type,
+        "cyclic object value",
+    )]);
+}
+
+#[test]
+fn json_stringify_cyclic_nested_object_throws_type_error() {
+    run_test_actions([TestAction::assert_native_error(
+        "var a = {}; var b = { a }; a.b = b; JSON.stringify(a);",
+        JsNativeErrorKind::Type,
+        "cyclic object value",
+    )]);
+}

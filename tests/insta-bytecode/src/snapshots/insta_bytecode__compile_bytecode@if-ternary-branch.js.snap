@@ -1,0 +1,53 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/if-ternary-branch.js
+---
+-------------------------- Compiled Output: '<main>' ---------------------------
+Location     Handler      Opcode                            Operands
+  000000                    StoreOne                          dst:r01
+  000005                    PutLexicalValue                   src:r01, binding_index:0
+  00000e                    StoreInt8                         value:2, dst:r01
+  000014                    PutLexicalValue                   src:r01, binding_index:1
+  00001d                    StoreZero                         dst:r01
+  000022                    PutLexicalValue                   src:r01, binding_index:2
+  00002b                    GetName                           dst:r01, binding_index:0
+  000034                    GetName                           dst:r02, binding_index:1
+  00003d                    JumpIfNotLessThan                 lhs:r01, rhs:r02, address:00005d
+  00004a                    StoreOne                          dst:r01
+  00004f                    SetName                           src:r01, binding_index:2
+  000058                    Jump                              address:00006c
+  00005d                    StoreInt8                         value:2, dst:r01
+  000063                    SetName                           src:r01, binding_index:2
+  00006c                    GetName                           dst:r02, binding_index:0
+  000075                    GetName                           dst:r03, binding_index:1
+  00007e                    JumpIfNotGreaterThan              lhs:r02, rhs:r03, address:000096
+  00008b                    StoreInt8                         value:10, dst:r01
+  000091                    Jump                              address:00009c
+  000096                    StoreInt8                         value:20, dst:r01
+  00009c                    SetName                           src:r01, binding_index:2
+  0000a5                    GetName                           dst:r01, binding_index:2
+  0000ae                    JumpIfFalse                       value:r01, address:0000cb
+  0000b7                    StoreInt8                         value:3, dst:r01
+  0000bd                    SetName                           src:r01, binding_index:2
+  0000c6                    Jump                              address:0000cb
+  0000cb                    GetName                           dst:r01, binding_index:2
+  0000d4                    SetAccumulator                    src:r01
+  0000d9                    CheckReturn                       
+  0000da                    Return                            
+
+Register Count: 4, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [STRING] "a"
+    0001: [STRING] "b"
+    0002: [STRING] "r"
+Bindings:
+    0000: a, scope: GlobalDeclarative
+    0001: b, scope: GlobalDeclarative
+    0002: r, scope: GlobalDeclarative
+Handlers: <empty>
+Source Map:
+    0000: 74..93: (14, 3)
+    0001: 93..108: (16, 3)
+    0002: 108..183: (21, 1)
+    0003: 183..198: (25, 3)
