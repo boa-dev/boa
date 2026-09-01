@@ -502,3 +502,67 @@ fn iterator_includes_errors() {
         ),
     ]);
 }
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_join_basic() {
+    run_test_actions([
+        TestAction::run("const gen = () => Iterator.from(['a', 'b', 'c']);"),
+        TestAction::assert_eq("gen().join()", js_str!("a,b,c")),
+        TestAction::assert_eq("gen().join('-')", js_str!("a-b-c")),
+        TestAction::assert_eq("gen().join('')", js_str!("abc")),
+        TestAction::assert_eq("gen().join('---')", js_str!("a---b---c")),
+        TestAction::assert_eq("Iterator.from([]).join()", js_str!("")),
+        TestAction::assert_eq("Iterator.from(['single']).join()", js_str!("single")),
+        TestAction::assert_eq("Iterator.from(['single']).join('-')", js_str!("single")),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_join_generator() {
+    run_test_actions([
+        TestAction::run("function* gen() { yield 1; yield 2; yield 3; }"),
+        TestAction::assert_eq("gen().join()", js_str!("1,2,3")),
+        TestAction::assert_eq("gen().join(' + ')", js_str!("1 + 2 + 3")),
+        TestAction::assert_eq("gen().take(2).join()", js_str!("1,2")),
+        TestAction::assert_eq("gen().drop(1).join()", js_str!("2,3")),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_join_nullish_elements() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "Iterator.from(['one', null, 'two', undefined]).join()",
+            js_str!("one,,two,"),
+        ),
+        TestAction::assert_eq(
+            "Iterator.from(['one', null, 'two', undefined, 'three']).join('-')",
+            js_str!("one--two--three"),
+        ),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_join_errors() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "Iterator.prototype.join.call(null)",
+            JsNativeErrorKind::Type,
+            "Iterator.prototype.join called on non-object",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.prototype.join.call(undefined)",
+            JsNativeErrorKind::Type,
+            "Iterator.prototype.join called on non-object",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.prototype.join.call(123)",
+            JsNativeErrorKind::Type,
+            "Iterator.prototype.join called on non-object",
+        ),
+    ]);
+}
