@@ -7,7 +7,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::JsObject,
-    property::{PropertyDescriptor, PropertyKey},
+    property::{CompletePropertyDescriptor, PropertyKey},
 };
 use serde_json::{Map, Value};
 use std::collections::HashSet;
@@ -68,11 +68,12 @@ impl JsValue {
             Value::Object(obj) => {
                 let js_obj = JsObject::with_object_proto(context.intrinsics());
                 for (key, value) in obj {
-                    let property = PropertyDescriptor::builder()
-                        .value(Self::from_json(value, context)?)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(true);
+                    let property = CompletePropertyDescriptor::Data {
+                        value: Self::from_json(value, context)?,
+                        writable: true,
+                        enumerable: true,
+                        configurable: true,
+                    };
                     js_obj
                         .borrow_mut()
                         .insert(js_string!(key.clone()), property);

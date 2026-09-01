@@ -17,7 +17,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_error, js_string,
-    property::{PropertyDescriptor, PropertyKey},
+    property::{CompletePropertyDescriptor, PropertyDescriptor, PropertyKey},
     value::PreferredType,
 };
 use boa_gc::{self, Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
@@ -768,7 +768,7 @@ Cannot both specify accessors and a value or writable attribute",
 
     // Allow lint, false positive.
     #[allow(clippy::assigning_clones)]
-    pub(crate) fn get_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+    pub(crate) fn get_property(&self, key: &PropertyKey) -> Option<CompletePropertyDescriptor> {
         let mut obj = Some(self.clone());
 
         while let Some(o) = obj {
@@ -987,7 +987,7 @@ impl<T: NativeObject> JsObject<T> {
     pub(crate) fn insert<K, P>(&self, key: K, property: P) -> bool
     where
         K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
+        P: Into<CompletePropertyDescriptor>,
     {
         self.borrow_mut().insert(key, property)
     }
@@ -999,7 +999,7 @@ impl<T: NativeObject> JsObject<T> {
     pub fn insert_property<K, P>(&self, key: K, property: P) -> bool
     where
         K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
+        P: Into<CompletePropertyDescriptor>,
     {
         self.insert(key.into(), property)
     }
