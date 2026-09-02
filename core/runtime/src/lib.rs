@@ -97,7 +97,7 @@
 //! [`boa_wintertc`] crate. They are re-exported from `boa_runtime` so existing users keep a single,
 //! unchanged import path:
 //!
-//! - `abort` — `AbortController` and `AbortSignal` (requires the `fetch` feature)
+//! - [`abort`](abort/index.html) — `AbortController` and `AbortSignal` (requires the `fetch` feature)
 //! - [`base64`] — `atob` and `btoa`
 //! - [`clone`] — `structuredClone`
 //! - [`console`] — the `console` object
@@ -105,7 +105,7 @@
 //!   kept under their historical `interval` name
 //! - [`microtask`] — `queueMicrotask`
 //! - [`text`] — `TextEncoder` and `TextDecoder`, kept under their historical `text` name
-//! - `url` — the `URL` class (requires the `url` feature)
+//! - [`url`](url/index.html) — the `URL` class (requires the `url` feature)
 //!
 //! The [`store`] module holds the serialization core backing `structuredClone`. See each
 //! re-exported module for its full API documentation.
