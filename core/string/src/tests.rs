@@ -565,3 +565,220 @@ fn starts_with_and_ends_with_basic() {
     assert!(!basic.starts_with(end_needle));
     assert!(basic.ends_with(end_needle));
 }
+
+#[test]
+fn repeat() {
+    let empty = JsString::from("");
+    assert_eq!(empty.repeat(0), JsString::from(""));
+    assert_eq!(empty.repeat(10), JsString::from(""));
+
+    let single = JsString::from("a");
+    assert_eq!(single.repeat(0), JsString::from(""));
+    assert_eq!(single.repeat(1), JsString::from("a"));
+    assert_eq!(single.repeat(5), JsString::from("aaaaa"));
+
+    let latin = JsString::from("abc");
+    assert_eq!(latin.repeat(3), JsString::from("abcabcabc"));
+    assert_eq!(
+        latin.repeat(10),
+        JsString::from("abcabcabcabcabcabcabcabcabcabc")
+    );
+
+    let utf16 = JsString::from("🔥🦀");
+    assert_eq!(utf16.repeat(0), JsString::from(""));
+    assert_eq!(utf16.repeat(1), JsString::from("🔥🦀"));
+    assert_eq!(utf16.repeat(4), JsString::from("🔥🦀🔥🦀🔥🦀🔥🦀"));
+}
+
+#[test]
+fn join() {
+    let sep = JsStr::latin1(", ".as_bytes());
+    let empty_list: &[JsStr<'_>] = &[];
+    assert_eq!(JsString::join(sep, empty_list), JsString::from(""));
+
+    let single_item = [JsStr::latin1("one".as_bytes())];
+    assert_eq!(JsString::join(sep, &single_item), JsString::from("one"));
+
+    let multiple_items = [
+        JsStr::latin1("one".as_bytes()),
+        JsStr::latin1("two".as_bytes()),
+        JsStr::latin1("three".as_bytes()),
+    ];
+    assert_eq!(
+        JsString::join(sep, &multiple_items),
+        JsString::from("one, two, three")
+    );
+
+    let utf16_item = JsStr::utf16(&[0xD83D, 0xDD25]); // 🔥
+    let mixed_items = [
+        JsStr::latin1("fire".as_bytes()),
+        utf16_item,
+        JsStr::latin1("crab".as_bytes()),
+    ];
+    assert_eq!(
+        JsString::join(sep, &mixed_items),
+        JsString::from("fire, 🔥, crab")
+    );
+
+    // Empty separator: pure concatenation.
+    let no_sep = JsStr::latin1(b"");
+    let ab = [JsStr::latin1(b"a"), JsStr::latin1(b"b")];
+    assert_eq!(JsString::join(no_sep, &ab), JsString::from("ab"));
+
+    // UTF-16 separator forces UTF-16 promotion.
+    let utf16_sep = JsStr::utf16(&[0xD83D, 0xDD25]);
+    let latin_elems = [JsStr::latin1(b"a"), JsStr::latin1(b"b")];
+    let promoted = JsString::join(utf16_sep, &latin_elems);
+    assert_eq!(promoted, JsString::from("a🔥b"));
+    assert!(!promoted.as_str().is_latin1());
+
+    // All-empty with empty sep hits the `total_len == 0` early return.
+    let empties = [JsStr::latin1(b""), JsStr::latin1(b"")];
+    assert_eq!(
+        JsString::join(no_sep, &empties),
+        StaticJsStrings::EMPTY_STRING
+    );
+
+    // Empty `JsStr::utf16(&[])` parts are encoding-neutral: result stays Latin1.
+    let empty_utf16 = JsStr::utf16(&[]);
+    let neutral = [JsStr::latin1(b"a"), empty_utf16, JsStr::latin1(b"b")];
+    let neutral_joined = JsString::join(no_sep, &neutral);
+    assert_eq!(neutral_joined, JsString::from("ab"));
+    assert!(neutral_joined.as_str().is_latin1());
+
+    // Empty input returns the EMPTY static.
+    assert_eq!(
+        JsString::join(sep, empty_list),
+        StaticJsStrings::EMPTY_STRING
+    );
+}
+
+#[test]
+fn index_of_variants() {
+    let latin = JsString::from("abcabc");
+    let l = latin.as_str();
+    assert_eq!(l.index_of(JsStr::latin1(b"bc"), 0), Some(1));
+    assert_eq!(l.index_of(JsStr::latin1(b"a"), 1), Some(3));
+    assert_eq!(l.index_of(JsStr::latin1(b"abc"), 4), None);
+    assert_eq!(l.index_of(JsStr::latin1(b"abcdefg"), 0), None);
+    assert_eq!(l.index_of(JsStr::latin1(b""), 2), Some(2));
+    assert_eq!(l.index_of(JsStr::latin1(b""), 99), None);
+
+    let utf16 = JsString::from("a🔥b🔥c");
+    let u = utf16.as_str();
+    // Lone trail-surrogate unit search in UTF-16 haystack.
+    assert_eq!(u.index_of(JsStr::utf16(&[0xDD25]), 0), Some(2));
+    // Latin1 needle in UTF-16 haystack.
+    assert_eq!(u.index_of(JsStr::latin1(b"b"), 0), Some(3));
+    // UTF-16 needle (<= 0xFF) in Latin1 haystack.
+    assert_eq!(l.index_of(JsStr::utf16(&[u16::from(b'b')]), 0), Some(1));
+    // UTF-16 needle with units > 0xFF can never match Latin1 haystack.
+    assert_eq!(l.index_of(JsStr::utf16(&[0x2603]), 0), None);
+    // UTF-16 x UTF-16 multi-unit.
+    assert_eq!(
+        u.index_of(JsStr::utf16(&[0xD83D, 0xDD25, u16::from(b'b')]), 0),
+        Some(1)
+    );
+}
+
+#[test]
+fn replace_once_cases() {
+    use crate::{JsStr, JsString, StaticJsStrings};
+
+    let j = JsString::from;
+    // Latin1 x Latin1.
+    assert_eq!(
+        JsString::replace_once(
+            j("hello").as_str(),
+            JsStr::latin1(b"l"),
+            JsStr::latin1(b"L")
+        ),
+        j("heLlo")
+    );
+    // Empty search inserts at 0.
+    assert_eq!(
+        JsString::replace_once(j("abc").as_str(), JsStr::latin1(b""), JsStr::latin1(b"X")),
+        j("Xabc")
+    );
+    // Not found returns an equal value.
+    assert_eq!(
+        JsString::replace_once(j("abc").as_str(), JsStr::latin1(b"z"), JsStr::latin1(b"X")),
+        j("abc")
+    );
+    // Empty replacement deletes.
+    assert_eq!(
+        JsString::replace_once(
+            j("abcabc").as_str(),
+            JsStr::latin1(b"b"),
+            JsStr::latin1(b"")
+        ),
+        j("acabc")
+    );
+    // total_len == 0 returns the EMPTY static.
+    assert_eq!(
+        JsString::replace_once(j("a").as_str(), JsStr::latin1(b"a"), JsStr::latin1(b"")),
+        StaticJsStrings::EMPTY_STRING
+    );
+    // UTF-16 haystack + Latin1 needle/replacement promotes to UTF-16.
+    let fire = JsString::from("fire🔥fire");
+    let r = JsString::replace_once(
+        fire.as_str(),
+        JsStr::latin1(b"fire"),
+        JsStr::latin1(b"water"),
+    );
+    assert_eq!(r, JsString::from("water🔥fire"));
+    assert!(!r.as_str().is_latin1());
+    // Non-Latin1 needle never matches a Latin1 haystack.
+    let needle = JsStr::utf16(&[0xD83D, 0xDD25]);
+    assert_eq!(
+        JsString::replace_once(j("abc").as_str(), needle, JsStr::latin1(b"X")),
+        j("abc")
+    );
+    // `replace_once_at` reuses a known position (no second search).
+    let s = j("abcabc");
+    let pos = s.as_str().index_of(JsStr::latin1(b"bc"), 0).unwrap();
+    assert_eq!(
+        JsString::replace_once_at(s.as_str(), 2, JsStr::latin1(b"X"), pos),
+        j("aXabc")
+    );
+}
+
+#[test]
+fn repeat_encoding_and_sharing() {
+    // `count == 1` on `&self` shares instead of copying.
+    let s = JsString::from("abc");
+    assert_eq!(s.repeat(1), JsString::from("abc"));
+    // BMP non-Latin1 stays UTF-16.
+    let bmp = JsString::from("年");
+    let r = bmp.repeat(3);
+    assert_eq!(r, JsString::from("年年年"));
+    assert!(!r.as_str().is_latin1());
+    // Latin1 stays Latin1.
+    let latin = JsString::from("ab").repeat(3);
+    assert_eq!(latin, JsString::from("ababab"));
+    assert!(latin.as_str().is_latin1());
+    // Doubling-remainder boundary.
+    assert_eq!(
+        JsString::from("abc").repeat(10),
+        JsString::from("abcabcabcabcabcabcabcabcabcabc")
+    );
+}
+
+#[test]
+fn trim_sharing_and_empty() {
+    use crate::{JsString, StaticJsStrings};
+
+    let s = JsString::from("hello");
+    // Already-trimmed shares the allocation instead of slicing.
+    assert_eq!(s.trim(), JsString::from("hello"));
+    assert_eq!(s.trim_start(), JsString::from("hello"));
+    assert_eq!(s.trim_end(), JsString::from("hello"));
+
+    assert_eq!(JsString::from("   ").trim(), StaticJsStrings::EMPTY_STRING);
+    assert_eq!(
+        JsString::from("").trim_start(),
+        StaticJsStrings::EMPTY_STRING
+    );
+    assert_eq!(JsString::from("  a").trim_start(), JsString::from("a"));
+    assert_eq!(JsString::from("a  ").trim_end(), JsString::from("a"));
+}

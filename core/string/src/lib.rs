@@ -376,6 +376,10 @@ impl JsString {
             }
         };
 
+        if start == 0 && end + 1 == self.len() {
+            return self.clone();
+        }
+
         // SAFETY: `position(...)` and `rposition(...)` cannot exceed the length of the string.
         unsafe { Self::slice_unchecked(self, start, end + 1) }
     }
@@ -394,6 +398,10 @@ impl JsString {
             return StaticJsStrings::EMPTY_STRING;
         };
 
+        if start == 0 {
+            return self.clone();
+        }
+
         // SAFETY: `position(...)` cannot exceed the length of the string.
         unsafe { Self::slice_unchecked(self, start, self.len()) }
     }
@@ -411,6 +419,10 @@ impl JsString {
         }) else {
             return StaticJsStrings::EMPTY_STRING;
         };
+
+        if end + 1 == self.len() {
+            return self.clone();
+        }
 
         // SAFETY: `rposition(...)` cannot exceed the length of the string. `end` is the first
         //         character that is not trimmable, therefore we need to add 1 to it.
@@ -703,6 +715,404 @@ impl JsString {
         };
 
         StaticJsStrings::get_string(&string.as_str()).unwrap_or(string)
+    }
+
+    /// Creates a new [`JsString`] by repeating `self` `count` times.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    /// assert_eq!(JsString::from("ab").repeat(3), JsString::from("ababab"));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics with an allocation overflow if `len * count` overflows `usize`.
+    #[inline]
+    #[must_use]
+    pub fn repeat(&self, count: usize) -> Self {
+        if count == 1 {
+            return self.clone();
+        }
+        Self::repeat_str(self.as_str(), count)
+    }
+
+    /// Creates a new [`JsString`] by repeating `string` `count` times.
+    ///
+    /// Returns [`StaticJsStrings::EMPTY_STRING`] if `count` is zero or `string` is empty,
+    /// and preserves the Latin1/UTF-16 encoding of the input.
+    ///
+    /// # Panics
+    ///
+    /// Panics with an allocation overflow if `len * count` overflows `usize`.
+    #[must_use]
+    pub fn repeat_str(string: JsStr<'_>, count: usize) -> Self {
+        if count == 0 || string.is_empty() {
+            return StaticJsStrings::EMPTY_STRING;
+        }
+        if count == 1 {
+            return string.into();
+        }
+        let len = string.len();
+        let Some(total_len) = len.checked_mul(count) else {
+            alloc_overflow()
+        };
+
+        let result = match string.variant() {
+            JsStrVariant::Latin1(src) => {
+                let p = SequenceString::<Latin1>::allocate(total_len);
+                // SAFETY:
+                // - `p` points to a newly allocated `SequenceString<Latin1>` with capacity `total_len`.
+                // - `dest` has capacity for `total_len = len * count` bytes.
+                // - Sources and destination buffers do not overlap.
+                // - After the copies below, `[0, total_len)` is fully initialized
+                //   before `Self { ptr }` escapes.
+                // - Doubling partitions `[0, copied)` and `[copied, 2 * copied)` are
+                //   disjoint, so `copy_nonoverlapping` is sound; the tail
+                //   `total_len - copied < copied` is also disjoint.
+                unsafe {
+                    let dest = (&raw mut (*p.as_ptr()).data).cast::<u8>();
+                    debug_assert!(!dest.is_null());
+                    // Copy initial chunk
+                    ptr::copy_nonoverlapping(src.as_ptr(), dest, len);
+                    // Exponential doubling
+                    let mut copied = len;
+                    while copied <= total_len / 2 {
+                        ptr::copy_nonoverlapping(dest, dest.add(copied), copied);
+                        copied *= 2;
+                    }
+                    if copied < total_len {
+                        ptr::copy_nonoverlapping(dest, dest.add(copied), total_len - copied);
+                    }
+                }
+                Self { ptr: p.cast() }
+            }
+            JsStrVariant::Utf16(src) => {
+                let p = SequenceString::<Utf16>::allocate(total_len);
+                // SAFETY:
+                // - `p` points to a newly allocated `SequenceString<Utf16>` with capacity `total_len` u16 words.
+                // - `dest` is properly aligned to `u16` by `SequenceString<Utf16>::allocate`.
+                // - Sources and destination buffers do not overlap.
+                // - After the copies below, `[0, total_len)` is fully initialized
+                //   before `Self { ptr }` escapes.
+                // - Doubling partitions are disjoint, so `copy_nonoverlapping` is sound.
+                unsafe {
+                    let dest = (&raw mut (*p.as_ptr()).data).cast::<u16>();
+                    debug_assert!(dest.is_aligned());
+                    // Copy initial chunk
+                    ptr::copy_nonoverlapping(src.as_ptr(), dest, len);
+                    // Exponential doubling
+                    let mut copied = len;
+                    while copied <= total_len / 2 {
+                        ptr::copy_nonoverlapping(dest, dest.add(copied), copied);
+                        copied *= 2;
+                    }
+                    if copied < total_len {
+                        ptr::copy_nonoverlapping(dest, dest.add(copied), total_len - copied);
+                    }
+                }
+                Self { ptr: p.cast() }
+            }
+        };
+
+        StaticJsStrings::get_string(&result.as_str()).unwrap_or(result)
+    }
+
+    /// Creates a new [`JsString`] by joining `elements` separated by `separator`.
+    ///
+    /// An empty `separator` or empty elements are treated as encoding-neutral:
+    /// they never force a UTF-16 promotion by themselves.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::{JsStr, JsString};
+    /// let sep = JsStr::latin1(b", ");
+    /// let elems = [JsStr::latin1(b"a"), JsStr::latin1(b"b")];
+    /// assert_eq!(JsString::join(sep, &elems), JsString::from("a, b"));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics with an allocation overflow if the combined length overflows `usize`.
+    #[must_use]
+    pub fn join(separator: JsStr<'_>, elements: &[JsStr<'_>]) -> Self {
+        if elements.is_empty() {
+            return StaticJsStrings::EMPTY_STRING;
+        }
+        if elements.len() == 1 {
+            return elements[0].into();
+        }
+
+        let sep_len = separator.len();
+        // Empty strings are encoding-neutral: they must not force UTF-16 promotion.
+        let mut latin1_encoding = separator.is_latin1() || separator.is_empty();
+        let mut total_len = 0usize;
+
+        for (i, elem) in elements.iter().enumerate() {
+            if i > 0 {
+                let Some(sum) = total_len.checked_add(sep_len) else {
+                    alloc_overflow()
+                };
+                total_len = sum;
+            }
+            let Some(sum) = total_len.checked_add(elem.len()) else {
+                alloc_overflow()
+            };
+            total_len = sum;
+            if !elem.is_empty() && !elem.is_latin1() {
+                latin1_encoding = false;
+            }
+        }
+
+        if total_len == 0 {
+            return StaticJsStrings::EMPTY_STRING;
+        }
+
+        // Hoist the separator variant out of the per-element loop.
+        let sep_variant = separator.variant();
+
+        let result = if latin1_encoding {
+            let p = SequenceString::<Latin1>::allocate(total_len);
+            // SAFETY:
+            // - `p` points to a newly allocated `SequenceString<Latin1>` with capacity `total_len`.
+            // - `dest` has size `total_len` which equals the sum of all elements and separators.
+            // - All sources are Latin1 and nonoverlapping with `dest`.
+            // - `[0, total_len)` is fully initialized before `Self { ptr }` escapes.
+            unsafe {
+                let mut dest = (&raw mut (*p.as_ptr()).data).cast::<u8>();
+                debug_assert!(!dest.is_null());
+                // Empty separators/elements are encoding-neutral and contribute
+                // zero bytes, so only materialize the slice when `len > 0`.
+                let sep_slice =
+                    (sep_len > 0).then(|| separator.as_latin1().expect("separator is latin1"));
+                for (i, elem) in elements.iter().enumerate() {
+                    if i > 0 {
+                        if let Some(sep_slice) = sep_slice {
+                            ptr::copy_nonoverlapping(sep_slice.as_ptr(), dest, sep_len);
+                        }
+                        dest = dest.add(sep_len);
+                    }
+                    let elem_len = elem.len();
+                    if elem_len > 0 {
+                        let elem_slice = elem.as_latin1().expect("element is latin1");
+                        ptr::copy_nonoverlapping(elem_slice.as_ptr(), dest, elem_len);
+                    }
+                    dest = dest.add(elem_len);
+                }
+            }
+            Self { ptr: p.cast() }
+        } else {
+            let p = SequenceString::<Utf16>::allocate(total_len);
+            // SAFETY:
+            // - `p` points to a newly allocated `SequenceString<Utf16>` with capacity `total_len` u16 elements.
+            // - `dest` is aligned for `u16` and nonoverlapping with sources.
+            // - `[0, total_len)` is fully initialized before `Self { ptr }` escapes.
+            unsafe {
+                let mut dest = (&raw mut (*p.as_ptr()).data).cast::<u16>();
+                debug_assert!(dest.is_aligned());
+                for (i, elem) in elements.iter().enumerate() {
+                    if i > 0 {
+                        if sep_len > 0 {
+                            match sep_variant {
+                                JsStrVariant::Latin1(s) => {
+                                    for (j, &byte) in s.iter().enumerate() {
+                                        *dest.add(j) = u16::from(byte);
+                                    }
+                                }
+                                JsStrVariant::Utf16(s) => {
+                                    ptr::copy_nonoverlapping(s.as_ptr(), dest, sep_len);
+                                }
+                            }
+                        }
+                        dest = dest.add(sep_len);
+                    }
+                    let elem_len = elem.len();
+                    if elem_len > 0 {
+                        match elem.variant() {
+                            JsStrVariant::Latin1(s) => {
+                                for (j, &byte) in s.iter().enumerate() {
+                                    *dest.add(j) = u16::from(byte);
+                                }
+                            }
+                            JsStrVariant::Utf16(s) => {
+                                ptr::copy_nonoverlapping(s.as_ptr(), dest, elem_len);
+                            }
+                        }
+                    }
+                    dest = dest.add(elem_len);
+                }
+            }
+            Self { ptr: p.cast() }
+        };
+
+        StaticJsStrings::get_string(&result.as_str()).unwrap_or(result)
+    }
+
+    /// Replaces the first occurrence of `search` with `replacement` in `string`.
+    ///
+    /// An empty `search` inserts `replacement` at position `0`.
+    /// If `search` is not found, this returns a copy of `string`.
+    /// The result preserves Latin1 encoding when both `string` and `replacement`
+    /// are Latin1 (empty strings are encoding-neutral); otherwise it promotes to UTF-16.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::{JsStr, JsString};
+    /// let s = JsString::from("hello");
+    /// let out = JsString::replace_once(
+    ///     s.as_str(),
+    ///     JsStr::latin1(b"l"),
+    ///     JsStr::latin1(b"L"),
+    /// );
+    /// assert_eq!(out, JsString::from("heLlo"));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics with an allocation overflow if the combined length overflows `usize`.
+    #[must_use]
+    pub fn replace_once(string: JsStr<'_>, search: JsStr<'_>, replacement: JsStr<'_>) -> Self {
+        let Some(pos) = string.index_of(search, 0) else {
+            return string.into();
+        };
+        Self::replace_once_at(string, search.len(), replacement, pos)
+    }
+
+    /// Replaces the substring at the already-known `pos` with `replacement`.
+    ///
+    /// `pos` must be a match position previously returned by
+    /// [`JsStr::index_of`] for `search` with `search_len` code units, i.e.
+    /// `pos + search_len <= string.len()`. This avoids searching twice in
+    /// `String.prototype.replace` slow paths.
+    ///
+    /// # Panics
+    ///
+    /// Panics with an allocation overflow if the combined length overflows `usize`.
+    /// Panics in debug if `pos + search_len > string.len()`.
+    #[must_use]
+    pub fn replace_once_at(
+        string: JsStr<'_>,
+        search_len: usize,
+        replacement: JsStr<'_>,
+        pos: usize,
+    ) -> Self {
+        debug_assert!(
+            pos.checked_add(search_len)
+                .is_some_and(|end| end <= string.len()),
+            "replace_once_at: pos + search_len must be within string"
+        );
+
+        let str_len = string.len();
+        let replace_len = replacement.len();
+        // `pos + search_len <= str_len` by contract, so this cannot underflow.
+        let tail_len = str_len - pos - search_len;
+        let total_len = pos
+            .checked_add(replace_len)
+            .and_then(|n| n.checked_add(tail_len))
+            .unwrap_or_else(|| alloc_overflow());
+
+        if total_len == 0 {
+            return StaticJsStrings::EMPTY_STRING;
+        }
+
+        // Empty strings are encoding-neutral for the Latin1 decision.
+        let is_latin1 = string.is_latin1() && (replacement.is_empty() || replacement.is_latin1());
+
+        let res = if is_latin1 {
+            let p = SequenceString::<Latin1>::allocate(total_len);
+            // SAFETY:
+            // - `p` points to a newly allocated `SequenceString<Latin1>` with capacity `total_len`.
+            // - `dest` has capacity for `total_len = pos + replace_len + tail_len`.
+            // - Slices are validated Latin1 and bounds checked.
+            // - `[0, total_len)` is fully initialized before `Self { ptr }` escapes.
+            // - Sources and destination do not overlap because `p` was just allocated.
+            unsafe {
+                let dest = (&raw mut (*p.as_ptr()).data).cast::<u8>();
+                debug_assert!(!dest.is_null());
+                let s_src = string.as_latin1().expect("checked latin1").as_ptr();
+                let r_src = replacement.as_latin1().expect("checked latin1").as_ptr();
+
+                // 1. Copy preserved head (0..pos)
+                if pos > 0 {
+                    ptr::copy_nonoverlapping(s_src, dest, pos);
+                }
+                // 2. Copy replacement
+                if replace_len > 0 {
+                    ptr::copy_nonoverlapping(r_src, dest.add(pos), replace_len);
+                }
+                // 3. Copy tail (pos + search_len..)
+                if tail_len > 0 {
+                    ptr::copy_nonoverlapping(
+                        s_src.add(pos + search_len),
+                        dest.add(pos + replace_len),
+                        tail_len,
+                    );
+                }
+            }
+            Self { ptr: p.cast() }
+        } else {
+            let p = SequenceString::<Utf16>::allocate(total_len);
+            // SAFETY:
+            // - `p` points to a newly allocated `SequenceString<Utf16>` with capacity `total_len` u16 words.
+            // - Destination and sources are valid and do not overlap.
+            // - `[0, total_len)` is fully initialized before `Self { ptr }` escapes.
+            unsafe {
+                let dest = (&raw mut (*p.as_ptr()).data).cast::<u16>();
+                debug_assert!(dest.is_aligned());
+
+                // Copy head
+                match string.variant() {
+                    JsStrVariant::Latin1(s) => {
+                        for (i, &b) in s[..pos].iter().enumerate() {
+                            *dest.add(i) = u16::from(b);
+                        }
+                    }
+                    JsStrVariant::Utf16(s) => {
+                        if pos > 0 {
+                            ptr::copy_nonoverlapping(s.as_ptr(), dest, pos);
+                        }
+                    }
+                }
+
+                // Copy replacement
+                match replacement.variant() {
+                    JsStrVariant::Latin1(r) => {
+                        for (i, &b) in r.iter().enumerate() {
+                            *dest.add(pos + i) = u16::from(b);
+                        }
+                    }
+                    JsStrVariant::Utf16(r) => {
+                        if replace_len > 0 {
+                            ptr::copy_nonoverlapping(r.as_ptr(), dest.add(pos), replace_len);
+                        }
+                    }
+                }
+
+                // Copy tail
+                match string.variant() {
+                    JsStrVariant::Latin1(s) => {
+                        for (i, &b) in s[pos + search_len..].iter().enumerate() {
+                            *dest.add(pos + replace_len + i) = u16::from(b);
+                        }
+                    }
+                    JsStrVariant::Utf16(s) => {
+                        if tail_len > 0 {
+                            ptr::copy_nonoverlapping(
+                                s.as_ptr().add(pos + search_len),
+                                dest.add(pos + replace_len),
+                                tail_len,
+                            );
+                        }
+                    }
+                }
+            }
+            Self { ptr: p.cast() }
+        };
+
+        StaticJsStrings::get_string(&res.as_str()).unwrap_or(res)
     }
 
     /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.

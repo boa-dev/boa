@@ -113,7 +113,7 @@ use crate::{
     symbol::RawJsSymbol, value::Type,
 };
 use boa_gc::{Finalize, GcBox, Trace, custom_trace};
-use boa_string::JsString;
+use boa_string::{JsStr, JsString};
 use core::fmt;
 use static_assertions::const_assert;
 use std::{
@@ -727,6 +727,34 @@ impl NanBoxedValue {
         if self.is_string() {
             // SAFETY: the inner address must hold a valid, non-null JsString.
             unsafe { Some((*self.as_string_unchecked()).clone()) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as a [`JsStr`] without cloning.
+    ///
+    /// The returned slice borrows `self`; keep the [`JsValue`] alive while using it.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn as_str(&self) -> Option<JsStr<'_>> {
+        if self.is_string() {
+            // SAFETY:
+            // - `is_string()` was checked, so the inner address holds a valid,
+            //   non-null `JsString` allocation.
+            // - `&self` holds one strong ref for its whole lifetime (clone does
+            //   `mem::forget`, drop needs `&mut self`), so the allocation and its
+            //   immutable character payload outlive the returned `JsStr<'_>`.
+            // - `JsStr` points into the heap character data, not into the
+            //   temporary `ManuallyDrop<JsString>` below, which is never dropped
+            //   and therefore never decrements the refcount.
+            unsafe {
+                let s = self.as_string_unchecked();
+                let js_str = s.as_str();
+                // Extend the local borrow to `&self`: sound by the argument above.
+                // `transmute` here is purely a lifetime extension, not a layout cast.
+                Some(mem::transmute::<JsStr<'_>, JsStr<'_>>(js_str))
+            }
         } else {
             None
         }

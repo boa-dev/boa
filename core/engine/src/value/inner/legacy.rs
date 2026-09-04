@@ -7,7 +7,7 @@ use crate::builtins::is_html_dda::IsHTMLDDA;
 use crate::{JsBigInt, JsObject, JsSymbol, value::Type};
 use boa_engine::JsVariant;
 use boa_gc::{Finalize, Trace, custom_trace};
-use boa_string::JsString;
+use boa_string::{JsStr, JsString};
 
 #[derive(Clone, Debug)]
 pub(crate) enum EnumBasedValue {
@@ -263,6 +263,18 @@ impl EnumBasedValue {
     pub(crate) fn as_string(&self) -> Option<JsString> {
         match self {
             Self::String(value) => Some(value.clone()),
+            _ => None,
+        }
+    }
+
+    /// Returns the value as a [`JsStr`] without cloning.
+    ///
+    /// The returned slice borrows `self`; keep the [`JsValue`] alive while using it.
+    #[must_use]
+    #[inline]
+    pub(crate) fn as_str(&self) -> Option<JsStr<'_>> {
+        match self {
+            Self::String(value) => Some(value.as_str()),
             _ => None,
         }
     }

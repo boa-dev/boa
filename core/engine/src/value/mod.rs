@@ -26,7 +26,7 @@ pub use self::{
 use crate::builtins::RegExp;
 use crate::object::{JsFunction, JsPromise, JsRegExp};
 use crate::{
-    Context, JsBigInt, JsResult, JsString,
+    Context, JsBigInt, JsResult, JsStr, JsString,
     builtins::{
         Number, Promise,
         number::{f64_to_int32, f64_to_uint32},
@@ -769,6 +769,28 @@ impl JsValue {
     #[must_use]
     pub fn as_string(&self) -> Option<JsString> {
         self.0.as_string()
+    }
+
+    /// Returns the value as a [`JsStr`] slice if it is a string.
+    ///
+    /// This borrows `self` without cloning the underlying [`JsString`].
+    /// Keep the [`JsValue`] alive while using the returned slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsValue;
+    ///
+    /// let string = JsValue::new("hello");
+    /// assert!(string.as_str().is_some());
+    ///
+    /// let number = JsValue::new(42);
+    /// assert!(number.as_str().is_none());
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn as_str(&self) -> Option<JsStr<'_>> {
+        self.0.as_str()
     }
 
     /// Returns true if the value is a boolean.

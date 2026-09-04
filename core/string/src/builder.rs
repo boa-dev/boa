@@ -565,12 +565,12 @@ impl Latin1JsStringBuilder {
     /// Builds `JsString` from `Latin1JsStringBuilder`, assume that the inner data is `Latin1` encoded
     ///
     /// # Safety
-    /// Caller must ensure that the string is encoded in `Latin1`.
+    /// Caller must ensure that the string is encoded in `Latin1`
+    /// (every code point is `U+0000..=U+00FF`, one byte per code unit).
     ///
-    /// If the string contains characters outside the `Latin1` range, it may lead to encoding errors,
-    /// resulting in an incorrect or malformed `JsString`. This could cause undefined behavior
-    /// when the resulting string is used in further operations or when interfacing with other
-    /// parts of the system that expect valid `Latin1` encoded string.
+    /// Violating this precondition does **not** cause memory unsafety — any `u8`
+    /// is valid Latin1 storage — but it produces a logically wrong/malformed
+    /// `JsString` for downstream operations that expect valid Latin1.
     #[inline]
     #[must_use]
     pub unsafe fn build_as_latin1(self) -> JsString {
@@ -848,12 +848,11 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     /// Builds `Latin1` encoded `JsString` from `CommonJsStringBuilder`, return `None` if segments can't be encoded as `Latin1`
     ///
     /// # Safety
-    /// Caller must ensure that the string segments can be `Latin1` encoded.
+    /// Caller must ensure that the string segments can be `Latin1` encoded
+    /// (every code point is `U+0000..=U+00FF`).
     ///
-    /// If string segments can't be `Latin1` encoded, it may lead to encoding errors,
-    /// resulting in an incorrect or malformed `JsString`. This could cause undefined behavior
-    /// when the resulting string is used in further operations or when interfacing with other
-    /// parts of the system that expect valid `Latin1` encoded string.
+    /// Violating this precondition does **not** cause memory unsafety, but it
+    /// truncates code points (`as u8`) and yields a logically wrong string.
     #[inline]
     #[must_use]
     pub unsafe fn build_as_latin1(self) -> JsString {
@@ -874,7 +873,16 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                     builder.extend_from_slice(s);
                 }
                 Segment::Latin1(latin1) => builder.push(latin1),
-                Segment::CodePoint(code_point) => builder.push(code_point as u8),
+                Segment::CodePoint(code_point) => {
+                    debug_assert!(
+                        (code_point as u32) <= 0xFF,
+                        "CodePoint segment must be Latin1 for build_as_latin1"
+                    );
+                    let Ok(byte) = u8::try_from(code_point as u32) else {
+                        unreachable!("checked Latin1 above")
+                    };
+                    builder.push(byte);
+                }
             }
         }
         // SAFETY: All string segments can be encoded as `Latin1` string.

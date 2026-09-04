@@ -653,18 +653,28 @@ impl String {
         let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
-        let mut string = this.to_string(context)?;
+        let string = this.to_string(context)?;
 
-        // 3. Let R be S.
-        // 4. For each element next of args, do
-        for arg in args {
-            // a. Let nextString be ? ToString(next).
-            // b. Set R to the string-concatenation of R and nextString.
-            string = js_string!(&string, &arg.to_string(context)?);
+        if args.is_empty() {
+            return Ok(JsValue::new(string));
         }
 
+        if args.len() == 1 {
+            let next_string = args[0].to_string(context)?;
+            return Ok(JsValue::new(js_string!(&string, &next_string)));
+        }
+
+        let mut strings = Vec::with_capacity(args.len() + 1);
+        strings.push(string);
+        for arg in args {
+            strings.push(arg.to_string(context)?);
+        }
+
+        // `strings` outlives `str_refs`, so the borrowed `JsStr`s stay valid
+        // for the duration of `concat_array`.
+        let str_refs: Vec<_> = strings.iter().map(JsString::as_str).collect();
         // 5. Return R.
-        Ok(JsValue::new(string))
+        Ok(JsValue::new(JsString::concat_array(&str_refs)))
     }
 
     /// `String.prototype.repeat( count )`
@@ -734,14 +744,12 @@ impl String {
         let n = n as usize;
 
         // Charge each repetition against the VM loop-iteration limit.
-        let mut result = Vec::with_capacity(n);
         for _ in 0..n {
             crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
-            result.push(string.as_str());
         }
 
         // 6. Return the String value that is made from n copies of S appended together.
-        Ok(JsString::concat_array(&result).into())
+        Ok(string.repeat(n).into())
     }
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`
@@ -1019,11 +1027,28 @@ impl String {
             ReplaceValue(JsString),
         }
 
-        // 1. Let O be ? RequireObjectCoercible(this value).
-        let o = this.require_object_coercible()?;
+        // Ultra-fast path: If this, searchValue, and replaceValue are all strings
+        // without '$', delegate directly to `replace_once` (no substitution possible).
+        //
+        // SAFETY of the ordering: this path requires all three `as_str()` to be
+        // `Some`, which implies `this` is a primitive string (so
+        // `RequireObjectCoercible` below would succeed without side effects) and
+        // both args are primitive strings (so neither is an object with
+        // `@@replace`, nor a callable functional-replace). Observable behavior
+        // is therefore identical to the slow path.
+        if let [arg0, arg1, ..] = args
+            && let (Some(s), Some(search_str), Some(replace_str)) =
+                (this.as_str(), arg0.as_str(), arg1.as_str())
+            && !replace_str.contains(b'$')
+        {
+            return Ok(JsString::replace_once(s, search_str, replace_str).into());
+        }
 
         let search_value = args.get_or_undefined(0);
         let replace_value = args.get_or_undefined(1);
+
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let o = this.require_object_coercible()?;
 
         // 2. If searchValue is an Object, then
         if search_value.is_object() {
@@ -1080,6 +1105,19 @@ impl String {
             }
             // 12. Else,
             CallableOrString::ReplaceValue(replace_value) => {
+                // Fast path: If replace_value does not contain '$', no substitution is possible.
+                // Reuse the already-computed `position` via `replace_once_at`
+                // instead of searching a second time.
+                if !replace_value.contains(b'$') {
+                    return Ok(JsString::replace_once_at(
+                        string.as_str(),
+                        search_length,
+                        replace_value.as_str(),
+                        position,
+                    )
+                    .into());
+                }
+
                 // a. Assert: Type(replaceValue) is String.
                 // b. Let captures be a new empty List.
                 let captures = Vec::new();
@@ -1231,16 +1269,22 @@ impl String {
                 // i. Assert: Type(replaceValue) is String.
                 // ii. Let captures be a new empty List.
                 // iii. Let replacement be ! GetSubstitution(searchString, string, p, captures, undefined, replaceValue).
-                Err(ref replace_str) => get_substitution(
-                    &search_string,
-                    &string,
-                    p,
-                    &[],
-                    &JsValue::undefined(),
-                    replace_str,
-                    context,
-                )
-                .js_expect("GetSubstitution should never fail here.")?,
+                Err(ref replace_str) => {
+                    if replace_str.contains(b'$') {
+                        get_substitution(
+                            &search_string,
+                            &string,
+                            p,
+                            &[],
+                            &JsValue::undefined(),
+                            replace_str,
+                            context,
+                        )
+                        .js_expect("GetSubstitution should never fail here.")?
+                    } else {
+                        replace_str.clone()
+                    }
+                }
             };
 
             // d. Set result to the string-concatenation of result, preserved, and replacement.
@@ -1566,36 +1610,84 @@ impl String {
                 .into());
         }
 
-        let filler_len = filler.len() as u64;
+        let total_len = int_max_length as usize;
+        let fill_len = fill_len as usize;
+        let filler_len = filler.len();
+        debug_assert!(filler_len > 0, "empty filler returns early above");
 
-        // 9. Let truncatedStringFiller be the String value consisting of repeated
-        // concatenations of filler truncated to length fillLen.
-        let repetitions = {
-            let q = fill_len / filler_len;
-            let r = fill_len % filler_len;
-            if r == 0 { q } else { q + 1 }
+        let filler_str = filler.as_str();
+        let s_str = string.as_str();
+
+        let latin1 = s_str.is_latin1() && filler_str.is_latin1();
+
+        let res = if latin1 {
+            let mut builder = boa_string::Latin1JsStringBuilder::with_capacity(total_len);
+            let s_bytes = s_str.as_latin1().expect("checked latin1");
+            let f_bytes = filler_str.as_latin1().expect("checked latin1");
+
+            let copy_filler = |builder: &mut boa_string::Latin1JsStringBuilder| {
+                let mut remaining = fill_len;
+                while remaining > 0 {
+                    let chunk = remaining.min(filler_len);
+                    debug_assert!(chunk > 0 && chunk <= filler_len);
+                    builder.extend_from_slice(&f_bytes[..chunk]);
+                    remaining -= chunk;
+                }
+            };
+
+            if placement == Placement::Start {
+                copy_filler(&mut builder);
+                builder.extend_from_slice(s_bytes);
+            } else {
+                builder.extend_from_slice(s_bytes);
+                copy_filler(&mut builder);
+            }
+            // SAFETY: Both parts were checked Latin1 above, so one byte == one code unit.
+            unsafe { builder.build_as_latin1() }
+        } else {
+            use boa_string::{JsStr, JsStrVariant, Utf16JsStringBuilder};
+            let mut builder = Utf16JsStringBuilder::with_capacity(total_len);
+
+            let append_str =
+                |builder: &mut Utf16JsStringBuilder, js_s: &JsStr<'_>| match js_s.variant() {
+                    JsStrVariant::Latin1(bytes) => {
+                        builder.extend(bytes.iter().copied().map(u16::from));
+                    }
+                    JsStrVariant::Utf16(u16s) => {
+                        builder.extend_from_slice(u16s);
+                    }
+                };
+
+            // Hoist the filler variant out of the loop: it never changes.
+            let filler_variant = filler_str.variant();
+            let append_filler = |builder: &mut Utf16JsStringBuilder| {
+                let mut remaining = fill_len;
+                while remaining > 0 {
+                    let chunk = remaining.min(filler_len);
+                    debug_assert!(chunk > 0 && chunk <= filler_len);
+                    match filler_variant {
+                        JsStrVariant::Latin1(bytes) => {
+                            builder.extend(bytes[..chunk].iter().copied().map(u16::from));
+                        }
+                        JsStrVariant::Utf16(u16s) => {
+                            builder.extend_from_slice(&u16s[..chunk]);
+                        }
+                    }
+                    remaining -= chunk;
+                }
+            };
+
+            if placement == Placement::Start {
+                append_filler(&mut builder);
+                append_str(&mut builder, &s_str);
+            } else {
+                append_str(&mut builder, &s_str);
+                append_filler(&mut builder);
+            }
+            builder.build()
         };
 
-        let mut truncated_string_filler = Vec::with_capacity(fill_len as usize);
-        let filler_slice = filler.to_vec();
-        for _ in 0..repetitions {
-            let remaining = fill_len as usize - truncated_string_filler.len();
-            if remaining >= filler_slice.len() {
-                truncated_string_filler.extend_from_slice(&filler_slice);
-            } else {
-                truncated_string_filler.extend_from_slice(&filler_slice[..remaining]);
-                break;
-            }
-        }
-        let truncated_string_filler = JsString::from(&truncated_string_filler[..]);
-
-        // 10. If placement is start, return the string-concatenation of truncatedStringFiller and S.
-        if placement == Placement::Start {
-            Ok(js_string!(&truncated_string_filler, &string).into())
-        } else {
-            // 11. Else, return the string-concatenation of S and truncatedStringFiller.
-            Ok(js_string!(&string, &truncated_string_filler).into())
-        }
+        Ok(res.into())
     }
 
     /// `String.prototype.padEnd( targetLength[, padString] )`
@@ -1669,7 +1761,12 @@ impl String {
         // 2. Return ? TrimString(S, start+end).
         let object = this.require_object_coercible()?;
         let string = object.to_string(context)?;
-        Ok(js_string!(string.trim()).into())
+        let trimmed = string.trim();
+        // Fold common results back to static strings instead of retaining
+        // a slice of a potentially huge parent.
+        Ok(StaticJsStrings::get_string(&trimmed.as_str())
+            .unwrap_or(trimmed)
+            .into())
     }
 
     /// `String.prototype.trimStart()`
@@ -1693,7 +1790,10 @@ impl String {
         // 2. Return ? TrimString(S, start).
         let object = this.require_object_coercible()?;
         let string = object.to_string(context)?;
-        Ok(js_string!(string.trim_start()).into())
+        let trimmed = string.trim_start();
+        Ok(StaticJsStrings::get_string(&trimmed.as_str())
+            .unwrap_or(trimmed)
+            .into())
     }
 
     /// `String.prototype.trimEnd()`
@@ -1717,7 +1817,10 @@ impl String {
         // 2. Return ? TrimString(S, end).
         let object = this.require_object_coercible()?;
         let string = object.to_string(context)?;
-        Ok(string.trim_end().into())
+        let trimmed = string.trim_end();
+        Ok(StaticJsStrings::get_string(&trimmed.as_str())
+            .unwrap_or(trimmed)
+            .into())
     }
 
     /// [`String.prototype.toUpperCase()`][upper] and [`String.prototype.toLowerCase()`][lower]
@@ -2666,6 +2769,11 @@ pub(crate) fn get_substitution(
 
     // 8. Let tailPos be position + matchLength.
     let tail_pos = position + match_length;
+
+    // Fast path: if replacement does not contain '$', no substitutions can occur.
+    if !replacement.contains(b'$') {
+        return Ok(replacement.clone());
+    }
 
     // 10. Let result be the String value derived from replacement by copying code unit elements
     //     from replacement to result while performing replacements as specified in Table 58.

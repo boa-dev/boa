@@ -137,6 +137,17 @@ impl<'a> JsStr<'a> {
         self.len() == 0
     }
 
+    /// Creates a new [`JsString`] by repeating `self` `count` times.
+    ///
+    /// # Panics
+    ///
+    /// Panics with an allocation overflow if `len * count` overflows `usize`.
+    #[inline]
+    #[must_use]
+    pub fn repeat(self, count: usize) -> crate::JsString {
+        crate::JsString::repeat_str(self, count)
+    }
+
     /// Returns an element or subslice depending on the type of index, otherwise [`None`].
     #[inline]
     #[must_use]
@@ -214,7 +225,6 @@ impl<'a> JsStr<'a> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
-    #[inline]
     #[must_use]
     pub fn index_of(&self, search_value: JsStr<'_>, from_index: usize) -> Option<usize> {
         // 1. Assert: Type(string) is String.
@@ -238,12 +248,145 @@ impl<'a> JsStr<'a> {
         // a. Let candidate be the substring of string from i to i + searchLen.
         // b. If candidate is the same sequence of code units as searchValue, return i.
         // 8. Return -1.
-        self.windows(search_value.len())
-            .skip(from_index)
-            .position(|s| s == search_value)
-            .map(|i| i + from_index)
-    }
+        let search_len = search_value.len();
+        // NB: check `search_len > len` first to avoid underflowing `len - search_len`.
+        if search_len > len || from_index > len - search_len {
+            return None;
+        }
+        debug_assert!(!search_value.is_empty());
+        debug_assert!(search_len >= 1);
 
+        match (self.variant(), search_value.variant()) {
+            (JsStrVariant::Latin1(haystack), JsStrVariant::Latin1(needle)) => {
+                index_of_same(&haystack[from_index..], needle).map(|i| i + from_index)
+            }
+            (JsStrVariant::Utf16(haystack), JsStrVariant::Utf16(needle)) => {
+                index_of_same(&haystack[from_index..], needle).map(|i| i + from_index)
+            }
+            (JsStrVariant::Latin1(haystack), JsStrVariant::Utf16(needle)) => {
+                // A needle containing units > 0xFF can never match a Latin1 haystack.
+                if needle.iter().any(|&c| c > 0xFF) {
+                    return None;
+                }
+                index_of_mixed_latin1_utf16(&haystack[from_index..], needle).map(|i| i + from_index)
+            }
+            (JsStrVariant::Utf16(haystack), JsStrVariant::Latin1(needle)) => {
+                index_of_mixed_utf16_latin1(&haystack[from_index..], needle).map(|i| i + from_index)
+            }
+        }
+    }
+}
+
+/// Searches `haystack` for `needle` where both share the same code-unit type.
+///
+/// `needle` must be non-empty. Returns the offset within `haystack`.
+fn index_of_same<T: PartialEq>(haystack: &[T], needle: &[T]) -> Option<usize> {
+    debug_assert!(!needle.is_empty());
+    let needle_len = needle.len();
+    if needle_len == 1 {
+        return haystack.iter().position(|b| *b == needle[0]);
+    }
+    if needle_len > haystack.len() {
+        return None;
+    }
+    let first = &needle[0];
+    let rest = &needle[1..];
+    let max_start = haystack.len() - needle_len;
+    debug_assert!(needle_len >= 2);
+    let mut offset = 0;
+    while offset <= max_start {
+        if let Some(pos) = haystack[offset..=max_start].iter().position(|b| b == first) {
+            let match_pos = offset + pos;
+            debug_assert!(match_pos + needle_len <= haystack.len());
+            // SAFETY: `match_pos <= max_start = haystack.len() - needle_len`,
+            // so `match_pos + 1..match_pos + needle_len` is within bounds.
+            if unsafe { haystack.get_unchecked(match_pos + 1..match_pos + needle_len) } == rest {
+                return Some(match_pos);
+            }
+            offset = match_pos + 1;
+        } else {
+            break;
+        }
+    }
+    None
+}
+
+/// Searches a Latin1 `haystack` for a UTF-16 `needle` with all units `<= 0xFF`.
+///
+/// `needle` must be non-empty and contain only units `<= 0xFF`.
+fn index_of_mixed_latin1_utf16(haystack: &[u8], needle: &[u16]) -> Option<usize> {
+    debug_assert!(!needle.is_empty());
+    debug_assert!(needle.iter().all(|&c| c <= 0xFF));
+    let needle_len = needle.len();
+    if needle_len > haystack.len() {
+        return None;
+    }
+    // SAFETY: caller guarantees every unit is `<= 0xFF`, so truncation is exact.
+    #[allow(clippy::cast_possible_truncation)]
+    let first = needle[0] as u8;
+    let rest = &needle[1..];
+    let max_start = haystack.len() - needle_len;
+    let mut offset = 0;
+    while offset <= max_start {
+        if let Some(pos) = haystack[offset..=max_start]
+            .iter()
+            .position(|&b| b == first)
+        {
+            let match_pos = offset + pos;
+            debug_assert!(match_pos + needle_len <= haystack.len());
+            // SAFETY: `match_pos <= max_start`, so the range below is within bounds.
+            if unsafe { haystack.get_unchecked(match_pos + 1..match_pos + needle_len) }
+                .iter()
+                .zip(rest)
+                .all(|(&b, &n)| u16::from(b) == n)
+            {
+                return Some(match_pos);
+            }
+            offset = match_pos + 1;
+        } else {
+            break;
+        }
+    }
+    None
+}
+
+/// Searches a UTF-16 `haystack` for a Latin1 `needle`.
+///
+/// `needle` must be non-empty.
+fn index_of_mixed_utf16_latin1(haystack: &[u16], needle: &[u8]) -> Option<usize> {
+    debug_assert!(!needle.is_empty());
+    let needle_len = needle.len();
+    if needle_len > haystack.len() {
+        return None;
+    }
+    let first = u16::from(needle[0]);
+    let rest = &needle[1..];
+    let max_start = haystack.len() - needle_len;
+    let mut offset = 0;
+    while offset <= max_start {
+        if let Some(pos) = haystack[offset..=max_start]
+            .iter()
+            .position(|&b| b == first)
+        {
+            let match_pos = offset + pos;
+            debug_assert!(match_pos + needle_len <= haystack.len());
+            // SAFETY: `match_pos <= max_start`, so the range below is within bounds.
+            if unsafe { haystack.get_unchecked(match_pos + 1..match_pos + needle_len) }
+                .iter()
+                .zip(rest)
+                .all(|(&h, &n)| h == u16::from(n))
+            {
+                return Some(match_pos);
+            }
+            offset = match_pos + 1;
+        } else {
+            break;
+        }
+    }
+    None
+}
+
+impl<'a> JsStr<'a> {
     /// Abstract operation `CodePointAt( string, position )`.
     ///
     /// The abstract operation `CodePointAt` takes arguments `string` (a String) and `position` (a

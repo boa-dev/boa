@@ -1002,28 +1002,42 @@ impl Array {
         };
 
         // 5. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize + len.saturating_sub(1) as usize);
+        if len == 0 {
+            return Ok(StaticJsStrings::EMPTY_STRING.into());
+        }
+
+        let mut elements = Vec::new();
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
         for k in 0..len {
-            // a. If k > 0, set R to the string-concatenation of R and sep.
-            if k > 0 {
-                r.push(separator.clone());
-            }
             // b. Let element be ? Get(O, ! ToString(𝔽(k))).
             let element = o.get(k, context)?;
-            // c. If element is undefined, null or the array itself, let next be the empty String; otherwise, let next be ? ToString(element).
-            let next = if element.is_null_or_undefined() || &element == this {
-                js_string!()
-            } else {
-                element.to_string(context)?
-            };
-            // d. Set R to the string-concatenation of R and next.
-            r.push(next.clone());
+            // c. If element is undefined or null, let next be the empty String;
+            // otherwise, let next be ? ToString(element).
+            // NOTE: Boa additionally maps a self-referential element (identity,
+            // object-only) to the empty string to avoid infinite recursion.
+            // This must be an identity check: value equality would wrongly
+            // match primitives, e.g. `Array.prototype.join.call("a", "-")`.
+            let next =
+                if element.is_null_or_undefined() || (element.is_object() && &element == this) {
+                    StaticJsStrings::EMPTY_STRING
+                } else {
+                    element.to_string(context)?
+                };
+            // d. Append element to list.
+            elements.push(next);
             // e. Set k to k + 1.
         }
+        // Fast path: avoid copying a single huge element through `join`.
+        if elements.len() == 1 {
+            // SAFETY: just checked len.
+            return Ok(elements.pop().expect("len == 1").into());
+        }
+        // `elements` outlives `str_refs`, so the borrowed `JsStr`s stay valid
+        // for the duration of `JsString::join`.
+        let str_refs: Vec<_> = elements.iter().map(JsString::as_str).collect();
         // 8. Return R.
-        Ok(js_string!(&r[..]).into())
+        Ok(JsString::join(separator.as_str(), &str_refs).into())
     }
 
     /// `Array.prototype.toString( separator )`
