@@ -269,7 +269,7 @@ impl EnumBasedValue {
 
     /// Returns the value as a [`JsStr`] without cloning.
     ///
-    /// The returned slice borrows `self`; keep the [`JsValue`] alive while using it.
+    /// The returned slice borrows `self`; keep the [`crate::JsValue`] alive while using it.
     #[must_use]
     #[inline]
     pub(crate) fn as_str(&self) -> Option<JsStr<'_>> {

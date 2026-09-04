@@ -137,7 +137,7 @@ impl<'a> JsStr<'a> {
         self.len() == 0
     }
 
-    /// Creates a new [`JsString`] by repeating `self` `count` times.
+    /// Creates a new [`crate::JsString`] by repeating `self` `count` times.
     ///
     /// # Panics
     ///
