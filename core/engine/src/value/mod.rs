@@ -779,10 +779,10 @@ impl JsValue {
     /// # Examples
     ///
     /// ```
-    /// use boa_engine::JsValue;
+    /// use boa_engine::{JsValue, js_str, js_string};
     ///
-    /// let string = JsValue::new("hello");
-    /// assert!(string.as_str().is_some());
+    /// let string = JsValue::new(js_string!("hello"));
+    /// assert_eq!(string.as_str(), Some(js_str!("hello")));
     ///
     /// let number = JsValue::new(42);
     /// assert!(number.as_str().is_none());

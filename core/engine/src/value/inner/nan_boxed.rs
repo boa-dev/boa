@@ -1,6 +1,6 @@
 //! A NaN-boxed inner value for JavaScript values.
 //!
-//! This [`JsValue`] is a float using `NaN` values to represent an inner
+//! This [`crate::JsValue`] is a float using `NaN` values to represent an inner
 //! JavaScript value.
 //!
 //! # Assumptions
@@ -48,7 +48,7 @@
 //!
 //! # Design
 //!
-//! This [`JsValue`] inner type is a NaN-boxed value, which is a 64-bits value
+//! This [`crate::JsValue`] inner type is a NaN-boxed value, which is a 64-bits value
 //! that can represent any JavaScript value. If the integer is a non-NaN value,
 //! it will be stored as a 64-bits float. If it is a `f64::NAN` value, it will
 //! be stored as a quiet `NaN` value. Subnormal numbers are regular float.
@@ -321,7 +321,7 @@ const_assert!(f64::from_bits(bits::MASK_STRING).is_nan());
 const_assert!(f64::from_bits(bits::MASK_SYMBOL).is_nan());
 const_assert!(f64::from_bits(bits::MASK_BIGINT).is_nan());
 
-/// A NaN-boxed [`JsValue`]'s inner.
+/// A NaN-boxed [`crate::JsValue`]'s inner.
 pub(crate) struct NanBoxedValue {
     #[cfg(target_pointer_width = "32")]
     half: u32,
