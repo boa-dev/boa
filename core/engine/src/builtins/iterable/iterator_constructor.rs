@@ -91,7 +91,7 @@ impl IntrinsicObject for IteratorConstructor {
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::concat, js_string!("concat"), 0);
 
-    	#[cfg(feature = "experimental")]
+        #[cfg(feature = "experimental")]
         let builder = builder
             .static_method(Self::zip, js_string!("zip"), 1)
             .static_method(Self::zip_keyed, js_string!("zipKeyed"), 1);
@@ -306,7 +306,13 @@ impl IteratorConstructor {
         // 15. Let finishResults be a new Abstract Closure ... (handled in ZipIterator::create_zip_iterator)
         // 16. Return ? IteratorZip(iters, mode, padding, finishResults).
         let helper = IteratorHelper::create(
-            iterator_helper::Zip::new(context.gc_collector(), iters, mode, padding, ZipResultKind::Array),
+            iterator_helper::Zip::new(
+                context.gc_collector(),
+                iters,
+                mode,
+                padding,
+                ZipResultKind::Array,
+            ),
             context,
         );
         Ok(helper.into())
@@ -394,7 +400,13 @@ impl IteratorConstructor {
         // 15.b.c. Return obj.
         // All this is done within `Zip`.
         let helper = IteratorHelper::create(
-            iterator_helper::Zip::new(context.gc_collector(), iters, mode, padding, ZipResultKind::Keyed(keys)),
+            iterator_helper::Zip::new(
+                context.gc_collector(),
+                iters,
+                mode,
+                padding,
+                ZipResultKind::Keyed(keys),
+            ),
             context,
         );
 

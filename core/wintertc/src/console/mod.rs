@@ -364,9 +364,10 @@ impl Console {
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
             unsafe {
-                NativeFunction::from_closure(&boa_gc::MutationContext::global(), move |this, args, context| {
-                    f(this, args, &state.borrow(), &logger, context)
-                })
+                NativeFunction::from_closure(
+                    &boa_gc::MutationContext::global(),
+                    move |this, args, context| f(this, args, &state.borrow(), &logger, context),
+                )
             }
         }
         fn console_method_mut<L: Logger + 'static>(
@@ -376,9 +377,12 @@ impl Console {
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
             unsafe {
-                NativeFunction::from_closure(&boa_gc::MutationContext::global(), move |this, args, context| {
-                    f(this, args, &mut state.borrow_mut(), &logger, context)
-                })
+                NativeFunction::from_closure(
+                    &boa_gc::MutationContext::global(),
+                    move |this, args, context| {
+                        f(this, args, &mut state.borrow_mut(), &logger, context)
+                    },
+                )
             }
         }
 

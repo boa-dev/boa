@@ -471,17 +471,14 @@ impl DateTimeFormat {
                     let minutes = (seconds.abs() % 3600) / 60;
                     JsString::from(format!("{hours:+03}:{minutes:02}"))
                 }
-                FormatTimeZone::Identifier((_tz, id)) => JsString::from(
-                    context
-                        .timezone_provider()
-                        .identifier(*id)
-                        .map_err(|_| {
-                            js_error!(
-                                TypeError:
-                                "could not fetch identifier for resolved timezone"
-                            )
-                        })?,
-                ),
+                FormatTimeZone::Identifier((_tz, id)) => {
+                    JsString::from(context.timezone_provider().identifier(*id).map_err(|_| {
+                        js_error!(
+                            TypeError:
+                            "could not fetch identifier for resolved timezone"
+                        )
+                    })?)
+                }
             };
 
             (
