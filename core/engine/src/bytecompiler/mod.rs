@@ -2659,19 +2659,31 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 unreachable!("with binding cannot be local")
                             }
                         };
+                        // Resolve the binding exactly once. `GetNameAndLocator` fetches
+                        // the callee value and records the resolved locator on the
+                        // binding stack; `ThisForObjectEnvironmentName` then derives the
+                        // `this` value (`WithBaseObject`) from that same locator without
+                        // re-scanning the environment chain. This guarantees `HasBinding`
+                        // (and the binding object's `[[HasProperty]]` trap) runs once, as
+                        // required by the specification.
+                        let this = self.register_allocator.alloc();
                         let value = self.register_allocator.alloc();
                         self.bytecode
-                            .emit_this_for_object_environment_name(value.variable(), index.into());
+                            .emit_get_name_and_locator(value.variable(), index.into());
+                        self.bytecode
+                            .emit_this_for_object_environment_name(this.variable());
+                        self.push_from_register(&this);
                         self.push_from_register(&value);
                         self.register_allocator.dealloc(value);
+                        self.register_allocator.dealloc(this);
                     } else {
                         self.push_from_register(&CallFrame::undefined_register());
+                        self.compile_expr_to_stack(expr);
                     }
                 } else {
                     self.push_from_register(&CallFrame::undefined_register());
+                    self.compile_expr_to_stack(expr);
                 }
-
-                self.compile_expr_to_stack(expr);
             }
             expr => {
                 let value = self.register_allocator.alloc();
