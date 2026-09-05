@@ -4,6 +4,12 @@
 // then `ThisForObjectEnvironmentName dst:rNN` (dst-only; the old `index`
 // operand was removed) to derive the call's `this` (WithBaseObject) from that
 // same resolved locator, so HasBinding/[[HasProperty]] runs exactly once.
-with ({ fn() { return this; } }) {
+with (
+  {
+    fn() {
+      return this;
+    },
+  }
+) {
   fn();
 }
