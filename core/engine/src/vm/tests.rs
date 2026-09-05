@@ -593,3 +593,90 @@ fn recursion_in_setter_throws_uncatchable_error() {
         ),
     ]);
 }
+
+#[test]
+fn with_object_environment_call_single_lookup_and_this() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let emptyHasCount = 0;
+            const emptyProxy = new Proxy({}, {
+                has(t, p) {
+                    if (p === "Object") {
+                        emptyHasCount++;
+                    }
+                    return Reflect.has(t, p);
+                }
+            });
+            with (emptyProxy) {
+                Object();
+            }
+
+            let hasCount = 0;
+            let callThis = null;
+            const target = {
+                fn() {
+                    callThis = this;
+                }
+            };
+            const proxy = new Proxy(target, {
+                has(t, p) {
+                    if (p === "fn") {
+                        hasCount++;
+                    }
+                    return Reflect.has(t, p);
+                }
+            });
+            with (proxy) {
+                fn();
+            }
+        "#}),
+        TestAction::assert_eq("emptyHasCount", 1),
+        TestAction::assert_eq("hasCount", 2),
+        TestAction::assert("callThis === proxy"),
+    ]);
+}
+
+#[test]
+fn with_object_environment_binding_deleted_in_unscopables() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let unscopablesCalled = 0;
+            const env = {
+                binding: 42,
+                get [Symbol.unscopables]() {
+                    unscopablesCalled++;
+                    delete env.binding;
+                    return null;
+                }
+            };
+            let sloppyResult = null;
+            with (env) {
+                sloppyResult = binding;
+            }
+
+            let strictThrew = false;
+            const envStrict = {
+                binding: 42,
+                get [Symbol.unscopables]() {
+                    delete envStrict.binding;
+                    return null;
+                }
+            };
+            with (envStrict) {
+                try {
+                    (function() {
+                        "use strict";
+                        return binding;
+                    })();
+                } catch (e) {
+                    if (e instanceof ReferenceError) {
+                        strictThrew = true;
+                    }
+                }
+            }
+        "#}),
+        TestAction::assert_eq("unscopablesCalled", 1),
+        TestAction::assert("sloppyResult === undefined"),
+        TestAction::assert("strictThrew === true"),
+    ]);
+}

@@ -1770,11 +1770,9 @@ generate_opcodes! {
 
     /// Pushes `this` value that is related to the object environment of the given binding
     ///
-    /// - Operands:
-    ///   - index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
-    ThisForObjectEnvironmentName { dst: RegisterOperand, index: IndexOperand },
+    ThisForObjectEnvironmentName { dst: RegisterOperand },
 
     /// Execute the `super()` method.
     ///
