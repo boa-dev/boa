@@ -143,6 +143,8 @@ dynify = { workspace = true, features = ["macros"] }
 futures-concurrency.workspace = true
 oneshot = { workspace = true, features = ["async"] }
 async-channel.workspace = true
+data-encoding.workspace = true
+data-encoding-macro.workspace = true
 
 # intl deps
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }
@@ -153,6 +155,7 @@ icu_locale = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_datetime = { workspace = true, default-features = false, features = [
     "serde",
+    "unstable"
 ], optional = true }
 icu_time = { workspace = true, default-features = false, features = [
     "serde",

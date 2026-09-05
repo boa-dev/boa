@@ -5,6 +5,7 @@ use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
 use boa_engine::{Context, Finalize, JsData, JsObject, JsResult, Trace, js_error};
 use std::cell::RefCell;
+use std::future;
 use std::rc::Rc;
 
 /// Implementation of `Fetcher` which will always reject any fetch.
@@ -12,13 +13,15 @@ use std::rc::Rc;
 pub struct ErrorFetcher;
 
 impl Fetcher for ErrorFetcher {
-    async fn fetch(
+    fn fetch(
         self: Rc<Self>,
         _request: JsRequest,
         _signal: Option<JsObject>,
         _context: &RefCell<&mut Context>,
-    ) -> JsResult<JsResponse> {
-        Err(js_error!(ReferenceError: "ErrorFetcher used in fetch API."))
+    ) -> impl Future<Output = JsResult<JsResponse>> {
+        future::ready(Err(
+            js_error!(ReferenceError: "ErrorFetcher used in fetch API."),
+        ))
     }
 }
 
@@ -32,21 +35,21 @@ pub struct BlockingReqwestFetcher {
 
 #[cfg(feature = "reqwest-blocking")]
 impl Fetcher for BlockingReqwestFetcher {
-    async fn fetch(
+    fn fetch(
         self: Rc<Self>,
         request: JsRequest,
         signal: Option<JsObject>,
         _context: &RefCell<&mut Context>,
-    ) -> JsResult<JsResponse> {
+    ) -> impl Future<Output = JsResult<JsResponse>> {
         use boa_engine::{JsError, JsString};
 
         if let Some(ref sig) = signal
             && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
             && sig_ref.is_aborted()
         {
-            return Err(JsError::from_opaque(
+            return future::ready(Err(JsError::from_opaque(
                 boa_engine::js_string!("AbortError").into(),
-            ));
+            )));
         }
 
         let request = request.into_inner();
@@ -56,25 +59,35 @@ impl Fetcher for BlockingReqwestFetcher {
             .request(request.method().clone(), &url)
             .headers(request.headers().clone());
 
-        let req = req
+        let req = match req
             .body(request.body().clone())
             .build()
-            .map_err(JsError::from_rust)?;
+            .map_err(JsError::from_rust)
+        {
+            Ok(req) => req,
+            Err(err) => return future::ready(Err(err)),
+        };
 
-        let resp = self.client.execute(req).map_err(JsError::from_rust)?;
+        let resp = match self.client.execute(req).map_err(JsError::from_rust) {
+            Ok(resp) => resp,
+            Err(err) => return future::ready(Err(err)),
+        };
 
         if let Some(ref sig) = signal
             && let Some(sig_ref) = sig.downcast_ref::<crate::abort::JsAbortSignal>()
             && sig_ref.is_aborted()
         {
-            return Err(JsError::from_opaque(
+            return future::ready(Err(JsError::from_opaque(
                 boa_engine::js_string!("AbortError").into(),
-            ));
+            )));
         }
 
         let status = resp.status();
         let headers = resp.headers().clone();
-        let bytes = resp.bytes().map_err(JsError::from_rust)?;
+        let bytes = match resp.bytes().map_err(JsError::from_rust) {
+            Ok(bytes) => bytes,
+            Err(err) => return future::ready(Err(err)),
+        };
         let mut builder = http::Response::builder().status(status.as_u16());
 
         for k in headers.keys() {
@@ -83,9 +96,11 @@ impl Fetcher for BlockingReqwestFetcher {
             }
         }
 
-        builder
-            .body(bytes.to_vec())
-            .map_err(JsError::from_rust)
-            .map(|request| JsResponse::basic(JsString::from(url), request))
+        future::ready(
+            builder
+                .body(bytes.to_vec())
+                .map_err(JsError::from_rust)
+                .map(|request| JsResponse::basic(JsString::from(url), request)),
+        )
     }
 }

@@ -123,3 +123,32 @@ impl Operation for BitNot {
     const INSTRUCTION: &'static str = "INST - BitNot";
     const COST: u8 = 3;
 }
+
+/// `ToInt32` implements the Opcode Operation for `Opcode::ToInt32`
+///
+/// Operation:
+///  - Unary bitwise `~` operator.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ToInt32;
+
+impl ToInt32 {
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, src): (RegisterOperand, RegisterOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let result = context
+            .vm
+            .get_register(src.into())
+            .clone()
+            .to_i32(context)?;
+        context.vm.set_register(dst.into(), result.into());
+        Ok(())
+    }
+}
+
+impl Operation for ToInt32 {
+    const NAME: &'static str = "ToInt32";
+    const INSTRUCTION: &'static str = "INST - ToInt32";
+    const COST: u8 = 1;
+}

@@ -756,7 +756,7 @@ impl Context {
         println!(
             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
             format!("{}μs", duration.as_micros()),
-            format!("{}", opcode.as_str()),
+            opcode.as_str().to_string(),
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,

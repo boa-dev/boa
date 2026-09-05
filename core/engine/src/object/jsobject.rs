@@ -855,7 +855,7 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     /// # use boa_engine::{Context, JsObject};
     /// # use boa_engine::builtins::object::OrdinaryObject;
-    /// let context = &mut Context::default();
+    /// # let context = &mut Context::default();
     /// let obj = JsObject::from_proto_and_data(
     ///     context.gc_collector(),
     ///     context.intrinsics().constructors().object().prototype(),

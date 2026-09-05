@@ -117,29 +117,35 @@ impl SharedShape {
     fn property_table(&self) -> &PropertyTable {
         &self.inner.property_table
     }
+
     /// Return the property count that this shape owns in the [`PropertyTable`].
     fn property_count(&self) -> u32 {
         self.inner.property_count
     }
+
     /// Return the index to the property in the [`PropertyTable`].
     fn property_index(&self) -> u32 {
         self.inner.property_count.saturating_sub(1)
     }
+
     /// Getter for the transition count field.
     #[must_use]
     pub fn transition_count(&self) -> u16 {
         self.inner.transition_count
     }
+
     /// Getter for the previous field.
     #[must_use]
     pub fn previous(&self) -> Option<&Self> {
         self.inner.previous.as_ref()
     }
+
     /// Get the prototype of the shape.
     #[must_use]
     pub fn prototype(&self) -> JsPrototype {
         self.inner.prototype.clone()
     }
+
     /// Get the property this [`SharedShape`] refers to.
     pub(crate) fn property(&self) -> (PropertyKey, Slot) {
         let inner = self.property_table().inner().borrow();
@@ -149,14 +155,17 @@ impl SharedShape {
             .expect("There should be a property");
         (key.clone(), *slot)
     }
+
     /// Get the flags of the shape.
     fn flags(&self) -> ShapeFlags {
         self.inner.flags
     }
+
     /// Getter for the [`ForwardTransition`] field.
     fn forward_transitions(&self) -> &ForwardTransition {
         &self.inner.forward_transitions
     }
+
     /// Check if the shape has the given prototype.
     #[must_use]
     pub fn has_prototype(&self, prototype: &JsObject) -> bool {

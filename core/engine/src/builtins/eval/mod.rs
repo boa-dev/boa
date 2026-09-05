@@ -27,7 +27,6 @@ use boa_ast::{
     operations::{ContainsSymbol, contains, contains_arguments},
     scope::Scope,
 };
-use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 
 use super::{BuiltInBuilder, IntrinsicObject};

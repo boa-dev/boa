@@ -4,7 +4,6 @@ use crate::{
     environments::PrivateEnvironment,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
-use boa_gc::Gc;
 use thin_vec::ThinVec;
 
 /// `PushScope` implements the Opcode Operation for `Opcode::PushScope`

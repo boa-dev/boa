@@ -141,6 +141,16 @@ impl JsFunction {
         }
     }
 
+    /// Creates a new, empty intrinsic function object with only its function internal methods set.
+    ///
+    /// Mainly used to initialize objects before a [`Context`] is available to do so.
+    ///
+    /// [`Context`]: crate::Context
+    #[expect(dead_code)]
+    pub(crate) fn empty_intrinsic_function(constructor: bool, context: &mut Context) -> Self {
+        Self::empty_intrinsic_function_in(context.gc_collector(), constructor)
+    }
+
     /// Creates a [`JsFunction`] from a [`JsObject`], or returns `None` if the object is not a function.
     ///
     /// This does not clone the fields of the function, it only does a shallow clone of the object.
