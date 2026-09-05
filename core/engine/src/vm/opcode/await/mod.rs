@@ -63,6 +63,7 @@ impl Await {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
@@ -103,6 +104,7 @@ impl Await {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.

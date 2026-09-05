@@ -167,6 +167,7 @@ fn create_operations_module(context: &mut Context) -> Module {
         // The initializer is evaluated every time a module imports this synthetic module,
         // so we avoid creating duplicate objects by capturing and cloning them instead.
         SyntheticModuleInitializer::from_copy_closure_with_captures(
+            context.gc_collector(),
             |module, fns, _| {
                 println!("Running initializer!");
                 module.set_export(&js_string!("sum"), fns.0.clone().into())?;

@@ -266,15 +266,22 @@ impl Segmenter {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
-        let object = this.as_object();
-        let segmenter = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "`resolved_options` can only be called on an `Intl.Segmenter` object",
-                )
-            })?;
+        let (locale_str, granularity_str) = {
+            let object = this.as_object();
+            let segmenter = object
+                .as_ref()
+                .and_then(JsObject::downcast_ref::<Self>)
+                .ok_or_else(|| {
+                    JsNativeError::typ().with_message(
+                        "`resolved_options` can only be called on an `Intl.Segmenter` object",
+                    )
+                })?;
+
+            (
+                segmenter.locale.to_string(),
+                segmenter.native.granularity().to_string(),
+            )
+        };
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 4. For each row of Table 19, except the header row, in table order, do
@@ -285,12 +292,12 @@ impl Segmenter {
         let options = ObjectInitializer::new(context)
             .property(
                 js_string!("locale"),
-                js_string!(segmenter.locale.to_string()),
+                js_string!(locale_str),
                 Attribute::all(),
             )
             .property(
                 js_string!("granularity"),
-                js_string!(segmenter.native.granularity().to_string()),
+                js_string!(granularity_str),
                 Attribute::all(),
             )
             .build();

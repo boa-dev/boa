@@ -54,6 +54,7 @@ impl Zip {
         reason = "slightly cleaner to have this be a `new` method"
     )]
     pub(crate) fn new(
+        mc: &boa_gc::MutationContext<'_, '_>,
         iters: Vec<IteratorRecord>,
         mode: ZipMode,
         padding: Vec<JsValue>,
@@ -62,6 +63,7 @@ impl Zip {
         let iters = iters.into_iter().map(Some).collect();
 
         NativeCoroutine::from_copy_closure_with_captures(
+            mc,
             |completion, state, context| {
                 let st = state.take();
                 let (mut iters, mode, padding, result_kind) = match st {

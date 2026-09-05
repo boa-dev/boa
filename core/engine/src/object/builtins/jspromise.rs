@@ -1105,6 +1105,7 @@ impl JsPromise {
             let state = state.clone();
 
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 move |_, args, state, _| {
                     finish(state, Ok(args.get_or_undefined(0).clone()));
                     Ok(JsValue::undefined())
@@ -1117,6 +1118,7 @@ impl JsPromise {
             let state = state.clone();
 
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 move |_, args, state, _| {
                     let err = JsError::from_opaque(args.get_or_undefined(0).clone());
                     finish(state, Err(err));
@@ -1245,6 +1247,7 @@ impl JsPromise {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.
@@ -1310,6 +1313,7 @@ impl JsPromise {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_this, args, captures, context| {
                     // a. Let prevContext be the running execution context.
                     // b. Suspend prevContext.

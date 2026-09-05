@@ -412,7 +412,6 @@ where
 }
 
 /// Builder for creating native function objects
-#[expect(missing_debug_implementations)]
 pub struct FunctionObjectBuilder<'realm> {
     realm: &'realm Realm,
     mc: &'realm boa_gc::MutationContext<'static, 'realm>,

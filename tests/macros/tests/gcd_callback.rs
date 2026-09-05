@@ -19,7 +19,10 @@ fn gcd_callback() {
 
     // Create the engine.
     let context = &mut Context::default();
-    let result = Gc::new(&boa_gc::MutationContext::global(), AtomicUsize::new(0));
+    let result = Gc::new(
+        &unsafe { boa_gc::MutationContext::global() },
+        AtomicUsize::new(0),
+    );
     context.insert_data(result.clone());
 
     // Load the JavaScript code.

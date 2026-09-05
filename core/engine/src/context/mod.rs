@@ -107,7 +107,9 @@ pub struct Context {
 
     pub(crate) kept_alive: Vec<JsObject>,
 
-    pub(crate) gc: boa_gc::GcContext,
+    pub gc: boa_gc::GcContext,
+    #[cfg(feature = "oscars_backend")]
+    global_scope: boa_gc::HandleScope,
 
     can_block: bool,
 
@@ -1229,13 +1231,15 @@ impl ContextBuilder {
         }
 
         let gc = boa_gc::GcContext::new();
+        #[cfg(feature = "oscars_backend")]
+        let global_scope = boa_gc::HandleScope::enter();
         let mc = gc.gc_collector();
-        let root_shape = RootShape::new(mc);
+        let root_shape = RootShape::new(&mc);
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
         let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));
-        let realm = Realm::create(host_hooks.as_ref(), &root_shape, mc)?;
-        let vm = Vm::new(realm, mc);
+        let realm = Realm::create(host_hooks.as_ref(), &root_shape, &mc)?;
+        let vm = Vm::new(realm, &mc);
 
         let module_loader: Rc<dyn DynModuleLoader> = if let Some(loader) = self.module_loader {
             loader
@@ -1285,6 +1289,8 @@ impl ContextBuilder {
             root_shape,
             parser_identifier: 0,
             gc,
+            #[cfg(feature = "oscars_backend")]
+            global_scope,
             can_block: self.can_block,
             data: HostDefined::default(),
         };

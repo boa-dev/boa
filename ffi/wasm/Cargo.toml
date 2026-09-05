@@ -27,6 +27,7 @@ default = [
     "boa_engine/intl_bundled",
     "boa_engine/temporal",
     "boa_engine/xsum",
+    "boa_engine/oscars_backend",
 ]
 
 [lib]

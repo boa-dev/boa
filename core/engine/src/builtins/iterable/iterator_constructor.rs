@@ -85,7 +85,7 @@ pub(crate) struct IteratorConstructor;
 impl IntrinsicObject for IteratorConstructor {
     fn init(realm: &Realm, mc: &boa_gc::MutationContext<'static, '_>) {
         let iterator_prototype = realm.intrinsics().constructors().iterator().prototype();
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
+        let mut builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, mc)
             .inherits(Some(iterator_prototype.clone()))
             // Static methods
             .static_method(Self::from, js_string!("from"), 1)
@@ -242,7 +242,10 @@ impl IteratorConstructor {
         //    (implemented via IteratorHelperOp::Concat in execute_next)
         // 4-5. Let result be CreateIteratorFromClosure(closure, "Iterator Helper", ...)
         //      with [[UnderlyingIterators]] set to a new empty List.
-        let helper = IteratorHelper::create(iterator_helper::Concat::new(iterables), context);
+        let helper = IteratorHelper::create(
+            iterator_helper::Concat::new(context.gc_collector(), iterables),
+            context,
+        );
 
         // 6. Return result.
         Ok(helper.into())
@@ -303,7 +306,13 @@ impl IteratorConstructor {
         // 15. Let finishResults be a new Abstract Closure ... (handled in ZipIterator::create_zip_iterator)
         // 16. Return ? IteratorZip(iters, mode, padding, finishResults).
         let helper = IteratorHelper::create(
-            iterator_helper::Zip::new(iters, mode, padding, ZipResultKind::Array),
+            iterator_helper::Zip::new(
+                context.gc_collector(),
+                iters,
+                mode,
+                padding,
+                ZipResultKind::Array,
+            ),
             context,
         );
         Ok(helper.into())
@@ -391,7 +400,13 @@ impl IteratorConstructor {
         // 15.b.c. Return obj.
         // All this is done within `Zip`.
         let helper = IteratorHelper::create(
-            iterator_helper::Zip::new(iters, mode, padding, ZipResultKind::Keyed(keys)),
+            iterator_helper::Zip::new(
+                context.gc_collector(),
+                iters,
+                mode,
+                padding,
+                ZipResultKind::Keyed(keys),
+            ),
             context,
         );
 

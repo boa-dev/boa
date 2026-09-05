@@ -150,6 +150,7 @@ fn closure_capture_clone() {
                 ctx.realm(),
                 ctx.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    ctx.gc_collector(),
                     |_, _, captures, context| {
                         let (string, object) = &captures;
 

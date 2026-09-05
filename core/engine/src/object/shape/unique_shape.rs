@@ -41,7 +41,7 @@ impl UniqueShape {
         property_table: PropertyTableInner,
     ) -> Self {
         Self {
-            inner: Gc::new(
+            inner: boa_gc::allocate_rooted(
                 mc,
                 Inner {
                     property_table: RefCell::new(property_table),
@@ -50,6 +50,8 @@ impl UniqueShape {
             ),
         }
     }
+
+    /// Create a new [`UniqueShape`].
 
     pub(crate) fn override_internal(
         &self,
@@ -276,12 +278,13 @@ impl WeakUniqueShape {
         })
     }
 
-    /// Checks if `WeakGc` is upgradeable
+    /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
+    /// or [`None`] if the value was already garbage collected.
+
     #[allow(dead_code)]
     pub(crate) fn is_upgradable(&self) -> bool {
         self.inner.is_upgradable()
     }
-
     pub(crate) fn new(mc: &boa_gc::MutationContext<'static, '_>, value: &UniqueShape) -> Self {
         WeakUniqueShape {
             inner: WeakGc::new(mc, &value.inner),

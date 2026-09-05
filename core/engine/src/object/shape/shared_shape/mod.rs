@@ -175,9 +175,11 @@ impl SharedShape {
     /// Create a new [`SharedShape`] using the given context.
     fn new(mc: &boa_gc::MutationContext<'static, '_>, inner: Inner) -> Self {
         Self {
-            inner: Gc::new(mc, inner),
+            inner: boa_gc::allocate_rooted(mc, inner),
         }
     }
+
+    /// Create a new [`SharedShape`].
 
     /// Create a root [`SharedShape`] using the given context.
     #[must_use]
@@ -196,6 +198,8 @@ impl SharedShape {
             },
         )
     }
+
+    /// Create a root [`SharedShape`].
 
     /// Create a [`SharedShape`] change prototype transition using the given context.
     pub(crate) fn change_prototype_transition(
@@ -226,6 +230,8 @@ impl SharedShape {
 
         new_shape
     }
+
+    /// Create a [`SharedShape`] change prototype transition.
 
     /// Create a [`SharedShape`] insert property transition using the given context.
     pub(crate) fn insert_property_transition(
@@ -263,6 +269,10 @@ impl SharedShape {
 
         new_shape
     }
+
+    /// Create a [`SharedShape`] insert property transition.
+
+    /// Create a [`SharedShape`] change prototype transition, returning [`ChangeTransition`].
 
     /// Create a [`SharedShape`] change prototype transition using the given context, returning [`ChangeTransition`].
     pub(crate) fn change_attributes_transition(
@@ -457,6 +467,8 @@ impl SharedShape {
         base
     }
 
+    /// Remove a property from [`SharedShape`], returning the new [`SharedShape`].
+
     /// Do a property lookup, returns [`None`] if property not found.
     pub(crate) fn lookup(&self, key: &PropertyKey) -> Option<Slot> {
         let property_count = self.property_count();
@@ -518,11 +530,11 @@ impl WeakSharedShape {
 
     /// Upgrade returns a [`SharedShape`] pointer for the internal value if the pointer is still live,
     /// or [`None`] if the value was already garbage collected.
+
     #[allow(dead_code)]
     pub(crate) fn is_upgradable(&self) -> bool {
         self.inner.is_upgradable()
     }
-
     pub(crate) fn new(mc: &boa_gc::MutationContext<'static, '_>, value: &SharedShape) -> Self {
         WeakSharedShape {
             inner: WeakGc::new(mc, &value.inner),

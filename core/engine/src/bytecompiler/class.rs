@@ -157,7 +157,7 @@ impl ByteCompiler<'_> {
             class.super_ref.is_some(),
         );
 
-        let code = Gc::new(self.mc.0, compiler.finish());
+        let code = boa_gc::allocate_rooted(self.mc.0, compiler.finish());
         let index = self.push_function_to_constants(code);
 
         let class_register = self.register_allocator.alloc();
@@ -442,7 +442,7 @@ impl ByteCompiler<'_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = Gc::new(self.mc.0, field_compiler.finish());
+                    let code = boa_gc::allocate_rooted(self.mc.0, field_compiler.finish());
                     let index = self.push_function_to_constants(code);
 
                     let dst = self.register_allocator.alloc();
@@ -489,7 +489,7 @@ impl ByteCompiler<'_> {
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
-                    let code = Gc::new(self.mc.0, field_compiler.finish());
+                    let code = boa_gc::allocate_rooted(self.mc.0, field_compiler.finish());
                     let index = self.push_function_to_constants(code);
                     let dst = self.register_allocator.alloc();
                     self.emit_get_function(&dst, index);
@@ -546,7 +546,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(self.mc.0, code);
+                    let code = boa_gc::allocate_rooted(self.mc.0, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -591,7 +591,7 @@ impl ByteCompiler<'_> {
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
-                    let code = Gc::new(self.mc.0, code);
+                    let code = boa_gc::allocate_rooted(self.mc.0, code);
 
                     static_elements.push(StaticElement::StaticField {
                         code,
@@ -635,7 +635,7 @@ impl ByteCompiler<'_> {
                         );
                     }
 
-                    let code = Gc::new(self.mc.0, compiler.finish());
+                    let code = boa_gc::allocate_rooted(self.mc.0, compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));
                 }
             }

@@ -364,14 +364,17 @@ impl AsyncFromSyncIterator {
         let on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
             context.gc_collector(),
-            NativeFunction::from_copy_closure(move |_this, args, context| {
-                // a. Return CreateIterResultObject(value, done).
-                Ok(create_iter_result_object(
-                    args.get_or_undefined(0).clone(),
-                    done,
-                    context,
-                ))
-            }),
+            NativeFunction::from_copy_closure(
+                context.gc_collector(),
+                move |_this, args, context| {
+                    // a. Return CreateIterResultObject(value, done).
+                    Ok(create_iter_result_object(
+                        args.get_or_undefined(0).clone(),
+                        done,
+                        context,
+                    ))
+                },
+            ),
         )
         .name(js_string!())
         .length(1)
@@ -397,6 +400,7 @@ impl AsyncFromSyncIterator {
                     context.realm(),
                     context.gc_collector(),
                     NativeFunction::from_copy_closure_with_captures(
+                        context.gc_collector(),
                         |_this, args, iter, context| {
                             // i. Return ? IteratorClose(syncIteratorRecord, ThrowCompletion(error)).
                             iter.close(

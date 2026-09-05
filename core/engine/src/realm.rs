@@ -90,11 +90,11 @@ impl Realm {
         let global_this = hooks
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
-        let environment = Gc::new(mc, DeclarativeEnvironment::global());
+        let environment = boa_gc::allocate_rooted(mc, DeclarativeEnvironment::global());
         let scope = Scope::new_global();
 
         let realm = Self {
-            inner: Gc::new(
+            inner: boa_gc::allocate_rooted(
                 mc,
                 Inner {
                     intrinsics,

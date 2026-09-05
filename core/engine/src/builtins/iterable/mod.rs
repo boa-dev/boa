@@ -89,13 +89,6 @@ pub struct IteratorPrototypes {
     wrap_for_valid_iterator: JsObject,
 }
 
-impl Default for IteratorPrototypes {
-    fn default() -> Self {
-        // SAFETY: The global mutation context is used as a fallback during the context threading migration.
-        Self::uninit_in(&boa_gc::MutationContext::global())
-    }
-}
-
 impl IteratorPrototypes {
     pub(crate) fn uninit_in(mc: &boa_gc::MutationContext<'static, '_>) -> Self {
         Self {
@@ -113,7 +106,6 @@ impl IteratorPrototypes {
             wrap_for_valid_iterator: JsObject::with_null_proto(mc),
         }
     }
-
     /// Returns the `ArrayIteratorPrototype` object.
     #[inline]
     #[must_use]

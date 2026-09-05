@@ -52,7 +52,7 @@ fn position() {
         .register_global_callable(
             js_string!("check_stack"),
             2,
-            NativeFunction::from_copy_closure(|_, _, context| {
+            NativeFunction::from_copy_closure(context.gc_collector(), |_, _, context| {
                 let frame = context.stack_trace().collect::<Vec<&CallFrame>>();
 
                 assert_eq!(frame.len(), 4);

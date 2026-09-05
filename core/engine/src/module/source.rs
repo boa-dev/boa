@@ -1479,6 +1479,7 @@ impl SourceTextModule {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_, _, module, context| {
                     //     a. Perform AsyncModuleExecutionFulfilled(module).
                     async_module_execution_fulfilled(module, context)?;
@@ -1496,6 +1497,7 @@ impl SourceTextModule {
             context.realm(),
             context.gc_collector(),
             NativeFunction::from_copy_closure_with_captures(
+                context.gc_collector(),
                 |_, args, module, context| {
                     let error = JsError::from_opaque(args.get_or_undefined(0).clone());
                     // a. Perform AsyncModuleExecutionRejected(module, error).
@@ -1657,7 +1659,7 @@ impl SourceTextModule {
             self.code.has_tla,
             false,
             context.interner_mut(),
-            mc,
+            &mc,
             false,
             spanned_source_text,
             self.code.path.clone().into(),
@@ -1838,8 +1840,7 @@ impl SourceTextModule {
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new();
-        // SAFETY: TODO - Add safety comment for this block
-        envs.push_module(source.scope().clone(), context.gc_collector());
+        envs.push_module(source.scope().clone(), unsafe { context.gc_collector() });
         drop(status);
 
         // 9. Set the Function of moduleContext to null.

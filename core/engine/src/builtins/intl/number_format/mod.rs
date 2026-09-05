@@ -611,6 +611,7 @@ impl NumberFormat {
                 // Number Format Functions
                 // <https://tc39.es/ecma402/#sec-number-format-functions>
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, nf, context| {
                         // 1. Let nf be F.[[NumberFormat]].
                         // 2. Assert: Type(nf) is Object and nf has an [[InitializedNumberFormat]] internal slot.
@@ -752,8 +753,108 @@ impl NumberFormat {
         //     a. Set nf to ? UnwrapNumberFormat(nf).
         // 3. Perform ? RequireInternalSlot(nf, [[InitializedNumberFormat]]).
         let nf = unwrap_number_format(this, context)?;
-        let nf = nf.borrow();
-        let nf = nf.data();
+
+        let (
+            locale_str,
+            numbering_system,
+            style,
+            currency,
+            currency_display,
+            currency_sign,
+            unit,
+            unit_display,
+            minimum_integer_digits,
+            fraction_digits,
+            significant_digits,
+            use_grouping,
+            notation_str,
+            compact_display_str,
+            sign_display_str,
+            rounding_increment,
+            rounding_priority_str,
+            trailing_zero_display_str,
+        ) = {
+            let nf_borrow = nf.borrow();
+            let nf_data = nf_borrow.data();
+
+            let (currency, currency_display, currency_sign, unit, unit_display) =
+                match &nf_data.unit_options {
+                    UnitFormatOptions::Currency {
+                        currency,
+                        display,
+                        sign,
+                    } => (
+                        Some(currency.to_js_string()),
+                        Some(display.to_js_string()),
+                        Some(sign.to_js_string()),
+                        None,
+                        None,
+                    ),
+                    UnitFormatOptions::Unit { unit, display } => (
+                        None,
+                        None,
+                        None,
+                        Some(unit.to_js_string()),
+                        Some(display.to_js_string()),
+                    ),
+                    UnitFormatOptions::Decimal | UnitFormatOptions::Percent => {
+                        (None, None, None, None, None)
+                    }
+                };
+
+            let use_grouping = match nf_data.use_grouping {
+                GroupingStrategy::Auto => js_string!("auto").into(),
+                GroupingStrategy::Never => JsValue::from(false),
+                GroupingStrategy::Always => js_string!("always").into(),
+                GroupingStrategy::Min2 => js_string!("min2").into(),
+                _ => {
+                    return Err(JsNativeError::typ()
+                        .with_message("unsupported useGrouping value")
+                        .into());
+                }
+            };
+
+            let (notation, compact_display) = match &nf_data.formatter {
+                Formatter::Standard(_) => (NotationKind::Standard, None),
+                Formatter::Scientific(_) => (NotationKind::Scientific, None),
+                Formatter::Engineering(_) => (NotationKind::Engineering, None),
+                Formatter::Compact { display, .. } => (NotationKind::Compact, Some(*display)),
+            };
+
+            let sign_display_str = match nf_data.sign_display {
+                SignDisplay::Auto => js_string!("auto"),
+                SignDisplay::Never => js_string!("never"),
+                SignDisplay::Always => js_string!("always"),
+                SignDisplay::ExceptZero => js_string!("exceptZero"),
+                SignDisplay::Negative => js_string!("negative"),
+                _ => {
+                    return Err(JsNativeError::typ()
+                        .with_message("unsupported signDisplay value")
+                        .into());
+                }
+            };
+
+            (
+                nf_data.locale.to_string(),
+                js_string!(nf_data.numbering_system.as_str()),
+                nf_data.unit_options.style().to_js_string(),
+                currency,
+                currency_display,
+                currency_sign,
+                unit,
+                unit_display,
+                nf_data.digit_options.minimum_integer_digits,
+                nf_data.digit_options.rounding_type.fraction_digits(),
+                nf_data.digit_options.rounding_type.significant_digits(),
+                use_grouping,
+                notation.to_js_string(),
+                compact_display.map(|d| d.to_js_string()),
+                sign_display_str,
+                nf_data.digit_options.rounding_increment.to_u16(),
+                nf_data.digit_options.rounding_priority.to_js_string(),
+                nf_data.digit_options.trailing_zero_display.to_js_string(),
+            )
+        };
 
         // 4. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 5. For each row of Table 12, except the header row, in table order, do
@@ -767,62 +868,33 @@ impl NumberFormat {
         let mut options = ObjectInitializer::new(context);
         options.property(
             js_string!("locale"),
-            js_string!(nf.locale.to_string()),
+            js_string!(locale_str),
             Attribute::all(),
         );
         options.property(
             js_string!("numberingSystem"),
-            js_string!(nf.numbering_system.as_str()),
+            numbering_system,
             Attribute::all(),
         );
 
-        options.property(
-            js_string!("style"),
-            nf.unit_options.style().to_js_string(),
-            Attribute::all(),
-        );
+        options.property(js_string!("style"), style, Attribute::all());
 
-        match &nf.unit_options {
-            UnitFormatOptions::Currency {
-                currency,
-                display,
-                sign,
-            } => {
-                options.property(
-                    js_string!("currency"),
-                    currency.to_js_string(),
-                    Attribute::all(),
-                );
-                options.property(
-                    js_string!("currencyDisplay"),
-                    display.to_js_string(),
-                    Attribute::all(),
-                );
-                options.property(
-                    js_string!("currencySign"),
-                    sign.to_js_string(),
-                    Attribute::all(),
-                );
-            }
-            UnitFormatOptions::Unit { unit, display } => {
-                options.property(js_string!("unit"), unit.to_js_string(), Attribute::all());
-                options.property(
-                    js_string!("unitDisplay"),
-                    display.to_js_string(),
-                    Attribute::all(),
-                );
-            }
-            UnitFormatOptions::Decimal | UnitFormatOptions::Percent => {}
+        if let (Some(c), Some(d), Some(s)) = (currency, currency_display, currency_sign) {
+            options.property(js_string!("currency"), c, Attribute::all());
+            options.property(js_string!("currencyDisplay"), d, Attribute::all());
+            options.property(js_string!("currencySign"), s, Attribute::all());
+        } else if let (Some(u), Some(d)) = (unit, unit_display) {
+            options.property(js_string!("unit"), u, Attribute::all());
+            options.property(js_string!("unitDisplay"), d, Attribute::all());
         }
 
         options.property(
             js_string!("minimumIntegerDigits"),
-            nf.digit_options.minimum_integer_digits,
+            minimum_integer_digits,
             Attribute::all(),
         );
 
-        if let Some(Extrema { minimum, maximum }) = nf.digit_options.rounding_type.fraction_digits()
-        {
+        if let Some(Extrema { minimum, maximum }) = fraction_digits {
             options
                 .property(
                     js_string!("minimumFractionDigits"),
@@ -836,9 +908,7 @@ impl NumberFormat {
                 );
         }
 
-        if let Some(Extrema { minimum, maximum }) =
-            nf.digit_options.rounding_type.significant_digits()
-        {
+        if let Some(Extrema { minimum, maximum }) = significant_digits {
             options
                 .property(
                     js_string!("minimumSignificantDigits"),
@@ -852,69 +922,33 @@ impl NumberFormat {
                 );
         }
 
-        let use_grouping = match nf.use_grouping {
-            GroupingStrategy::Auto => js_string!("auto").into(),
-            GroupingStrategy::Never => JsValue::from(false),
-            GroupingStrategy::Always => js_string!("always").into(),
-            GroupingStrategy::Min2 => js_string!("min2").into(),
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("unsupported useGrouping value")
-                    .into());
-            }
-        };
-
         options.property(js_string!("useGrouping"), use_grouping, Attribute::all());
 
-        let (notation, compact_display) = match &nf.formatter {
-            Formatter::Standard(_) => (NotationKind::Standard, None),
-            Formatter::Scientific(_) => (NotationKind::Scientific, None),
-            Formatter::Engineering(_) => (NotationKind::Engineering, None),
-            Formatter::Compact { display, .. } => (NotationKind::Compact, Some(*display)),
-        };
+        options.property(js_string!("notation"), notation_str, Attribute::all());
 
-        options.property(
-            js_string!("notation"),
-            notation.to_js_string(),
-            Attribute::all(),
-        );
-
-        if let Some(display) = compact_display {
-            options.property(
-                js_string!("compactDisplay"),
-                display.to_js_string(),
-                Attribute::all(),
-            );
+        if let Some(display_str) = compact_display_str {
+            options.property(js_string!("compactDisplay"), display_str, Attribute::all());
         }
 
-        let sign_display = match nf.sign_display {
-            SignDisplay::Auto => js_string!("auto"),
-            SignDisplay::Never => js_string!("never"),
-            SignDisplay::Always => js_string!("always"),
-            SignDisplay::ExceptZero => js_string!("exceptZero"),
-            SignDisplay::Negative => js_string!("negative"),
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("unsupported signDisplay value")
-                    .into());
-            }
-        };
-
         options
-            .property(js_string!("signDisplay"), sign_display, Attribute::all())
+            .property(
+                js_string!("signDisplay"),
+                sign_display_str,
+                Attribute::all(),
+            )
             .property(
                 js_string!("roundingIncrement"),
-                nf.digit_options.rounding_increment.to_u16(),
+                rounding_increment,
                 Attribute::all(),
             )
             .property(
                 js_string!("roundingPriority"),
-                nf.digit_options.rounding_priority.to_js_string(),
+                rounding_priority_str,
                 Attribute::all(),
             )
             .property(
                 js_string!("trailingZeroDisplay"),
-                nf.digit_options.trailing_zero_display.to_js_string(),
+                trailing_zero_display_str,
                 Attribute::all(),
             );
 

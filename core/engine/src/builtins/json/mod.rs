@@ -303,8 +303,8 @@ impl Json {
                 false,
                 false,
                 context.interner_mut(),
-                gc,
-                in_with,
+                &gc,
+                false,
                 spanned_source_text,
                 SourcePath::Json,
             );

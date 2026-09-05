@@ -56,14 +56,20 @@ impl Segments {
     fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let object = this.as_object();
+        let object = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`containing` can only be called on a `Segments` object")
+        })?;
+
+        // 6. Let n be ? ToIntegerOrInfinity(index).
+        let n_val = args
+            .get_or_undefined(0)
+            .to_integer_or_infinity(context)?
+            .as_integer();
+
         let segments = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`containing` can only be called on a `Segments` object")
-            })?;
+            .downcast_ref::<Self>()
+            .expect("already checked that it is a Segments object");
 
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
         let segmenter = segments
@@ -75,11 +81,7 @@ impl Segments {
         // 5. Let len be the length of string.
         let len = segments.string.len() as i64;
 
-        // 6. Let n be ? ToIntegerOrInfinity(index).
-        let Some(n) = args
-            .get_or_undefined(0)
-            .to_integer_or_infinity(context)?
-            .as_integer()
+        let Some(n) = n_val
             // 7. If n < 0 or n ≥ len, return undefined.
             .filter(|i| (0..len).contains(i))
             .map(|n| n as usize)

@@ -193,14 +193,15 @@ impl NativeFunction {
     ///     let value = arg.to_u32(&mut context.borrow_mut())?;
     ///     Ok(JsValue::from(value * 2))
     /// }
-    /// NativeFunction::from_async_fn(test);
+    /// let mut context = Context::default();
+    /// NativeFunction::from_async_fn(context.gc_collector(), test);
     /// ```
-    pub fn from_async_fn<F>(f: F) -> Self
+    pub fn from_async_fn<F>(mc: &boa_gc::MutationContext<'_, '_>, f: F) -> Self
     where
         F: AsyncFn(&JsValue, &[JsValue], &RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
         F: Copy,
     {
-        Self::from_copy_closure(move |this, args, context| {
+        Self::from_copy_closure(mc, move |this, args, context| {
             let (promise, resolvers) = JsPromise::new_pending(context);
             let this = this.clone();
             let args = args.to_vec();
@@ -226,22 +227,26 @@ impl NativeFunction {
     }
 
     /// Creates a `NativeFunction` from a `Copy` closure.
-    pub fn from_copy_closure<F>(closure: F) -> Self
+    pub fn from_copy_closure<F>(mc: &boa_gc::MutationContext<'_, '_>, closure: F) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + Copy + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
-        unsafe { Self::from_closure(closure) }
+        unsafe { Self::from_closure(mc, closure) }
     }
 
     /// Creates a `NativeFunction` from a `Copy` closure and a list of traceable captures.
-    pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub fn from_copy_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
-        unsafe { Self::from_closure_with_captures(closure, captures) }
+        unsafe { Self::from_closure_with_captures(mc, closure, captures) }
     }
 
     /// Creates a new `NativeFunction` from a closure.
@@ -252,13 +257,14 @@ impl NativeFunction {
     /// collector could cause an use after free, memory corruption or other kinds of **Undefined
     /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
     /// on why that is the case.
-    pub unsafe fn from_closure<F>(closure: F) -> Self
+    pub unsafe fn from_closure<F>(mc: &boa_gc::MutationContext<'_, '_>, closure: F) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue> + 'static,
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
             Self::from_closure_with_captures(
+                mc,
                 move |this, args, (), context| closure(this, args, context),
                 (),
             )
@@ -273,15 +279,19 @@ impl NativeFunction {
     /// collector could cause an use after free, memory corruption or other kinds of **Undefined
     /// Behaviour**. See <https://github.com/Manishearth/rust-gc/issues/50> for a technical explanation
     /// on why that is the case.
-    pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
+    pub unsafe fn from_closure_with_captures<F, T>(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        closure: F,
+        captures: T,
+    ) -> Self
     where
         F: Fn(&JsValue, &[JsValue], &T, &mut Context) -> JsResult<JsValue> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
-        let ptr = Gc::into_raw(Gc::new(
-            &boa_gc::MutationContext::global(),
+        let ptr = Gc::into_raw(boa_gc::allocate_rooted(
+            mc,
             Closure {
                 f: closure,
                 captures,

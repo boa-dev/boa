@@ -359,7 +359,7 @@ impl JsValue {
     /// use boa_engine::{Context, JsValue, NativeFunction};
     ///
     /// let context = &mut Context::default();
-    /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
+    /// let native_fn = NativeFunction::from_copy_closure(context.gc_collector(), |_, _, _| Ok(JsValue::undefined()));
     /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.is_callable());
     ///
@@ -380,7 +380,7 @@ impl JsValue {
     /// use boa_engine::{Context, JsValue, NativeFunction};
     ///
     /// let context = &mut Context::default();
-    /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
+    /// let native_fn = NativeFunction::from_copy_closure(context.gc_collector(), |_, _, _| Ok(JsValue::undefined()));
     /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.as_callable().is_some());
     ///
@@ -402,7 +402,7 @@ impl JsValue {
     /// use boa_engine::{Context, JsValue, NativeFunction};
     ///
     /// let context = &mut Context::default();
-    /// let native_fn = NativeFunction::from_copy_closure(|_, _, _| Ok(JsValue::undefined()));
+    /// let native_fn = NativeFunction::from_copy_closure(context.gc_collector(), |_, _, _| Ok(JsValue::undefined()));
     /// let js_value = JsValue::from(native_fn.to_js_function(context.realm(), context.gc_collector()));
     /// assert!(js_value.as_function().is_some());
     ///

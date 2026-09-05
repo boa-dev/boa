@@ -136,6 +136,29 @@ impl Logger for RecordingLogger {
     fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
         self.log(msg, state, context)
     }
+
+    fn table(
+        &self,
+        data: crate::console::TableData,
+        state: &ConsoleState,
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let mut table = comfy_table::Table::new();
+        table.load_preset(comfy_table::presets::UTF8_FULL);
+        // Do not use Dynamic arrangement in tests to avoid wrapping based on pseudo-TTY width.
+        table.set_header(&data.col_names);
+
+        for row in &data.rows {
+            let cells: Vec<comfy_table::Cell> = data
+                .col_names
+                .iter()
+                .map(|name| comfy_table::Cell::new(row.get(name).cloned().unwrap_or_default()))
+                .collect();
+            table.add_row(cells);
+        }
+
+        self.log(table.to_string(), state, context)
+    }
 }
 
 /// Harness methods to be used in JS tests.

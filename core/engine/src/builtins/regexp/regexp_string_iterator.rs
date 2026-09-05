@@ -115,14 +115,29 @@ impl RegExpStringIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let mut iterator = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a RegExpStringIterator")
-            })?;
-        if iterator.completed {
+        // Extract all state we need in a scoped block to drop the RefMut before
+        // any context call. Holding a RefMut<'_, T> across context operations is a
+        // use-after-free because the GC can collect the backing object while the
+        // mutable borrow guard is live.
+        let object = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ().with_message("`this` is not a RegExpStringIterator")
+        })?;
+
+        let (completed, matcher, string, global, unicode) = {
+            let iterator = object
+                .downcast_ref::<Self>()
+                .expect("already checked that it is a RegExpStringIterator");
+            (
+                iterator.completed,
+                iterator.matcher.clone(),
+                iterator.string.clone(),
+                iterator.global,
+                iterator.unicode,
+            )
+        };
+        // RefMut dropped here — safe to use context below.
+
+        if completed {
             return Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
@@ -133,14 +148,18 @@ impl RegExpStringIterator {
         // TODO: This is the code that should be created as a closure in create_regexp_string_iterator.
 
         // i. Let match be ? RegExpExec(R, S).
-        let m = RegExp::abstract_exec(&iterator.matcher, iterator.string.clone(), context)?;
+        let m = RegExp::abstract_exec(&matcher, string.clone(), context)?;
 
         if let Some(m) = m {
             // iii. If global is false, then
-            if !iterator.global {
+            if !global {
                 // 1. Perform ? Yield(match).
                 // 2. Return undefined.
-                iterator.completed = true;
+                // Write back completed = true (no borrow held before this point).
+                object
+                    .downcast_mut::<Self>()
+                    .expect("already checked")
+                    .completed = true;
                 return Ok(create_iter_result_object(m.into(), false, context));
             }
 
@@ -150,26 +169,25 @@ impl RegExpStringIterator {
             // v. If matchStr is the empty String, then
             if m_str.is_empty() {
                 // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
-                let this_index = iterator
-                    .matcher
+                let this_index = matcher
                     .get(js_string!("lastIndex"), context)?
                     .to_length(context)?;
 
                 // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
-                let next_index =
-                    advance_string_index(&iterator.string, this_index, iterator.unicode);
+                let next_index = advance_string_index(&string, this_index, unicode);
 
                 // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
-                iterator
-                    .matcher
-                    .set(js_string!("lastIndex"), next_index, true, context)?;
+                matcher.set(js_string!("lastIndex"), next_index, true, context)?;
             }
 
             // vi. Perform ? Yield(match).
             Ok(create_iter_result_object(m.into(), false, context))
         } else {
             // ii. If match is null, return undefined.
-            iterator.completed = true;
+            object
+                .downcast_mut::<Self>()
+                .expect("already checked")
+                .completed = true;
             Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,

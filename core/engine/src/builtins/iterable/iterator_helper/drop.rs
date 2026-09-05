@@ -31,12 +31,16 @@ impl Drop {
         clippy::new_ret_no_self,
         reason = "slightly cleaner to have this be a `new` method"
     )]
-    pub(crate) fn new(iterated: IteratorRecord, limit: Option<u64>) -> NativeCoroutine {
+    pub(crate) fn new(
+        mc: &boa_gc::MutationContext<'_, '_>,
+        iterated: IteratorRecord,
+        limit: Option<u64>,
+    ) -> NativeCoroutine {
         // 10. Let closure be a new Abstract Closure with no parameters that
         //     captures iterated and integerLimit and performs the following steps
         //     when called:
         NativeCoroutine::from_copy_closure_with_captures(
-            // a. Let remaining be integerLimit.
+            mc, // a. Let remaining be integerLimit.
             // c. Repeat,
             |completion, state, context| {
                 let st = state.take();

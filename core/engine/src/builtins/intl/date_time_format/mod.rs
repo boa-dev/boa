@@ -199,6 +199,11 @@ impl BuiltInConstructor for DateTimeFormat {
             FormatDefaults::Date,
             context,
         )?;
+        let prototype = get_prototype_from_constructor(
+            new_target_inner,
+            StandardConstructors::date_time_format,
+            context,
+        )?;
         let date_time_format =
             JsObject::from_proto_and_data(context.gc_collector(), prototype, dtf);
 
@@ -272,6 +277,7 @@ impl DateTimeFormat {
                 context.realm(),
                 context.gc_collector(),
                 NativeFunction::from_copy_closure_with_captures(
+                    context.gc_collector(),
                     |_, args, dtf, context| {
                         // 1. Let dtf be F.[[DateTimeFormat]].
                         // 2. Assert: dtf is an Object and dtf has an [[InitializedDateTimeFormat]] internal slot.
@@ -445,32 +451,18 @@ impl DateTimeFormat {
         //              a. Assert: conversion is number.
         //              b. Set v to 𝔽(v).
         //          ii. Perform ! CreateDataPropertyOrThrow(options, p, v).
-        let result = {
+        let (
+            locale_str,
+            calendar_algorithm,
+            numbering_system,
+            time_zone_str,
+            hour_cycle,
+            date_style,
+            time_style,
+            fractional_second_digits,
+        ) = {
             let dtf = dtf_object.borrow();
             let dtf = dtf.data();
-
-            let mut options = ObjectInitializer::new(context);
-            options.property(
-                js_string!("locale"),
-                js_string!(dtf.locale.to_string()),
-                Attribute::all(),
-            );
-
-            if let Some(ca) = &dtf.calendar_algorithm {
-                options.property(
-                    js_string!("calendar"),
-                    js_string!(ca.as_str()),
-                    Attribute::all(),
-                );
-            }
-
-            if let Some(nu) = &dtf.numbering_system {
-                options.property(
-                    js_string!("numberingSystem"),
-                    js_string!(nu.as_str()),
-                    Attribute::all(),
-                );
-            }
 
             let time_zone_str = match &dtf.time_zone {
                 FormatTimeZone::UtcOffset(offset) => {
@@ -479,22 +471,55 @@ impl DateTimeFormat {
                     let minutes = (seconds.abs() % 3600) / 60;
                     JsString::from(format!("{hours:+03}:{minutes:02}"))
                 }
-                FormatTimeZone::Identifier((_tz, id)) => JsString::from(
-                    options
-                        .context()
-                        .timezone_provider()
-                        .identifier(*id)
-                        .map_err(|_| {
-                            js_error!(
-                                TypeError:
-                                "could not fetch identifier for resolved timezone"
-                            )
-                        })?,
-                ),
+                FormatTimeZone::Identifier((_tz, id)) => {
+                    JsString::from(context.timezone_provider().identifier(*id).map_err(|_| {
+                        js_error!(
+                            TypeError:
+                            "could not fetch identifier for resolved timezone"
+                        )
+                    })?)
+                }
             };
-            options.property(js_string!("timeZone"), time_zone_str, Attribute::all());
 
-            if let Some(hc) = &dtf.hour_cycle {
+            (
+                dtf.locale.to_string(),
+                dtf.calendar_algorithm
+                    .as_ref()
+                    .map(|ca| js_string!(ca.as_str())),
+                dtf.numbering_system
+                    .as_ref()
+                    .map(|nu| js_string!(nu.as_str())),
+                time_zone_str,
+                dtf.hour_cycle,
+                dtf.date_style,
+                dtf.time_style,
+                dtf.fractional_second_digits,
+            )
+        };
+
+        let result = {
+            let mut options = ObjectInitializer::new(context);
+            options.property(
+                js_string!("locale"),
+                js_string!(locale_str),
+                Attribute::all(),
+            );
+
+            if let Some(ca) = calendar_algorithm {
+                options.property(js_string!("calendar"), ca, Attribute::all());
+            }
+
+            if let Some(nu) = numbering_system {
+                options.property(js_string!("numberingSystem"), nu, Attribute::all());
+            }
+
+            options.property(
+                js_string!("timeZone"),
+                js_string!(time_zone_str),
+                Attribute::all(),
+            );
+
+            if let Some(hc) = hour_cycle {
                 options.property(
                     js_string!("hourCycle"),
                     js_string!(hc.as_str()),
@@ -509,7 +534,7 @@ impl DateTimeFormat {
             // dateStyle nor timeStyle is set; the constructor already guarantees this by
             // rejecting explicit component options alongside a style, so the value is
             // `None` whenever a style is present.
-            if let Some(fsd) = dtf.fractional_second_digits {
+            if let Some(fsd) = fractional_second_digits {
                 options.property(
                     js_string!("fractionalSecondDigits"),
                     fsd.digits(),
@@ -517,11 +542,11 @@ impl DateTimeFormat {
                 );
             }
 
-            if let Some(ds) = dtf.date_style {
+            if let Some(ds) = date_style {
                 options.property(js_string!("dateStyle"), ds.to_js_string(), Attribute::all());
             }
 
-            if let Some(ts) = dtf.time_style {
+            if let Some(ts) = time_style {
                 options.property(js_string!("timeStyle"), ts.to_js_string(), Attribute::all());
             }
 

@@ -229,6 +229,6 @@ impl FunctionCompiler {
 
         let code = compiler.finish();
 
-        Gc::new(mc, code)
+        boa_gc::allocate_rooted(mc, code)
     }
 }

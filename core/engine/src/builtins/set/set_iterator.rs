@@ -105,39 +105,51 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let mut set_iterator = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<Self>)
-            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an SetIterator"))?;
+        let object = this
+            .as_object()
+            .filter(|o| o.is::<Self>())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a SetIterator"))?;
 
-        let item_kind = set_iterator.iteration_kind;
+        let (item_kind, element, iterated_set) = {
+            let mut set_iterator = object
+                .downcast_mut::<Self>()
+                .expect("already checked that it is a SetIterator");
 
-        if let Some(obj) = set_iterator.iterated_set.take() {
-            let e = {
-                let mut entries = obj.0.borrow_mut();
-                let entries = entries.data_mut();
-                let len = entries.full_len();
-                loop {
-                    let element = entries.get_index(set_iterator.next_index);
-                    set_iterator.next_index += 1;
-                    if element.is_some() || set_iterator.next_index >= len {
-                        break element.cloned();
+            let item_kind = set_iterator.iteration_kind;
+
+            if let Some(obj) = set_iterator.iterated_set.take() {
+                let e = {
+                    let mut entries = obj.0.borrow_mut();
+                    let entries = entries.data_mut();
+                    let len = entries.full_len();
+                    loop {
+                        let element = entries.get_index(set_iterator.next_index);
+                        set_iterator.next_index += 1;
+                        if element.is_some() || set_iterator.next_index >= len {
+                            break element.cloned();
+                        }
                     }
-                }
-            };
-            if let Some(element) = e {
-                let item = match item_kind {
-                    PropertyNameKind::KeyAndValue => {
-                        let result =
-                            Array::create_array_from_list([element.clone(), element], context);
-                        Ok(create_iter_result_object(result.into(), false, context))
-                    }
-                    _ => Ok(create_iter_result_object(element, false, context)),
                 };
-                set_iterator.iterated_set = Some(obj);
-                return item;
+                (item_kind, e, Some(obj))
+            } else {
+                (item_kind, None, None)
             }
+        };
+
+        if let (Some(element), Some(obj)) = (element, iterated_set) {
+            object
+                .downcast_mut::<Self>()
+                .expect("already checked")
+                .iterated_set = Some(obj);
+
+            let item = match item_kind {
+                PropertyNameKind::KeyAndValue => {
+                    let result = Array::create_array_from_list([element.clone(), element], context);
+                    Ok(create_iter_result_object(result.into(), false, context))
+                }
+                _ => Ok(create_iter_result_object(element, false, context)),
+            };
+            return item;
         }
 
         Ok(create_iter_result_object(

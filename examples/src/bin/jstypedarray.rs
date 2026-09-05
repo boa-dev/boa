@@ -95,12 +95,13 @@ fn main() -> JsResult<()> {
 
     // forEach
     let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
-    let num_to_modify = Gc::new(&boa_gc::MutationContext::global(), GcRefCell::new(0u8));
+    let num_to_modify = Gc::new(context.gc_collector(), GcRefCell::new(0u8));
 
     let js_function = FunctionObjectBuilder::new(
         context.realm(),
         context.gc_collector(),
         NativeFunction::from_copy_closure_with_captures(
+            context.gc_collector(),
             |_, args, captures, inner_context| {
                 let element = args
                     .first()

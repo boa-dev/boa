@@ -116,8 +116,7 @@ impl HeadersIterator {
             .ok_or_else(|| boa_engine::js_error!(Error: "Headers Iterator not registered"))?
             .prototype();
 
-        let headers_iterator =
-            JsObject::from_proto_and_data(&boa_gc::MutationContext::global(), proto, iter);
+        let headers_iterator = JsObject::from_proto_and_data(context.gc_collector(), proto, iter);
         Ok(headers_iterator.into())
     }
 }

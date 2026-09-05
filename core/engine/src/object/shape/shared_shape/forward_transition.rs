@@ -72,6 +72,8 @@ impl ForwardTransition {
         properties.map.insert(key, WeakGc::new(mc, value));
     }
 
+    /// Insert a property transition.
+
     /// Insert a prototype transition using the given context.
     pub(super) fn insert_prototype(
         &self,
@@ -88,6 +90,8 @@ impl ForwardTransition {
 
         prototypes.map.insert(key, WeakGc::new(mc, value));
     }
+
+    /// Insert a prototype transition.
 
     /// Get a property transition, return [`None`] otherwise.
     #[allow(clippy::cloned_instead_of_copied)]

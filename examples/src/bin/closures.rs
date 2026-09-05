@@ -24,7 +24,7 @@ fn main() -> Result<(), JsError> {
         .register_global_callable(
             JsString::from("closure"),
             0,
-            NativeFunction::from_copy_closure(move |_, _, _| {
+            NativeFunction::from_copy_closure(context.gc_collector(), move |_, _, _| {
                 println!("Called `closure`");
                 // `variable` is captured from the main function.
                 println!("variable = {variable}");
@@ -72,6 +72,7 @@ fn main() -> Result<(), JsError> {
         context.realm(),
         context.gc_collector(),
         NativeFunction::from_copy_closure_with_captures(
+            context.gc_collector(),
             |_, _, captures, context| {
                 let mut captures = captures.borrow_mut();
                 let BigStruct { greeting, object } = &mut *captures;
@@ -80,15 +81,16 @@ fn main() -> Result<(), JsError> {
                 let name = object.get(js_string!("name"), context)?;
 
                 // We create a new message from our captured variable.
+                let greeting_ref: &JsString = greeting;
                 let message = js_string!(
                     &js_string!("message from `"),
                     &name.to_string(context)?,
                     &js_string!("`: "),
-                    &*greeting
+                    greeting_ref
                 );
 
                 // We can also mutate the moved data inside the closure.
-                captures.greeting = js_string!(&*greeting, &js_string!(" Hello!"));
+                captures.greeting = js_string!(greeting_ref, &js_string!(" Hello!"));
 
                 println!("{}", message.to_std_string_escaped());
                 println!();
@@ -149,7 +151,7 @@ fn main() -> Result<(), JsError> {
             // Note that it is required to use `unsafe` code, since the compiler cannot verify that the
             // types captured by the closure are not traceable.
             unsafe {
-                NativeFunction::from_closure(move |_, _, context| {
+                NativeFunction::from_closure(context.gc_collector(), move |_, _, context| {
                     println!("Called `enumerate`");
                     // `index` is captured from the main function.
                     println!("index = {}", index.get());

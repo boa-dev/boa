@@ -95,13 +95,28 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let object = this.as_object();
-        let mut array_iterator = object
-            .as_ref()
-            .and_then(JsObject::downcast_mut::<Self>)
+        let object = this
+            .as_object()
+            .filter(|o| o.is::<Self>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
-        let index = array_iterator.next_index;
-        if array_iterator.done {
+
+        // Extract needed fields into a scoped block so the RefMut borrow is dropped
+        // before any context call. Holding a RefMut<'_, T> across context operations
+        // is a use-after-free: GC can collect the backing object while the guard is live.
+        let (index, done, array, kind) = {
+            let array_iterator = object
+                .downcast_ref::<Self>()
+                .expect("already checked that it is an ArrayIterator");
+            (
+                array_iterator.next_index,
+                array_iterator.done,
+                array_iterator.array.clone(),
+                array_iterator.kind,
+            )
+        };
+        // RefMut dropped here — safe to use context below.
+
+        if done {
             return Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
@@ -109,7 +124,7 @@ impl ArrayIterator {
             ));
         }
 
-        let len = if let Some(f) = array_iterator.array.downcast_ref::<TypedArray>() {
+        let len = if let Some(f) = array.downcast_ref::<TypedArray>() {
             let buf = f.viewed_array_buffer().as_buffer();
             let Some(buf) = buf
                 .bytes(std::sync::atomic::Ordering::SeqCst)
@@ -122,26 +137,32 @@ impl ArrayIterator {
 
             f.array_length(buf.len())
         } else {
-            array_iterator.array.length_of_array_like(context)?
+            array.length_of_array_like(context)?
         };
 
         if index >= len {
-            array_iterator.done = true;
+            object.downcast_mut::<Self>().expect("already checked").done = true;
             return Ok(create_iter_result_object(
                 JsValue::undefined(),
                 true,
                 context,
             ));
         }
-        array_iterator.next_index = index + 1;
-        match array_iterator.kind {
+
+        // Write back the incremented index (no borrow held during context calls above).
+        object
+            .downcast_mut::<Self>()
+            .expect("already checked")
+            .next_index = index + 1;
+
+        match kind {
             PropertyNameKind::Key => Ok(create_iter_result_object(index.into(), false, context)),
             PropertyNameKind::Value => {
-                let element_value = array_iterator.array.get(index, context)?;
+                let element_value = array.get(index, context)?;
                 Ok(create_iter_result_object(element_value, false, context))
             }
             PropertyNameKind::KeyAndValue => {
-                let element_value = array_iterator.array.get(index, context)?;
+                let element_value = array.get(index, context)?;
                 let result = Array::create_array_from_list([index.into(), element_value], context);
                 Ok(create_iter_result_object(result.into(), false, context))
             }

@@ -37,6 +37,8 @@ impl ObjectTemplate {
         Self { shape }
     }
 
+    /// Create and [`ObjectTemplate`] with a prototype.
+
     /// Check if the shape has a specific, prototype.
     pub(crate) fn has_prototype(&self, prototype: &JsObject) -> bool {
         self.shape.has_prototype(prototype)
@@ -53,6 +55,10 @@ impl ObjectTemplate {
         self.shape = self.shape.change_prototype_transition(mc, Some(prototype));
         self
     }
+
+    /// Set the prototype of the [`ObjectTemplate`].
+    ///
+    /// This assumes that the prototype has not been set yet.
 
     /// Returns the inner shape of the [`ObjectTemplate`].
     pub(crate) const fn shape(&self) -> &SharedShape {
@@ -78,6 +84,11 @@ impl ObjectTemplate {
         self.shape = self.shape.insert_property_transition(mc, transition);
         self
     }
+
+    /// Add a data property to the [`ObjectTemplate`].
+    ///
+    /// This assumes that the property with the given key was not previously set
+    /// and that it's a string or symbol.
 
     /// Add a accessor property to the [`ObjectTemplate`].
     ///
@@ -121,6 +132,11 @@ impl ObjectTemplate {
         self
     }
 
+    /// Add a accessor property to the [`ObjectTemplate`].
+    ///
+    /// This assumes that the property with the given key was not previously set
+    /// and that it's a string or symbol.
+
     /// Create an object from the [`ObjectTemplate`] using the given context.
     pub(crate) fn create<T: NativeObject>(
         &self,
@@ -130,11 +146,13 @@ impl ObjectTemplate {
     ) -> JsObject {
         let internal_methods = data.internal_methods();
 
-        let mut properties =
-            PropertyMap::new(self.shape.clone().into(), IndexedProperties::default());
+        let mut properties = PropertyMap::new(
+            self.shape.clone().into(),
+            crate::object::IndexedProperties::default(),
+        );
         properties.storage = storage;
 
-        let object = Object {
+        let mut object = Object {
             data: ObjectData::new(data),
             extensible: true,
             properties,
@@ -143,6 +161,10 @@ impl ObjectTemplate {
 
         JsObject::from_object_and_vtable(mc, object, internal_methods)
     }
+
+    /// Create an object from the [`ObjectTemplate`]
+    ///
+    /// The storage must match the properties provided.
 
     /// Create an object from the [`ObjectTemplate`]
     ///

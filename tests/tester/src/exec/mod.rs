@@ -515,6 +515,9 @@ impl Test {
             },
         );
 
+        // Force GC collection to prevent memory exhaustion when running tens of thousands of tests.
+        boa_engine::gc::force_collect();
+
         self.create_result(result, result_text, strict, verbosity)
     }
 
@@ -628,7 +631,7 @@ fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
         context.gc_collector(),
         // SAFETY: `AsyncResult` has only non-traceable captures, making this safe.
         unsafe {
-            NativeFunction::from_closure(move |_, args, context| {
+            NativeFunction::from_closure(context.gc_collector(), move |_, args, context| {
                 let message = args
                     .get_or_undefined(0)
                     .to_string(context)?
