@@ -1,0 +1,33 @@
+---
+source: tests/insta-bytecode/src/lib.rs
+expression: output
+input_file: tests/insta-bytecode/scripts/with-statement-call.js
+---
+-------------------------- Compiled Output: '<main>' ---------------------------
+Location     Handler      Opcode                            Operands
+  000000                    StoreEmptyObject                  dst:r01
+  000005                    GetFunction                       index:0, dst:r02
+  00000e                    SetHomeObject                     function:r02, home:r01
+  000017                    DefineOwnPropertyByName           object:r01, value:r02, name_index:1
+  000024                    PushObjectEnvironment             src:r01
+  000029                    GetNameAndLocator                 dst:r03, binding_index:0
+  000032                    ThisForObjectEnvironmentName      dst:r02
+  000037                    PushFromRegister                  src:r02
+  00003c                    PushFromRegister                  src:r03
+  000041                    Call                              argument_count:0
+  000046                    PopIntoRegister                   dst:r01
+  00004b                    SetAccumulator                    src:r01
+  000050                    PopEnvironment                    
+  000051                    CheckReturn                       
+  000052                    Return                            
+
+Register Count: 4, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants:
+    0000: [FUNCTION] name: 'fn' (length: 0)
+    0001: [STRING] "fn"
+    0002: [SCOPE] index: 1, bindings: 0
+Bindings:
+    0000: fn, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 65..75: (8, 5)
