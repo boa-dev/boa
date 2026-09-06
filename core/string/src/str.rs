@@ -332,7 +332,12 @@ impl<'a> JsStr<'a> {
             (Some(b'0'), Some(b'o' | b'O')) => Some(8),
             (Some(b'0'), Some(b'x' | b'X')) => Some(16),
             // Make sure that no further variants of "infinity" are parsed.
-            (Some(b'i' | b'I'), _) => {
+            //
+            // `Infinity`, `+Infinity` and `-Infinity` are the only spellings accepted by
+            // `StrUnsignedDecimalLiteral`, and all three already returned above. Anything else
+            // starting with `i` or `I`, with or without a sign, is not a `StringNumericLiteral`,
+            // but `fast_float2` would still parse it as an infinity.
+            (Some(b'i' | b'I'), _) | (Some(b'+' | b'-'), Some(b'i' | b'I')) => {
                 return f64::NAN;
             }
             _ => None,
@@ -341,7 +346,12 @@ impl<'a> JsStr<'a> {
         // Parse numbers that begin with `0b`, `0o` and `0x`.
         if let Some(base) = base {
             let string = &string[2..];
-            if string.is_empty() {
+
+            // A `NonDecimalIntegerLiteral` is a bare sequence of digits. A sign is only part of
+            // `StrDecimalLiteral`, which cannot carry a `0b`, `0o` or `0x` prefix, so a sign here
+            // makes the whole string invalid. `u32::from_str_radix` accepts a leading `+`, so
+            // without this check `0x+1` would parse as `1`.
+            if string.is_empty() || string.starts_with(['+', '-']) {
                 return f64::NAN;
             }
 
