@@ -67,12 +67,34 @@ pub(crate) enum JumpRecordAction {
     },
 }
 
+/// Where an explicit `return` value is stored while `finally` blocks execute.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ReturnValueLocation {
+    /// On the value stack.
+    ///
+    /// Used when the `return` doesn't pass through any `finally` block, so no
+    /// abrupt completion can interleave and leave stale values behind.
+    OnStack,
+    /// In the function-level pending-return register (see
+    /// [`ByteCompiler::pending_return_slot`]).
+    ///
+    /// Used when the `return` passes through a `finally` block, since abrupt
+    /// completions inside `finally` (e.g. `break`) skip the jump-table handler
+    /// that would pop a stack slot.
+    InSlot(u32),
+    /// In the accumulator.
+    ///
+    /// Used for implicit function returns, where the completion value is
+    /// already in the accumulator.
+    InAccumulator,
+}
+
 /// Local Control flow type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum JumpRecordKind {
     Break,
     Continue,
-    Return { return_value_on_stack: bool },
+    Return { value_location: ReturnValueLocation },
 }
 
 /// This represents a local control flow handling. See [`JumpRecordKind`] for types.
@@ -135,14 +157,18 @@ impl JumpRecord {
         match self.kind {
             JumpRecordKind::Break => compiler.patch_jump(self.label),
             JumpRecordKind::Continue => compiler.patch_jump_with_target(self.label, start_address),
-            JumpRecordKind::Return {
-                return_value_on_stack,
-            } => {
-                if return_value_on_stack {
-                    let value = compiler.register_allocator.alloc();
-                    compiler.pop_into_register(&value);
-                    compiler.bytecode.emit_set_accumulator(value.variable());
-                    compiler.register_allocator.dealloc(value);
+            JumpRecordKind::Return { value_location } => {
+                match value_location {
+                    ReturnValueLocation::OnStack => {
+                        let value = compiler.register_allocator.alloc();
+                        compiler.pop_into_register(&value);
+                        compiler.bytecode.emit_set_accumulator(value.variable());
+                        compiler.register_allocator.dealloc(value);
+                    }
+                    ReturnValueLocation::InSlot(slot) => {
+                        compiler.bytecode.emit_set_accumulator(slot.into());
+                    }
+                    ReturnValueLocation::InAccumulator => {}
                 }
 
                 match (compiler.is_async(), compiler.is_generator()) {

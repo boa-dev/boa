@@ -202,12 +202,28 @@ impl ByteCompiler<'_> {
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally) {
         // TODO: We could probably remove the Get/SetAccumulatorFromStack if we check that there is no break/continues statements.
+        //
+        // Preserve a pending explicit `return` value across the `finally` block.
+        // Abrupt completions inside `finally` skip the restore, which correctly
+        // discards the pending value.
+        let slot_save = self.pending_return_slot.map(|slot| {
+            let saved = self.register_allocator.alloc();
+            self.bytecode.emit_move(saved.variable(), slot.into());
+            saved
+        });
         let value = self.register_allocator.alloc();
         self.bytecode
             .emit_set_register_from_accumulator(value.variable());
         self.compile_catch_finally_block(finally.block(), false);
         self.bytecode.emit_set_accumulator(value.variable());
         self.register_allocator.dealloc(value);
+        if let Some(saved) = slot_save {
+            let slot = self
+                .pending_return_slot
+                .expect("pending return slot must still exist");
+            self.bytecode.emit_move(slot.into(), saved.variable());
+            self.register_allocator.dealloc(saved);
+        }
     }
 
     /// Compile a catch or finally block.
