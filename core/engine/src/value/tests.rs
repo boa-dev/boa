@@ -210,7 +210,7 @@ fn string_length_is_not_enumerable() {
             )
             .unwrap()
             .unwrap();
-        !length_desc.expect_enumerable()
+        !length_desc.enumerable()
     })]);
 }
 
@@ -228,7 +228,8 @@ fn string_length_is_in_utf16_codeunits() {
             .unwrap()
             .unwrap();
         length_desc
-            .expect_value()
+            .value()
+            .expect("length should be data property descriptor")
             .to_integer_or_infinity(context)
             .unwrap()
             == IntegerOrInfinity::Integer(2)
