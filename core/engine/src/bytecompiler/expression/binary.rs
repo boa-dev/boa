@@ -1,6 +1,6 @@
 use crate::{
     bytecompiler::{ByteCompiler, Label, Register},
-    vm::opcode::RegisterOperand,
+    vm::operands::RegisterOperand,
 };
 use boa_ast::{
     Expression,

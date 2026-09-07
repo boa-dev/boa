@@ -1,6 +1,6 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
-expression: output
+expression: "*trace_sink.borrow()"
 input_file: tests/insta-bytecode/scripts/if-ternary-branch.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
@@ -51,3 +51,5 @@ Source Map:
     0001: 93..108: (16, 3)
     0002: 108..183: (21, 1)
     0003: 183..198: (25, 3)
+
+Evaluation result: 3

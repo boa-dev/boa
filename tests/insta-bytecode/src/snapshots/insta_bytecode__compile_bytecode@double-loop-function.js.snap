@@ -1,6 +1,6 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
-expression: output
+expression: "*trace_sink.borrow()"
 input_file: tests/insta-bytecode/scripts/double-loop-function.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
@@ -42,3 +42,25 @@ Source Map:
     0000: 16..55: (5, 25)
     0001: 55..101: (6, 27)
     0002: 101..112: (7, 6)
+
+----------------------------- Compiled Output: 'f' -----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    GetArgument                       index:0, dst:r01
+  000009                    Move                              src:r01, dst:r02
+  000012                    Mul                               lhs:r02, rhs:r02, dst:r01
+  00001f                    PushFromRegister                  src:r01
+  000024                    PopIntoRegister                   dst:r01
+  000029                    SetAccumulator                    src:r01
+  00002e                    CheckReturn                       
+  00002f                    Return                            
+  000030                    CheckReturn                       
+  000031                    Return                            
+
+Register Count: 3, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
+Constants: <empty>
+Bindings: <empty>
+Handlers: <empty>
+Source Map:
+    0000: 18..48: (1, 15)
+
+Evaluation result: undefined

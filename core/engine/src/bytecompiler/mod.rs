@@ -47,7 +47,8 @@ use crate::{
     vm::{
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
         Handler, InlineCache,
-        opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
+        opcode::{BindingOpcode, BytecodeEmitter},
+        operands::{Address, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };

@@ -1,6 +1,6 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
-expression: output
+expression: "*trace_sink.borrow()"
 input_file: tests/insta-bytecode/scripts/basic-loop.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
@@ -21,3 +21,5 @@ Bindings: <empty>
 Handlers: <empty>
 Source Map:
     0000: 16..25: (1, 26)
+
+Evaluation result: undefined

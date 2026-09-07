@@ -1,6 +1,6 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
-expression: output
+expression: "*trace_sink.borrow()"
 input_file: tests/insta-bytecode/scripts/new.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
@@ -22,7 +22,7 @@ Location     Handler      Opcode                            Operands
   000062                    PushFromRegister                  src:r06
   000067                    New                               argument_count:1
   00006c                    PopIntoRegister                   dst:r04
-  000071                    GetPropertyByName                 dst:r05, value:r04, ic:(name:map entries:())
+  000071                    GetPropertyByName                 dst:r05, value:r04, ic:1
   00007e                    PushFromRegister                  src:r04
   000083                    PushFromRegister                  src:r05
   000088                    GetFunction                       index:4, dst:r04
@@ -31,7 +31,7 @@ Location     Handler      Opcode                            Operands
   00009b                    PopIntoRegister                   dst:r03
   0000a0                    GetIterator                       src:r03
   0000a5                    PushIteratorToArray               array:r02
-  0000aa                    GetLengthProperty                 dst:r01, value:r02, ic:(name:length entries:())
+  0000aa                    GetLengthProperty                 dst:r01, value:r02, ic:2
   0000b7                    SetAccumulator                    src:r01
   0000bc                    CheckReturn                       
   0000bd                    Return                            
@@ -55,3 +55,40 @@ Source Map:
     0002: 113..136: (3, 52)
     0003: 136..160: (3, 27)
     0004: 160..183: (3, 52)
+
+------------------------- Compiled Output: 'SomeClass' -------------------------
+Location     Handler      Opcode                            Operands
+  000000                    StoreUndefined                    dst:r01
+  000005                    SetAccumulator                    src:r01
+  00000a                    CheckReturn                       
+  00000b                    Return                            
+
+Register Count: 2, Flags: CodeBlockFlags(STRICT | IS_CLASS_CONSTRUCTOR | HAS_PROTOTYPE_PROPERTY | HAS_FUNCTION_SCOPE)
+Constants:
+    0000: [SCOPE] index: 2, bindings: 0
+Bindings: <empty>
+Handlers: <empty>
+Source Map: <empty>
+
+-------------------------- Compiled Output: [anon#18] --------------------------
+Location     Handler      Opcode                            Operands
+  000000                    GetName                           dst:r01, binding_index:0
+  000009                    PushFromRegister                  src:r00
+  00000e                    PushFromRegister                  src:r01
+  000013                    New                               argument_count:0
+  000018                    PopIntoRegister                   dst:r01
+  00001d                    SetAccumulator                    src:r01
+  000022                    CheckReturn                       
+  000023                    Return                            
+  000024                    CheckReturn                       
+  000025                    Return                            
+
+Register Count: 2, Flags: CodeBlockFlags(0x0)
+Constants: <empty>
+Bindings:
+    0000: SomeClass, scope: GlobalDeclarative
+Handlers: <empty>
+Source Map:
+    0000: 0..36: (3, 34)
+
+Evaluation result: 100000

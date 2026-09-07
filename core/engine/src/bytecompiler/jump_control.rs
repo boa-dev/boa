@@ -12,7 +12,7 @@
 use super::Register;
 use crate::{
     bytecompiler::{ByteCompiler, Label},
-    vm::{CallFrame, Handler, opcode::Address},
+    vm::{CallFrame, Handler, operands::Address},
 };
 use bitflags::bitflags;
 use boa_interner::Sym;

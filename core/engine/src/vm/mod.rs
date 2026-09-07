@@ -20,7 +20,12 @@ use shadow_stack::ShadowStack;
 use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
 
 #[cfg(feature = "trace")]
+pub use trace::{EmptyTracer, StdoutTracer, VirtualMachineEvent, VirtualMachineTracer};
+
+#[cfg(feature = "trace")]
 use crate::sys::time::Instant;
+
+pub use operands::{Address, IndexOperand, RegisterOperand};
 
 #[allow(unused_imports)]
 pub(crate) use opcode::{Instruction, InstructionIterator, Opcode};
@@ -52,6 +57,13 @@ mod runtime_limits;
 pub(crate) mod opcode;
 pub(crate) mod shadow_stack;
 pub(crate) mod source_info;
+
+/// Operand types specific to Boa's virtual machine
+pub mod operands;
+
+/// Boa's virtual machine tracing types and logic
+#[cfg(feature = "trace")]
+pub mod trace;
 
 #[cfg(feature = "flowgraph")]
 pub mod flowgraph;
@@ -98,8 +110,10 @@ pub struct Vm {
 
     #[cfg(feature = "trace")]
     pub(crate) trace: bool,
+
+    /// A tracer registered to emit VM events
     #[cfg(feature = "trace")]
-    pub(crate) current_frame: Option<*const CallFrame>,
+    pub(crate) tracer: Box<dyn VirtualMachineTracer>,
 }
 
 /// The stack holds the [`JsValue`]s for the calling convention and registers.
@@ -273,104 +287,6 @@ impl Stack {
         let index = self.stack.len() - existing_argument_count;
         self.stack.splice(index..index, arguments.iter().cloned());
     }
-
-    #[cfg(feature = "trace")]
-    const MAX_VALUE_LEN: usize = 18;
-    #[cfg(feature = "trace")]
-    const MAX_STACK_WIDTH: usize = 68;
-
-    #[cfg(feature = "trace")]
-    fn raw_value(value: &JsValue) -> String {
-        match value {
-            v if v.is_callable() => "func".to_string(),
-            v if v.is_object() => "obj".to_string(),
-            v if v.is_undefined() => "und".to_string(),
-            v if v.is_null() => "null".to_string(),
-            v => v.display().to_string(),
-        }
-    }
-
-    #[cfg(feature = "trace")]
-    fn truncate_display(val: &str) -> String {
-        if val.len() <= Self::MAX_VALUE_LEN {
-            return val.to_string();
-        }
-        let mut end = Self::MAX_VALUE_LEN - 2;
-        while !val.is_char_boundary(end) && end > 0 {
-            end -= 1;
-        }
-        format!("{}..", &val[..end])
-    }
-
-    #[cfg(feature = "trace")]
-    fn display_trace(&self, frame: &CallFrame, frame_count: usize) -> String {
-        let total = self.stack.len();
-        if total == 0 {
-            return "[ <empty> ]".to_string();
-        }
-
-        let mut groups: Vec<(String, usize, Option<usize>)> = Vec::new();
-        let mut force_truncate = false;
-
-        // Lazily group values to avoid eagerly evaluating `raw_value` for the entire stack.
-        for (idx, v) in self.stack.iter().enumerate().rev() {
-            let is_frame = frame.frame_pointer() == idx;
-            let raw = Self::raw_value(v);
-
-            if !is_frame
-                && let Some(last) = groups.last_mut()
-                && last.0 == raw
-                && last.2.is_none()
-            {
-                last.1 += 1;
-            } else {
-                let marker = if is_frame { Some(frame_count) } else { None };
-                groups.push((raw, 1, marker));
-
-                // If groups is large enough to mathematically guarantee overflowing the display width,
-                // we can stop evaluating to save instruction budget / time.
-                if groups.len() > Self::MAX_STACK_WIDTH / 2 {
-                    force_truncate = true;
-                    break;
-                }
-            }
-        }
-
-        let mut string = String::from("[ ");
-        let mut truncated = force_truncate;
-        let suffix = format!(".. ({total} total) ]");
-
-        for (i, (val, count, marker)) in groups.iter().enumerate() {
-            let display_val = Self::truncate_display(val);
-            let part = if *count > 1 {
-                format!("{display_val} (x{count})")
-            } else {
-                display_val
-            };
-
-            let separator = if let Some(fc) = marker {
-                format!(" |{fc}|")
-            } else if i + 1 < groups.len() {
-                ",".to_string()
-            } else {
-                String::new()
-            };
-
-            let addition = format!("{part}{separator} ");
-            if string.len() + addition.len() + suffix.len() > Self::MAX_STACK_WIDTH {
-                truncated = true;
-                break;
-            }
-            string.push_str(&addition);
-        }
-
-        if truncated {
-            string.push_str(&suffix);
-        } else {
-            string.push(']');
-        }
-        string
-    }
 }
 
 /// Active runnable in the current vm context.
@@ -423,8 +339,10 @@ impl Vm {
             shadow_stack: ShadowStack::default(),
             #[cfg(feature = "trace")]
             trace: false,
-            #[cfg(feature = "trace")]
-            current_frame: None,
+            #[cfg(all(feature = "trace", not(feature = "trace-stdout")))]
+            tracer: Box::new(EmptyTracer),
+            #[cfg(feature = "trace-stdout")]
+            tracer: Box::new(StdoutTracer),
         }
     }
 
@@ -675,49 +593,46 @@ impl Vm {
     }
 }
 
-#[allow(clippy::print_stdout)]
 #[cfg(feature = "trace")]
 impl Context {
-    const COLUMN_WIDTH: usize = 26;
-    const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
-    const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const NUMBER_OF_COLUMNS: usize = 4;
+    /// Sets the `Vm` tracer to the provided `VirtualMachineTracer` implementation
+    pub fn set_virtual_machine_tracer(&mut self, tracer: Box<dyn VirtualMachineTracer>) {
+        self.vm.tracer = tracer;
+    }
+
+    pub(crate) fn walk_code_block(&self, code_block: &Gc<CodeBlock>) {
+        use crate::vm::trace::CallFrameMessage;
+        if !code_block.traced.get() {
+            let call_frame_message = CallFrameMessage {
+                bytecode: code_block.to_string(),
+            };
+            self.vm
+                .tracer
+                .emit_event(VirtualMachineEvent::CallFrameTrace(call_frame_message));
+            code_block.traced.set(true);
+
+            for constant in &code_block.constants {
+                if let Constant::Function(code_block) = constant {
+                    self.walk_code_block(code_block);
+                }
+            }
+        }
+    }
 
     pub(crate) fn trace_call_frame(&self) {
+        use crate::vm::trace::{CallFrameName, ExecutionStartMessage, VirtualMachineEvent};
         let frame = self.vm.frame();
-        let msg = if self.vm.frames.is_empty() {
-            " VM Start ".to_string()
+        self.walk_code_block(frame.code_block());
+        let call_frame_name = if self.vm.frames.is_empty() {
+            CallFrameName::Global
         } else {
-            format!(
-                " Call Frame '{}'{} ",
-                frame.code_block().name().to_std_string_escaped(),
-                if frame.code_block().name().is_empty() {
-                    format!(" [anon#{}]", frame.code_block().debug_id)
-                } else {
-                    String::new()
-                }
-            )
+            CallFrameName::Name(frame.code_block().name().to_std_string_escaped())
         };
-
-        // Only print a functions compiled output if it has not been printed already
-        if !frame.code_block.traced.get() {
-            println!("{}", frame.code_block);
-            frame.code_block.traced.set(true);
-        }
-        println!(
-            "{msg:-^width$}",
-            width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
-        );
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-            "Time",
-            "Opcode",
-            "Operands",
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
+        self.vm
+            .tracer
+            .emit_event(VirtualMachineEvent::ExecutionStart(ExecutionStartMessage {
+                call_frame_name,
+            }));
     }
 
     fn trace_execute_instruction<F>(
@@ -728,40 +643,50 @@ impl Context {
     where
         F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
-        if self.vm.current_frame != Some(self.vm.frame()) {
-            println!();
-            self.trace_call_frame();
-            self.vm.current_frame = Some(self.vm.frame());
-        }
+        use crate::vm::operands::OperandsShape;
+        use crate::vm::trace::{OpcodeExecutionMessage, VirtualMachineEvent, VmStackTrace};
+
         let frame = self.vm.frame();
         let (instruction, _) = frame
             .code_block
             .bytecode
             .next_instruction(frame.pc as usize);
-        let operands = self
-            .vm
-            .frame()
-            .code_block()
-            .instruction_operands(&instruction);
+        let operands = OperandsShape::from_instruction(&instruction);
 
         let instant = Instant::now();
         let result = self.execute_instruction(f, opcode);
         let duration = instant.elapsed();
 
-        let stack = self
-            .vm
-            .stack
-            .display_trace(self.vm.frame(), self.vm.frames.len() - 1);
+        match opcode {
+            Opcode::Call
+            | Opcode::CallSpread
+            | Opcode::CallEval
+            | Opcode::CallEvalSpread
+            | Opcode::New
+            | Opcode::NewSpread
+            | Opcode::Return
+            | Opcode::SuperCall
+            | Opcode::SuperCallSpread
+            | Opcode::SuperCallDerived => {
+                self.vm
+                    .tracer
+                    .emit_event(VirtualMachineEvent::ExecutionCallEvent);
+            }
+            _ => {}
+        }
 
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
-            format!("{}μs", duration.as_micros()),
-            opcode.as_str().to_string(),
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
+        let stack_trace = VmStackTrace::new(&self.vm);
 
+        self.vm
+            .tracer
+            .emit_event(VirtualMachineEvent::ExecutionTrace(
+                OpcodeExecutionMessage {
+                    opcode: opcode.as_str(),
+                    duration,
+                    operands,
+                    stack_trace,
+                },
+            ));
         result
     }
 }
@@ -953,6 +878,11 @@ impl Context {
     pub(crate) async fn run_async_with_budget(&mut self, budget: u32) -> CompletionRecord {
         let mut runtime_budget: u32 = budget;
 
+        #[cfg(feature = "trace")]
+        if self.vm.trace {
+            self.trace_call_frame();
+        }
+
         while let Some(byte) = self
             .vm
             .frame()
@@ -986,6 +916,11 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
+        #[cfg(feature = "trace")]
+        if self.vm.trace {
+            self.trace_call_frame();
+        }
+
         while let Some(byte) = self
             .vm
             .frame()

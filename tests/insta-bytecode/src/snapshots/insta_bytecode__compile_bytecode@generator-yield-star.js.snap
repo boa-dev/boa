@@ -1,6 +1,6 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
-expression: output
+expression: "*trace_sink.borrow()"
 input_file: tests/insta-bytecode/scripts/generator-yield-star.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
@@ -8,10 +8,10 @@ Location     Handler      Opcode                            Operands
   000000                    GetLocator                        binding_index:0
   000005                    StoreEmptyObject                  dst:r01
   00000a                    GetNameGlobal                     dst:r03, binding_index:1, ic_index:0
-  000017                    GetPropertyByName                 dst:r02, value:r03, ic:(name:asyncIterator entries:())
+  000017                    GetPropertyByName                 dst:r02, value:r03, ic:1
   000024                    ToPropertyKey                     src:r02, dst:r02
   00002d                    GetFunction                       index:4, dst:r03
-  000036                    SetFunctionName                   function:r03, name:r02, prefix:prefix:
+  000036                    SetFunctionName                   function:r03, name:r02, prefix:
   000043                    SetHomeObject                     function:r03, home:r01
   00004c                    DefineOwnPropertyByValue          object:r01, key:r02, value:r03
   000059                    SetNameByLocator                  src:r01
@@ -31,3 +31,198 @@ Bindings:
 Handlers: <empty>
 Source Map:
     0000: 10..36: (2, 11)
+
+---------------------------- Compiled Output: 'gen' ----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    AsyncGenerator                    
+  000001                    Pop                               
+  000002    > 0: 000367     GetNameGlobal                     dst:r05, binding_index:0, ic_index:0
+  00000f      0: 000367     GetAsyncIterator                  src:r05
+  000014      0: 000367     StoreUndefined                    dst:r05
+  000019      0: 000367     StoreZero                         dst:r06
+  00001e      0: 000367     IteratorPop                       iterator:r08, next:r09
+  000027      0: 000367     JumpTable                         index:6, jump_table:(000076, 000099)
+  000038      0: 000367     Move                              src:r08, dst:r07
+  000041      0: 000367     GetMethod                         object:r07, name_index:0
+  00004a      0: 000367     JumpIfNullOrUndefined             value:r07, address:0001d5
+  000053      0: 000367     PushFromRegister                  src:r08
+  000058      0: 000367     PushFromRegister                  src:r07
+  00005d      0: 000367     PushFromRegister                  src:r05
+  000062      0: 000367     Call                              argument_count:1
+  000067      0: 000367     StoreTrue                         dst:r07
+  00006c      0: 000367     PopIntoRegister                   dst:r05
+  000071      0: 000367     Jump                              address:0000e0
+  000076      0: 000367     PushFromRegister                  src:r08
+  00007b      0: 000367     PushFromRegister                  src:r09
+  000080      0: 000367     PushFromRegister                  src:r05
+  000085      0: 000367     Call                              argument_count:1
+  00008a      0: 000367     StoreFalse                        dst:r07
+  00008f      0: 000367     PopIntoRegister                   dst:r05
+  000094      0: 000367     Jump                              address:0000e0
+  000099      0: 000367     Move                              src:r08, dst:r07
+  0000a2      0: 000367     GetMethod                         object:r07, name_index:1
+  0000ab      0: 000367     JumpIfNotUndefined                value:r07, address:0000c2
+  0000b4      0: 000367     IteratorPush                      iterator:r08, next:r09
+  0000bd      0: 000367     Jump                              address:0002ae
+  0000c2      0: 000367     PushFromRegister                  src:r08
+  0000c7      0: 000367     PushFromRegister                  src:r07
+  0000cc      0: 000367     PushFromRegister                  src:r05
+  0000d1      0: 000367     Call                              argument_count:1
+  0000d6      0: 000367     StoreFalse                        dst:r07
+  0000db      0: 000367     PopIntoRegister                   dst:r05
+  0000e0      0: 000367     IteratorPush                      iterator:r08, next:r09
+  0000e9      0: 000367     Await                             src:r05
+  0000ee      0: 000367     PopIntoRegister                   dst:r06
+  0000f3      0: 000367     PopIntoRegister                   dst:r05
+  0000f8      0: 000367     StoreOne                          dst:r08
+  0000fd      0: 000367     JumpIfNotEqual                    lhs:r08, rhs:r06, address:000118
+  00010a      0: 000367     IteratorPop                       iterator:r06, next:r06
+  000113      0: 000367     Throw                             src:r05
+  000118      0: 000367     IteratorUpdateResult              result:r05
+  00011d      0: 000367     JumpIfFalse                       value:r05, address:000162
+  000126      0: 000367     IteratorValue                     dst:r05
+  00012b      0: 000367     MaybeException                    has_exception:r09, exception:r08
+  000134      0: 000367     JumpIfFalse                       value:r09, address:00014b
+  00013d      0: 000367     IteratorPop                       iterator:r09, next:r09
+  000146      0: 000367     Throw                             src:r08
+  00014b      0: 000367     IteratorPop                       iterator:r06, next:r06
+  000154      0: 000367     JumpIfTrue                        value:r07, address:0001d5
+  00015d      0: 000367     Jump                              address:000367
+  000162      0: 000367     IteratorValue                     dst:r05
+  000167      0: 000367     MaybeException                    has_exception:r09, exception:r08
+  000170      0: 000367     JumpIfFalse                       value:r09, address:000187
+  000179      0: 000367     IteratorPop                       iterator:r09, next:r09
+  000182      0: 000367     Throw                             src:r08
+  000187      0: 000367     AsyncGeneratorYield               src:r05
+  00018c      0: 000367     PopIntoRegister                   dst:r06
+  000191      0: 000367     PopIntoRegister                   dst:r05
+  000196      0: 000367     StoreInt8                         value:2, dst:r08
+  00019c      0: 000367     JumpIfNotEqual                    lhs:r08, rhs:r06, address:0001d0
+  0001a9      0: 000367     Await                             src:r05
+  0001ae      0: 000367     PopIntoRegister                   dst:r06
+  0001b3      0: 000367     PopIntoRegister                   dst:r05
+  0001b8      0: 000367     StoreZero                         dst:r08
+  0001bd      0: 000367     JumpIfNotEqual                    lhs:r08, rhs:r06, address:0001d0
+  0001ca      0: 000367     StoreInt8                         value:2, dst:r06
+  0001d0      0: 000367     Jump                              address:00001e
+  0001d5      0: 000367     Await                             src:r05
+  0001da      0: 000367     Pop                               
+  0001db      0: 000367     IteratorStackEmpty                dst:r06
+  0001e0      0: 000367     JumpIfTrue                        value:r06, address:0002a2
+  0001e9      0: 000367     StoreFalse                        dst:r07
+  0001ee      0: 000367     IteratorStackEmpty                dst:r08
+  0001f3      0: 000367     JumpIfTrue                        value:r08, address:000251
+  0001fc      0: 000367     IteratorDone                      dst:r08
+  000201      0: 000367     IteratorPop                       iterator:r06, next:r09
+  00020a      0: 000367     JumpIfTrue                        value:r08, address:000251
+  000213      0: 000367     Move                              src:r06, dst:r08
+  00021c      0: 000367     GetMethod                         object:r08, name_index:0
+  000225      0: 000367     JumpIfNullOrUndefined             value:r08, address:000251
+  00022e      0: 000367     PushFromRegister                  src:r06
+  000233      0: 000367     PushFromRegister                  src:r08
+  000238      0: 000367     SetRegisterFromAccumulator        dst:r06
+  00023d      0: 000367     Call                              argument_count:0
+  000242      0: 000367     SetAccumulator                    src:r06
+  000247      0: 000367     PopIntoRegister                   dst:r06
+  00024c      0: 000367     StoreTrue                         dst:r07
+  000251      0: 000367     JumpIfFalse                       value:r07, address:00029d
+  00025a      0: 000367     Await                             src:r06
+  00025f      0: 000367     PopIntoRegister                   dst:r07
+  000264      0: 000367     PopIntoRegister                   dst:r06
+  000269      0: 000367     JumpTable                         index:7, jump_table:(000280, 000285)
+  00027a      0: 000367     SetAccumulator                    src:r06
+  00027f      0: 000367     ReThrow                           
+  000280      0: 000367     Jump                              address:00028a
+  000285      0: 000367     Throw                             src:r06
+  00028a      0: 000367     IsObject                          value:r06
+  00028f      0: 000367     JumpIfTrue                        value:r06, address:00029d
+  000298      0: 000367     ThrowNewTypeError                 message:2
+  00029d      0: 000367     Jump                              address:0001db
+  0002a2      0: 000367     PopIntoRegister                   dst:r06
+  0002a7      0: 000367     SetAccumulator                    src:r06
+  0002ac      0: 000367     AsyncGeneratorClose               
+  0002ad      0: 000367     Return                            
+  0002ae      0: 000367     StoreFalse                        dst:r07
+  0002b3      0: 000367     IteratorStackEmpty                dst:r08
+  0002b8      0: 000367     JumpIfTrue                        value:r08, address:000316
+  0002c1      0: 000367     IteratorDone                      dst:r08
+  0002c6      0: 000367     IteratorPop                       iterator:r06, next:r09
+  0002cf      0: 000367     JumpIfTrue                        value:r08, address:000316
+  0002d8      0: 000367     Move                              src:r06, dst:r08
+  0002e1      0: 000367     GetMethod                         object:r08, name_index:0
+  0002ea      0: 000367     JumpIfNullOrUndefined             value:r08, address:000316
+  0002f3      0: 000367     PushFromRegister                  src:r06
+  0002f8      0: 000367     PushFromRegister                  src:r08
+  0002fd      0: 000367     SetRegisterFromAccumulator        dst:r06
+  000302      0: 000367     Call                              argument_count:0
+  000307      0: 000367     SetAccumulator                    src:r06
+  00030c      0: 000367     PopIntoRegister                   dst:r06
+  000311      0: 000367     StoreTrue                         dst:r07
+  000316      0: 000367     JumpIfFalse                       value:r07, address:000362
+  00031f      0: 000367     Await                             src:r06
+  000324      0: 000367     PopIntoRegister                   dst:r07
+  000329      0: 000367     PopIntoRegister                   dst:r06
+  00032e      0: 000367     JumpTable                         index:7, jump_table:(000345, 00034a)
+  00033f      0: 000367     SetAccumulator                    src:r06
+  000344      0: 000367     ReThrow                           
+  000345      0: 000367     Jump                              address:00034f
+  00034a      0: 000367     Throw                             src:r06
+  00034f      0: 000367     IsObject                          value:r06
+  000354      0: 000367     JumpIfTrue                        value:r06, address:000362
+  00035d      0: 000367     ThrowNewTypeError                 message:2
+  000362    < 0: 000367     ThrowNewTypeError                 message:3
+  000367                    AsyncGeneratorClose               
+  000368                    Return                            
+
+Register Count: 10, Flags: CodeBlockFlags(IS_ASYNC | IS_GENERATOR)
+Constants:
+    0000: [STRING] "return"
+    0001: [STRING] "throw"
+    0002: [STRING] "inner result was not an object"
+    0003: [STRING] "iterator does not have a throw method"
+Bindings:
+    0000: obj, scope: GlobalObject
+Handlers:
+    0000: Range: [000002, 000367): Handler: 000367, Environment: 00
+Source Map:
+    0000: 2..871: (11, 23)
+
+-------------------------- Compiled Output: [anon#8] ---------------------------
+Location     Handler      Opcode                            Operands
+  000000                    StoreEmptyObject                  dst:r01
+  000005                    GetFunction                       index:0, dst:r02
+  00000e                    SetHomeObject                     function:r02, home:r01
+  000017                    DefineOwnPropertyByName           object:r01, value:r02, name_index:1
+  000024                    PushFromRegister                  src:r01
+  000029                    PopIntoRegister                   dst:r01
+  00002e                    SetAccumulator                    src:r01
+  000033                    CheckReturn                       
+  000034                    Return                            
+  000035                    CheckReturn                       
+  000036                    Return                            
+
+Register Count: 3, Flags: CodeBlockFlags(0x0)
+Constants:
+    0000: [FUNCTION] name: 'next' (length: 0)
+    0001: [STRING] "next"
+Bindings: <empty>
+Handlers: <empty>
+Source Map:
+    0000: 0..53: (2, 28)
+
+--------------------------- Compiled Output: 'next' ----------------------------
+Location     Handler      Opcode                            Operands
+  000000                    GetNameGlobal                     dst:r01, binding_index:0, ic_index:0
+  00000d                    Throw                             src:r01
+  000012                    CheckReturn                       
+  000013                    Return                            
+
+Register Count: 2, Flags: CodeBlockFlags(0x0)
+Constants: <empty>
+Bindings:
+    0000: reason, scope: GlobalObject
+Handlers: <empty>
+Source Map:
+    0000: 0..18: (5, 15)
+
+Evaluation result: undefined

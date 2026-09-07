@@ -15,7 +15,11 @@
 //! [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-evaluation
 use crate::{
     Context,
-    vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord},
+    vm::{
+        completion_record::CompletionRecord,
+        completion_record::IntoCompletionRecord,
+        operands::{Address, IndexOperand, RegisterOperand},
+    },
 };
 use args::{Argument, read};
 use std::ops::ControlFlow;
@@ -185,151 +189,6 @@ impl BytecodeEmitter {
 /// The bytecode representation of a codeblock.
 pub(crate) struct Bytecode {
     pub(crate) bytes: Box<[u8]>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-/// An address is a bytecode offset, displayed as hexadecimal.
-pub(crate) struct Address(u32);
-
-impl Address {
-    /// Create a new [`Address`] from a u32 value.
-    pub(crate) const fn new(value: u32) -> Self {
-        Self(value)
-    }
-
-    /// Returns the inner `u32` value.
-    pub(crate) const fn as_u32(self) -> u32 {
-        self.0
-    }
-}
-
-impl From<Address> for u32 {
-    fn from(addr: Address) -> Self {
-        addr.0
-    }
-}
-
-impl From<u32> for Address {
-    fn from(value: u32) -> Self {
-        Self::new(value)
-    }
-}
-
-impl std::ops::Add<u32> for Address {
-    type Output = Self;
-
-    fn add(self, rhs: u32) -> Self {
-        Self::new(self.0 + rhs)
-    }
-}
-
-impl std::fmt::Display for Address {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:06x}", self.0)
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-/// A register operand is a register index used in bytecode instructions.
-pub(crate) struct RegisterOperand(u32);
-
-impl RegisterOperand {
-    /// Create a new [`RegisterOperand`] from a u32 value.
-    pub(crate) fn new(value: u32) -> Self {
-        Self(value)
-    }
-}
-
-impl From<RegisterOperand> for u32 {
-    fn from(value: RegisterOperand) -> Self {
-        value.0
-    }
-}
-
-impl From<RegisterOperand> for usize {
-    fn from(value: RegisterOperand) -> Self {
-        value.0 as usize
-    }
-}
-
-impl From<u8> for RegisterOperand {
-    fn from(value: u8) -> Self {
-        Self::new(value.into())
-    }
-}
-
-impl From<u16> for RegisterOperand {
-    fn from(value: u16) -> Self {
-        Self::new(value.into())
-    }
-}
-
-impl From<u32> for RegisterOperand {
-    fn from(value: u32) -> Self {
-        Self::new(value)
-    }
-}
-
-impl std::fmt::Display for RegisterOperand {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "r{:02}", self.0)
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-/// A index operand is e.g. an index into the constant pool
-pub(crate) struct IndexOperand(u32);
-
-impl IndexOperand {
-    /// Create a new [`IndexOperand`] from a u32 value.
-    pub(crate) fn new(value: u32) -> Self {
-        Self(value)
-    }
-}
-
-impl From<IndexOperand> for u32 {
-    fn from(value: IndexOperand) -> Self {
-        value.0
-    }
-}
-
-impl From<IndexOperand> for usize {
-    fn from(value: IndexOperand) -> Self {
-        value.0 as usize
-    }
-}
-
-impl From<bool> for IndexOperand {
-    fn from(value: bool) -> Self {
-        Self::new(value.into())
-    }
-}
-
-impl From<u8> for IndexOperand {
-    fn from(value: u8) -> Self {
-        Self::new(value.into())
-    }
-}
-
-impl From<u16> for IndexOperand {
-    fn from(value: u16) -> Self {
-        Self::new(value.into())
-    }
-}
-
-impl From<u32> for IndexOperand {
-    fn from(value: u32) -> Self {
-        Self::new(value)
-    }
-}
-
-impl std::fmt::Display for IndexOperand {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
 }
 
 impl Opcode {

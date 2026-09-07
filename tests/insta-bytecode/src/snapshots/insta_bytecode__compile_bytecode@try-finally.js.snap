@@ -1,6 +1,6 @@
 ---
 source: tests/insta-bytecode/src/lib.rs
-expression: output
+expression: "*trace_sink.borrow()"
 input_file: tests/insta-bytecode/scripts/try-finally.js
 ---
 -------------------------- Compiled Output: '<main>' ---------------------------
@@ -68,3 +68,5 @@ Source Map:
     0000: 30..190: (7, 24)
     0001: 190..285: (12, 5)
     0002: 285..322: (14, 3)
+
+Evaluation result: 310

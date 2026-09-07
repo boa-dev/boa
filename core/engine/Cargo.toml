@@ -67,6 +67,9 @@ flowgraph = []
 # Enable Boa's VM instruction tracing.
 trace = ["js"]
 
+# Enable Boa's VM instruction tracing printing to stdout
+trace-stdout = ["trace"]
+
 # Enable Boa's additional ECMAScript features for web browsers.
 annex-b = ["boa_ast/annex-b", "boa_parser/annex-b"]
 

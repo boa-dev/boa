@@ -1,6 +1,6 @@
 //! This module is responsible for generating the vm instruction flowgraph.
 
-use crate::vm::CodeBlock;
+use crate::vm::{CodeBlock, operands::OperandsShape};
 
 mod color;
 mod edge;
@@ -35,7 +35,10 @@ impl CodeBlock {
         while let Some((previous_pc, opcode, instruction)) = iterator.next() {
             let opcode_str = opcode.as_str();
 
-            let label = format!("{opcode_str} {}", self.instruction_operands(&instruction));
+            let label = format!(
+                "{opcode_str} {}",
+                OperandsShape::from_instruction(&instruction)
+            );
 
             let pc = iterator.pc();
 

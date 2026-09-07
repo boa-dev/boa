@@ -1,4 +1,4 @@
-use crate::vm::opcode::RegisterOperand;
+use crate::vm::operands::RegisterOperand;
 use std::mem::forget;
 
 bitflags::bitflags! {
