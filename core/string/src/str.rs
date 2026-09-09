@@ -347,10 +347,7 @@ impl<'a> JsStr<'a> {
         if let Some(base) = base {
             let string = &string[2..];
 
-            // A `NonDecimalIntegerLiteral` is a bare sequence of digits. A sign is only part of
-            // `StrDecimalLiteral`, which cannot carry a `0b`, `0o` or `0x` prefix, so a sign here
-            // makes the whole string invalid. `u32::from_str_radix` accepts a leading `+`, so
-            // without this check `0x+1` would parse as `1`.
+            // Rejects things like `0x+1` or `0o-1`
             if string.is_empty() || string.starts_with(['+', '-']) {
                 return f64::NAN;
             }
