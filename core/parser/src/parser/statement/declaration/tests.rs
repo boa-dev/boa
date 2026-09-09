@@ -1,19 +1,57 @@
 use crate::parser::tests::{check_invalid_script, check_module_parser, check_script_parser};
 use crate::{Parser, Source};
 use boa_ast::{
-    Declaration, ModuleItem, Span, Statement,
+    Declaration, LinearPosition, LinearSpan, ModuleItem, Span, Statement, StatementList,
+    StatementListItem,
     declaration::{
         ExportDeclaration, ExportSpecifier, ImportAttribute, ImportDeclaration, ImportKind,
         LexicalDeclaration, ModuleSpecifier, ReExportKind, VarDeclaration, Variable,
     },
     expression::{
-        Identifier,
+        Await, Call, Identifier, Parenthesized,
         literal::{Literal, LiteralKind},
+        operator::{Binary, binary::ArithmeticOp},
     },
+    function::{
+        AsyncArrowFunction, AsyncFunctionDeclaration, FormalParameter, FormalParameterList,
+        FunctionBody,
+    },
+    pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
+    statement::Return,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 use indoc::indoc;
+
+const EMPTY_LINEAR_SPAN: LinearSpan =
+    LinearSpan::new(LinearPosition::new(0), LinearPosition::new(0));
+const PSEUDO_LINEAR_POS: LinearPosition = LinearPosition::new(0);
+
+#[track_caller]
+fn check_valid_module(js: &str) {
+    assert!(
+        Parser::new(Source::from_bytes(js))
+            .parse_module(
+                &boa_ast::scope::Scope::new_global(),
+                &mut Interner::default()
+            )
+            .is_ok(),
+        "expected module to parse successfully:\n{js}"
+    );
+}
+
+#[track_caller]
+fn check_invalid_module(js: &str) {
+    assert!(
+        Parser::new(Source::from_bytes(js))
+            .parse_module(
+                &boa_ast::scope::Scope::new_global(),
+                &mut Interner::default()
+            )
+            .is_err(),
+        "expected module to fail parsing:\n{js}"
+    );
+}
 
 /// Checks `var` declaration parsing.
 #[test]
@@ -897,5 +935,458 @@ fn await_using_valid_identifiers() {
         result.is_ok(),
         "Failed to parse await using with multiple bindings: {:?}",
         result.err()
+    );
+}
+
+/// `export default async (x) => x;` must parse as a default `AssignmentExpression`.
+#[test]
+fn export_default_async_arrow_parenthesized_param() {
+    let interner = &mut Interner::default();
+    let x = interner.get_or_intern_static("x", utf16!("x"));
+    check_module_parser(
+        "export default async (x) => x;",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                AsyncArrowFunction::new(
+                    None,
+                    FormalParameterList::from(FormalParameter::new(
+                        Variable::from_identifier(
+                            Identifier::new(x, Span::new((1, 23), (1, 24))),
+                            None,
+                        ),
+                        false,
+                    )),
+                    FunctionBody::new(
+                        StatementList::new(
+                            [StatementListItem::Statement(
+                                Statement::Return(Return::new(Some(
+                                    Identifier::new(x, Span::new((1, 29), (1, 30))).into(),
+                                )))
+                                .into(),
+                            )],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 29), (1, 30)),
+                    ),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 16), (1, 30)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
+    );
+}
+
+/// `export default async x => x;` must parse as a default `AssignmentExpression`.
+#[test]
+fn export_default_async_arrow_identifier_param() {
+    let interner = &mut Interner::default();
+    let x = interner.get_or_intern_static("x", utf16!("x"));
+    check_module_parser(
+        "export default async x => x;",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                AsyncArrowFunction::new(
+                    None,
+                    FormalParameterList::from(FormalParameter::new(
+                        Variable::from_identifier(
+                            Identifier::new(x, Span::new((1, 22), (1, 23))),
+                            None,
+                        ),
+                        false,
+                    )),
+                    FunctionBody::new(
+                        StatementList::new(
+                            [StatementListItem::Statement(
+                                Statement::Return(Return::new(Some(
+                                    Identifier::new(x, Span::new((1, 27), (1, 28))).into(),
+                                )))
+                                .into(),
+                            )],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 27), (1, 28)),
+                    ),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 16), (1, 28)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
+    );
+}
+
+/// `export default async () => 1;` must parse as a default `AssignmentExpression`.
+#[test]
+fn export_default_async_arrow_no_params() {
+    let interner = &mut Interner::default();
+    check_module_parser(
+        "export default async () => 1;",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                AsyncArrowFunction::new(
+                    None,
+                    FormalParameterList::default(),
+                    FunctionBody::new(
+                        StatementList::new(
+                            [StatementListItem::Statement(
+                                Statement::Return(Return::new(Some(
+                                    Literal::new(1, Span::new((1, 28), (1, 29))).into(),
+                                )))
+                                .into(),
+                            )],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 28), (1, 29)),
+                    ),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 16), (1, 29)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
+    );
+}
+
+/// Parenthesized async arrows remain default export expressions.
+#[test]
+fn export_default_parenthesized_async_arrow() {
+    let interner = &mut Interner::default();
+    let x = interner.get_or_intern_static("x", utf16!("x"));
+    check_module_parser(
+        "export default (async (x)=>x);",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                Parenthesized::new(
+                    AsyncArrowFunction::new(
+                        None,
+                        FormalParameterList::from(FormalParameter::new(
+                            Variable::from_identifier(
+                                Identifier::new(x, Span::new((1, 24), (1, 25))),
+                                None,
+                            ),
+                            false,
+                        )),
+                        FunctionBody::new(
+                            StatementList::new(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
+                                        Identifier::new(x, Span::new((1, 28), (1, 29))).into(),
+                                    )))
+                                    .into(),
+                                )],
+                                PSEUDO_LINEAR_POS,
+                                false,
+                            ),
+                            Span::new((1, 28), (1, 29)),
+                        ),
+                        EMPTY_LINEAR_SPAN,
+                        Span::new((1, 17), (1, 29)),
+                    )
+                    .into(),
+                    Span::new((1, 16), (1, 30)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
+    );
+}
+
+/// Regression: `export default async function() {}` must remain a hoistable declaration.
+#[test]
+fn export_default_async_function_declaration() {
+    let interner = &mut Interner::default();
+    check_module_parser(
+        "export default async function() {}",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAsyncFunctionDeclaration(AsyncFunctionDeclaration::new(
+                Identifier::new(Sym::DEFAULT, Span::new((1, 30), (1, 31))),
+                FormalParameterList::default(),
+                FunctionBody::new(StatementList::default(), Span::new((1, 33), (1, 35))),
+                EMPTY_LINEAR_SPAN,
+            )),
+        ))],
+        interner,
+    );
+}
+
+/// Valid `export default` async arrow forms.
+#[test]
+fn export_default_async_arrow_forms_valid() {
+    check_valid_module("export default async () => 1;");
+    check_valid_module("export default async x => x;");
+    check_valid_module("export default async (x) => x;");
+    check_valid_module("export default async (a,b)=>a+b;");
+    check_valid_module("export default async (...args)=>args;");
+    check_valid_module("export default async ({a})=>a;");
+    check_valid_module("export default async ([a])=>a;");
+    check_valid_module("export default async ({a}, [b])=>a+b;");
+    check_valid_module("export default async (\na,\nb\n)=>a+b;");
+    check_valid_module("export default async x=>{\nawait foo();\n};");
+    check_valid_module("export default async ()=>await foo();");
+    check_valid_module("export default (async (x)=>x);");
+    check_valid_module("export default (async ()=>1);");
+    check_valid_module("export default async /* comment */ (x)=>x;");
+    check_valid_module("export default\nasync (x)=>x;");
+    check_valid_module("export default async (a, b) => a + b;");
+    check_valid_module("export default async (...args) => args.length;");
+    check_valid_module("export default async ({a}) => a;");
+    check_valid_module("export default async ([a]) => a;");
+    check_valid_module("export default async ({a, b}, [c]) => a + b + c;");
+    check_valid_module(
+        "export default async (
+    a,
+    b,
+    c
+) => a + b + c;",
+    );
+    check_valid_module(
+        "export default async x => {
+    await foo(x);
+};",
+    );
+}
+
+/// Malformed `export default` async / arrow forms must still fail.
+#[test]
+fn export_default_async_arrow_forms_invalid() {
+    check_invalid_module("export default async");
+    check_invalid_module("export default async (");
+    check_invalid_module("export default async =>");
+    check_invalid_module("export default async (x)");
+    check_invalid_module("export default async (x,");
+    check_invalid_module("export default async function");
+    check_invalid_module("export default async function (");
+    check_invalid_module("export default async function {}");
+    check_invalid_module("export default async () >");
+    check_invalid_module("export default async () =");
+    check_invalid_module("export default async () ->");
+}
+
+/// Existing default-export and async forms must keep working.
+#[test]
+fn export_default_async_arrow_regressions() {
+    check_valid_module("export default async function () {}");
+    check_valid_module("export default async function foo() {}");
+    check_valid_module("export default async function*() {}");
+    check_valid_module("export default async function* bar() {}");
+    check_valid_module("const fn = async (x) => x;\nexport default fn;");
+    check_valid_module("export const fn = async (x) => x;");
+    check_valid_module("export default function(){}");
+    check_valid_module("export default class {}");
+    check_valid_module("export default 123;");
+    check_valid_module("export default foo;");
+    check_valid_module("export default foo()");
+    check_valid_module("export default foo ? a : b;");
+    check_valid_module("export default (a + b);");
+    check_valid_module("export default new Foo();");
+    check_valid_module("export default async;");
+
+    check_valid_module("const fn = async ()=>{};");
+    check_valid_module("const fn = async function(){};");
+    check_valid_module("export const fn = async ()=>{};");
+    check_valid_module("({ async m() {} });");
+    check_valid_module("({ async *g() {} });");
+    check_valid_module("async function* gen() {}");
+    check_valid_module("() => {};");
+    check_valid_module("async () => {};");
+}
+
+/// Object/array parameter async arrows keep the expected AST shape.
+#[test]
+fn export_default_async_arrow_destructuring_params() {
+    let interner = &mut Interner::default();
+    let a = interner.get_or_intern_static("a", utf16!("a"));
+    check_module_parser(
+        "export default async ({a})=>a;",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                AsyncArrowFunction::new(
+                    None,
+                    FormalParameterList::from(FormalParameter::new(
+                        Variable::from_pattern(
+                            Pattern::from(ObjectPattern::new(
+                                vec![ObjectPatternElement::SingleName {
+                                    ident: Identifier::new(a, Span::new((1, 24), (1, 25))),
+                                    name: Identifier::new(a, Span::new((1, 24), (1, 25))).into(),
+                                    default_init: None,
+                                }]
+                                .into(),
+                                Span::new((1, 23), (1, 26)),
+                            )),
+                            None,
+                        ),
+                        false,
+                    )),
+                    FunctionBody::new(
+                        StatementList::new(
+                            [StatementListItem::Statement(
+                                Statement::Return(Return::new(Some(
+                                    Identifier::new(a, Span::new((1, 29), (1, 30))).into(),
+                                )))
+                                .into(),
+                            )],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 29), (1, 30)),
+                    ),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 16), (1, 30)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
+    );
+
+    let interner = &mut Interner::default();
+    let a = interner.get_or_intern_static("a", utf16!("a"));
+    check_module_parser(
+        "export default async ([a])=>a;",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                AsyncArrowFunction::new(
+                    None,
+                    FormalParameterList::from(FormalParameter::new(
+                        Variable::from_pattern(
+                            Pattern::from(ArrayPattern::new(
+                                vec![ArrayPatternElement::SingleName {
+                                    ident: Identifier::new(a, Span::new((1, 24), (1, 25))),
+                                    default_init: None,
+                                }]
+                                .into(),
+                                Span::new((1, 23), (1, 26)),
+                            )),
+                            None,
+                        ),
+                        false,
+                    )),
+                    FunctionBody::new(
+                        StatementList::new(
+                            [StatementListItem::Statement(
+                                Statement::Return(Return::new(Some(
+                                    Identifier::new(a, Span::new((1, 29), (1, 30))).into(),
+                                )))
+                                .into(),
+                            )],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 29), (1, 30)),
+                    ),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 16), (1, 30)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
+    );
+}
+
+/// Concise await body and binary multi-param async arrows.
+#[test]
+fn export_default_async_arrow_await_and_multi_param() {
+    let interner = &mut Interner::default();
+    let foo = interner.get_or_intern_static("foo", utf16!("foo"));
+    check_module_parser(
+        "export default async ()=>await foo();",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                AsyncArrowFunction::new(
+                    None,
+                    FormalParameterList::default(),
+                    FunctionBody::new(
+                        StatementList::new(
+                            [StatementListItem::Statement(
+                                Statement::Return(Return::new(Some(
+                                    Await::new(
+                                        Box::new(
+                                            Call::new(
+                                                Identifier::new(foo, Span::new((1, 32), (1, 35)))
+                                                    .into(),
+                                                Box::default(),
+                                                Span::new((1, 35), (1, 37)),
+                                            )
+                                            .into(),
+                                        ),
+                                        Span::new((1, 26), (1, 37)),
+                                    )
+                                    .into(),
+                                )))
+                                .into(),
+                            )],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 26), (1, 37)),
+                    ),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 16), (1, 37)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
+    );
+
+    let interner = &mut Interner::default();
+    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let b = interner.get_or_intern_static("b", utf16!("b"));
+    check_module_parser(
+        "export default async (a,b)=>a+b;",
+        vec![ModuleItem::ExportDeclaration(Box::new(
+            ExportDeclaration::DefaultAssignmentExpression(
+                AsyncArrowFunction::new(
+                    None,
+                    FormalParameterList::from(vec![
+                        FormalParameter::new(
+                            Variable::from_identifier(
+                                Identifier::new(a, Span::new((1, 23), (1, 24))),
+                                None,
+                            ),
+                            false,
+                        ),
+                        FormalParameter::new(
+                            Variable::from_identifier(
+                                Identifier::new(b, Span::new((1, 25), (1, 26))),
+                                None,
+                            ),
+                            false,
+                        ),
+                    ]),
+                    FunctionBody::new(
+                        StatementList::new(
+                            [StatementListItem::Statement(
+                                Statement::Return(Return::new(Some(
+                                    Binary::new(
+                                        ArithmeticOp::Add.into(),
+                                        Identifier::new(a, Span::new((1, 29), (1, 30))).into(),
+                                        Identifier::new(b, Span::new((1, 31), (1, 32))).into(),
+                                    )
+                                    .into(),
+                                )))
+                                .into(),
+                            )],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 29), (1, 32)),
+                    ),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 16), (1, 32)),
+                )
+                .into(),
+            ),
+        ))],
+        interner,
     );
 }
