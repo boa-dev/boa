@@ -1,7 +1,7 @@
 //! A Rust API wrapper for Boa's `SharedArrayBuffer` Builtin ECMAScript Object
 use crate::{
     Context, JsResult, JsValue,
-    builtins::array_buffer::{SharedArrayBuffer, utils::SliceRef},
+    builtins::array_buffer::{AtomicU8, SharedArrayBuffer, utils::SliceRef},
     error::JsNativeError,
     object::JsObject,
     value::TryFromJs,
@@ -61,6 +61,78 @@ impl JsSharedArrayBuffer {
         let inner = JsObject::new(context.root_shape(), proto, buffer);
 
         Self { inner }
+    }
+
+    /// Creates a `SharedArrayBuffer` that aliases a region of embedder-owned memory.
+    ///
+    /// Unlike [`JsSharedArrayBuffer::new`], this does **not** allocate: the bytes of the
+    /// resulting `SharedArrayBuffer` are the provided region itself. Writes performed by
+    /// JavaScript code are immediately visible to the embedder and vice versa, enabling
+    /// zero-copy sharing of memory regions like `WebAssembly` linear memories,
+    /// memory-mapped files or GPU-mapped buffers.
+    ///
+    /// The engine only ever accesses the region with atomic operations. Accesses to the
+    /// region from other threads must be synchronized with the JavaScript code that may
+    /// access the buffer concurrently, exactly like for any other `SharedArrayBuffer`
+    /// memory.
+    ///
+    /// The resulting buffer is always fixed-length and cannot be grown.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the region is non-empty and its base address is not aligned to 8
+    /// bytes. `Atomics` and typed array views perform aligned atomic accesses of up to
+    /// 8 bytes on the backing memory, so the base address must satisfy the largest
+    /// alignment those accesses need.
+    #[inline]
+    #[must_use]
+    pub fn from_external_data(data: &'static [AtomicU8], context: &mut Context) -> Self {
+        Self::from_buffer(SharedArrayBuffer::from_external_data(data), context)
+    }
+
+    /// Creates a `SharedArrayBuffer` that aliases `len` bytes of embedder-owned memory
+    /// starting at `ptr`.
+    ///
+    /// This is a convenience wrapper that builds the `&'static [AtomicU8]` slice from
+    /// its raw parts and delegates to [`JsSharedArrayBuffer::from_external_data`]; see
+    /// that method for the aliasing and threading guarantees of the returned buffer.
+    ///
+    /// # Safety
+    ///
+    /// The caller must guarantee that:
+    ///
+    /// - `ptr` is valid for reads and writes of `len` bytes, and the region stays
+    ///   valid **and unmoved** at the same address for the whole lifetime of the
+    ///   returned buffer and all of its clones (including clones sent to other
+    ///   agents/threads). Note that the garbage collector may keep the buffer alive
+    ///   for an unbounded amount of time after it becomes unreachable, and that
+    ///   regions that can relocate, like a growable `WebAssembly` linear memory that
+    ///   moves its base address on `memory.grow`, silently invalidate the buffer
+    ///   unless the embedder guarantees that no relocation happens while the buffer
+    ///   is alive.
+    /// - All accesses to the region from outside the buffer are performed with atomic
+    ///   operations, or are otherwise synchronized with any JavaScript code that may
+    ///   access the buffer concurrently.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `ptr` is null, if `len` is bigger than `isize::MAX`, or if the region
+    /// is non-empty and `ptr` is not aligned to 8 bytes.
+    #[inline]
+    #[must_use]
+    pub unsafe fn from_external_ptr(ptr: *mut u8, len: usize, context: &mut Context) -> Self {
+        // SAFETY: The caller upholds the invariants of `SharedArrayBuffer::from_external_ptr`.
+        let buffer = unsafe { SharedArrayBuffer::from_external_ptr(ptr, len) };
+        Self::from_buffer(buffer, context)
+    }
+
+    /// Returns `true` if this buffer is backed by embedder-owned memory.
+    ///
+    /// See [`JsSharedArrayBuffer::from_external_data`].
+    #[inline]
+    #[must_use]
+    pub fn is_external(&self) -> bool {
+        self.borrow().data().is_external()
     }
 
     /// Creates a [`JsSharedArrayBuffer`] from a [`JsObject`], throwing a `TypeError` if the object
