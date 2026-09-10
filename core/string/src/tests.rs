@@ -624,4 +624,10 @@ fn to_number() {
     );
     assert!(JsString::from(" -inf ").to_number().is_nan());
     assert!(JsString::from(" 0x+1 ").to_number().is_nan());
+
+    // A decimal literal too large for `f64` is still a `StringNumericLiteral`; its
+    // `StringNumericValue` rounds to an infinity and must not be rejected.
+    assert_eq!(JsString::from("1e400").to_number(), f64::INFINITY);
+    assert_eq!(JsString::from("-1e400").to_number(), f64::NEG_INFINITY);
+    assert_eq!(JsString::from("1e999").to_number(), f64::INFINITY);
 }

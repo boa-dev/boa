@@ -331,15 +331,6 @@ impl<'a> JsStr<'a> {
             (Some(b'0'), Some(b'b' | b'B')) => Some(2),
             (Some(b'0'), Some(b'o' | b'O')) => Some(8),
             (Some(b'0'), Some(b'x' | b'X')) => Some(16),
-            // Make sure that no further variants of "infinity" are parsed.
-            //
-            // `Infinity`, `+Infinity` and `-Infinity` are the only spellings accepted by
-            // `StrUnsignedDecimalLiteral`, and all three already returned above. Anything else
-            // starting with `i` or `I`, with or without a sign, is not a `StringNumericLiteral`,
-            // but `fast_float2` would still parse it as an infinity.
-            (Some(b'i' | b'I'), _) | (Some(b'+' | b'-'), Some(b'i' | b'I')) => {
-                return f64::NAN;
-            }
             _ => None,
         };
 
@@ -369,7 +360,14 @@ impl<'a> JsStr<'a> {
             return value;
         }
 
-        fast_float2::parse(string).unwrap_or(f64::NAN)
+        match fast_float2::parse::<f64, &str>(string) {
+            // `Infinity`, `+Infinity` and `-Infinity` already returned above, so any other
+            // spelling `fast_float2` reads as infinite (`inf`, `+infinity`, ...) is not a
+            // `StringNumericLiteral`. A decimal literal that overflows does have digits, and
+            // its `StringNumericValue` is infinite, so it must be kept.
+            Ok(f) if f.is_finite() || string.bytes().any(|b| b.is_ascii_digit()) => f,
+            Ok(_) | Err(_) => f64::NAN,
+        }
     }
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
