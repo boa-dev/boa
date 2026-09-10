@@ -131,12 +131,14 @@ fn hash_object() {
     #[cfg(feature = "oscars_backend")]
     let _scope = boa_gc::HandleScope::enter();
 
+    #[allow(unused_unsafe)]
     let object1 = JsValue::new(JsObject::with_null_proto(&unsafe {
         boa_gc::MutationContext::global()
     }));
     assert_eq!(object1, object1);
     assert_eq!(object1, object1.clone());
 
+    #[allow(unused_unsafe)]
     let object2 = JsValue::new(JsObject::with_null_proto(&unsafe {
         boa_gc::MutationContext::global()
     }));

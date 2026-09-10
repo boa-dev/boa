@@ -144,7 +144,7 @@ impl Logger for RecordingLogger {
         context: &mut Context,
     ) -> JsResult<()> {
         let mut table = comfy_table::Table::new();
-        table.load_preset(comfy_table::presets::UTF8_FULL);
+        table.load_style(comfy_table::presets::UTF8_FULL);
         // Do not use Dynamic arrangement in tests to avoid wrapping based on pseudo-TTY width.
         table.set_header(&data.col_names);
 
