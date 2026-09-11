@@ -171,4 +171,6 @@ mod test;
 
 #[cfg(feature = "oscars_backend")]
 /// Forces a garbage collection
-pub fn force_collect() {}
+pub fn force_collect() {
+    oscars::collectors::mark_sweep_branded::MutationContext::global().collect();
+}
