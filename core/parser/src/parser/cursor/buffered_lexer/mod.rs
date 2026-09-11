@@ -134,9 +134,11 @@ where
 
         let previous_index = self.write_index.checked_sub(1).unwrap_or(PEEK_BUF_SIZE - 1);
 
-        if let Some(ref token) = self.peeked[previous_index]
-            && token.kind() == &TokenKind::LineTerminator
-        {
+        let previous_token = self.peeked[previous_index].as_ref();
+        let is_line_term = previous_token.map_or(false, |token| token.kind() == &TokenKind::LineTerminator);
+        let is_start = previous_token.is_none();
+
+        if is_line_term || is_start {
             // We don't want to have multiple contiguous line terminators in the buffer, since
             // they have no meaning.
             let next = loop {
