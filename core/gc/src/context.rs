@@ -27,16 +27,11 @@ impl GcContext {
     #[must_use]
     pub fn gc_collector(&self) -> &'static MutationContext<'static, 'static> {
         thread_local! {
-            static COLLECTOR: &'static oscars::collectors::mark_sweep_branded::Collector =
-                Box::leak(Box::new(oscars::collectors::mark_sweep_branded::Collector::new()));
-
-            static DUMMY: &'static MutationContext<'static, 'static> = COLLECTOR.with(|c| {
-                Box::leak(Box::new(unsafe {
-                    MutationContext::from_collector_erased(c)
-                }))
-            });
+            static GLOBAL_CTX: &'static MutationContext<'static, 'static> = {
+                Box::leak(Box::new(MutationContext::global()))
+            };
         }
-        DUMMY.with(|dummy| *dummy)
+        GLOBAL_CTX.with(|ctx| *ctx)
     }
 }
 

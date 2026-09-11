@@ -515,6 +515,8 @@ impl Test {
             },
         );
 
+        boa_gc::force_collect();
+
         self.create_result(result, result_text, strict, verbosity)
     }
 

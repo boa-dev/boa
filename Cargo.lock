@@ -618,6 +618,7 @@ version = "0.23.0-dev"
 dependencies = [
  "bitflags",
  "boa_engine",
+ "boa_gc",
  "boa_runtime",
  "clap",
  "color-eyre",
