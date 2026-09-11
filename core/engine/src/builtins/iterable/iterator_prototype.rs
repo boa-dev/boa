@@ -66,7 +66,9 @@ impl IntrinsicObject for Iterator {
             );
 
         #[cfg(feature = "experimental")]
-        let builder = builder.static_method(Self::includes, js_string!("includes"), 1);
+        let builder = builder
+            .static_method(Self::includes, js_string!("includes"), 1)
+            .static_method(Self::join, js_string!("join"), 1);
 
         builder.build();
     }
@@ -509,6 +511,74 @@ impl Iterator {
         }
         // Step 9.b. return false
         Ok(false.into())
+    }
+
+    /// `Iterator.prototype.join ( [ separator ] )`
+    ///
+    /// The `join()` method of `Iterator` instances returns a new string by concatenating
+    /// all of the elements in this iterator, separated by commas or a specified separator string.
+    /// If the iterator has only one item, then that item will be returned without using the separator.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-join/
+    #[cfg(feature = "experimental")]
+    fn join(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
+        let o = this
+            .as_object()
+            .ok_or_else(|| js_error!(TypeError: "Iterator.prototype.join called on non-object"))?;
+
+        // 3. Let iterated be the Iterator Record { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
+        let iterated = IteratorRecord::new(o.clone(), JsValue::undefined());
+
+        // 4. If separator is undefined, let sep be ",".
+        //    Else,
+        //      a. Let sep be Completion(ToString(separator)).
+        //      b. ? IfAbruptCloseIterator(sep, iterated).
+        let separator = args.get_or_undefined(0);
+        let sep = if separator.is_undefined() {
+            js_string!(",")
+        } else {
+            let sep = separator.to_string(context);
+            if_abrupt_close_iterator!(sep, iterated, context)
+        };
+
+        // 5. Set iterated to ? GetIteratorDirect(O).
+        let mut iterated = get_iterator_direct(&o, context)?;
+
+        // 6. Let R be the empty String.
+        // 7. Let first be true.
+        let mut r = crate::string::CommonJsStringBuilder::new();
+        let mut first = true;
+
+        // 8. Repeat,
+        while let Some(value) = iterated.step_value(context)? {
+            // a. Let value be ? IteratorStepValue(iterated).
+            // b. If value is done, return R.
+            // c. If first is true, set first to false.
+            // d. Else, set R to the string-concatenation of R and sep.
+            if first {
+                first = false;
+            } else {
+                r.push(sep.clone());
+            }
+
+            // e. If value is neither undefined nor null, then
+            if !value.is_null_or_undefined() {
+                // i. Let S be Completion(ToString(value)).
+                // ii. ? IfAbruptCloseIterator(S, iterated).
+                // iii. Set R to the string-concatenation of R and S.
+                let s = value.to_string(context);
+                let s = if_abrupt_close_iterator!(s, iterated, context);
+                r.push(s);
+            }
+        }
+
+        // 9. Return R.
+        Ok(r.build().into())
     }
 
     /// `Iterator.prototype.reduce ( reducer [ , initialValue ] )`

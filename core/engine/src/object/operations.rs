@@ -794,7 +794,7 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
+    pub fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
     where
         K: Into<PropertyKey>,
     {

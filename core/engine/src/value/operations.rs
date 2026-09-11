@@ -755,11 +755,13 @@ impl JsValue {
             if y == 0 {
                 return Some(Self::nan());
             }
-            return Some(match x.checked_rem(y) {
-                Some(rem) if rem == 0 && x < 0 => Self::new(-0.0),
-                Some(rem) => Self::new(rem),
-                None => Self::new((f64::from(x) % f64::from(y)).copysign(f64::from(x))),
-            });
+            if let Some(rem) = x.checked_rem(y) {
+                return Some(if rem == 0 && x < 0 {
+                    Self::new(-0.0)
+                } else {
+                    Self::new(rem)
+                });
+            }
         }
         let x = self.as_number_cheap()?;
         let y = other.as_number_cheap()?;

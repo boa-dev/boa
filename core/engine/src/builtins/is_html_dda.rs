@@ -27,7 +27,7 @@ use crate::{
 /// This is used by the `$262.IsHTMLDDA` test harness object and models the
 /// legacy `document.all` behavior per ECMAScript Annex B §B.3.6.
 ///
-/// The object is callable — when called, it returns `undefined`.
+/// The object is callable — when called, it returns `null` per ECMAScript Annex B §B.3.6.1.
 #[derive(Debug, Clone, Copy, Trace, Finalize)]
 #[boa_gc(empty_trace)]
 pub struct IsHTMLDDA;
@@ -44,7 +44,7 @@ impl JsData for IsHTMLDDA {
 
 /// The `[[Call]]` internal method for `IsHTMLDDA` objects.
 ///
-/// When called, simply returns `undefined`.
+/// When called, simply returns `null` per ECMAScript Annex B §B.3.6.1.
 #[allow(clippy::unnecessary_wraps)]
 fn is_html_dda_call(
     _obj: &JsObject,
@@ -59,8 +59,8 @@ fn is_html_dda_call(
     let _func = context.vm.stack.pop();
     let _this = context.vm.stack.pop();
 
-    // Push undefined as the return value.
-    context.vm.stack.push(JsValue::undefined());
+    // Push null as the return value.
+    context.vm.stack.push(JsValue::null());
 
     Ok(CallValue::Complete)
 }

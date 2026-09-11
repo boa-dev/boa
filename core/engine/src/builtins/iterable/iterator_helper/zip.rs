@@ -49,6 +49,9 @@ pub(crate) enum Zip {
 }
 
 impl Zip {
+    /// [`IteratorZip ( iters, mode, padding, finishResults )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorzip
     #[allow(
         clippy::new_ret_no_self,
         reason = "slightly cleaner to have this be a `new` method"
@@ -77,8 +80,8 @@ impl Zip {
                 if iters.is_empty() {
                     return ControlFlow::Break(Ok(()));
                 }
-                // 3.b.vi. If completion is an abrupt completion, then
-                // 3.b.vi.1. Return ? IteratorCloseAll(openIters, completion).
+                // 3.b.v. Let completion be Completion(Yield(results)).
+                // 3.b.vi. IfAbruptCloseIterators(completion, openIters).
                 match completion {
                     CompletionRecord::Return(v) => {
                         return ControlFlow::Break(iterator_close_all(
@@ -151,7 +154,7 @@ impl Zip {
                     match mode {
                         // 3.b.iii.3.d.ii. If mode is "shortest", then
                         ZipMode::Shortest => {
-                            // 3.b.iii.3.d.ii.i. Return ? IteratorCloseAll(openIters, ReturnCompletion(undefined)).
+                            // 3.b.iii.3.d.ii.1. Return ? IteratorCloseAll(openIters, ReturnCompletion(undefined)).
                             return ControlFlow::Break(iterator_close_all(
                                 iters.into_iter().flatten(),
                                 Ok(JsValue::undefined()),
@@ -160,9 +163,9 @@ impl Zip {
                         }
                         // 3.b.iii.3.d.iii. Else if mode is "strict", then
                         ZipMode::Strict => {
-                            // 3.b.iii.3.d.iii.i. If i ≠ 0, then
+                            // 3.b.iii.3.d.iii.1. If i ≠ 0, then
                             if i != 0 {
-                                // 3.b.iii.3.d.iii.i.i. Return ?IteratorCloseAll(openIters, ThrowCompletion(a newly created TypeError object)).
+                                // 3.b.iii.3.d.iii.1.a. Return ?IteratorCloseAll(openIters, ThrowCompletion(a newly created TypeError object)).
                                 return ControlFlow::Break(iterator_close_all(
                                     iters.into_iter().flatten(),
                                     Err(js_error!(
@@ -172,23 +175,23 @@ impl Zip {
                                     context,
                                 ));
                             }
-                            // 3.b.iii.3.d.iii.ii. For each integer k such that 1 ≤ k < iterCount, in ascending order, do
+                            // 3.b.iii.3.d.iii.2. For each integer k such that 1 ≤ k < iterCount, in ascending order, do
                             for i in 1..iters.len() {
-                                // 3.b.iii.3.d.iii.ii.i. Assert: iters[k] is not null.
+                                // 3.b.iii.3.d.iii.2.a. Assert: iters[k] is not null.
                                 let Some(iter) = iters.get_mut(i) else {
                                     continue;
                                 };
                                 let Some(inner_iter) = iter else {
                                     continue;
                                 };
-                                // 3.b.iii.3.d.iii.ii.ii. Let open be Completion(IteratorStep(iters[k])).
+                                // 3.b.iii.3.d.iii.2.b. Let open be Completion(IteratorStep(iters[k])).
                                 let open = match inner_iter.step(context) {
                                     Ok(v) => v,
-                                    // 3.b.iii.3.d.iii.ii.iii. If open is an abrupt completion, then
+                                    // 3.b.iii.3.d.iii.2.c. If open is an abrupt completion, then
                                     Err(err) => {
-                                        // 3.b.iii.3.d.iii.ii.iii.i. Remove iters[k] from openIters.
+                                        // 3.b.iii.3.d.iii.2.c.i. Remove iters[k] from openIters.
                                         iter.take();
-                                        // 3.b.iii.3.d.iii.ii.iii.ii. Return ? IteratorCloseAll(openIters, open).
+                                        // 3.b.iii.3.d.iii.2.c.ii. Return ? IteratorCloseAll(openIters, open).
                                         return ControlFlow::Break(iterator_close_all(
                                             iters.into_iter().flatten(),
                                             Err(err),
@@ -196,15 +199,15 @@ impl Zip {
                                         ));
                                     }
                                 };
-                                // 3.b.iii.3.d.iii.ii.iv. Set open to ! open.
-                                // 3.b.iii.3.d.iii.ii.v. If open is done, then
+                                // 3.b.iii.3.d.iii.2.d. Set open to ! open.
+                                // 3.b.iii.3.d.iii.2.e. If open is done, then
                                 if open {
-                                    // 3.b.iii.3.d.iii.ii.v.i. Remove iters[k] from openIters.
+                                    // 3.b.iii.3.d.iii.2.e.i. Remove iters[k] from openIters.
                                     iter.take();
                                 }
-                                // 3.b.iii.3.d.iii.ii.vi. Else,
+                                // 3.b.iii.3.d.iii.2.f. Else,
                                 else {
-                                    // 3.b.iii.3.d.iii.ii.vi.i. Return ? IteratorCloseAll(openIters, ThrowCompletion(a newly created TypeError object)).
+                                    // 3.b.iii.3.d.iii.2.f.i. Return ? IteratorCloseAll(openIters, ThrowCompletion(a newly created TypeError object)).
                                     return ControlFlow::Break(iterator_close_all(
                                         iters.into_iter().flatten(),
                                         Err(js_error!(
@@ -216,18 +219,18 @@ impl Zip {
                                 }
                             }
 
-                            // 3.b.iii.3.d.iii.iii. Return ReturnCompletion(undefined).
+                            // 3.b.iii.3.d.iii.3. Return ReturnCompletion(undefined).
                             return ControlFlow::Break(Ok(()));
                         }
                         // 3.b.iii.3.d.iv. Else,
                         ZipMode::Longest => {
-                            // 3.b.iii.3.d.iv.i. Assert: mode is "longest".
-                            // 3.b.iii.3.d.iv.ii. If openIters is empty, return ReturnCompletion(undefined).
+                            // 3.b.iii.3.d.iv.1. Assert: mode is "longest".
+                            // 3.b.iii.3.d.iv.2. If openIters is empty, return ReturnCompletion(undefined).
                             if iters.iter().all(Option::is_none) {
                                 return ControlFlow::Break(Ok(()));
                             }
-                            // 3.b.iii.3.d.iv.iii. Set iters[i] to null.
-                            // 3.b.iii.3.d.iv.iv. Set result to padding[i].
+                            // 3.b.iii.3.d.iv.3. Set iters[i] to null.
+                            // 3.b.iii.3.d.iv.4. Set result to padding[i].
                             results.push(
                                 padding
                                     .get(i)
