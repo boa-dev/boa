@@ -2860,6 +2860,7 @@ dependencies = [
 [[package]]
 name = "oscars"
 version = "0.1.0"
+source = "git+https://github.com/shruti2522/oscars.git?branch=fix-oom#f243432479c161b8c893c08e4054ab217417f7d7"
 dependencies = [
  "arrayvec",
  "either",
@@ -2874,6 +2875,7 @@ dependencies = [
 [[package]]
 name = "oscars_derive"
 version = "0.1.0"
+source = "git+https://github.com/shruti2522/oscars.git?branch=fix-oom#f243432479c161b8c893c08e4054ab217417f7d7"
 dependencies = [
  "cfg-if",
  "proc-macro2",
