@@ -42,11 +42,11 @@ default = [
     "fetch",
 ]
 dhat = ["dep:dhat"]
-fast-allocator = ["dep:mimalloc-safe", "dep:jemallocator"]
+fast-allocator = ["dep:mimalloc-safe", "dep:tikv-jemallocator"]
 fetch = ["boa_runtime/fetch", "boa_runtime/reqwest-blocking"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
-jemallocator = { workspace = true, optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 mimalloc-safe = { workspace = true, optional = true, features = [
