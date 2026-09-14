@@ -92,6 +92,32 @@ fn request_constructor_get_with_body_throws() {
 }
 
 #[test]
+fn fetch_get_with_explicit_options_has_no_body() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let mut fetcher = TestFetcher::default();
+            fetcher.add_response(
+                Uri::from_static("http://unit.test"),
+                Response::new(Vec::new()),
+            );
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            globalThis.response = fetch("http://unit.test", {
+                method: "GET",
+                headers: {},
+                redirect: "manual",
+                signal: undefined,
+            });
+        "#}),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
 fn request_constructor_head_with_body_throws() {
     run_test_actions([
         TestAction::inspect_context(|ctx| {

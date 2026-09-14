@@ -46,14 +46,16 @@ impl RequestInit {
     /// If the body is not a valid type, an error is returned.
     pub fn into_request_builder(
         mut self,
-        request: Option<HttpRequest<Vec<u8>>>,
+        request: Option<(HttpRequest<Vec<u8>>, bool)>,
     ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
         let mut inherited_body = None;
-        if let Some(r) = request {
+        if let Some((r, has_body)) = request {
             let (parts, body) = r.into_parts();
             // https://fetch.spec.whatwg.org/#dom-request - "Let inputBody be input's request's body if input is a Request object; otherwise null."
-            inherited_body = Some(body);
+            if has_body {
+                inherited_body = Some(body);
+            }
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -136,6 +138,7 @@ pub struct JsRequest {
     #[unsafe_ignore_trace]
     inner: HttpRequest<Vec<u8>>,
     signal: Option<JsObject>,
+    has_body: bool,
 }
 
 impl JsRequest {
@@ -161,6 +164,10 @@ impl JsRequest {
         self.signal.clone()
     }
 
+    pub(crate) fn has_body(&self) -> bool {
+        self.has_body
+    }
+
     /// Get the URI of the request.
     pub fn uri(&self) -> &http::Uri {
         self.inner.uri()
@@ -175,7 +182,7 @@ impl JsRequest {
         input: Either<JsString, JsRequest>,
         options: Option<RequestInit>,
     ) -> JsResult<Self> {
-        let (request, signal) = match input {
+        let (request, signal, input_has_body) = match input {
             Either::Left(uri) => {
                 let uri = http::Uri::try_from(
                     uri.to_std_string()
@@ -186,19 +193,29 @@ impl JsRequest {
                     .uri(uri)
                     .body(Vec::<u8>::new())
                     .map_err(|_| js_error!(Error: "Cannot construct request"))?;
-                (request, None)
+                (request, None, false)
             }
-            Either::Right(r) => r.into_parts(),
+            Either::Right(r) => {
+                let has_body = r.has_body;
+                let (request, signal) = r.into_parts();
+                (request, signal, has_body)
+            }
         };
 
         if let Some(mut options) = options {
             let signal = options.take_signal().or(signal);
-            let inner = options.into_request_builder(Some(request))?;
-            Ok(Self { inner, signal })
+            let has_body = options.has_body();
+            let inner = options.into_request_builder(Some((request, input_has_body)))?;
+            Ok(Self {
+                inner,
+                signal,
+                has_body: has_body || input_has_body,
+            })
         } else {
             Ok(Self {
                 inner: request,
                 signal,
+                has_body: input_has_body,
             })
         }
     }
@@ -207,6 +224,7 @@ impl JsRequest {
 impl From<HttpRequest<Vec<u8>>> for JsRequest {
     fn from(inner: HttpRequest<Vec<u8>>) -> Self {
         Self {
+            has_body: !inner.body().is_empty(),
             inner,
             signal: None,
         }

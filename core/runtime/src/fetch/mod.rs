@@ -125,7 +125,7 @@ async fn fetch_inner<T: Fetcher>(
     // `TryFromJs` and friends).
     let mut signal = signal;
 
-    let request: Request<Vec<u8>> = match resource {
+    let (request, input_has_body): (Request<Vec<u8>>, bool) = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
             let url = fetcher
@@ -133,7 +133,7 @@ async fn fetch_inner<T: Fetcher>(
                 .map_err(JsError::from_rust)?;
 
             let r = HttpRequest::get(url).body(Vec::new());
-            r.map_err(JsError::from_rust)?
+            (r.map_err(JsError::from_rust)?, false)
         }
         Either::Right(request) => {
             // This can be a [`JsRequest`] object.
@@ -145,14 +145,17 @@ async fn fetch_inner<T: Fetcher>(
             };
 
             signal = signal.or_else(|| request_ref.data().signal());
-            request_ref.data().inner().clone()
+            (
+                request_ref.data().inner().clone(),
+                request_ref.data().has_body(),
+            )
         }
     };
 
     check_abort(signal.as_ref(), &mut context.borrow_mut())?;
 
     let mut request = if let Some(options) = options {
-        options.into_request_builder(Some(request))?
+        options.into_request_builder(Some((request, input_has_body)))?
     } else {
         request
     };
