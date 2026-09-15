@@ -34,14 +34,15 @@ impl Person {
     fn say_hello(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
-            // If it is we downcast the type to type `Person`.
-            if let Some(person) = object.downcast_ref::<Person>() {
+            // If it is we read this class' layer data.
+            if let Ok(()) = boa_engine::class::with_class_data::<Person, _>(&object, |person| {
                 // and print a message to stdout.
                 println!(
                     "Hello my name is {}, I'm {} years old",
                     person.name.to_std_string_escaped(),
                     person.age // Here we can access the native rust fields of the struct.
                 );
+            }) {
                 return Ok(JsValue::undefined());
             }
         }
@@ -63,12 +64,15 @@ impl Class for Person {
     // NOTE: The default value of `LENGTH` is `0`.
     const LENGTH: usize = 2;
 
+    type Parent = boa_engine::class::NoParent;
+    type Data = Person;
+
     // This is what is internally called when we construct a `Person` with the expression `new Person()`.
     fn data_constructor(
         _this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> JsResult<Self> {
+    ) -> JsResult<Self::Data> {
         // We get the first argument. If it is unavailable we default to `undefined`,
         // and then we call `to_string()`.
         //
@@ -109,8 +113,8 @@ impl Class for Person {
                 if let Some(arg) = args.first()
                     && let Some(object) = arg.as_object()
                 {
-                    // We check if the type of `args[0]` is `Person`
-                    if object.is::<Person>() {
+                    // We check if `args[0]` carries `Person` class data.
+                    if boa_engine::class::with_class_data::<Person, _>(&object, |_| ()).is_ok() {
                         return Ok(true.into()); // and return `true` if it is.
                     }
                 }
