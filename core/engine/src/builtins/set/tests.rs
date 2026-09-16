@@ -495,3 +495,21 @@ fn intersection_other_not_set_like() {
         ),
     ]);
 }
+
+#[test]
+fn set_iterator_after_clear_and_add() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const set = new Set(["first"]);
+            const iterator = set.values();
+            const first = iterator.next();
+            set.clear();
+            set.add("second");
+            const second = iterator.next();
+            "#,
+        ),
+        TestAction::assert("first.value === 'first' && !first.done"),
+        TestAction::assert("second.value === 'second' && !second.done"),
+    ]);
+}
