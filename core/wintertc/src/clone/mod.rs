@@ -13,6 +13,9 @@ pub struct StructuredCloneOptions {
     transfer: Option<Vec<JsValue>>,
 }
 
+#[cfg(test)]
+mod tests;
+
 /// JavaScript module containing the `structuredClone` types and functions.
 #[boa_module]
 pub mod js_module {
