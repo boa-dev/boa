@@ -619,11 +619,14 @@ impl ClassVisitor {
                 const NAME: &'static str = #class_name;
                 const LENGTH: usize = #arg_count;
 
+                type Parent = boa_engine::class::NoParent;
+                type Data = #class_ty;
+
                 fn data_constructor(
                     this: &boa_engine::JsValue,
                     args: &[boa_engine::JsValue],
                     context: &mut boa_engine::Context
-                ) -> boa_engine::JsResult<Self> {
+                ) -> boa_engine::JsResult<Self::Data> {
                     #constructor_body
                 }
 

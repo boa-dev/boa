@@ -173,7 +173,7 @@ async fn fetch_inner<T: Fetcher>(
 
     check_abort(signal.as_ref(), &mut context.borrow_mut())?;
 
-    let result = Class::from_data(response, &mut context.borrow_mut())?;
+    let result = <JsResponse as Class>::from_data(response, &mut context.borrow_mut())?;
     Ok(result.into())
 }
 

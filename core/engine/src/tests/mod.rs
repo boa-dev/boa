@@ -11,6 +11,7 @@ mod function;
 mod generators;
 mod iterators;
 mod job;
+mod native_class;
 mod operators;
 mod promise;
 mod spread;

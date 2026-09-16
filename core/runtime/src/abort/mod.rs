@@ -203,7 +203,7 @@ pub struct JsAbortController {
 impl JsAbortController {
     #[boa(constructor)]
     fn constructor(context: &mut Context) -> JsResult<Self> {
-        let signal_obj = Class::from_data(JsAbortSignal::default(), context)?;
+        let signal_obj = <JsAbortSignal as Class>::from_data(JsAbortSignal::default(), context)?;
         Ok(Self { signal: signal_obj })
     }
 
