@@ -390,6 +390,7 @@ impl CodeBlock {
             | Instruction::StoreUndefined { dst }
             | Instruction::Exception { dst }
             | Instruction::This { dst }
+            | Instruction::ThisForObjectEnvironmentName { dst }
             | Instruction::NewTarget { dst }
             | Instruction::ImportMeta { dst }
             | Instruction::CreateMappedArgumentsObject { dst }
@@ -461,7 +462,6 @@ impl CodeBlock {
                 format!("value:{value}, dst:{dst}")
             }
             Instruction::StoreLiteral { index, dst }
-            | Instruction::ThisForObjectEnvironmentName { index, dst }
             | Instruction::GetFunction { index, dst }
             | Instruction::GetArgument { index, dst } => {
                 format!("index:{index}, dst:{dst}")
