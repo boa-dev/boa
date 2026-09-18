@@ -136,7 +136,7 @@ criterion = "0.8.2"
 float-cmp = "0.10.0"
 futures-lite = "2.6.1"
 test-case = "3.3.1"
-rstest = "0.26.1"
+rstest = "0.27.0"
 url = "2.5.8"
 tokio = { version = "1.53.1", default-features = false }
 futures-concurrency = "7.7.1"
