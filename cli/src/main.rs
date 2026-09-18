@@ -53,7 +53,7 @@ use std::{
     target_env = "gnu",
     feature = "dhat"
 ))]
-use jemallocator as _;
+use tikv_jemallocator as _;
 
 #[cfg(all(
     target_arch = "x86_64",
@@ -63,7 +63,7 @@ use jemallocator as _;
     not(feature = "dhat")
 ))]
 #[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+static ALLOC: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 #[cfg(all(any(target_os = "windows", target_os = "macos"), feature = "dhat"))]
 use mimalloc_safe as _;
