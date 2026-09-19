@@ -28,34 +28,25 @@ pub struct RequestInit {
 }
 
 impl RequestInit {
-    /// Returns `true` if a `body` field was explicitly provided in the init object.
-    #[must_use]
-    pub fn has_body(&self) -> bool {
-        self.body.is_some()
-    }
-
     /// Takes the abort signal from the options, if present.
     pub fn take_signal(&mut self) -> Option<JsObject> {
         self.signal.take()
     }
 
-    /// Create an [`http::request::Builder`] object and return both the
-    /// body specified by JavaScript and the builder.
+    /// Builds an [`HttpRequest`] from this initializer and an optional input request.
     ///
     /// # Errors
     /// If the body is not a valid type, an error is returned.
     pub fn into_request_builder(
         mut self,
-        request: Option<(HttpRequest<Vec<u8>>, bool)>,
-    ) -> JsResult<HttpRequest<Vec<u8>>> {
+        request: Option<HttpRequest<Option<Vec<u8>>>>,
+    ) -> JsResult<HttpRequest<Option<Vec<u8>>>> {
         let mut builder = HttpRequest::builder();
+        // https://fetch.spec.whatwg.org/#dom-request - "Let inputBody be input's request's body if input is a Request object; otherwise null."
         let mut inherited_body = None;
-        if let Some((r, has_body)) = request {
+        if let Some(r) = request {
             let (parts, body) = r.into_parts();
-            // https://fetch.spec.whatwg.org/#dom-request - "Let inputBody be input's request's body if input is a Request object; otherwise null."
-            if has_body {
-                inherited_body = Some(body);
-            }
+            inherited_body = body;
             builder = builder
                 .method(parts.method)
                 .uri(parts.uri)
@@ -111,14 +102,14 @@ impl RequestInit {
                 let body = body.to_std_string().map_err(
                     |_| js_error!(TypeError: "Request constructor: body is not a valid string"),
                 )?;
-                body.into_bytes()
+                Some(body.into_bytes())
             } else {
                 return Err(
                     js_error!(TypeError: "Request constructor: body is not a supported type"),
                 );
             }
         } else {
-            inherited_body.unwrap_or_default()
+            inherited_body
         };
 
         let request = builder
@@ -136,36 +127,31 @@ impl RequestInit {
 #[derive(Clone, Debug, JsData, Trace, Finalize)]
 pub struct JsRequest {
     #[unsafe_ignore_trace]
-    inner: HttpRequest<Vec<u8>>,
+    inner: HttpRequest<Option<Vec<u8>>>,
     signal: Option<JsObject>,
-    has_body: bool,
 }
 
 impl JsRequest {
-    /// Get the inner `http::Request` object. This drops the body (if any).
-    pub fn into_inner(mut self) -> HttpRequest<Vec<u8>> {
-        mem::replace(&mut self.inner, HttpRequest::new(Vec::new()))
+    /// Get the inner `http::Request` object.
+    pub fn into_inner(mut self) -> HttpRequest<Option<Vec<u8>>> {
+        mem::replace(&mut self.inner, HttpRequest::new(None))
     }
 
     /// Split this request into its HTTP request and abort signal.
-    fn into_parts(mut self) -> (HttpRequest<Vec<u8>>, Option<JsObject>) {
-        let request = mem::replace(&mut self.inner, HttpRequest::new(Vec::new()));
+    fn into_parts(mut self) -> (HttpRequest<Option<Vec<u8>>>, Option<JsObject>) {
+        let request = mem::replace(&mut self.inner, HttpRequest::new(None));
         let signal = self.signal.take();
         (request, signal)
     }
 
     /// Get a reference to the inner `http::Request` object.
-    pub fn inner(&self) -> &HttpRequest<Vec<u8>> {
+    pub fn inner(&self) -> &HttpRequest<Option<Vec<u8>>> {
         &self.inner
     }
 
     /// Get the abort signal associated with this request, if any.
     pub(crate) fn signal(&self) -> Option<JsObject> {
         self.signal.clone()
-    }
-
-    pub(crate) fn has_body(&self) -> bool {
-        self.has_body
     }
 
     /// Get the URI of the request.
@@ -182,7 +168,7 @@ impl JsRequest {
         input: Either<JsString, JsRequest>,
         options: Option<RequestInit>,
     ) -> JsResult<Self> {
-        let (request, signal, input_has_body) = match input {
+        let (request, signal) = match input {
             Either::Left(uri) => {
                 let uri = http::Uri::try_from(
                     uri.to_std_string()
@@ -191,40 +177,29 @@ impl JsRequest {
                 .map_err(|_| js_error!(URIError: "Invalid URI"))?;
                 let request = http::request::Request::builder()
                     .uri(uri)
-                    .body(Vec::<u8>::new())
+                    .body(None)
                     .map_err(|_| js_error!(Error: "Cannot construct request"))?;
-                (request, None, false)
+                (request, None)
             }
-            Either::Right(r) => {
-                let has_body = r.has_body;
-                let (request, signal) = r.into_parts();
-                (request, signal, has_body)
-            }
+            Either::Right(r) => r.into_parts(),
         };
 
         if let Some(mut options) = options {
             let signal = options.take_signal().or(signal);
-            let has_body = options.has_body();
-            let inner = options.into_request_builder(Some((request, input_has_body)))?;
-            Ok(Self {
-                inner,
-                signal,
-                has_body: has_body || input_has_body,
-            })
+            let inner = options.into_request_builder(Some(request))?;
+            Ok(Self { inner, signal })
         } else {
             Ok(Self {
                 inner: request,
                 signal,
-                has_body: input_has_body,
             })
         }
     }
 }
 
-impl From<HttpRequest<Vec<u8>>> for JsRequest {
-    fn from(inner: HttpRequest<Vec<u8>>) -> Self {
+impl From<HttpRequest<Option<Vec<u8>>>> for JsRequest {
+    fn from(inner: HttpRequest<Option<Vec<u8>>>) -> Self {
         Self {
-            has_body: !inner.body().is_empty(),
             inner,
             signal: None,
         }
@@ -292,7 +267,7 @@ impl JsRequest {
     ///
     /// See <https://fetch.spec.whatwg.org/#dom-body-text>
     fn text(&self, context: &mut Context) -> JsPromise {
-        let body = self.inner.body().clone();
+        let body = self.inner.body().clone().unwrap_or_default();
         JsPromise::from_async_fn(
             async move |_| {
                 let text = String::from_utf8_lossy(&body);
@@ -308,7 +283,7 @@ impl JsRequest {
     ///
     /// See <https://fetch.spec.whatwg.org/#dom-body-json>
     fn json(&self, context: &mut Context) -> JsPromise {
-        let body = self.inner.body().clone();
+        let body = self.inner.body().clone().unwrap_or_default();
         JsPromise::from_async_fn(
             async move |context| {
                 let json_str = String::from_utf8_lossy(&body);
@@ -330,7 +305,7 @@ impl JsRequest {
     ///
     /// See <https://fetch.spec.whatwg.org/#dom-body-formdata>
     fn form_data(&self, context: &mut Context) -> JsPromise {
-        let body = self.inner.body().clone();
+        let body = self.inner.body().clone().unwrap_or_default();
         let content_type = self
             .inner
             .headers()
