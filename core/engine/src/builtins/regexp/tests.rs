@@ -176,6 +176,55 @@ fn to_string() {
     ]);
 }
 #[test]
+fn source_escapes_slash() {
+    run_test_actions([
+        TestAction::assert_eq(r#"new RegExp("/").source"#, js_string!(r"\/")),
+        TestAction::assert_eq(r"/a\/b/.source", js_string!(r"a\/b")),
+        TestAction::assert_eq(r#"new RegExp("\\/").source"#, js_string!(r"\/")),
+        // The backslash is escaped, the `/` is not.
+        TestAction::assert_eq(r#"new RegExp("\\\\/").source"#, js_string!(r"\\\/")),
+    ]);
+}
+
+#[test]
+fn source_escapes_line_terminators() {
+    run_test_actions([
+        TestAction::assert_eq(r#"new RegExp("\n").source"#, js_string!(r"\n")),
+        TestAction::assert_eq(r#"new RegExp("\\\n").source"#, js_string!(r"\n")),
+        TestAction::assert_eq(r#"new RegExp("\\\r").source"#, js_string!(r"\r")),
+        TestAction::assert_eq(r#"new RegExp("\\\u2028").source"#, js_string!(r"\u2028")),
+        TestAction::assert_eq(r#"new RegExp("\\\u2029").source"#, js_string!(r"\u2029")),
+        // The backslash is escaped, the line terminator is not.
+        TestAction::assert_eq(r#"new RegExp("\\\\\n").source"#, js_string!(r"\\\n")),
+    ]);
+}
+
+#[test]
+fn source_round_trips() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+                function roundTrips(re, inputs) {
+                    var copies = [
+                        new RegExp(re.source, re.flags),
+                        eval("/" + re.source + "/" + re.flags),
+                    ];
+                    return copies.every(function (copy) {
+                        return inputs.every(function (input) {
+                            return copy.test(input) === re.test(input);
+                        });
+                    });
+                }
+            "#}),
+        TestAction::assert(r#"roundTrips(/a\/b/, ["a/b", "a\\/b"])"#),
+        TestAction::assert(r#"roundTrips(new RegExp("/"), ["/", "\\/"])"#),
+        TestAction::assert(r#"roundTrips(new RegExp("\\\\/"), ["/", "\\/", "\\"])"#),
+        TestAction::assert(r#"roundTrips(new RegExp("[/]"),["/", "\\"])"#),
+        TestAction::assert(r#"roundTrips(new RegExp("\\\n"), ["\n", "\\n"])"#),
+        TestAction::assert(r#"roundTrips(new RegExp("\\\u2028"), ["\u2028", "\\u2028"])"#),
+    ]);
+}
+
+#[test]
 fn search() {
     const ERROR: &str = "RegExp.prototype[Symbol.search] method called on incompatible value";
     run_test_actions([
