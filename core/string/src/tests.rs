@@ -565,3 +565,69 @@ fn starts_with_and_ends_with_basic() {
     assert!(!basic.starts_with(end_needle));
     assert!(basic.ends_with(end_needle));
 }
+
+#[test]
+#[allow(clippy::float_cmp)]
+fn to_number() {
+    // `Infinity`, `+Infinity` and `-Infinity` are the only spellings of the infinite
+    // `StrUnsignedDecimalLiteral`. Every other casing, abbreviation or sign combination is not a
+    // `StringNumericLiteral` and must be `NaN`.
+    assert_eq!(JsString::from("Infinity").to_number(), f64::INFINITY);
+    assert_eq!(JsString::from("+Infinity").to_number(), f64::INFINITY);
+    assert_eq!(JsString::from("-Infinity").to_number(), f64::NEG_INFINITY);
+    for invalid in [
+        "inf",
+        "INF",
+        "Inf",
+        "infinity",
+        "+inf",
+        "-inf",
+        "+Inf",
+        "-Inf",
+        "+INF",
+        "-INF",
+        "+infinity",
+        "-infinity",
+        "+INFINITY",
+        "-INFINITY",
+        "+iNfInItY",
+    ] {
+        assert!(
+            JsString::from(invalid).to_number().is_nan(),
+            "`{invalid}` is not a `StringNumericLiteral`"
+        );
+    }
+
+    // A `NonDecimalIntegerLiteral` is a bare sequence of digits, so a sign after the prefix is
+    // invalid.
+    assert_eq!(JsString::from("0x10").to_number(), 16.0);
+    assert_eq!(JsString::from("0X10").to_number(), 16.0);
+    assert_eq!(JsString::from("0b101").to_number(), 5.0);
+    assert_eq!(JsString::from("0o17").to_number(), 15.0);
+    // Wider than `u32`, so this takes the slow path.
+    assert_eq!(JsString::from("0x1FFFFFFFF").to_number(), 8_589_934_591.0);
+    for invalid in [
+        "0x", "0b", "0o", "0x+1", "0x-1", "0x+0", "0b+1", "0b-1", "0o+7", "0o-7",
+    ] {
+        assert!(
+            JsString::from(invalid).to_number().is_nan(),
+            "`{invalid}` is not a `StringNumericLiteral`"
+        );
+    }
+
+    // `StrWhiteSpace` around the literal is stripped before it is parsed.
+    assert_eq!(JsString::from("").to_number(), 0.0);
+    assert_eq!(JsString::from(" \t\n").to_number(), 0.0);
+    assert_eq!(
+        JsString::from(" \t-Infinity\n ").to_number(),
+        f64::NEG_INFINITY
+    );
+    assert!(JsString::from(" -inf ").to_number().is_nan());
+    assert!(JsString::from(" 0x+1 ").to_number().is_nan());
+
+    // A decimal literal too large for `f64` is still a `StringNumericLiteral`; its
+    // `StringNumericValue` rounds to an infinity and must not be rejected.
+    assert_eq!(JsString::from("1e400").to_number(), f64::INFINITY);
+    assert_eq!(JsString::from("-1e400").to_number(), f64::NEG_INFINITY);
+    assert_eq!(JsString::from("1e999").to_number(), f64::INFINITY);
+}

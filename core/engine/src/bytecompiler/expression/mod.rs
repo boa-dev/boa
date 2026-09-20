@@ -17,7 +17,7 @@ use std::ops::Deref;
 
 use super::{Access, CallResultDest, Callable, NodeKind, Register, ToJsString};
 use crate::{
-    bytecompiler::{ByteCompiler, Literal},
+    bytecompiler::{ByteCompiler, Literal, ReturnValueLocation},
     vm::{CallFrame, GeneratorResumeKind},
 };
 use boa_ast::{
@@ -236,7 +236,7 @@ impl ByteCompiler<'_> {
                 }
                 self.close_active_iterators();
 
-                self.r#return(true);
+                self.r#return(ReturnValueLocation::OnStack);
 
                 self.patch_jump(throw_method_undefined);
 
