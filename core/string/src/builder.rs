@@ -68,8 +68,6 @@ impl<D: InternalStringType> JsStringBuilder<D> {
         self.cap
     }
 
-
-
     /// Returns the capacity calculated from given layout.
     #[must_use]
     const fn capacity_from_layout(layout: Layout) -> usize {

@@ -5,7 +5,7 @@ use std::ptr::{self, NonNull};
 
 /// Fibonacci numbers for rope balancing thresholds.
 /// `F(n) = Fib(n + 2)`. A rope of depth `n` is balanced if its length >= `F(n)`.
-static FIBONACCI_THRESHOLDS: [usize; 46] = [
+static FIBONACCI_THRESHOLDS: [u32; 46] = [
     1,
     2,
     3,
@@ -60,7 +60,6 @@ pub(crate) static ROPE_VTABLE: JsStringVTable = JsStringVTable {
     code_points: rope_code_points,
     code_unit_at: rope_code_unit_at,
     dealloc: rope_dealloc,
-    kind: JsStringKind::Rope,
 };
 
 /// The flattened representation of a rope.
@@ -133,7 +132,7 @@ impl RopeString {
         // A rope of depth `d` is considered balanced if its length is at least `Fib(d + 2)`.
         // If the current length is less than the threshold for the current depth, we rebalance.
         // This alone guarantees logarithmic depth while ensuring rebalancing happens only O(log n) times.
-        if d >= FIBONACCI_THRESHOLDS.len() || len < FIBONACCI_THRESHOLDS[d] {
+        if d >= FIBONACCI_THRESHOLDS.len() || len < FIBONACCI_THRESHOLDS[d] as usize {
             // Otherwise, collect leaves and rebuild a balanced tree.
             let mut leaves = Vec::with_capacity(std::cmp::max(depth as usize * 2, 16));
             Self::collect_leaves(&left, &mut leaves);
@@ -142,7 +141,7 @@ impl RopeString {
         }
 
         let rope = Box::new(Self {
-            header: JsStringHeader::new(&ROPE_VTABLE, len, 1),
+            header: JsStringHeader::new(JsStringKind::Rope, len, 1),
             left,
             right,
             flattened: OnceCell::new(),

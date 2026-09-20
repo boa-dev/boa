@@ -8,8 +8,7 @@ pub(crate) static SLICE_VTABLE: JsStringVTable = JsStringVTable {
     as_str: slice_as_str,
     code_points: slice_code_points,
     code_unit_at: slice_code_unit_at,
-    dealloc: slice_dealloc, // Slice strings are now correctly deallocated.
-    kind: JsStringKind::Slice,
+    dealloc: slice_dealloc,
 };
 
 /// A slice of an existing string.
@@ -38,7 +37,7 @@ impl SliceString {
         // `start` >= 0, `end` <= `owned.len()`).
         let inner = unsafe { owned.as_str().get_unchecked(start..end) };
         SliceString {
-            header: JsStringHeader::new(&SLICE_VTABLE, end - start, 1),
+            header: JsStringHeader::new(JsStringKind::Slice, end - start, 1),
             owned: owned.clone(),
             // SAFETY: this inner's lifetime is tied to the owned string above.
             // We transmute the lifetime to 'static to satisfy the long-lived nature of the string vtable.

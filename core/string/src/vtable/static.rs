@@ -9,8 +9,7 @@ pub(crate) static STATIC_VTABLE: JsStringVTable = JsStringVTable {
     as_str: static_as_str,
     code_points: static_code_points,
     code_unit_at: static_code_unit_at,
-    dealloc: |_| {}, // Static strings are never deallocated.
-    kind: JsStringKind::Static,
+    dealloc: |_| {},
 };
 
 /// A static string with vtable for uniform dispatch.
@@ -28,7 +27,7 @@ impl StaticString {
     #[must_use]
     pub const fn new(str: JsStr<'static>) -> Self {
         Self {
-            header: JsStringHeader::new(&STATIC_VTABLE, str.len(), 0),
+            header: JsStringHeader::new(JsStringKind::Static, str.len(), 0),
             str,
         }
     }

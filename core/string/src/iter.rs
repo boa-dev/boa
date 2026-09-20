@@ -90,7 +90,7 @@ impl Iterator for RopeIter<'_> {
             }
 
             if let Some(slice) = self.front_stack.pop() {
-                if slice.header.vtable.kind == crate::JsStringKind::Rope {
+                if slice.header.kind == crate::JsStringKind::Rope {
                     // SAFETY: The header is guaranteed to be a `RopeString` because the kind is `Rope`.
                     let r = unsafe {
                         &*std::ptr::from_ref(slice.header).cast::<crate::vtable::RopeString>()
@@ -122,9 +122,10 @@ impl Iterator for RopeIter<'_> {
                         });
                     }
                 } else {
-                    let s = (slice.header.vtable.as_str)(slice.header)
-                        .get(slice.start..slice.end)
-                        .expect("valid slice");
+                    let s =
+                        (crate::vtable::VTABLES[slice.header.kind as usize].as_str)(slice.header)
+                            .get(slice.start..slice.end)
+                            .expect("valid slice");
                     self.front_current = Some(s.iter());
                 }
                 continue;
@@ -158,7 +159,7 @@ impl DoubleEndedIterator for RopeIter<'_> {
             }
 
             if let Some(slice) = self.back_stack.pop() {
-                if slice.header.vtable.kind == crate::JsStringKind::Rope {
+                if slice.header.kind == crate::JsStringKind::Rope {
                     // SAFETY: The header is guaranteed to be a `RopeString` because the kind is `Rope`.
                     let r = unsafe {
                         &*std::ptr::from_ref(slice.header).cast::<crate::vtable::RopeString>()
@@ -194,9 +195,10 @@ impl DoubleEndedIterator for RopeIter<'_> {
                         });
                     }
                 } else {
-                    let s = (slice.header.vtable.as_str)(slice.header)
-                        .get(slice.start..slice.end)
-                        .expect("valid slice");
+                    let s =
+                        (crate::vtable::VTABLES[slice.header.kind as usize].as_str)(slice.header)
+                            .get(slice.start..slice.end)
+                            .expect("valid slice");
                     self.back_current = Some(s.iter());
                 }
                 continue;
@@ -394,7 +396,7 @@ impl<'a> Iterator for RopeCodePointsIter<'a> {
 
             let slice = self.stack.pop()?;
 
-            if slice.header.vtable.kind == crate::JsStringKind::Rope {
+            if slice.header.kind == crate::JsStringKind::Rope {
                 // SAFETY: The header is guaranteed to be a `RopeString` because the kind is `Rope`.
                 let r = unsafe {
                     &*std::ptr::from_ref(slice.header).cast::<crate::vtable::RopeString>()
@@ -426,7 +428,7 @@ impl<'a> Iterator for RopeCodePointsIter<'a> {
                     });
                 }
             } else {
-                let s = (slice.header.vtable.as_str)(slice.header)
+                let s = (crate::vtable::VTABLES[slice.header.kind as usize].as_str)(slice.header)
                     .get(slice.start..slice.end)
                     .expect("valid slice");
                 let iter = s.code_points();

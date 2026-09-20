@@ -5,13 +5,12 @@ use std::ptr::{self, NonNull};
 use crate::iter::CodePointsIter;
 use crate::r#type::{InternalStringType, Latin1, Utf16};
 use crate::vtable::{JsStringHeader, JsStringVTable};
-use crate::{JsStr, JsStringKind, alloc_overflow};
+use crate::{JsStr, alloc_overflow};
 pub(crate) static LATIN1_VTABLE: JsStringVTable = JsStringVTable {
     as_str: seq_as_str::<Latin1>,
     code_points: seq_code_points::<Latin1>,
     code_unit_at: seq_code_unit_at::<Latin1>,
     dealloc: seq_dealloc::<Latin1>,
-    kind: JsStringKind::Latin1Sequence,
 };
 
 /// Static vtable for UTF-16 sequence strings.
@@ -20,7 +19,6 @@ pub(crate) static UTF16_VTABLE: JsStringVTable = JsStringVTable {
     code_points: seq_code_points::<Utf16>,
     code_unit_at: seq_code_unit_at::<Utf16>,
     dealloc: seq_dealloc::<Utf16>,
-    kind: JsStringKind::Utf16Sequence,
 };
 
 /// A sequential memory array of `T::Char` elements.
@@ -46,7 +44,7 @@ impl<T: InternalStringType> SequenceString<T> {
     #[must_use]
     pub(crate) fn new(len: usize) -> Self {
         SequenceString {
-            header: JsStringHeader::new(T::VTABLE, len, 1),
+            header: JsStringHeader::new(T::KIND, len, 1),
             _marker: PhantomData,
             data: [0; 0],
         }

@@ -5,7 +5,6 @@ use std::ptr::NonNull;
 /// Sequential string implementation.
 pub mod sequence;
 pub use sequence::SequenceString;
-pub(crate) use sequence::{LATIN1_VTABLE, UTF16_VTABLE};
 
 /// Slice string implementation.
 pub mod slice;
@@ -21,13 +20,13 @@ pub use rope::RopeString;
 /// Header for all `JsString` allocations.
 ///
 /// This is stored at the beginning of every string allocation.
-/// By using a reference to a static vtable, we reduce the header size
-/// and improve cache locality for common operations.
+/// The `kind` field is used to index into a global vtable table,
+/// avoiding pointer indirection and improving cache locality.
 #[repr(C, align(8))]
 #[derive(Debug, Clone, Copy)]
 pub struct JsStringHeader {
-    /// Reference to the static vtable for this string kind.
-    pub vtable: &'static JsStringVTable,
+    /// Kind tag identifying the string type. Used to index into [`VTABLES`].
+    pub kind: JsStringKind,
     /// Length of the string in code units.
     pub(crate) len: usize,
     /// Reference count for this string.
@@ -41,9 +40,9 @@ pub struct JsStringHeader {
 
 impl JsStringHeader {
     /// Create a new `JsStringHeader`.
-    pub(crate) const fn new(vtable: &'static JsStringVTable, len: usize, refcount: usize) -> Self {
+    pub(crate) const fn new(kind: JsStringKind, len: usize, refcount: usize) -> Self {
         Self {
-            vtable,
+            kind,
             len,
             refcount,
             #[cfg(target_pointer_width = "32")]
@@ -55,7 +54,8 @@ impl JsStringHeader {
 
 /// Static vtable for `JsString` operations.
 ///
-/// This contains function pointers for polymorphic operations and static metadata.
+/// This contains function pointers for polymorphic operations.
+/// Vtables are stored by value in the global [`VTABLES`] array, indexed by [`JsStringKind`].
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct JsStringVTable {
@@ -67,7 +67,18 @@ pub struct JsStringVTable {
     pub code_unit_at: fn(&JsStringHeader, usize) -> Option<u16>,
     /// Deallocate the string.
     pub dealloc: fn(NonNull<JsStringHeader>),
-
-    /// Kind tag to identify the string type. Shared across all strings of this vtable.
-    pub kind: JsStringKind,
 }
+
+/// Global vtable table indexed by [`JsStringKind`].
+///
+/// Since `JsString` has a fixed, compile-time-known set of kinds,
+/// we store vtables by value in a contiguous array instead of using
+/// pointer indirection. This improves cache locality and avoids
+/// an extra pointer chase on every dispatch.
+pub(crate) static VTABLES: [JsStringVTable; 5] = [
+    sequence::LATIN1_VTABLE, // JsStringKind::Latin1Sequence = 0
+    sequence::UTF16_VTABLE,  // JsStringKind::Utf16Sequence = 1
+    slice::SLICE_VTABLE,     // JsStringKind::Slice = 2
+    r#static::STATIC_VTABLE, // JsStringKind::Static = 3
+    rope::ROPE_VTABLE,       // JsStringKind::Rope = 4
+];

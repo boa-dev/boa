@@ -30,7 +30,9 @@ use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
 use crate::iter::CodePointsIter;
 use crate::r#type::{Latin1, Utf16};
 pub use crate::vtable::StaticString;
-pub(crate) use crate::vtable::{JsStringHeader, RopeString, SequenceString, SliceString};
+pub(crate) use crate::vtable::{
+    JsStringHeader, JsStringVTable, RopeString, SequenceString, SliceString, VTABLES,
+};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -48,7 +50,6 @@ use std::{
     ptr::{self},
     str::FromStr,
 };
-use vtable::JsStringVTable;
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
@@ -253,7 +254,7 @@ impl JsString {
     pub fn code_points(&self) -> CodePointsIter<'_> {
         // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
-        (header.vtable.code_points)(header)
+        (VTABLES[header.kind as usize].code_points)(header)
     }
 
     /// Get the variant of this string.
@@ -262,9 +263,9 @@ impl JsString {
     pub fn variant(&self) -> JsStr<'_> {
         // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
-        match header.vtable.kind {
+        match header.kind {
             JsStringKind::Latin1Sequence => {
-                // SAFETY: `header.vtable.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
+                // SAFETY: `header.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
                 let seq: &SequenceString<Latin1> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` is a valid pointer to the Latin1 data, and `header.len` is the correct length.
                 unsafe {
@@ -273,7 +274,7 @@ impl JsString {
                 }
             }
             JsStringKind::Utf16Sequence => {
-                // SAFETY: `header.vtable.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
+                // SAFETY: `header.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
                 let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` is a valid pointer to the UTF-16 data, and `header.len` is the correct length.
                 let slice = unsafe { std::slice::from_raw_parts(seq.data().cast(), header.len) };
@@ -563,9 +564,8 @@ impl JsString {
     #[inline]
     #[must_use]
     #[allow(dead_code)]
-    const fn vtable(&self) -> &JsStringVTable {
-        // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
-        unsafe { self.ptr.as_ref().vtable }
+    fn vtable(&self) -> &JsStringVTable {
+        &VTABLES[self.kind() as usize]
     }
 
     /// Create a [`JsString`] from a [`StaticString`] instance. This is assumed that the
@@ -664,7 +664,7 @@ impl JsString {
     #[must_use]
     pub(crate) fn kind(&self) -> JsStringKind {
         // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
-        unsafe { self.ptr.as_ref().vtable.kind }
+        unsafe { self.ptr.as_ref().kind }
     }
 
     /// Returns the string as a [`JsStr`].
@@ -674,9 +674,9 @@ impl JsString {
         // SAFETY: The pointer `self.ptr` is always valid and points to a `JsStringHeader` header.
         let header = unsafe { self.ptr.as_ref() };
         // FAST PATH: Devirtualize common kinds.
-        match header.vtable.kind {
+        match header.kind {
             JsStringKind::Latin1Sequence => {
-                // SAFETY: `header.vtable.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
+                // SAFETY: `header.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
                 let seq: &SequenceString<Latin1> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` returns a valid pointer to the Latin1 data, and `header.len` is the correct length.
                 // The lifetime is bound to `self` via the function signature.
@@ -686,7 +686,7 @@ impl JsString {
                 }
             }
             JsStringKind::Utf16Sequence => {
-                // SAFETY: `header.vtable.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
+                // SAFETY: `header.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
                 let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` returns a valid pointer to the UTF-16 data, and `header.len` is the correct length.
                 // The lifetime is bound to `self` via the function signature.
@@ -696,19 +696,18 @@ impl JsString {
                 }
             }
             JsStringKind::Static => {
-                // SAFETY: `header.vtable.kind` is `Static`, so `self.ptr` can be safely cast to `StaticString`.
+                // SAFETY: `header.kind` is `Static`, so `self.ptr` can be safely cast to `StaticString`.
                 let s: &StaticString = unsafe { self.ptr.cast().as_ref() };
                 s.str
             }
             JsStringKind::Slice => {
-                // SAFETY: `header.vtable.kind` is `Slice`, so `self.ptr` can be safely cast to `SliceString`.
+                // SAFETY: `header.kind` is `Slice`, so `self.ptr` can be safely cast to `SliceString`.
                 let s: &SliceString = unsafe { self.ptr.cast().as_ref() };
                 s.inner
             }
             JsStringKind::Rope => {
-                // SAFETY: The `vtable.as_str` function is guaranteed to be a valid function pointer
-                // for the specific string type, and `header` is a valid reference to the header.
-                (header.vtable.as_str)(header)
+                // Dispatch through the global VTABLES array for rope strings.
+                (VTABLES[header.kind as usize].as_str)(header)
             }
         }
     }
@@ -723,16 +722,16 @@ impl JsString {
             return None;
         }
         // FAST PATH: Devirtualize common kinds.
-        match header.vtable.kind {
+        match header.kind {
             JsStringKind::Latin1Sequence => {
-                // SAFETY: `header.vtable.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
+                // SAFETY: `header.kind` is `Latin1Sequence`, so `self.ptr` can be safely cast to `SequenceString<Latin1>`.
                 let seq: &SequenceString<Latin1> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` returns a valid pointer to the Latin1 data.
                 // `index` is checked to be within `header.len`, so `add(index)` is in bounds.
                 Some(u16::from(unsafe { *seq.data().add(index) }))
             }
             JsStringKind::Utf16Sequence => {
-                // SAFETY: `header.vtable.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
+                // SAFETY: `header.kind` is `Utf16Sequence`, so `self.ptr` can be safely cast to `SequenceString<Utf16>`.
                 let seq: &SequenceString<Utf16> = unsafe { self.ptr.cast().as_ref() };
                 // SAFETY: `seq.data()` returns a valid pointer to the UTF-16 data.
                 // `index` is checked to be within `header.len`, so `add(index)` is in bounds.
@@ -746,7 +745,7 @@ impl JsString {
                 // All these have a direct JsStr representation.
                 self.as_str().get(index)
             }
-            JsStringKind::Rope => (header.vtable.code_unit_at)(header, index),
+            JsStringKind::Rope => (VTABLES[header.kind as usize].code_unit_at)(header, index),
         }
     }
 
@@ -758,7 +757,7 @@ impl JsString {
         // which would mark the memory as read-only (Frozen) in Miri's borrow model.
         unsafe {
             let header_ptr = self.ptr.as_ptr();
-            let kind = (*header_ptr).vtable.kind;
+            let kind = (*header_ptr).kind;
             if kind == JsStringKind::Static {
                 None
             } else {
@@ -1018,7 +1017,7 @@ impl Drop for JsString {
         // We call the deallocator from the vtable to correctly clean up the specific string kind.
         unsafe {
             let header = self.ptr.as_ref();
-            (header.vtable.dealloc)(self.ptr);
+            (VTABLES[header.kind as usize].dealloc)(self.ptr);
         }
     }
 }
@@ -1151,7 +1150,7 @@ impl Hash for JsString {
                 if hash == 0 {
                     hash = 1;
                 }
-                if (*header_ptr).vtable.kind != JsStringKind::Static {
+                if (*header_ptr).kind != JsStringKind::Static {
                     // SAFETY: Not a static string. Alignment and size match.
                     (*hash_ptr).store(hash, Ordering::Relaxed);
                 }
