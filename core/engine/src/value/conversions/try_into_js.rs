@@ -9,7 +9,7 @@ pub trait TryIntoJs: Sized {
 
 impl<T> TryIntoJs for T
 where
-    T: Class + Clone,
+    T: Class<Data = T> + Clone,
 {
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
         T::from_data(self.clone(), context).map(JsValue::from)

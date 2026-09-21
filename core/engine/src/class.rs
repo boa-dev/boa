@@ -2,115 +2,40 @@
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
 //!
-//! # Examples
-//!
-//! ```
-//! # use boa_engine::{
-//! #    NativeFunction,
-//! #    property::Attribute,
-//! #    class::{Class, ClassBuilder},
-//! #    Context, JsResult, JsValue,
-//! #    JsArgs, Source, JsObject, js_str, js_string,
-//! #    JsNativeError, JsData,
-//! # };
-//! # use boa_gc::{Finalize, Trace};
-//! #
-//! // Can also be a struct containing `Trace` types.
-//! #[derive(Debug, Trace, Finalize, JsData)]
-//! enum Animal {
-//!     Cat,
-//!     Dog,
-//!     Other,
-//! }
-//!
-//! impl Class for Animal {
-//!     // we set the binding name of this function to be `"Animal"`.
-//!     const NAME: &'static str = "Animal";
-//!
-//!     // We set the length to `2` since we accept 2 arguments in the constructor.
-//!     const LENGTH: usize = 2;
-//!
-//!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
-//!     // `_new_target` is the target of the `new` invocation, in this case the `Animal` constructor
-//!     // object.
-//!     fn data_constructor(_new_target: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
-//!         // This is equivalent to `String(arg)`.
-//!         let kind = args.get_or_undefined(0).to_string(context)?;
-//!
-//!         let animal = match kind.to_std_string_escaped().as_str() {
-//!             "cat" => Self::Cat,
-//!             "dog" => Self::Dog,
-//!             _ => Self::Other,
-//!         };
-//!
-//!         Ok(animal)
-//!     }
-//!
-//!     // This is also called on instance construction, but it receives the object wrapping the
-//!     // native data as its `instance` argument.
-//!     fn object_constructor(
-//!         instance: &JsObject<Self>,
-//!         args: &[JsValue],
-//!         context: &mut Context,
-//!     ) -> JsResult<()> {
-//!         let age = args.get_or_undefined(1).to_number(context)?;
-//!
-//!         // Roughly equivalent to `this.age = Number(age)`.
-//!         instance.clone().upcast().set(js_string!("age"), age, true, context)?;
-//!
-//!         Ok(())
-//!     }
-//!
-//!     /// This is where the class object is initialized.
-//!     fn init(class: &mut ClassBuilder) -> JsResult<()> {
-//!         class.method(
-//!             js_string!("speak"),
-//!             0,
-//!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
-//!                 if let Some(object) = this.as_object() {
-//!                     if let Some(animal) = object.downcast_ref::<Animal>() {
-//!                         return Ok(match &*animal {
-//!                             Self::Cat => js_string!("meow"),
-//!                             Self::Dog => js_string!("woof"),
-//!                             Self::Other => js_string!(r"¯\_(ツ)_/¯"),
-//!                         }.into());
-//!                     }
-//!                 }
-//!                 Err(JsNativeError::typ().with_message("invalid this for class method").into())
-//!             }),
-//!         );
-//!         Ok(())
-//!     }
-//! }
-//!
-//! fn main() {
-//!     let mut context = Context::default();
-//!
-//!     context.register_global_class::<Animal>().unwrap();
-//!
-//!     let result = context.eval(Source::from_bytes(r#"
-//!         let pet = new Animal("dog", 3);
-//!
-//!         `My pet is ${pet.age} years old. Right, buddy? - ${pet.speak()}!`
-//!     "#)).unwrap();
-//!
-//!     assert_eq!(
-//!         result.as_string().unwrap(),
-//!         js_str!("My pet is 3 years old. Right, buddy? - woof!")
-//!     );
-//! }
-//! ```
-//!
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
-    Context, JsResult, JsValue,
+    Context, JsData, JsResult, JsValue,
     context::intrinsics::StandardConstructor,
     error::JsNativeError,
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
 };
+use boa_gc::{Finalize, GcRefCell, Trace};
+use std::any::{Any, TypeId};
+
+/// Sentinel type for native classes with no parent.
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+pub struct NoParent;
+
+impl Class for NoParent {
+    const NAME: &'static str = "";
+    const LENGTH: usize = 0;
+
+    type Parent = NoParent;
+    type Data = ();
+    const DEPTH: usize = 0;
+    const INDEX: usize = 0;
+
+    fn init(_: &mut ClassBuilder<'_>) -> JsResult<()> {
+        Ok(())
+    }
+
+    fn data_constructor(_new_target: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<Self::Data> {
+        Ok(())
+    }
+}
 
 /// Native class.
 ///
@@ -124,42 +49,60 @@ pub trait Class: NativeObject + Sized {
     /// Default is `writable`, `enumerable`, `configurable`.
     const ATTRIBUTES: Attribute = Attribute::all();
 
+    /// The parent class in the native inheritance chain.
+    type Parent: Class;
+    /// The data owned by this class' layer in the final instance layout.
+    type Data: Any + Trace + JsData;
+
+    /// Number of real layers from the chain root down to and including `Self`.
+    /// `NoParent::DEPTH = 0`; a root class has `DEPTH = 1`.
+    const DEPTH: usize = <Self::Parent as Class>::DEPTH + 1;
+    /// The slot position of `Self`'s own data: `DEPTH - 1`.
+    const INDEX: usize = Self::DEPTH - 1;
+
     /// Initializes the properties and methods of this class.
     fn init(class: &mut ClassBuilder<'_>) -> JsResult<()>;
 
-    /// Creates the internal data for an instance of this class.
+    /// Creates the data for this class' layer from the arguments passed to `new`.
     fn data_constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> JsResult<Self>;
+    ) -> JsResult<Self::Data>;
+
+    /// Returns the arguments that should be forwarded to the parent class'
+    /// constructor. By default the same arguments are forwarded unchanged.
+    #[allow(unused_variables)]
+    fn parent_args<'a>(
+        new_target: &JsValue,
+        args: &'a [JsValue],
+        context: &mut Context,
+    ) -> JsResult<&'a [JsValue]> {
+        Ok(&[])
+    }
 
     /// Initializes the properties of the constructed object for an instance of this class.
     ///
     /// Useful to initialize additional properties for the constructed object that aren't
     /// stored inside the native data.
-    #[allow(unused_variables)] // Saves work when IDEs autocomplete trait impls.
+    #[allow(unused_variables)]
     fn object_constructor(
-        instance: &JsObject<Self>,
+        instance: &JsObject,
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<()> {
         Ok(())
     }
 
-    /// Creates a new [`JsObject`] with its internal data set to the result of calling
-    /// [`Class::data_constructor`] and [`Class::object_constructor`].
+    /// Creates a new [`JsObject`] with its internal data set to a [`NativeClassData`]
+    /// sized for the inheritance chain rooted at this class, then recursively builds
+    /// every parent layer and this layer in order.
     ///
     /// # Errors
     ///
     /// - Throws an error if `new_target` is undefined.
     /// - Throws an error if this class is not registered in `new_target`'s realm.
     ///   See [`Context::register_global_class`].
-    ///
-    /// <div class="warning">
-    /// Overriding this method could be useful for certain usages, but incorrectly implementing this
-    /// could lead to weird errors like missing inherited methods or incorrect internal data.
-    /// </div>
     fn construct(
         new_target: &JsValue,
         args: &[JsValue],
@@ -194,30 +137,31 @@ pub trait Class: NativeObject + Sized {
                 .prototype()
         };
 
-        let data = Self::data_constructor(new_target, args, context)?;
+        let data = NativeClassData::new::<Self>();
 
         let object =
             JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
+        let object = object.upcast();
 
+        build_chain::<Self>(&object, args, context)?;
         Self::object_constructor(&object, args, context)?;
 
-        Ok(object.upcast())
+        Ok(object)
     }
 
-    /// Constructs an instance of this class from its inner native data.
-    ///
-    /// Note that the default implementation won't call [`Class::data_constructor`], but it will
-    /// call [`Class::object_constructor`] with no arguments.
+    /// Constructs an instance of this class from its own layer data.
     ///
     /// # Errors
     /// - Throws an error if this class is not registered in the context's realm. See
     ///   [`Context::register_global_class`].
-    ///
-    /// <div class="warning">
-    /// Overriding this method could be useful for certain usages, but incorrectly implementing this
-    /// could lead to weird errors like missing inherited methods or incorrect internal data.
-    /// </div>
-    fn from_data(data: Self, context: &mut Context) -> JsResult<JsObject> {
+    /// - Panics if this class has a native parent; use the JS `new` path or construct the
+    ///   full chain from Rust.
+    fn from_data(data: Self::Data, context: &mut Context) -> JsResult<JsObject> {
+        assert!(
+            TypeId::of::<Self::Parent>() == TypeId::of::<NoParent>(),
+            "Class::from_data is only valid for root classes"
+        );
+
         let prototype = context
             .get_global_class::<Self>()
             .ok_or_else(|| {
@@ -228,14 +172,164 @@ pub trait Class: NativeObject + Sized {
             })?
             .prototype();
 
+        let carrier = NativeClassData::new::<Self>();
+        carrier.set_slot::<Self>(data);
+
         let object =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, carrier);
+        let object = object.upcast();
 
         Self::object_constructor(&object, &[], context)?;
 
-        Ok(object.upcast())
+        Ok(object)
     }
 }
+
+// ── Native class data carrier ─────────────────────────────────────────
+
+/// Trait object stored in each slot of a [`NativeClassData`].
+pub trait ClassSlot: Any + Trace {
+    /// Returns a reference to the underlying data as `dyn Any`.
+    fn as_any_ref(&self) -> &dyn Any;
+    /// Returns a mutable reference to the underlying data as `dyn Any`.
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+impl<T: Any + Trace> ClassSlot for T {
+    fn as_any_ref(&self) -> &dyn Any {
+        self
+    }
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+
+/// The per-instance native data store for a class hierarchy.
+///
+/// One slot per real layer in the chain (`NoParent` takes none); `T::INDEX`
+/// addresses a class' slot directly. The slot list is sized to the leaf class'
+/// `DEPTH` once at construction time and never resized.
+#[derive(Trace, Finalize, JsData)]
+pub struct NativeClassData {
+    slots: Box<[GcRefCell<Option<Box<dyn ClassSlot>>>]>,
+}
+
+impl std::fmt::Debug for NativeClassData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NativeClassData")
+            .field("slots", &self.slots.len())
+            .finish()
+    }
+}
+
+impl NativeClassData {
+    /// Build a registry sized for a chain ending at `T` (the leaf class).
+    fn new<T: Class>() -> Self {
+        Self {
+            slots: (0..T::DEPTH).map(|_| GcRefCell::new(None)).collect(),
+        }
+    }
+
+    /// Write `T`'s data into its slot. `T::INDEX` is a compile-time constant.
+    fn set_slot<T: Class>(&self, data: T::Data) {
+        *self.slots[T::INDEX].borrow_mut() = Some(Box::new(data));
+    }
+
+    /// Read a class' data through the callback.
+    fn with<T: Class, R>(&self, f: impl FnOnce(&T::Data) -> R) -> JsResult<R> {
+        let slot = self.slots.get(T::INDEX).ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "native class data index {} out of range",
+                T::INDEX
+            ))
+        })?;
+
+        let borrowed = slot.borrow();
+        let Some(slot_ref) = borrowed.as_deref() else {
+            return Err(JsNativeError::typ()
+                .with_message("native class data slot not initialized")
+                .into());
+        };
+
+        let data = slot_ref.as_any_ref().downcast_ref::<T::Data>().ok_or_else(|| {
+            JsNativeError::typ().with_message("native class data type mismatch")
+        })?;
+
+        Ok(f(data))
+    }
+
+    /// Mutate a class' data through the callback.
+    fn with_mut<T: Class, R>(&self, f: impl FnOnce(&mut T::Data) -> R) -> JsResult<R> {
+        let slot = self.slots.get(T::INDEX).ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "native class data index {} out of range",
+                T::INDEX
+            ))
+        })?;
+
+        let mut borrowed = slot.borrow_mut();
+        let Some(slot_ref) = borrowed.as_deref_mut() else {
+            return Err(JsNativeError::typ()
+                .with_message("native class data slot not initialized")
+                .into());
+        };
+
+        let data = slot_ref.as_any_mut().downcast_mut::<T::Data>().ok_or_else(|| {
+            JsNativeError::typ().with_message("native class data type mismatch")
+        })?;
+
+        Ok(f(data))
+    }
+}
+
+/// Recursively build every layer of the hierarchy into the same final instance,
+/// parent first.
+fn build_chain<T: Class>(instance: &JsObject, args: &[JsValue], context: &mut Context) -> JsResult<()> {
+    if TypeId::of::<T::Parent>() != TypeId::of::<NoParent>() {
+        let new_target = JsValue::undefined();
+        let parent_args = T::parent_args(&new_target, args, context)?;
+        build_chain::<T::Parent>(instance, parent_args, context)?;
+    }
+
+    let new_target = JsValue::undefined();
+    let data = T::data_constructor(&new_target, args, context)?;
+    set_class_data::<T>(instance, data)?;
+
+    Ok(())
+}
+
+/// Write a class' layer data into the instance's native data carrier.
+fn set_class_data<T: Class>(instance: &JsObject, data: T::Data) -> JsResult<()> {
+    let registry = instance
+        .downcast_ref::<NativeClassData>()
+        .ok_or_else(|| JsNativeError::typ().with_message("instance has no native class data"))?;
+    registry.set_slot::<T>(data);
+    Ok(())
+}
+
+/// Read a class' layer data from the instance.
+pub fn with_class_data<T: Class, R>(
+    instance: &JsObject,
+    f: impl FnOnce(&T::Data) -> R,
+) -> JsResult<R> {
+    let registry = instance
+        .downcast_ref::<NativeClassData>()
+        .ok_or_else(|| JsNativeError::typ().with_message("instance has no native class data"))?;
+    registry.with::<T, R>(f)
+}
+
+/// Mutate a class' layer data on the instance.
+pub fn with_class_data_mut<T: Class, R>(
+    instance: &JsObject,
+    f: impl FnOnce(&mut T::Data) -> R,
+) -> JsResult<R> {
+    let registry = instance
+        .downcast_ref::<NativeClassData>()
+        .ok_or_else(|| JsNativeError::typ().with_message("instance has no native class data"))?;
+    registry.with_mut::<T, R>(f)
+}
+
+// ── Class builder ─────────────────────────────────────────────────────
 
 /// Class builder which allows adding methods and static methods to the class.
 #[derive(Debug)]
@@ -249,12 +343,30 @@ impl<'ctx> ClassBuilder<'ctx> {
     where
         T: Class,
     {
+        let (parent_proto, parent_ctor): (Option<JsObject>, Option<JsObject>) =
+            if TypeId::of::<T::Parent>() != TypeId::of::<NoParent>() {
+                let parent_sc = context.get_global_class::<T::Parent>().expect(
+                    "parent class must be registered before its children",
+                );
+                (Some(parent_sc.prototype()), Some(parent_sc.constructor()))
+            } else {
+                (None, None)
+            };
+
         let mut builder = ConstructorBuilder::new(
             context,
             NativeFunction::from_fn_ptr(|t, a, c| T::construct(t, a, c).map(JsValue::from)),
         );
         builder.name(T::NAME);
         builder.length(T::LENGTH);
+
+        if let Some(proto) = parent_proto {
+            builder.inherit(proto);
+        }
+        if let Some(ctor) = parent_ctor {
+            builder.custom_prototype(ctor);
+        }
+
         Self { builder }
     }
 
