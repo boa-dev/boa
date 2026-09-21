@@ -67,7 +67,7 @@ impl OrderedSet {
     /// Computes in **O(1)** time.
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.inner.len() == 0
+        self.len() == 0
     }
 
     /// Insert a value pair in the set.
@@ -101,11 +101,19 @@ impl OrderedSet {
     }
 
     /// Removes all elements in the set, while preserving its capacity.
-    #[inline]
     pub fn clear(&mut self) {
-        self.inner.clear();
-        self.inner.shrink_to_fit();
-        self.empty_count = 0;
+        if self.lock == 0 {
+            self.inner.clear();
+            self.inner.shrink_to_fit();
+            self.empty_count = 0;
+        } else {
+            let len = self.inner.len();
+            self.inner.clear();
+            for i in 0..len {
+                self.inner.insert(MapKey::Empty(i));
+            }
+            self.empty_count = len;
+        }
     }
 
     /// Checks if a given value is present in the set
