@@ -17,6 +17,7 @@ use super::{
     Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp, error::Error,
 };
 use crate::builtins::function::arguments::{MappedArguments, UnmappedArguments};
+use crate::property::CompletePropertyDescriptor;
 use crate::value::JsVariant;
 use crate::{
     Context, JsArgs, JsData, JsExpect, JsResult, JsString,
@@ -36,7 +37,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use tap::{Conv, Pipe};
 
 pub(crate) mod for_in_iterator;
 #[cfg(test)]
@@ -378,8 +378,8 @@ impl OrdinaryObject {
             // b. If desc is not undefined, then
             if let Some(current_desc) = desc {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Get]].
-                return if current_desc.is_accessor_descriptor() {
-                    Ok(current_desc.expect_get().clone())
+                return if let CompletePropertyDescriptor::Accessor { get, .. } = current_desc {
+                    Ok(get.map(JsValue::new).unwrap_or_default())
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
@@ -424,8 +424,8 @@ impl OrdinaryObject {
             // b. If desc is not undefined, then
             if let Some(current_desc) = desc {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Set]].
-                return if current_desc.is_accessor_descriptor() {
-                    Ok(current_desc.expect_set().clone())
+                return if let CompletePropertyDescriptor::Accessor { set, .. } = current_desc {
+                    Ok(set.map(JsValue::new).unwrap_or_default())
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
@@ -506,7 +506,7 @@ impl OrdinaryObject {
             obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
         // 4. Return FromPropertyDescriptor(desc).
-        Self::from_property_descriptor(desc, context)
+        Self::from_property_descriptor(desc.map(Into::into), context)
     }
 
     /// `Object.getOwnPropertyDescriptors( object )`
@@ -542,7 +542,8 @@ impl OrdinaryObject {
                 obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
             // b. Let descriptor be FromPropertyDescriptor(desc).
-            let descriptor = Self::from_property_descriptor(desc, context)?;
+            let descriptor = Self::from_property_descriptor(desc.map(Into::into), context)
+                .expect("should never fail");
 
             // c. If descriptor is not undefined,
             //    perform ! CreateDataPropertyOrThrow(descriptors, key, descriptor).
@@ -942,12 +943,10 @@ impl OrdinaryObject {
             .to_object(context)?
             .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
-        own_prop
+        Ok(own_prop
             .as_ref()
-            .and_then(PropertyDescriptor::enumerable)
-            .unwrap_or_default()
-            .conv::<JsValue>()
-            .pipe(Ok)
+            .is_some_and(CompletePropertyDescriptor::enumerable)
+            .into())
     }
 
     /// `Object.assign( target, ...sources )`
@@ -990,7 +989,7 @@ impl OrdinaryObject {
                         &mut InternalMethodPropertyContext::new(context),
                     )? {
                         // 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
-                        if desc.expect_enumerable() {
+                        if desc.enumerable() {
                             // 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).
                             let property = from.get(key.clone(), context)?;
                             // 3.a.iii.2.b. Perform ? Set(to, nextKey, propValue, true).
@@ -1458,7 +1457,7 @@ fn object_define_properties(
 
         if let Some(prop_desc) = props
             .__get_own_property__(&next_key, &mut InternalMethodPropertyContext::new(context))?
-            && prop_desc.expect_enumerable()
+            && prop_desc.enumerable()
         {
             // i. Let descObj be ? Get(props, nextKey).
             let desc_obj = props.get(next_key.clone(), context)?;

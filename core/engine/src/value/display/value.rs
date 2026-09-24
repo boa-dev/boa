@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fmt::{self, Display};
 
+use crate::property::CompletePropertyDescriptor;
 use crate::{
     JsError, JsString, JsValue, JsVariant,
     builtins::{
@@ -18,7 +19,7 @@ use crate::{
         weak_set::NativeWeakSet,
     },
     js_string,
-    property::{PropertyDescriptor, PropertyKey},
+    property::PropertyKey,
 };
 
 /// Maximum nesting depth before objects/arrays are collapsed
@@ -59,7 +60,7 @@ pub(crate) fn log_value_to(
                 let name: std::borrow::Cow<'static, str> = v
                     .get_property(&js_string!("name").into())
                     .as_ref()
-                    .and_then(PropertyDescriptor::value)
+                    .and_then(CompletePropertyDescriptor::value)
                     .map_or_else(
                         || "<error>".into(),
                         |v| {
@@ -75,7 +76,7 @@ pub(crate) fn log_value_to(
                 let message = v
                     .get_property(&js_string!("message").into())
                     .as_ref()
-                    .and_then(PropertyDescriptor::value)
+                    .and_then(CompletePropertyDescriptor::value)
                     .map(|v| {
                         v.as_string().as_ref().map_or_else(
                             || v.display().to_string(),

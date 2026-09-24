@@ -15,7 +15,7 @@ use crate::{
     context::intrinsics::StandardConstructor,
     js_string,
     native_function::{NativeFunction, NativeFunctionObject},
-    property::{Attribute, PropertyDescriptor, PropertyKey},
+    property::{Attribute, CompletePropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
 };
@@ -295,7 +295,7 @@ impl<T: ?Sized> Object<T> {
     pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> bool
     where
         K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
+        P: Into<CompletePropertyDescriptor>,
     {
         self.properties.insert(&key.into(), property.into())
     }
@@ -543,11 +543,12 @@ impl<'ctx> ObjectInitializer<'ctx> {
 
         self.object.borrow_mut().insert(
             binding.binding,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: function.into(),
+                writable: true,
+                enumerable: false,
+                configurable: true,
+            },
         );
         self
     }
@@ -558,12 +559,15 @@ impl<'ctx> ObjectInitializer<'ctx> {
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.object.borrow_mut().insert(key, property);
+        self.object.borrow_mut().insert(
+            key,
+            CompletePropertyDescriptor::Data {
+                value: value.into(),
+                writable: attribute.writable(),
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
         self
     }
 
@@ -585,11 +589,12 @@ impl<'ctx> ObjectInitializer<'ctx> {
         // Accessors should have at least one function.
         assert!(set.is_some() || get.is_some());
 
-        let property = PropertyDescriptor::builder()
-            .maybe_get(get)
-            .maybe_set(set)
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
+        let property = CompletePropertyDescriptor::Accessor {
+            get,
+            set,
+            enumerable: attribute.enumerable(),
+            configurable: attribute.configurable(),
+        };
         self.object.borrow_mut().insert(key, property);
         self
     }
@@ -666,11 +671,12 @@ impl<'ctx> ConstructorBuilder<'ctx> {
 
         self.prototype.insert(
             binding.binding,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: function.into(),
+                writable: true,
+                enumerable: false,
+                configurable: true,
+            },
         );
         self
     }
@@ -694,11 +700,12 @@ impl<'ctx> ConstructorBuilder<'ctx> {
 
         self.constructor_object.insert(
             binding.binding,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: function.into(),
+                writable: true,
+                enumerable: false,
+                configurable: true,
+            },
         );
         self
     }
@@ -709,12 +716,15 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.prototype.insert(key, property);
+        self.prototype.insert(
+            key,
+            CompletePropertyDescriptor::Data {
+                value: value.into(),
+                writable: attribute.writable(),
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
         self
     }
 
@@ -724,12 +734,15 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.constructor_object.insert(key, property);
+        self.constructor_object.insert(
+            key,
+            CompletePropertyDescriptor::Data {
+                value: value.into(),
+                writable: attribute.writable(),
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
         self
     }
 
@@ -744,12 +757,15 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     where
         K: Into<PropertyKey>,
     {
-        let property = PropertyDescriptor::builder()
-            .maybe_get(get)
-            .maybe_set(set)
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.prototype.insert(key, property);
+        self.prototype.insert(
+            key,
+            CompletePropertyDescriptor::Accessor {
+                get,
+                set,
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
         self
     }
 
@@ -764,12 +780,15 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     where
         K: Into<PropertyKey>,
     {
-        let property = PropertyDescriptor::builder()
-            .maybe_get(get)
-            .maybe_set(set)
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.constructor_object.insert(key, property);
+        self.constructor_object.insert(
+            key,
+            CompletePropertyDescriptor::Accessor {
+                get,
+                set,
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
         self
     }
 
@@ -777,7 +796,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     pub fn property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
+        P: Into<CompletePropertyDescriptor>,
     {
         let property = property.into();
         self.prototype.insert(key, property);
@@ -788,7 +807,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     pub fn static_property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
+        P: Into<CompletePropertyDescriptor>,
     {
         let property = property.into();
         self.constructor_object.insert(key, property);
@@ -868,16 +887,18 @@ impl<'ctx> ConstructorBuilder<'ctx> {
     /// Build the constructor function object.
     #[must_use]
     pub fn build(mut self) -> StandardConstructor {
-        let length = PropertyDescriptor::builder()
-            .value(self.length)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
-        let name = PropertyDescriptor::builder()
-            .value(self.name.clone())
-            .writable(false)
-            .enumerable(false)
-            .configurable(true);
+        let length = CompletePropertyDescriptor::Data {
+            value: self.length.into(),
+            writable: false,
+            enumerable: false,
+            configurable: true,
+        };
+        let name = CompletePropertyDescriptor::Data {
+            value: self.name.clone().into(),
+            writable: false,
+            enumerable: false,
+            configurable: true,
+        };
 
         let prototype = {
             if let Some(proto) = self.inherit.take() {
@@ -928,11 +949,12 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             if self.has_prototype_property {
                 constructor.insert(
                     PROTOTYPE,
-                    PropertyDescriptor::builder()
-                        .value(prototype.clone())
-                        .writable(false)
-                        .enumerable(false)
-                        .configurable(false),
+                    CompletePropertyDescriptor::Data {
+                        value: prototype.clone().into(),
+                        writable: false,
+                        enumerable: false,
+                        configurable: false,
+                    },
                 );
             }
 
@@ -943,11 +965,12 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             let mut prototype = prototype.borrow_mut();
             prototype.insert(
                 CONSTRUCTOR,
-                PropertyDescriptor::builder()
-                    .value(constructor.clone())
-                    .writable(true)
-                    .enumerable(false)
-                    .configurable(true),
+                CompletePropertyDescriptor::Data {
+                    value: constructor.clone().into(),
+                    writable: true,
+                    enumerable: false,
+                    configurable: true,
+                },
             );
         }
 
