@@ -250,6 +250,27 @@ pub enum LiteralKind {
     Undefined,
 }
 
+/// Represents a numeric value.
+#[derive(Debug, Clone, Copy)]
+pub enum Number {
+    /// An integer.
+    Int(i32),
+    /// A floating point number.
+    Num(f64),
+}
+
+impl LiteralKind {
+    /// Returns [`Number::Int`] for [`LiteralKind::Int`], [`Number::Num`] for [`LiteralKind::Num`], and [`None`] otherwise.
+    #[must_use]
+    pub fn as_number(&self) -> Option<Number> {
+        Some(match self {
+            Self::Int(int) => Number::Int(*int),
+            Self::Num(num) => Number::Num(*num),
+            _ => return None,
+        })
+    }
+}
+
 /// Manual implementation, because `Undefined` is never constructed during parsing.
 #[cfg(feature = "arbitrary")]
 impl<'a> arbitrary::Arbitrary<'a> for LiteralKind {
