@@ -273,7 +273,7 @@ mod tests {
     }
 
     #[test]
-    fn test_varying_operand_round_trip() {
+    fn test_index_operand_round_trip() {
         round_trip_eq(&IndexOperand::new(0), |a, b| u32::from(*a) == u32::from(*b));
         round_trip_eq(&IndexOperand::new(0xFFFF_FFFF), |a, b| {
             u32::from(*a) == u32::from(*b)
@@ -299,6 +299,12 @@ mod tests {
         round_trip(&1.5f32);
         round_trip(&0.0f64);
         round_trip(&1.5f64);
+        round_trip(&f32::INFINITY);
+        round_trip(&f32::NEG_INFINITY);
+        round_trip_eq(&f32::NAN, |a, b| a.is_nan() && b.is_nan());
+        round_trip(&f64::INFINITY);
+        round_trip(&f64::NEG_INFINITY);
+        round_trip_eq(&f64::NAN, |a, b| a.is_nan() && b.is_nan());
     }
 
     #[test]
@@ -309,6 +315,10 @@ mod tests {
         round_trip_eq(&tuple, |a, b| {
             u32::from(a.0) == u32::from(b.0) && u32::from(a.1) == u32::from(b.1)
         });
+        round_trip(&(0u8,));
+        round_trip(&(0u8, 1u16, 2u32));
+        round_trip(&(0u8, 1u16, 2u32, 3u64));
+        round_trip(&(0u8, 1u16, 2u32, 3u64, 4i32));
     }
 
     #[test]
@@ -345,8 +355,29 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "buffer too small")]
-    fn decode_truncated_buffer_panics() {
+    fn decode_u32_truncated_panics() {
         let bytes = [0u8; 2];
         let _ = u32::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_u16_truncated_panics() {
+        let bytes = [0u8; 1];
+        let _ = u16::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_u64_truncated_panics() {
+        let bytes = [0u8; 4];
+        let _ = u64::decode(&bytes, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "buffer too small")]
+    fn decode_out_of_bounds_offset_panics() {
+        let bytes = [0u8; 4];
+        let _ = u32::decode(&bytes, 1);
     }
 }
