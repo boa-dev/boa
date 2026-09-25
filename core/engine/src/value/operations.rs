@@ -154,9 +154,10 @@ impl JsValue {
                 if y == 0 {
                     Self::nan()
                 } else {
-                    match x % y {
-                        rem if rem == 0 && x < 0 => Self::new(-0.0),
-                        rem => Self::new(rem),
+                    match x.checked_rem(y) {
+                        Some(rem) if rem == 0 && x < 0 => Self::new(-0.0),
+                        Some(rem) => Self::new(rem),
+                        None => Self::new((f64::from(x) % f64::from(y)).copysign(f64::from(x))),
                     }
                 }
             }
@@ -754,9 +755,10 @@ impl JsValue {
             if y == 0 {
                 return Some(Self::nan());
             }
-            return Some(match x % y {
-                rem if rem == 0 && x < 0 => Self::new(-0.0),
-                rem => Self::new(rem),
+            return Some(match x.checked_rem(y) {
+                Some(rem) if rem == 0 && x < 0 => Self::new(-0.0),
+                Some(rem) => Self::new(rem),
+                None => Self::new((f64::from(x) % f64::from(y)).copysign(f64::from(x))),
             });
         }
         let x = self.as_number_cheap()?;
