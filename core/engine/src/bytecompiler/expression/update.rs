@@ -4,7 +4,7 @@ use crate::bytecompiler::{
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::{Update, update::UpdateOp},
+        operator::{Update, update::{UpdateOp, UpdateTarget}},
     },
     scope::BindingLocatorError,
 };
@@ -12,6 +12,15 @@ use boa_ast::{
 impl ByteCompiler<'_> {
     pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register, discard: bool) {
         let mut compiler = self.position_guard(update);
+
+        // Annex B: a CallExpression as update operand is always a runtime ReferenceError.
+        // Evaluate the call (side effects), then throw — never perform the increment/decrement.
+        #[cfg(feature = "annex-b")]
+        if let UpdateTarget::Call(call) = update.target() {
+            compiler.compile_call_as_invalid_lhs(call, dst);
+            return;
+        }
+
         let increment = matches!(
             update.op(),
             UpdateOp::IncrementPost | UpdateOp::IncrementPre
