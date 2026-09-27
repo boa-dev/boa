@@ -625,12 +625,14 @@ pub(crate) fn create_date_time_format(
     let requested_locales = canonicalize_locale_list(locales, context)?;
     // 3. Set options to ? CoerceOptionsToObject(options).
     let options = coerce_options_to_object(options, context)?;
-    // 4. Let opt be a new Record.
-    let mut opt = IntlOptions::<DateTimeFormatterPreferences>::default();
 
+    // 4. Let opt be a new Record.
     // 5. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
     // 6. Set opt.[[localeMatcher]] to matcher.
-    opt.matcher = get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
+    let mut opt = IntlOptions::<DateTimeFormatterPreferences> {
+        matcher: get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default(),
+        ..Default::default()
+    };
 
     // 7. Let calendar be ? GetOption(options, "calendar", string, empty, undefined).
     // 8. If calendar is not undefined, then
@@ -646,9 +648,7 @@ pub(crate) fn create_date_time_format(
     // 12. Set opt.[[nu]] to numberingSystem.
     opt.preferences.numbering_system =
         get_option::<Value>(&options, js_string!("numberingSystem"), context)?
-            .map(NumberingSystem::try_from)
-            .transpose()
-            .map_err(|_icu4x_error| js_error!(RangeError: "unknown numbering system"))?;
+            .and_then(|nu| NumberingSystem::try_from(nu).ok());
 
     // 13. Let hour12 be ? GetOption(options, "hour12", boolean, empty, undefined).
     let hour_12 = get_option::<bool>(&options, js_string!("hour12"), context)?;
@@ -666,14 +666,15 @@ pub(crate) fn create_date_time_format(
 
     // 17. Let r be ResolveLocale(%Intl.DateTimeFormat%.[[AvailableLocales]], requestedLocales,
     // opt, %Intl.DateTimeFormat%.[[RelevantExtensionKeys]], %Intl.DateTimeFormat%.[[LocaleData]]).
-    let r = resolve_locale::<DateTimeFormat>(requested_locales, &mut opt, context.intl_provider())?;
+    let locale =
+        resolve_locale::<DateTimeFormat>(requested_locales, &mut opt, context.intl_provider())?;
 
     // TODO: The resolved calendar, numbering system, and hour cycle should come from
     // the ICU4X locale resolution result, not hardcoded defaults. However, ICU4X does
     // not yet expose getters for these computed values on DateTimeFormatter.
     // This means e.g. `new Intl.DateTimeFormat("ar").resolvedOptions().numberingSystem`
     // incorrectly returns "latn" instead of "arab".
-    // Tracked at: unicode-org/icu4x#5868
+    // Tracked at: https://github.com/unicode-org/icu4x/issues/5868
     if opt.preferences.calendar_algorithm.is_none() {
         opt.preferences.calendar_algorithm = CalendarAlgorithm::try_from(
             &Value::try_from_str("gregory").expect("'gregory' is a valid BCP 47 value"),
@@ -919,20 +920,20 @@ pub(crate) fn create_date_time_format(
     // 46. Return dateTimeFormat.
     let formatter = DateTimeFormatter::try_new_with_buffer_provider(
         context.intl_provider().erased_provider(),
-        r.clone().into(),
+        locale.clone().into(),
         fieldset,
     )
     .map_err(|e| js_error!(RangeError: "failed to load formatter: {}", e))?;
 
     let range_formatter = DateRangeFormatter::try_new_with_buffer_provider(
         context.intl_provider().erased_provider(),
-        r.clone().into(),
+        locale.clone().into(),
         fieldset,
     )
     .map_err(|e| js_error!(RangeError: "failed to load formatter: {}", e))?;
 
     Ok(DateTimeFormat {
-        locale: r,
+        locale,
         calendar_algorithm: opt.preferences.calendar_algorithm,
         numbering_system: opt.preferences.numbering_system,
         hour_cycle: opt.preferences.hour_cycle,
