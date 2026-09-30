@@ -22,6 +22,7 @@ use crate::{
 use boa_ast::{
     Keyword, Punctuator, Spanned,
     declaration::{ExportDeclaration as AstExportDeclaration, ReExportKind},
+    expression::Identifier,
 };
 use boa_interner::{Interner, Sym};
 
@@ -205,8 +206,17 @@ where
                         )
                     }
                     _ => {
-                        let expr =
+                        let mut expr =
                             AssignmentExpression::new(true, false, true).parse(cursor, interner)?;
+
+                        // An anonymous function definition is named "default" by its
+                        // NamedEvaluation, so a class gets the name before its static
+                        // elements are defined, and one of them can replace it.
+                        let span = expr.span();
+                        expr.set_anonymous_function_definition_name(&Identifier::new(
+                            Sym::DEFAULT,
+                            span,
+                        ));
 
                         cursor.expect_semicolon("default expression export", interner)?;
 
