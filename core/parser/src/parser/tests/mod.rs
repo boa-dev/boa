@@ -623,7 +623,10 @@ fn spread_in_object() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 5), (1, 6)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 9), (4, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, true, Span::new((1, 9), (4, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -762,7 +765,7 @@ fn hashbang_use_strict_with_with_statement() {
         "#},
         vec![
             Statement::With(With::new(
-                ObjectLiteral::new([], Span::new((2, 6), (2, 8))).into(),
+                ObjectLiteral::new([], false, Span::new((2, 6), (2, 8))).into(),
                 Block::from(StatementList::new([], LinearPosition::new(27), false)).into(),
             ))
             .into(),
@@ -823,6 +826,22 @@ fn debugger_statement() {
     check_invalid_script("let x = debugger;");
 
     check_invalid_script("debugger + debugger");
+}
+
+/// An object rest element cannot be followed by a comma in an assignment pattern.
+#[test]
+fn object_rest_trailing_comma_in_assignment_pattern() {
+    check_invalid_script("var rest; ({...rest,} = {});");
+    check_invalid_script("var rest; [{...rest,}] = [{}];");
+    check_invalid_script("var rest; for ({...rest,} in {});");
+    check_invalid_script("var rest; for ({...rest,} of [{}]);");
+
+    // The comma is fine where the literal stays an object literal.
+    assert!(
+        Parser::new(Source::from_bytes("var rest; ({...rest,});"))
+            .parse_script(&Scope::new_global(), &mut Interner::default())
+            .is_ok()
+    );
 }
 
 #[test]
