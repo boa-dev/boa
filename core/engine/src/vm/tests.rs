@@ -680,3 +680,25 @@ fn with_object_environment_binding_deleted_in_unscopables() {
         TestAction::assert("strictThrew === true"),
     ]);
 }
+
+#[test]
+fn binary_operand_evaluation_order_with_mutation() {
+    let mut context = Context::default();
+
+    let script = r#"
+        let add = (() => { var n = 1; return n + ++n; })();
+        let sub = (() => { var n = 1; return n - ++n; })();
+        let mul = (() => { var n = 2; return n * ++n; })();
+        let rel = (() => { var n = 1; return n < ++n; })();
+        let eq  = (() => { var n = 1; return n == ++n; })();
+        let assign = (() => { var n = 1; return n + (n = 10); })();
+
+        add === 3 && sub === -1 && mul === 6 && rel === true && eq === false && assign === 11
+    "#;
+
+    let result = context
+        .eval(Source::from_bytes(script))
+        .expect("script evaluation should succeed");
+
+    assert_eq!(result.as_boolean(), Some(true));
+}
