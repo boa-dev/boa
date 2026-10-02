@@ -26,7 +26,7 @@ impl ByteCompiler<'_> {
     /// If `rhs` can produce side effects, `lhs` is evaluated into an independent
     /// temporary register to prevent mutations on the right operand from corrupting
     /// the left operand's value.
-    fn compile_binary_operands(
+    pub(crate) fn compile_binary_operands(
         &mut self,
         lhs: &Expression,
         rhs: &Expression,
