@@ -50,6 +50,60 @@ const fn to_hex_digit(val: u16) -> u16 {
     }
 }
 
+/// The maximum nesting depth of the arrays and objects of a JSON text accepted by `JSON.parse`.
+///
+/// The validated text is parsed again by the recursive ECMAScript parser, so its nesting has to be
+/// bounded to avoid overflowing the stack. This is the depth that `serde_json` allows when
+/// deserializing into a `serde_json::Value`.
+const JSON_MAX_NESTING_DEPTH: usize = 127;
+
+/// Checks that `text` is a valid JSON text as specified in ECMA-404.
+///
+/// Only the syntax is checked. Deserializing into a `serde_json::Value` would reject valid texts
+/// that it cannot represent, like numbers outside of the `f64` range or escaped lone surrogates.
+fn validate_json_text(text: &str) -> JsResult<()> {
+    serde_json::from_str::<serde::de::IgnoredAny>(text)
+        .map(|_| ())
+        .map_err(|e| JsNativeError::syntax().with_message(e.to_string()).into())
+}
+
+/// Checks that the arrays and objects of a valid JSON text are not nested deeper than
+/// [`JSON_MAX_NESTING_DEPTH`].
+fn check_json_nesting_depth(text: &str) -> JsResult<()> {
+    let mut depth = 0usize;
+    let mut in_string = false;
+    let mut escaped = false;
+
+    for byte in text.bytes() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+            continue;
+        }
+
+        match byte {
+            b'"' => in_string = true,
+            b'[' | b'{' => {
+                depth += 1;
+                if depth > JSON_MAX_NESTING_DEPTH {
+                    return Err(JsNativeError::syntax()
+                        .with_message("JSON text is nested too deeply")
+                        .into());
+                }
+            }
+            b']' | b'}' => depth = depth.saturating_sub(1),
+            _ => {}
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests;
 
@@ -247,9 +301,8 @@ impl Json {
 
         // 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
         //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.
-        if let Err(e) = serde_json::from_str::<serde_json::Value>(&json_string) {
-            return Err(JsNativeError::syntax().with_message(e.to_string()).into());
-        }
+        validate_json_text(&json_string)?;
+        check_json_nesting_depth(&json_string)?;
 
         // Check if a reviver is provided, to determine if we need source text tracking
         let has_reviver = args.get_or_undefined(1).is_callable();
@@ -553,17 +606,14 @@ impl Json {
         // 3. Parse StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
         //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that
         //    specification, or if its outermost value is an object or array.
-        let parsed: serde_json::Value = serde_json::from_str(&std_string)
-            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
+        validate_json_text(&std_string)?;
 
-        // Must not be an object or array
-        match parsed {
-            serde_json::Value::Object(_) | serde_json::Value::Array(_) => {
-                return Err(JsNativeError::syntax()
-                    .with_message("JSON.rawJSON text must not be an object or array")
-                    .into());
-            }
-            _ => {}
+        // Must not be an object or array. The text has no leading whitespace, so its first
+        // character identifies the kind of the outermost value.
+        if matches!(first, b'{' | b'[') {
+            return Err(JsNativeError::syntax()
+                .with_message("JSON.rawJSON text must not be an object or array")
+                .into());
         }
 
         // 3. Let internalSlotsList be « [[IsRawJSON]] ».

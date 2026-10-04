@@ -342,3 +342,85 @@ fn json_stringify_cyclic_nested_object_throws_type_error() {
         "cyclic object value",
     )]);
 }
+
+#[test]
+fn json_parse_number_outside_of_f64_range() {
+    run_test_actions([
+        TestAction::assert_eq("JSON.parse('1e1000')", f64::INFINITY),
+        TestAction::assert_eq("JSON.parse('-1e1000')", f64::NEG_INFINITY),
+        TestAction::assert_eq("JSON.parse('[1E+400]')[0]", f64::INFINITY),
+        TestAction::assert_eq(r#"JSON.parse('{"a":1e999}').a"#, f64::INFINITY),
+        TestAction::assert_eq("JSON.parse('9'.repeat(400))", f64::INFINITY),
+        TestAction::assert_eq("JSON.parse('1e-1000')", 0),
+        TestAction::assert_eq(
+            "JSON.parse('[1e1000]', (key, value) => value)[0]",
+            f64::INFINITY,
+        ),
+    ]);
+}
+
+#[test]
+fn json_parse_escaped_lone_surrogate() {
+    run_test_actions([
+        TestAction::assert_eq(r#"JSON.parse('"\\uD800"').length"#, 1),
+        TestAction::assert_eq(r#"JSON.parse('"\\uD800"').charCodeAt(0)"#, 0xD800),
+        TestAction::assert_eq(r#"JSON.parse('"\\uDC00"').charCodeAt(0)"#, 0xDC00),
+        TestAction::assert_eq(r#"JSON.parse('"\\uD83D\\uDE00"').length"#, 2),
+    ]);
+}
+
+#[test]
+fn json_parse_rejects_invalid_json_text() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        [
+            '01', '1.', '.5', '1e', '+1', 'Infinity', '1 2', '"\\u12"', '"\\x41"', '"a\nb"',
+            "'a'", '[1,]', '[1', '',
+        ].every((text) => {
+            try {
+                JSON.parse(text);
+                return false;
+            } catch (e) {
+                return e instanceof SyntaxError;
+            }
+        })
+    "#})]);
+}
+
+#[test]
+fn json_parse_nesting_limit() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "JSON.parse('['.repeat(128) + ']'.repeat(128))",
+            JsNativeErrorKind::Syntax,
+            "JSON text is nested too deeply",
+        ),
+        TestAction::assert_native_error(
+            r#"JSON.parse('{"a":'.repeat(128) + '1' + '}'.repeat(128))"#,
+            JsNativeErrorKind::Syntax,
+            "JSON text is nested too deeply",
+        ),
+        // Brackets inside of strings are not nesting.
+        TestAction::assert_eq(r#"JSON.parse('"' + '['.repeat(300) + '"').length"#, 300),
+        TestAction::assert_eq(r#"JSON.parse('["a\\"[[[", "\\\\"]').length"#, 2),
+    ]);
+}
+
+#[test]
+fn json_raw_json_number_outside_of_f64_range() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "JSON.stringify({ a: JSON.rawJSON('1e1000') })",
+            js_string!(r#"{"a":1e1000}"#),
+        ),
+        TestAction::assert_native_error(
+            "JSON.rawJSON('[1]')",
+            JsNativeErrorKind::Syntax,
+            "JSON.rawJSON text must not be an object or array",
+        ),
+        TestAction::assert_native_error(
+            "JSON.rawJSON('{}')",
+            JsNativeErrorKind::Syntax,
+            "JSON.rawJSON text must not be an object or array",
+        ),
+    ]);
+}
