@@ -16,11 +16,32 @@ mod tests;
 mod encodings;
 
 /// Options for the [`TextDecoder`] constructor.
-#[derive(Debug, Default, Clone, Copy, TryFromJs)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct TextDecoderOptions {
     fatal: Option<bool>,
-    #[boa(rename = "ignoreBOM")]
     ignore_bom: Option<bool>,
+}
+
+impl TryFromJs for TextDecoderOptions {
+    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+        // Web IDL treats null and undefined as empty dictionaries.
+        if value.is_null_or_undefined() {
+            return Ok(Self::default());
+        }
+        let object = value
+            .as_object()
+            .ok_or_else(|| js_error!(TypeError: "TextDecoder options must be an object."))?;
+
+        // Dictionary members are read in lexicographic order using ordinary Get,
+        // including inherited properties, accessors, and proxy traps. Web IDL
+        // boolean conversion uses ToBoolean rather than requiring a JS boolean.
+        let fatal = object.get(js_string!("fatal"), context)?.to_boolean();
+        let ignore_bom = object.get(js_string!("ignoreBOM"), context)?.to_boolean();
+        Ok(Self {
+            fatal: Some(fatal),
+            ignore_bom: Some(ignore_bom),
+        })
+    }
 }
 
 /// The character encoding used by [`TextDecoder`].

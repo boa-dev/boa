@@ -56,6 +56,9 @@ fn decode_utf16_units(
         }
         let trailing_high_surrogate =
             last_code_unit.is_some_and(|code_unit| (0xD800..=0xDBFF).contains(&code_unit));
+        // At EOF, the Encoding Standard reports one error for a pending high
+        // surrogate and an incomplete code unit together. decode_utf16 has
+        // already emitted that surrogate's replacement character.
         if !trailing_high_surrogate {
             string.push('\u{FFFD}');
         }

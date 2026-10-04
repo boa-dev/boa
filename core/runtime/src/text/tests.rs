@@ -2,7 +2,7 @@ use crate::test::{TestAction, run_test_actions_with};
 use crate::text;
 use boa_engine::object::builtins::JsUint8Array;
 use boa_engine::property::Attribute;
-use boa_engine::{Context, JsString, js_str, js_string};
+use boa_engine::{Context, JsString, Source, js_str, js_string};
 use indoc::indoc;
 use test_case::test_case;
 
@@ -733,4 +733,102 @@ fn decoder_fatal_utf16be_surrogates_throws() {
         ],
         context,
     );
+}
+
+#[test_case("{ fatal: 1, ignoreBOM: 1 }", true, true; "numbers")]
+#[test_case("{ fatal: 'false', ignoreBOM: 'false' }", true, true; "strings")]
+#[test_case("{ fatal: null, ignoreBOM: null }", false, false; "null_members")]
+#[test_case("{ fatal: 0, ignoreBOM: '' }", false, false; "falsy_members")]
+#[test_case("Object.create({ fatal: true, ignoreBOM: true })", true, true; "inherited")]
+#[test_case("{ get fatal() { return true; }, get ignoreBOM() { return true; } }", true, true; "getters")]
+#[test_case("new Proxy({}, { get(_, key) { return key === 'fatal'; } })", true, false; "proxy")]
+#[test_case("null", false, false; "null_dictionary")]
+#[test_case("undefined", false, false; "undefined_dictionary")]
+#[test_case("{}", false, false; "empty_dictionary")]
+#[test_case("{ fatal: { valueOf() { throw 1; } }, ignoreBOM: [] }", true, true; "objects")]
+fn decoder_option_conversion(options: &str, fatal: bool, ignore_bom: bool) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let source = format!(
+        "const decoder = new TextDecoder('utf-8', {options});
+         decoder.fatal === {fatal} && decoder.ignoreBOM === {ignore_bom}"
+    );
+    let result = context.eval(Source::from_bytes(&source)).unwrap();
+    assert_eq!(result.as_boolean(), Some(true), "{options}");
+}
+
+#[test]
+fn decoder_option_getter_order_and_errors() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let result = context
+        .eval(Source::from_bytes(indoc! {r#"
+        const reads = [];
+        const options = {
+            get fatal() { reads.push('fatal'); return true; },
+            get ignoreBOM() { reads.push('ignoreBOM'); return false; }
+        };
+        const decoder = new TextDecoder('utf-8', options);
+        let fatalThrows = false;
+        try { decoder.decode(Uint8Array.of(0xff)); }
+        catch (error) { fatalThrows = error instanceof TypeError; }
+
+        const sentinel = {};
+        let errorPreserved = false;
+        let readAfterError = false;
+        try {
+            new TextDecoder('utf-8', {
+                get fatal() { throw sentinel; },
+                get ignoreBOM() { readAfterError = true; }
+            });
+        } catch (error) { errorPreserved = error === sentinel; }
+        reads.join(',') === 'fatal,ignoreBOM' && fatalThrows &&
+            errorPreserved && !readAfterError
+    "#}))
+        .unwrap();
+    assert_eq!(result.as_boolean(), Some(true));
+}
+
+#[test_case(&[], "", false; "empty")]
+#[test_case(&[0x41, 0, 0x3d, 0xd8, 0, 0xde], "A😀", false; "valid_pair")]
+#[test_case(&[0, 0xd8], "\u{FFFD}", true; "lone_high_surrogate")]
+#[test_case(&[0, 0xdc], "\u{FFFD}", true; "lone_low_surrogate")]
+#[test_case(&[0, 0xd8, 0x41, 0], "\u{FFFD}A", true; "high_then_ascii")]
+#[test_case(&[0, 0xd8, 0x41], "\u{FFFD}", true; "high_then_odd_byte")]
+#[test_case(&[0, 0xdc, 0x41], "\u{FFFD}\u{FFFD}", true; "low_then_odd_byte")]
+#[test_case(&[0, 0xd8, 0, 0xd8, 0x41], "\u{FFFD}\u{FFFD}", true; "two_high_then_odd_byte")]
+#[test_case(&[0x3d, 0xd8, 0, 0xde, 0x41], "😀\u{FFFD}", true; "pair_then_odd_byte")]
+fn decoder_utf16_error_sequences(input: &[u8], expected: &str, invalid: bool) {
+    let mut big_endian = input.to_vec();
+    for pair in big_endian.chunks_exact_mut(2) {
+        pair.swap(0, 1);
+    }
+    for fatal in [false, true] {
+        let little = super::encodings::utf16le::decode(input, true, fatal);
+        let big = super::encodings::utf16be::decode(&big_endian, true, fatal);
+        if fatal && invalid {
+            assert!(little.is_err());
+            assert!(big.is_err());
+        } else {
+            assert_eq!(little.unwrap(), JsString::from(expected));
+            assert_eq!(big.unwrap(), JsString::from(expected));
+        }
+    }
+}
+
+#[test_case("utf-16le", "72, 0, 105, 0", false; "little_endian")]
+#[test_case("utf-16be", "0, 72, 0, 105", false; "big_endian")]
+#[test_case("utf-16le", "72, 0, 105, 0", true; "little_endian_fatal")]
+#[test_case("utf-16be", "0, 72, 0, 105", true; "big_endian_fatal")]
+fn decoder_utf16_unaligned_views(encoding: &str, bytes: &str, fatal: bool) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let source = format!(
+        "const buffer = Uint8Array.of(255, {bytes}, 255).buffer;
+         const decoder = new TextDecoder('{encoding}', {{ fatal: {fatal} }});
+         decoder.decode(new Uint8Array(buffer, 1, 4)) === 'Hi' &&
+         decoder.decode(new DataView(buffer, 1, 4)) === 'Hi'"
+    );
+    let result = context.eval(Source::from_bytes(&source)).unwrap();
+    assert_eq!(result.as_boolean(), Some(true));
 }
