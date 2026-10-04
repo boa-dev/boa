@@ -18,6 +18,7 @@ mod encodings;
 /// Options for the [`TextDecoder`] constructor.
 #[derive(Debug, Default, Clone, Copy, TryFromJs)]
 pub struct TextDecoderOptions {
+    fatal: Option<bool>,
     #[boa(rename = "ignoreBOM")]
     ignore_bom: Option<bool>,
 }
@@ -72,6 +73,8 @@ pub struct TextDecoder {
     #[unsafe_ignore_trace]
     encoding: Encoding,
     #[unsafe_ignore_trace]
+    fatal: bool,
+    #[unsafe_ignore_trace]
     ignore_bom: bool,
 }
 
@@ -89,6 +92,7 @@ impl TextDecoder {
         options: Option<TextDecoderOptions>,
     ) -> JsResult<Self> {
         let ignore_bom = options.and_then(|o| o.ignore_bom).unwrap_or(false);
+        let fatal = options.and_then(|o| o.fatal).unwrap_or(false);
 
         let encoding = match encoding {
             Some(enc) => {
@@ -102,6 +106,7 @@ impl TextDecoder {
 
         Ok(Self {
             encoding,
+            fatal,
             ignore_bom,
         })
     }
@@ -118,6 +123,16 @@ impl TextDecoder {
             Encoding::Utf16Le => js_string!("utf-16le"),
             Encoding::Utf16Be => js_string!("utf-16be"),
         }
+    }
+
+    /// The [`TextDecoder.fatal`][mdn] read-only property returns a `bool` indicating
+    /// whether the decoder operates in fatal mode (throwing on invalid input).
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/fatal
+    #[boa(getter)]
+    #[must_use]
+    pub fn fatal(&self) -> bool {
+        self.fatal
     }
 
     /// The [`TextDecoder.ignoreBOM`][mdn] read-only property returns a `bool` indicating
@@ -197,14 +212,13 @@ impl TextDecoder {
             &full_data
         };
 
-        Ok(match self.encoding {
-            Encoding::Utf8 => encodings::utf8::decode(data, strip_bom),
-            Encoding::Utf16Le => encodings::utf16le::decode(data, strip_bom),
-            Encoding::Utf16Be => {
-                let owned = data.to_vec();
-                encodings::utf16be::decode(owned, strip_bom)
-            }
-        })
+        let decoded = match self.encoding {
+            Encoding::Utf8 => encodings::utf8::decode(data, strip_bom, self.fatal),
+            Encoding::Utf16Le => encodings::utf16le::decode(data, strip_bom, self.fatal),
+            Encoding::Utf16Be => encodings::utf16be::decode(data, strip_bom, self.fatal),
+        };
+
+        decoded.map_err(|()| js_error!(TypeError: "The encoded data was not valid."))
     }
 }
 

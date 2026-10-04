@@ -476,3 +476,261 @@ fn decoder_handle_data_view_offset_and_length() {
         context,
     );
 }
+
+#[test]
+fn decoder_fatal_getter() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d1 = new TextDecoder();
+                const d2 = new TextDecoder("utf-8", { fatal: true });
+                const d3 = new TextDecoder("utf-8", { fatal: false });
+                fatal1 = d1.fatal;
+                fatal2 = d2.fatal;
+                fatal3 = d3.fatal;
+                hasFatal = "fatal" in d1;
+            "#}),
+            TestAction::inspect_context(|context| {
+                let v1 = context
+                    .global_object()
+                    .get(js_str!("fatal1"), context)
+                    .unwrap();
+                let v2 = context
+                    .global_object()
+                    .get(js_str!("fatal2"), context)
+                    .unwrap();
+                let v3 = context
+                    .global_object()
+                    .get(js_str!("fatal3"), context)
+                    .unwrap();
+                let has = context
+                    .global_object()
+                    .get(js_str!("hasFatal"), context)
+                    .unwrap();
+                assert_eq!(v1.as_boolean(), Some(false));
+                assert_eq!(v2.as_boolean(), Some(true));
+                assert_eq!(v3.as_boolean(), Some(false));
+                assert_eq!(has.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf8_invalid_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-8", { fatal: true });
+                try {
+                    decoder.decode(Uint8Array.of(0xf0, 0x80, 0x80));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16le_invalid_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16le", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0x00]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16be_invalid_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16be", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0x00]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_utf16_unaligned_buffer() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const buffer = new ArrayBuffer(8);
+                const u8 = new Uint8Array(buffer, 1, 4);
+                // "Hi" in UTF-16LE at unaligned offset: [72, 0, 105, 0]
+                u8[0] = 72;
+                u8[1] = 0;
+                u8[2] = 105;
+                u8[3] = 0;
+                decodedLe = new TextDecoder("utf-16le").decode(u8);
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decodedLe"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("Hi")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_utf16le_surrogates() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16le");
+                res = decoder.decode(new Uint8Array([0x00, 0xd8]));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let res = context
+                    .global_object()
+                    .get(js_str!("res"), context)
+                    .unwrap();
+                assert_eq!(res.as_string(), Some(js_string!("\u{FFFD}")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_utf16be_surrogates() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16be");
+                res = decoder.decode(new Uint8Array([0xd8, 0x00]));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let res = context
+                    .global_object()
+                    .get(js_str!("res"), context)
+                    .unwrap();
+                assert_eq!(res.as_string(), Some(js_string!("\u{FFFD}")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16le_surrogates_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16le", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0x00, 0xd8]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16be_surrogates_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16be", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0xd8, 0x00]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
