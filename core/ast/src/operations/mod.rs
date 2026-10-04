@@ -2323,6 +2323,22 @@ where
 #[derive(Debug)]
 struct AnnexBFunctionDeclarationNamesVisitor<'a>(&'a mut Vec<Sym>);
 
+impl AnnexBFunctionDeclarationNamesVisitor<'_> {
+    /// Removes the names collected since `start` that do not satisfy `keep`.
+    ///
+    /// A lexical declaration only conflicts with the function declarations that are nested in the
+    /// statement that introduces it, so the names collected before visiting that statement must
+    /// not be filtered.
+    fn retain_from(&mut self, start: usize, mut keep: impl FnMut(&Sym) -> bool) {
+        let mut index = 0;
+        self.0.retain(|name| {
+            let keep = index < start || keep(name);
+            index += 1;
+            keep
+        });
+    }
+}
+
 impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     type BreakTy = Infallible;
 
@@ -2354,6 +2370,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     }
 
     fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
+        let start = self.0.len();
         self.visit(node.statement_list())?;
         for statement in node.statement_list().statements() {
             if let StatementListItem::Declaration(declaration) = statement
@@ -2366,13 +2383,15 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
 
         let lexically_declared_names = lexically_declared_names_legacy(node.statement_list());
 
-        self.0
-            .retain(|name| !lexically_declared_names.contains(&(*name, false)));
+        self.retain_from(start, |name| {
+            !lexically_declared_names.contains(&(*name, false))
+        });
 
         ControlFlow::Continue(())
     }
 
     fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
+        let start = self.0.len();
         for case in node.cases() {
             self.visit(case)?;
             for statement in case.body().statements() {
@@ -2398,8 +2417,9 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
 
         let lexically_declared_names = lexically_declared_names_legacy(node);
 
-        self.0
-            .retain(|name| !lexically_declared_names.contains(&(*name, false)));
+        self.retain_from(start, |name| {
+            !lexically_declared_names.contains(&(*name, false))
+        });
 
         ControlFlow::Continue(())
     }
@@ -2407,12 +2427,13 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
         self.visit(node.block())?;
         if let Some(catch) = node.catch() {
+            let start = self.0.len();
             self.visit(catch.block())?;
 
             if let Some(Binding::Pattern(pattern)) = catch.parameter() {
                 let bound_names = bound_names(pattern);
 
-                self.0.retain(|name| !bound_names.contains(name));
+                self.retain_from(start, |name| !bound_names.contains(name));
             }
         }
         if let Some(finally) = node.finally() {
@@ -2446,11 +2467,12 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::ForLoop,
     ) -> ControlFlow<Self::BreakTy> {
+        let start = self.0.len();
         self.visit(node.body())?;
 
         if let Some(ForLoopInitializer::Lexical(node)) = node.init() {
             let bound_names = bound_names(&node.declaration);
-            self.0.retain(|name| !bound_names.contains(name));
+            self.retain_from(start, |name| !bound_names.contains(name));
         }
 
         ControlFlow::Continue(())
@@ -2460,15 +2482,16 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::ForInLoop,
     ) -> ControlFlow<Self::BreakTy> {
+        let start = self.0.len();
         self.visit(node.body())?;
 
         if let IterableLoopInitializer::Let(node) = node.initializer() {
             let bound_names = bound_names(node);
-            self.0.retain(|name| !bound_names.contains(name));
+            self.retain_from(start, |name| !bound_names.contains(name));
         }
         if let IterableLoopInitializer::Const(node) = node.initializer() {
             let bound_names = bound_names(node);
-            self.0.retain(|name| !bound_names.contains(name));
+            self.retain_from(start, |name| !bound_names.contains(name));
         }
 
         ControlFlow::Continue(())
@@ -2478,15 +2501,16 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::ForOfLoop,
     ) -> ControlFlow<Self::BreakTy> {
+        let start = self.0.len();
         self.visit(node.body())?;
 
         if let IterableLoopInitializer::Let(node) = node.initializer() {
             let bound_names = bound_names(node);
-            self.0.retain(|name| !bound_names.contains(name));
+            self.retain_from(start, |name| !bound_names.contains(name));
         }
         if let IterableLoopInitializer::Const(node) = node.initializer() {
             let bound_names = bound_names(node);
-            self.0.retain(|name| !bound_names.contains(name));
+            self.retain_from(start, |name| !bound_names.contains(name));
         }
 
         ControlFlow::Continue(())

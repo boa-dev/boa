@@ -351,3 +351,114 @@ fn function_constructor_nested_lexical_binding() {
         42,
     )]);
 }
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn annex_b_function_hoisting_ignores_unrelated_lexical_declarations() {
+    // A lexical declaration only prevents the Annex B.3.2 hoisting of the block-level functions
+    // that are nested in the statement that introduces it.
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    { function f() { return 1; } }
+                    { let f; }
+                    return f();
+                }());
+            "#},
+            1,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    { function f() { return 1; } }
+                    for (let f = 0; f < 1; f++) {}
+                    for (const f of []) {}
+                    for (let f in {}) {}
+                    return f();
+                }());
+            "#},
+            1,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    try {
+                        { function f() { return 1; } }
+                        throw {};
+                    } catch ({ f }) {}
+                    return f();
+                }());
+            "#},
+            1,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    { function f() { return 1; } }
+                    switch (0) {
+                        case 0:
+                            let f;
+                    }
+                    return f();
+                }());
+            "#},
+            1,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                { function annexBGlobal() { return 1; } }
+                { let annexBGlobal; }
+                annexBGlobal();
+            "#},
+            1,
+        ),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn annex_b_function_hoisting_respects_enclosing_lexical_declarations() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    { let f = 1; { function f() {} } }
+                    return typeof f;
+                }());
+            "#},
+            js_str!("undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    for (let f = 0; f < 1; f++) { { function f() {} } }
+                    return typeof f;
+                }());
+            "#},
+            js_str!("undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    try { throw {}; } catch ({ f }) { { function f() {} } }
+                    return typeof f;
+                }());
+            "#},
+            js_str!("undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    switch (0) {
+                        case 0:
+                            let f;
+                            { function f() {} }
+                    }
+                    return typeof f;
+                }());
+            "#},
+            js_str!("undefined"),
+        ),
+    ]);
+}
