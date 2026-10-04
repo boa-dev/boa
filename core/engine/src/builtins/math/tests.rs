@@ -68,6 +68,32 @@ fn atan2() {
 }
 
 #[test]
+fn atanh() {
+    run_test_actions([
+        TestAction::assert_eq("Math.atanh(0)", 0.0),
+        TestAction::assert("Object.is(Math.atanh(-0), -0)"),
+        TestAction::assert_eq("Math.atanh(1)", f64::INFINITY),
+        TestAction::assert_eq("Math.atanh(-1)", f64::NEG_INFINITY),
+        TestAction::assert_eq("Math.atanh(2)", f64::NAN),
+        TestAction::assert_eq("Math.atanh(-2)", f64::NAN),
+        TestAction::assert_with_op("Math.atanh(0.5)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), 0.549_306_144_334_054_8)
+        }),
+        // Negative values close to -1 must be as precise as their positive counterparts.
+        TestAction::assert_with_op("Math.atanh(-0.9999999999999999)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), -18.714_973_875_118_524)
+        }),
+        TestAction::assert_with_op("Math.atanh(-0.9999983310699463)", |v, _| {
+            float_cmp::approx_eq!(f64, v.as_number().unwrap(), -6.998_237_084_679_027)
+        }),
+        TestAction::assert(
+            "[1e-300, 1e-8, 0.001, 0.5, 0.75, 0.9, 0.99, 0.999, 0.9999999999999999]
+                .every((x) => Math.atanh(-x) === -Math.atanh(x))",
+        ),
+    ]);
+}
+
+#[test]
 fn cbrt() {
     run_test_actions([
         TestAction::assert_eq("Math.cbrt(64)", 4.0),

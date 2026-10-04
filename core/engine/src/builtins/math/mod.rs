@@ -244,17 +244,18 @@ impl Math {
     /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
     pub(crate) fn atanh(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(args
-            .get_or_undefined(0)
-            // 1. Let n be ? ToNumber(x).
-            .to_number(context)?
-            // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
-            // 3. If n > 1𝔽 or n < -1𝔽, return NaN.
-            // 4. If n is 1𝔽, return +∞𝔽.
-            // 5. If n is -1𝔽, return -∞𝔽.
-            // 6. Return an implementation-approximated value representing the result of the inverse hyperbolic tangent of ℝ(n).
-            .atanh()
-            .into())
+        // 1. Let n be ? ToNumber(x).
+        let n = args.get_or_undefined(0).to_number(context)?;
+
+        // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+        // 3. If n > 1𝔽 or n < -1𝔽, return NaN.
+        // 4. If n is 1𝔽, return +∞𝔽.
+        // 5. If n is -1𝔽, return -∞𝔽.
+        // 6. Return an implementation-approximated value representing the result of the inverse hyperbolic tangent of ℝ(n).
+        //
+        // NOTE: `f64::atanh` loses precision for negative values close to -1, so the result is
+        // computed for the absolute value, and the sign is restored afterwards.
+        Ok(n.abs().atanh().copysign(n).into())
     }
 
     /// Get the four quadrant arctangent of the quotient y / x.
