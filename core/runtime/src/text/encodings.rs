@@ -74,16 +74,10 @@ pub(crate) mod utf16le {
             input = input.strip_prefix(&[0xFF, 0xFE]).unwrap_or(input);
         }
 
-        let dangling_byte = !input.len().is_multiple_of(2);
-        if dangling_byte {
-            input = &input[..input.len() - 1];
-        }
+        let (pairs, remainder) = input.as_chunks::<2>();
+        let code_units = pairs.iter().copied().map(u16::from_le_bytes);
 
-        let code_units = input
-            .chunks_exact(2)
-            .map(|pair| u16::from_le_bytes([pair[0], pair[1]]));
-
-        super::decode_utf16_units(code_units, dangling_byte, fatal)
+        super::decode_utf16_units(code_units, !remainder.is_empty(), fatal)
     }
 }
 
@@ -95,15 +89,9 @@ pub(crate) mod utf16be {
             input = input.strip_prefix(&[0xFE, 0xFF]).unwrap_or(input);
         }
 
-        let dangling_byte = !input.len().is_multiple_of(2);
-        if dangling_byte {
-            input = &input[..input.len() - 1];
-        }
+        let (pairs, remainder) = input.as_chunks::<2>();
+        let code_units = pairs.iter().copied().map(u16::from_be_bytes);
 
-        let code_units = input
-            .chunks_exact(2)
-            .map(|pair| u16::from_be_bytes([pair[0], pair[1]]));
-
-        super::decode_utf16_units(code_units, dangling_byte, fatal)
+        super::decode_utf16_units(code_units, !remainder.is_empty(), fatal)
     }
 }

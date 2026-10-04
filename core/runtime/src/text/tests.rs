@@ -800,7 +800,7 @@ fn decoder_option_getter_order_and_errors() {
 #[test_case(&[0x3d, 0xd8, 0, 0xde, 0x41], "😀\u{FFFD}", true; "pair_then_odd_byte")]
 fn decoder_utf16_error_sequences(input: &[u8], expected: &str, invalid: bool) {
     let mut big_endian = input.to_vec();
-    for pair in big_endian.chunks_exact_mut(2) {
+    for pair in big_endian.as_chunks_mut::<2>().0 {
         pair.swap(0, 1);
     }
     for fatal in [false, true] {
