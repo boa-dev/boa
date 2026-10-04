@@ -189,7 +189,7 @@ jobs:
           crate: cargo-tarpaulin
 
       - name: Run tarpaulin
-        run: cargo tarpaulin --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --out xml
+        run: cargo tarpaulin --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --timeout 180 --out xml
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v5
