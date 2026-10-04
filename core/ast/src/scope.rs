@@ -103,6 +103,8 @@ pub(crate) struct Inner {
     index: Cell<u32>,
     bindings: RefCell<Vec<Binding>>,
     function: bool,
+    // Is this the scope of a `catch` clause.
+    catch: bool,
     // Has the `this` been accessed/escaped outside the function environment boundary.
     this_escaped: Cell<bool>,
 
@@ -120,6 +122,7 @@ impl Scope {
                 index: Cell::default(),
                 bindings: RefCell::default(),
                 function: true,
+                catch: false,
                 this_escaped: Cell::new(false),
                 context: Rc::default(),
             }),
@@ -129,12 +132,23 @@ impl Scope {
     /// Creates a new scope.
     #[must_use]
     pub fn new(parent: Self, function: bool) -> Self {
+        Self::new_inner(parent, function, false)
+    }
+
+    /// Creates a new scope for a `catch` clause.
+    #[must_use]
+    pub(crate) fn new_catch(parent: Self) -> Self {
+        Self::new_inner(parent, false, true)
+    }
+
+    fn new_inner(parent: Self, function: bool, catch: bool) -> Self {
         Self {
             inner: Rc::new(Inner {
                 unique_id: parent.inner.context.next_unique_id(),
                 index: Cell::new(parent.inner.index.get() + 1),
                 bindings: RefCell::default(),
                 function,
+                catch,
                 this_escaped: Cell::new(false),
                 context: parent.inner.context.clone(),
                 outer: Some(parent),
@@ -259,6 +273,12 @@ impl Scope {
     #[must_use]
     pub fn is_global(&self) -> bool {
         self.inner.outer.is_none()
+    }
+
+    /// Check if the scope is the scope of a `catch` clause.
+    #[must_use]
+    pub fn is_catch(&self) -> bool {
+        self.inner.catch
     }
 
     /// Check if a binding with the given name is mutable.

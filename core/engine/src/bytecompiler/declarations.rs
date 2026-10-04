@@ -283,13 +283,16 @@ pub(crate) fn prepare_eval_declaration_instantiation(
 
                 // 3. Assert: The following loop will terminate.
                 // 4. Repeat, while thisEnv is not varEnv,
-                while this_env.scope_index() != lex_env.scope_index() {
+                while this_env.scope_index() != var_env.scope_index() {
                     let f = f.to_js_string(context.interner());
 
                     // a. If thisEnv is not an Object Environment Record, then
                     // i. If ! thisEnv.HasBinding(F) is true, then
-                    if this_env.has_binding(&f) {
-                        // i. Let bindingExists be true.
+                    //     i. Let bindingExists be true.
+                    //
+                    // Annex B.3.4 replaces the previous step with:
+                    //     i. If thisEnv is not the Environment Record for a Catch clause, let bindingExists be true.
+                    if this_env.has_binding(&f) && !this_env.is_catch() {
                         binding_exists = true;
                         break;
                     }

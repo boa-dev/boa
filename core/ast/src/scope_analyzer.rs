@@ -945,7 +945,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     }
 
     fn visit_catch_mut(&mut self, node: &'ast mut Catch) -> ControlFlow<Self::BreakTy> {
-        let mut scope = Scope::new(self.scope.clone(), false);
+        let mut scope = Scope::new_catch(self.scope.clone());
         if let Some(binding) = node.parameter() {
             match binding {
                 Binding::Identifier(ident) => {
@@ -2353,7 +2353,13 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 // a. If ! thisEnv.HasBinding(name) is true, then
                 if this_env.has_binding(&name) {
                     // i. Throw a SyntaxError exception.
-                    // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
+                    // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step:
+                    //     i. If thisEnv is not the Environment Record for a Catch clause, throw a SyntaxError exception.
+                    #[cfg(feature = "annex-b")]
+                    if this_env.is_catch() {
+                        continue;
+                    }
+
                     return Err(format!(
                         "variable declaration {} in eval function already exists as a lexical variable",
                         name.to_std_string_escaped()

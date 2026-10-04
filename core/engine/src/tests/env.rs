@@ -200,3 +200,135 @@ fn eval_created_bindings_can_be_deleted_5333() {
         ),
     ]);
 }
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn eval_var_redeclares_catch_parameter() {
+    // Annex B.3.4: var and function declarations introduced by a direct eval may redeclare
+    // the parameter of the enclosing catch clause.
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    try {
+                        throw 1;
+                    } catch (err) {
+                        eval('var err = 2;');
+                        var inner = err;
+                    }
+                    return String(inner) + ':' + typeof err;
+                }());
+            "#},
+            js_str!("2:undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    try {
+                        throw 1;
+                    } catch (err) {
+                        eval('function err() {}');
+                        var inner = typeof err;
+                    }
+                    return inner + ':' + typeof err;
+                }());
+            "#},
+            js_str!("number:function"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    try {
+                        throw 1;
+                    } catch (err) {
+                        eval('for (var err of []) {}');
+                        return err;
+                    }
+                }());
+            "#},
+            1,
+        ),
+    ]);
+}
+
+#[test]
+fn eval_var_conflicts_with_lexical_binding() {
+    // A lexical binding that is not a catch parameter still conflicts with the var declaration.
+    run_test_actions([
+        TestAction::assert_native_error(
+            indoc! {r#"
+                (function() {
+                    let x;
+                    {
+                        eval('var x;');
+                    }
+                }());
+            "#},
+            JsNativeErrorKind::Syntax,
+            "variable declaration x in eval function already exists as a lexical variable",
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                (function() {
+                    try {
+                        throw 1;
+                    } catch (err) {
+                        {
+                            let err;
+                            eval('var err;');
+                        }
+                    }
+                }());
+            "#},
+            JsNativeErrorKind::Syntax,
+            "variable declaration err in eval function already exists as a lexical variable",
+        ),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn eval_block_function_hoisting_respects_lexical_bindings() {
+    // Annex B.3.2.3: a block-level function in eval code is not hoisted to the variable
+    // environment when an enclosing scope already has a binding with the same name.
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    {
+                        let f = 123;
+                        eval('{ function f() {} }');
+                    }
+                    return typeof f;
+                }());
+            "#},
+            js_str!("undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    {
+                        eval('{ function f() {} }');
+                    }
+                    return typeof f;
+                }());
+            "#},
+            js_str!("function"),
+        ),
+        // The parameter of a catch clause does not prevent the hoisting.
+        TestAction::assert_eq(
+            indoc! {r#"
+                (function() {
+                    try {
+                        throw 1;
+                    } catch (f) {
+                        eval('{ function f() {} }');
+                        var inner = typeof f;
+                    }
+                    return inner + ':' + typeof f;
+                }());
+            "#},
+            js_str!("number:function"),
+        ),
+    ]);
+}
