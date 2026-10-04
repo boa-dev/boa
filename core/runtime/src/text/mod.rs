@@ -35,6 +35,7 @@ impl TryFromJs for TextDecoderOptions {
         // Dictionary members are read in lexicographic order using ordinary Get,
         // including inherited properties, accessors, and proxy traps. Web IDL
         // boolean conversion uses ToBoolean rather than requiring a JS boolean.
+        // https://webidl.spec.whatwg.org/#js-dictionary
         let fatal = object.get(js_string!("fatal"), context)?.to_boolean();
         let ignore_bom = object.get(js_string!("ignoreBOM"), context)?.to_boolean();
         Ok(Self {

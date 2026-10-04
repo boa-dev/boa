@@ -548,6 +548,24 @@ fn decoder_fatal_utf8_invalid_throws() {
     );
 }
 
+#[test_case("utf-8", "0xef, 0xbb, 0xbf, 0x41, 0xf0, 0x9f, 0x98, 0x80")]
+#[test_case("utf-16le", "0xff, 0xfe, 0x41, 0, 0x3d, 0xd8, 0, 0xde")]
+#[test_case("utf-16be", "0xfe, 0xff, 0, 0x41, 0xd8, 0x3d, 0xde, 0")]
+fn decoder_fatal_accepts_valid_input(encoding: &str, bytes: &str) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let source = format!(
+        "const input = Uint8Array.of({bytes});
+         const decoder = new TextDecoder('{encoding}', {{ fatal: true }});
+         const keepBOM = new TextDecoder('{encoding}', {{ fatal: true, ignoreBOM: true }});
+         decoder.decode(input) === 'A😀' &&
+         keepBOM.decode(input) === '\\uFEFFA😀' &&
+         decoder.decode(new Uint8Array()) === '' && decoder.decode() === ''"
+    );
+    let result = context.eval(Source::from_bytes(&source)).unwrap();
+    assert_eq!(result.as_boolean(), Some(true));
+}
+
 #[test]
 fn decoder_fatal_utf16le_invalid_throws() {
     let context = &mut Context::default();

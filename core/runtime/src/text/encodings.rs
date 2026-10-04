@@ -31,7 +31,9 @@ pub(crate) mod utf8 {
 ///
 /// If `fatal` is true, encountering an unpaired surrogate or a dangling (odd) byte
 /// returns `Err(())`.
-/// If `fatal` is false, unpaired surrogates and dangling bytes are replaced with `\u{FFFD}`.
+/// Otherwise, malformed input is replaced with `\u{FFFD}`. A trailing high
+/// surrogate and dangling byte together produce a single replacement.
+/// See <https://github.com/boa-dev/boa/issues/4612>.
 fn decode_utf16_units(
     code_units: impl IntoIterator<Item = u16>,
     dangling_byte: bool,
