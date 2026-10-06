@@ -132,10 +132,9 @@ where
                     .into(),
             ),
             TokenKind::Keyword((Keyword::Async, false)) if !r#await => {
-                if matches!(
-                    cursor.peek(1, interner).or_abrupt()?.kind(),
-                    TokenKind::Keyword((Keyword::Of, false))
-                ) {
+                if cursor.peek(1, interner)?.is_some_and(|tok| {
+                    matches!(tok.kind(), TokenKind::Keyword((Keyword::Of, false)))
+                }) {
                     init_is_async_of = true;
                 }
 

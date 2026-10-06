@@ -137,7 +137,7 @@ where
             let token = cursor.peek(0, interner).or_abrupt()?;
             let (item, item_span) = match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let (args, args_span) = Arguments::new(self.allow_yield, self.allow_await)
+                    let (args, args_span, _) = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     (OptionalOperationKind::Call { args }, args_span)
                 }

@@ -6,6 +6,10 @@ pub(crate) enum FormalParameterListOrExpression {
         fpl: FormalParameterList,
         span_start: Position,
     },
+    AsyncArrowHead {
+        fpl: FormalParameterList,
+        params_start_position: Position,
+    },
     Expression(ast::Expression),
 }
 
@@ -19,6 +23,13 @@ impl FormalParameterListOrExpression {
                     position: span_start,
                 })
             }
+            FormalParameterListOrExpression::AsyncArrowHead {
+                params_start_position,
+                ..
+            } => Err(Error::General {
+                message: "invalid arrow-function arguments (parentheses around the arrow-function may help)".into(),
+                position: params_start_position,
+            }),
         }
     }
 }

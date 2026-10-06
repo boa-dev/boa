@@ -142,8 +142,10 @@ where
                         Some(next)
                             if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
                         {
-                            Arguments::new(self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?
+                            let (args, args_span, _) =
+                                Arguments::new(self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
+                            (args, args_span)
                         }
                         _ => (Box::default(), lhs_inner.span()),
                     };
