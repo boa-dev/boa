@@ -370,6 +370,12 @@ fn initializer_to_iterable_loop_initializer(
                 ast::Expression::PropertyAccess(access) => {
                     Ok(IterableLoopInitializer::Access(access))
                 }
+                // Annex B: in non-strict mode a CallExpression is a valid (runtime-error)
+                // for-in/of LHS. The ReferenceError is emitted at runtime by the bytecompiler.
+                #[cfg(feature = "annex-b")]
+                ast::Expression::Call(call) if !strict => {
+                    Ok(IterableLoopInitializer::Call(Box::new(call)))
+                }
                 _ => Err(Error::lex(LexError::Syntax(
                     "invalid variable for iterable loop".into(),
                     position,

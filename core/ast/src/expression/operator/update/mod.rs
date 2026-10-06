@@ -11,7 +11,7 @@ mod op;
 
 use crate::{
     Expression, Span, Spanned,
-    expression::{Identifier, access::PropertyAccess},
+    expression::{Identifier, Call, access::PropertyAccess},
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
@@ -99,6 +99,8 @@ impl VisitWith for Update {
         match self.target.as_ref() {
             UpdateTarget::Identifier(ident) => visitor.visit_identifier(ident),
             UpdateTarget::PropertyAccess(access) => visitor.visit_property_access(access),
+            #[cfg(feature = "annex-b")]
+            UpdateTarget::Call(call) => visitor.visit_call(call),
         }
     }
 
@@ -109,6 +111,8 @@ impl VisitWith for Update {
         match &mut *self.target {
             UpdateTarget::Identifier(ident) => visitor.visit_identifier_mut(ident),
             UpdateTarget::PropertyAccess(access) => visitor.visit_property_access_mut(access),
+            #[cfg(feature = "annex-b")]
+            UpdateTarget::Call(call) => visitor.visit_call_mut(call),
         }
     }
 }
@@ -130,6 +134,17 @@ pub enum UpdateTarget {
 
     /// An [`PropertyAccess`] expression.
     PropertyAccess(PropertyAccess),
+
+    /// Annex B: a call expression as update target (non-strict only).
+    ///
+    /// Per [sec-runtime-errors-for-function-call-assignment-targets], this is
+    /// syntactically valid in non-strict mode but always throws a `ReferenceError`
+    /// at runtime.
+    ///
+    /// [sec-runtime-errors-for-function-call-assignment-targets]:
+    ///     https://tc39.es/ecma262/#sec-runtime-errors-for-function-call-assignment-targets
+    #[cfg(feature = "annex-b")]
+    Call(Box<Call>),
 }
 
 impl ToInternedString for UpdateTarget {
@@ -138,6 +153,20 @@ impl ToInternedString for UpdateTarget {
         match self {
             Self::Identifier(identifier) => identifier.to_interned_string(interner),
             Self::PropertyAccess(access) => access.to_interned_string(interner),
+            #[cfg(feature = "annex-b")]
+            Self::Call(call) => call.to_interned_string(interner),
+        }
+    }
+}
+
+impl Spanned for UpdateTarget {
+    #[inline]
+    fn span(&self) -> Span {
+        match self {
+            Self::Identifier(identifier) => identifier.span(),
+            Self::PropertyAccess(access) => access.span(),
+            #[cfg(feature = "annex-b")]
+            Self::Call(call) => call.span(),
         }
     }
 }
