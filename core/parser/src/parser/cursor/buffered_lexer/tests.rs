@@ -287,3 +287,57 @@ fn issue_1768() {
 
     assert!(cur.peek(3, true, interner).unwrap().is_none());
 }
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn html_close_comment_first_line() {
+    let mut cur = BufferedLexer::from(&b"--> comment\nx"[..]);
+    let interner = &mut Interner::default();
+
+    assert_eq!(
+        *cur.peek(0, true, interner)
+            .unwrap()
+            .expect("Token expected")
+            .kind(),
+        TokenKind::identifier(interner.get_or_intern_static("x", utf16!("x")))
+    );
+}
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn html_close_comment_first_line_with_spaces() {
+    let mut cur = BufferedLexer::from(&b"   --> comment\nx"[..]);
+    let interner = &mut Interner::default();
+
+    assert_eq!(
+        *cur.peek(0, true, interner)
+            .unwrap()
+            .expect("Token expected")
+            .kind(),
+        TokenKind::identifier(interner.get_or_intern_static("x", utf16!("x")))
+    );
+}
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn html_close_comment_first_line_with_block_comments() {
+    let mut cur = BufferedLexer::from(&b"/* comment */ /* another */ --> comment\nx"[..]);
+    let interner = &mut Interner::default();
+
+    assert_eq!(
+        *cur.peek(0, true, interner)
+            .unwrap()
+            .expect("Token expected")
+            .kind(),
+        TokenKind::identifier(interner.get_or_intern_static("x", utf16!("x")))
+    );
+}
+
+#[test]
+#[cfg(feature = "annex-b")]
+fn html_close_comment_first_line_eof() {
+    let mut cur = BufferedLexer::from(&b"--> comment"[..]);
+    let interner = &mut Interner::default();
+
+    assert!(cur.peek(0, true, interner).unwrap().is_none());
+}
