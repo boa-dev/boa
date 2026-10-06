@@ -187,6 +187,6 @@ mod tests {
         assert_eq!(sab.byte_length(), 0);
 
         let bytes = sab.to_vec();
-        assert!(bytes.is_empty());
+        assert_eq!(bytes, &[0u8; 0]);
     }
 }
