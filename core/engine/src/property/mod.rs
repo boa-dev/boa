@@ -82,6 +82,41 @@ pub enum DescriptorKind {
 }
 
 impl PropertyDescriptor {
+    /// Creates a complete data property descriptor without going through the builder.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn new_data(
+        value: JsValue,
+        writable: bool,
+        enumerable: bool,
+        configurable: bool,
+    ) -> Self {
+        Self {
+            enumerable: Some(enumerable),
+            configurable: Some(configurable),
+            kind: DescriptorKind::Data {
+                value: Some(value),
+                writable: Some(writable),
+            },
+        }
+    }
+
+    /// Creates an accessor property descriptor without going through the builder.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn new_accessor(
+        get: Option<JsValue>,
+        set: Option<JsValue>,
+        enumerable: bool,
+        configurable: bool,
+    ) -> Self {
+        Self {
+            enumerable: Some(enumerable),
+            configurable: Some(configurable),
+            kind: DescriptorKind::Accessor { get, set },
+        }
+    }
+
     /// An accessor property descriptor is one that includes any fields named either `[[Get]]` or `[[Set]]`.
     ///
     /// More information:

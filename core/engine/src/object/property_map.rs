@@ -569,21 +569,22 @@ impl PropertyMap {
     #[must_use]
     pub(crate) fn get_storage(&self, Slot { index, attributes }: Slot) -> PropertyDescriptor {
         let index = index as usize;
-        let mut builder = PropertyDescriptor::builder()
-            .configurable(attributes.contains(SlotAttributes::CONFIGURABLE))
-            .enumerable(attributes.contains(SlotAttributes::ENUMERABLE));
+        let enumerable = attributes.contains(SlotAttributes::ENUMERABLE);
+        let configurable = attributes.contains(SlotAttributes::CONFIGURABLE);
         if attributes.is_accessor_descriptor() {
-            if attributes.has_get() {
-                builder = builder.get(self.storage[index].clone());
-            }
-            if attributes.has_set() {
-                builder = builder.set(self.storage[index + 1].clone());
-            }
+            let get = attributes.has_get().then(|| self.storage[index].clone());
+            let set = attributes
+                .has_set()
+                .then(|| self.storage[index + 1].clone());
+            PropertyDescriptor::new_accessor(get, set, enumerable, configurable)
         } else {
-            builder = builder.writable(attributes.contains(SlotAttributes::WRITABLE));
-            builder = builder.value(self.storage[index].clone());
+            PropertyDescriptor::new_data(
+                self.storage[index].clone(),
+                attributes.contains(SlotAttributes::WRITABLE),
+                enumerable,
+                configurable,
+            )
         }
-        builder.build()
     }
 
     /// Insert the given property descriptor with the given key [`PropertyMap`].
