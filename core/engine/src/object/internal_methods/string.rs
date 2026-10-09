@@ -1,5 +1,6 @@
 use crate::{
     Context, JsExpect, JsResult, JsString,
+    error::PanicError,
     object::{JsData, JsObject},
     property::{PropertyDescriptor, PropertyKey},
 };
@@ -39,7 +40,7 @@ pub(crate) fn string_exotic_get_own_property(
         Ok(desc)
     } else {
         // 4. Return ! StringGetOwnProperty(S, P).
-        Ok(string_get_own_property(obj, key))
+        string_get_own_property(obj, key)
     }
 }
 
@@ -57,12 +58,15 @@ pub(crate) fn string_exotic_define_own_property(
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
-    let string_desc = string_get_own_property(obj, key);
+    let string_desc = string_get_own_property(obj, key)?;
 
     // 3. If stringDesc is not undefined, then
     if let Some(string_desc) = string_desc {
         // a. Let extensible be S.[[Extensible]].
-        let extensible = obj.borrow().extensible;
+        let extensible = obj
+            .try_borrow()
+            .map_err(|e| PanicError::new(e.to_string()))?
+            .extensible;
         // b. Return ! IsCompatiblePropertyDescriptor(extensible, Desc, stringDesc).
         Ok(super::is_compatible_property_descriptor(
             extensible,
@@ -106,7 +110,8 @@ pub(crate) fn string_exotic_own_property_keys(
     // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do
     //      a. Add P as the last element of keys.
     let mut remaining_indices: Vec<_> = obj
-        .borrow()
+        .try_borrow()
+        .map_err(|e| PanicError::new(e.to_string()))?
         .properties
         .index_property_keys()
         .filter(|idx| (*idx as usize) >= len)
@@ -121,7 +126,13 @@ pub(crate) fn string_exotic_own_property_keys(
     // 8. For each own property key P of O such that Type(P) is Symbol, in ascending
     // chronological order of property creation, do
     //      a. Add P as the last element of keys.
-    keys.extend(obj.borrow().properties.shape.keys());
+    keys.extend(
+        obj.try_borrow()
+            .map_err(|e| PanicError::new(e.to_string()))?
+            .properties
+            .shape
+            .keys(),
+    );
 
     // 9. Return keys.
     Ok(keys)
@@ -133,7 +144,10 @@ pub(crate) fn string_exotic_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
-fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<PropertyDescriptor> {
+fn string_get_own_property(
+    obj: &JsObject,
+    key: &PropertyKey,
+) -> JsResult<Option<PropertyDescriptor>> {
     // 1. Assert: S is an Object that has a [[StringData]] internal slot.
     // 2. Assert: IsPropertyKey(P) is true.
     // 3. If Type(P) is not String, return undefined.
@@ -143,20 +157,23 @@ fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<Property
     // 7. If index is -0𝔽, return undefined.
     let pos = match key {
         PropertyKey::Index(index) => index.get() as usize,
-        _ => return None,
+        _ => return Ok(None),
     };
 
     // 8. Let str be S.[[StringData]].
     // 9. Assert: Type(str) is String.
     let string = obj
         .downcast_ref::<JsString>()
-        .expect("string exotic method should only be callable from string objects")
+        .js_expect("string exotic method should only be callable from string objects")?
         .clone();
 
     // 10. Let len be the length of str.
     // 11. If ℝ(index) < 0 or len ≤ ℝ(index), return undefined.
-    // 12. Let resultStr be the String value of length 1, containing one code unit from str, specifically the code unit at index ℝ(index).
-    let result_str = string.get(pos..=pos)?;
+    // 12. Let resultStr be the String value of length 1, containing one code unit from str,
+    //     specifically the code unit at index ℝ(index).
+    let Some(result_str) = string.get(pos..=pos) else {
+        return Ok(None);
+    };
 
     // 13. Return the PropertyDescriptor { [[Value]]: resultStr, [[Writable]]: false, [[Enumerable]]: true, [[Configurable]]: false }.
     let desc = PropertyDescriptor::builder()
@@ -166,5 +183,5 @@ fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<Property
         .configurable(false)
         .build();
 
-    Some(desc)
+    Ok(Some(desc))
 }
