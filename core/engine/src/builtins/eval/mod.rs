@@ -355,7 +355,9 @@ impl Eval {
         context
             .eval_declaration_instantiation(&code_block)
             .inspect_err(|_| {
-                context.vm.pop_frame();
+                if let Some(frame) = context.vm.pop_frame() {
+                    context.vm.stack.truncate_to_frame(&frame);
+                }
             })?;
 
         let record = context.run();

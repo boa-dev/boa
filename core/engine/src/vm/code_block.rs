@@ -76,7 +76,9 @@ unsafe impl Trace for CodeBlockFlags {
 /// the [`CodeBlock::find_handler()`] method.
 ///
 /// If any exception happens and gets caught by this handler, the `pc` will be set to `end` of the
-/// [`Handler`] and remove any environments or stack values that where pushed after the handler.
+/// [`Handler`] and any environments that were pushed after the handler are removed. The values of
+/// frames unwound to reach the handler are removed from the stack, but values that the handling
+/// frame itself pushed are not.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Handler {
     pub(crate) start: Address,

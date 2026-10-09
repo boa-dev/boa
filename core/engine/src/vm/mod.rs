@@ -143,6 +143,16 @@ impl Stack {
         self.stack[frame.rp as usize + index] = value;
     }
 
+    /// Get the number of values on the stack.
+    pub(crate) fn len(&self) -> usize {
+        self.stack.len()
+    }
+
+    /// Truncate the stack to the given length.
+    pub(crate) fn truncate(&mut self, len: usize) {
+        self.stack.truncate(len);
+    }
+
     /// Truncate the stack to the given frame.
     pub(crate) fn truncate_to_frame(&mut self, frame: &CallFrame) {
         self.stack.truncate(frame.frame_pointer());
@@ -815,25 +825,17 @@ impl Context {
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
-            let mut frame = None;
-            let mut env_fp = self.vm.frame().environments.len();
+            // Unwind up to the exit-early frame without looking for handlers.
             loop {
                 if self.vm.frame().exit_early() {
-                    break;
+                    return self.throw_out_of_exit_early_frame(err);
                 }
-
-                env_fp = self.vm.frame().env_fp as usize;
-
-                let Some(f) = self.vm.pop_frame() else {
-                    break;
+                let Some(frame) = self.vm.pop_frame() else {
+                    return ControlFlow::Break(CompletionRecord::Throw(err));
                 };
-                frame = Some(f);
-            }
-            self.vm.frame_mut().environments.truncate(env_fp);
-            if let Some(frame) = frame {
+                // The unwound frame's values go with it, as when it returns.
                 self.vm.stack.truncate_to_frame(&frame);
             }
-            return ControlFlow::Break(CompletionRecord::Throw(err));
         }
 
         if let Some(native) = err.as_native_mut()
@@ -904,47 +906,43 @@ impl Context {
                 .backtrace = Some(backtrace);
         }
 
-        let mut env_fp = self.vm.frame().env_fp;
-        if self.vm.frame().exit_early() {
-            self.vm.frame_mut().environments.truncate(env_fp as usize);
-            let frame = self.vm.frames.last().expect("frame must exist");
-            self.vm.stack.truncate_to_frame(frame);
-            return ControlFlow::Break(CompletionRecord::Throw(
-                self.vm
+        // The caller has already looked for a handler in the current frame. Unwind until a frame
+        // handles the exception, or until the exception ends an exit-early frame.
+        loop {
+            if self.vm.frame().exit_early() {
+                let err = self
+                    .vm
                     .pending_exception
                     .take()
-                    .expect("Err must exist for a CompletionType::Throw"),
-            ));
-        }
+                    .expect("Err must exist for a CompletionType::Throw");
+                return self.throw_out_of_exit_early_frame(err);
+            }
 
-        let mut frame = self.vm.pop_frame().expect("frame must exist");
+            let Some(frame) = self.vm.pop_frame() else {
+                let env_fp = self.vm.frame().env_fp as usize;
+                self.vm.frame_mut().environments.truncate(env_fp);
+                return ControlFlow::Continue(());
+            };
+            // The unwound frame's values go with it, as when it returns.
+            self.vm.stack.truncate_to_frame(&frame);
 
-        loop {
-            env_fp = self.vm.frame().env_fp;
             let pc = self.vm.frame().pc;
-            let exit_early = self.vm.frame().exit_early();
-
             if self.vm.handle_exception_at(pc) {
                 return ControlFlow::Continue(());
             }
-
-            if exit_early {
-                return ControlFlow::Break(CompletionRecord::Throw(
-                    self.vm
-                        .pending_exception
-                        .take()
-                        .expect("Err must exist for a CompletionType::Throw"),
-                ));
-            }
-
-            let Some(f) = self.vm.pop_frame() else {
-                break;
-            };
-            frame = f;
         }
-        self.vm.frame_mut().environments.truncate(env_fp as usize);
-        self.vm.stack.truncate_to_frame(&frame);
-        ControlFlow::Continue(())
+    }
+
+    /// Ends the exit-early frame on top of the frame stack with a throw completion.
+    ///
+    /// The environments that the frame pushed are removed, and the stack is left at its frame
+    /// pointer, which also drops the values of every frame unwound above it.
+    fn throw_out_of_exit_early_frame(&mut self, err: JsError) -> ControlFlow<CompletionRecord> {
+        let env_fp = self.vm.frame().env_fp as usize;
+        self.vm.frame_mut().environments.truncate(env_fp);
+        let frame = self.vm.frames.last().expect("frame must exist");
+        self.vm.stack.truncate_to_frame(frame);
+        ControlFlow::Break(CompletionRecord::Throw(err))
     }
 
     /// Runs the current frame to completion, yielding to the caller each time `budget`
