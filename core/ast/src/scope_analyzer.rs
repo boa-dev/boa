@@ -7,9 +7,9 @@
 #[cfg(feature = "annex-b")]
 use crate::operations::annex_b_function_declarations_names;
 use crate::{
-    Declaration, Module, Script, StatementListItem, ToJsString,
+    Declaration, Expression, Module, Script, StatementListItem, ToJsString,
     declaration::{Binding, ExportDeclaration, LexicalDeclaration, VariableList},
-    expression::{Identifier, literal::ObjectMethodDefinition},
+    expression::{Call, Identifier, New, literal::ObjectMethodDefinition},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
         AsyncGeneratorDeclaration, AsyncGeneratorExpression, ClassDeclaration, ClassElement,
@@ -27,7 +27,7 @@ use crate::{
         Block, Catch, ForInLoop, ForLoop, ForOfLoop, Switch, With,
         iteration::{ForLoopInitializer, IterableLoopInitializer},
     },
-    visitor::{NodeRef, NodeRefMut, VisitorMut},
+    visitor::{NodeRef, NodeRefMut, VisitWith, VisitorMut},
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
@@ -101,6 +101,28 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.scope
             .access_binding(&name, self.direct_eval || self.with);
         ControlFlow::Continue(())
+    }
+
+    fn visit_call_mut(&mut self, node: &'ast mut Call) -> ControlFlow<Self::BreakTy> {
+        // A direct `eval` resolves `arguments` from the scope of the call (`PerformEval`), so
+        // record an access of `arguments` here, as for an `arguments` identifier written at the
+        // call. The function that owns the binding then creates the arguments object. Calls the
+        // escape analysis does not flag as `direct_eval` are skipped: it does not make the
+        // caller's other bindings visible to their eval code either.
+        if self.direct_eval
+            && let Expression::Identifier(ident) = node.function().flatten()
+            && ident.sym() == Sym::EVAL
+        {
+            self.scope
+                .access_binding(&Sym::ARGUMENTS.to_js_string(self.interner), true);
+        }
+        node.visit_with_mut(self)
+    }
+
+    fn visit_new_mut(&mut self, node: &'ast mut New) -> ControlFlow<Self::BreakTy> {
+        // `new eval(...)` is not a direct `eval`, so visit the parts of the inner call without
+        // the check in `visit_call_mut`.
+        node.call_mut().visit_with_mut(self)
     }
 
     fn visit_block_mut(&mut self, node: &'ast mut Block) -> ControlFlow<Self::BreakTy> {

@@ -48,6 +48,11 @@ impl New {
     pub const fn call(&self) -> &Call {
         &self.call
     }
+
+    /// Returns the inner call expression mutably.
+    pub(crate) const fn call_mut(&mut self) -> &mut Call {
+        &mut self.call
+    }
 }
 
 impl From<Call> for New {

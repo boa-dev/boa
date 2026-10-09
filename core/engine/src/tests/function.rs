@@ -332,6 +332,71 @@ fn eval_out_of_scope() {
     ]);
 }
 
+/// A direct `eval` runs in the environment of its caller, so it can read the caller's
+/// `arguments` object even when the function's own code never mentions `arguments`.
+#[test]
+fn direct_eval_reads_arguments_object() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() { return eval("typeof arguments"); }
+                f()
+            "#},
+            js_str!("object"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() { "use strict"; return eval("arguments.length"); }
+                f(1, 2, 3)
+            "#},
+            3,
+        ),
+        // A sloppy function with simple parameters gets a mapped arguments object.
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f(a) { eval("arguments[0] = 2"); return a; }
+                f(1)
+            "#},
+            2,
+        ),
+        // An arrow function has no `arguments` binding; the enclosing function's is read.
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() { return (() => eval("arguments.length"))(); }
+                f(1, 2)
+            "#},
+            2,
+        ),
+        // A direct `eval` in a parameter initializer.
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f(a, b = eval("arguments.length")) { return b; }
+                f(1)
+            "#},
+            1,
+        ),
+        // A nested function's `eval` reads that function's own `arguments`.
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() {
+                    function g() { return eval("arguments.length"); }
+                    return g(1, 2, 3);
+                }
+                f(9)
+            "#},
+            3,
+        ),
+        // A `let arguments` in an enclosing block shadows the function's binding.
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() { { let arguments = "block"; return eval("arguments"); } }
+                f()
+            "#},
+            js_str!("block"),
+        ),
+    ]);
+}
+
 /// Regression test for issue #4531.
 /// `Function` constructor with nested function containing lexical bindings
 /// captured by a closure should not panic with "must be declarative environment".
