@@ -1924,6 +1924,7 @@ impl SourceTextModule {
             .vm
             .pop_frame()
             .js_expect("There should be a call frame")?;
+        context.vm.stack.truncate_to_frame(&frame);
 
         let env = frame
             .environments

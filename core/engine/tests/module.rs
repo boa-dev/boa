@@ -452,3 +452,28 @@ fn test_dynamic_import_symbol_key() {
         PromiseState::Pending => panic!("Dynamic import is still pending"),
     }
 }
+
+/// Linking a source text module initializes its environment in a temporary execution context.
+/// Once the module is linked, that context's values must be gone from the value stack, or a
+/// context could only link a bounded number of modules.
+#[test]
+fn test_linking_modules_does_not_exhaust_the_value_stack() {
+    let mut context = Context::default();
+    // A small stack shows a per-module leak after a few dozen modules.
+    context.runtime_limits_mut().set_stack_size_limit(256);
+
+    for i in 0..500 {
+        let source = format!("export const x = {i};");
+        let module = Module::parse(Source::from_bytes(&source), None, &mut context).unwrap();
+        let promise = module.load_link_evaluate(&mut context);
+        context
+            .run_jobs()
+            .unwrap_or_else(|e| panic!("module {i}: {e}"));
+
+        assert_eq!(
+            promise.state(),
+            PromiseState::Fulfilled(boa_engine::JsValue::undefined()),
+            "module {i}"
+        );
+    }
+}
