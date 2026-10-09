@@ -54,16 +54,15 @@ impl Fetcher for BlockingReqwestFetcher {
 
         let request = request.into_inner();
         let url = request.uri().to_string();
-        let req = self
+        let mut req = self
             .client
             .request(request.method().clone(), &url)
             .headers(request.headers().clone());
+        if let Some(body) = request.body().clone() {
+            req = req.body(body);
+        }
 
-        let req = match req
-            .body(request.body().clone())
-            .build()
-            .map_err(JsError::from_rust)
-        {
+        let req = match req.build().map_err(JsError::from_rust) {
             Ok(req) => req,
             Err(err) => return future::ready(Err(err)),
         };
