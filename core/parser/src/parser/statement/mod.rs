@@ -26,7 +26,10 @@ use self::{
     block::BlockStatement,
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
-    declaration::{Declaration, ExportDeclaration, ImportDeclaration, allowed_token_after_let},
+    declaration::{
+        Declaration, ExportDeclaration, ImportDeclaration, allowed_token_after_let,
+        allowed_token_after_using,
+    },
     expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
@@ -198,7 +201,7 @@ where
                 Ok(ast::Statement::Empty)
             }
             TokenKind::IdentifierName(_)
-            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, _)) => {
+            | TokenKind::Keyword((Keyword::Await | Keyword::Yield | Keyword::Using, _)) => {
                 // Labelled Statement check
                 cursor.set_goal(InputElement::Div);
                 let tok = cursor.peek(1, interner)?;
@@ -424,12 +427,11 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind().clone() {
-            TokenKind::Keyword((
-                Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Using,
-                _,
-            )) => Declaration::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)
-                .map(ast::StatementListItem::from),
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, _)) => {
+                Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
             TokenKind::Keyword((Keyword::Let, false))
                 if allowed_token_after_let(cursor.peek(1, interner)?) =>
             {
@@ -437,13 +439,42 @@ where
                     .parse(cursor, interner)
                     .map(ast::StatementListItem::from)
             }
+            TokenKind::Keyword((Keyword::Using, false)) => {
+                // Check if this is a `using` declaration.
+                // Per spec, it is `using [no LineTerminator here] BindingList`, without binding
+                // patterns; otherwise `using` is an identifier. Either way, a `/` after `using`
+                // is a division. A line terminator before `using` may still be buffered, so skip
+                // it as well.
+                cursor.set_goal(InputElement::Div);
+                let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
+                    2
+                } else {
+                    1
+                };
+                if allowed_token_after_using(cursor.peek_no_skip_line_term(skip_n, interner)?) {
+                    return Declaration::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)
+                        .map(ast::StatementListItem::from);
+                }
+                Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
             TokenKind::Keyword((Keyword::Await, false)) => {
                 // Check if this is `await using`
-                // Per spec, there must be [no LineTerminator here] between `await` and `using`
-                if let Some(next_tok) = cursor.peek_no_skip_line_term(1, interner)?
-                    && next_tok.kind() != &TokenKind::LineTerminator
-                    && matches!(next_tok.kind(), TokenKind::Keyword((Keyword::Using, false)))
-                {
+                // Per spec, it is `await [no LineTerminator here] using [no LineTerminator here]
+                // BindingList`, without binding patterns; otherwise this is an `await` expression
+                // and `using` is an identifier.
+                let is_await_using = if matches!(
+                    cursor.peek_no_skip_line_term(1, interner)?.map(Token::kind),
+                    Some(TokenKind::Keyword((Keyword::Using, false)))
+                ) {
+                    cursor.set_goal(InputElement::Div);
+                    allowed_token_after_using(cursor.peek_no_skip_line_term(2, interner)?)
+                } else {
+                    false
+                };
+                if is_await_using {
                     return Declaration::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
                         .map(ast::StatementListItem::from);

@@ -98,7 +98,7 @@ where
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::IdentifierName(_)
-            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
+            | TokenKind::Keyword((Keyword::Yield | Keyword::Await | Keyword::Using, _)) => {
                 cursor.set_goal(InputElement::Div);
 
                 // Because we already peeked the identifier token, there may be a line terminator before the identifier token.
@@ -133,7 +133,7 @@ where
                             peek_1,
                             TokenKind::IdentifierName(_)
                                 | TokenKind::Keyword((
-                                    Keyword::Yield | Keyword::Await | Keyword::Of,
+                                    Keyword::Yield | Keyword::Await | Keyword::Of | Keyword::Using,
                                     _
                                 ))
                         ) && matches!(

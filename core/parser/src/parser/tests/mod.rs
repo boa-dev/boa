@@ -82,6 +82,14 @@ pub(super) fn check_invalid_script(js: &str) {
     );
 }
 
+/// Checks that the given javascript string parses as a script.
+#[track_caller]
+pub(super) fn check_valid_script(js: &str) {
+    let result = Parser::new(Source::from_bytes(js))
+        .parse_script(&Scope::new_global(), &mut Interner::default());
+    assert!(result.is_ok(), "failed to parse `{js}`: {:?}", result.err());
+}
+
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
 #[test]
 fn check_construct_call_precedence() {

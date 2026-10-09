@@ -1,15 +1,20 @@
-use crate::parser::tests::{check_invalid_script, check_module_parser, check_script_parser};
+use crate::parser::tests::{
+    check_invalid_script, check_module_parser, check_script_parser, check_valid_script,
+};
 use crate::{Parser, Source};
 use boa_ast::{
-    Declaration, ModuleItem, Span, Statement,
+    Declaration, Expression, ModuleItem, Span, Statement,
     declaration::{
-        ExportDeclaration, ExportSpecifier, ImportAttribute, ImportDeclaration, ImportKind,
-        LexicalDeclaration, ModuleSpecifier, ReExportKind, VarDeclaration, Variable,
+        Binding, ExportDeclaration, ExportSpecifier, ImportAttribute, ImportDeclaration,
+        ImportKind, LexicalDeclaration, ModuleSpecifier, ReExportKind, VarDeclaration, Variable,
     },
     expression::{
-        Identifier,
-        literal::{Literal, LiteralKind},
+        Await, Identifier,
+        access::SimplePropertyAccess,
+        literal::{ArrayLiteral, Literal, LiteralKind},
+        operator::{Assign, assign::AssignOp},
     },
+    statement::{ForOfLoop, iteration::IterableLoopInitializer},
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -804,10 +809,12 @@ fn using_no_destructuring_object() {
     check_invalid_script("using {x, y} = resource;");
 }
 
-/// Checks that destructuring patterns are rejected for `using` declarations.
+/// Checks that `using [` does not start a `using` declaration with an array binding pattern.
+/// A `using` declaration takes no binding patterns, so `using [a, b]` is an element access.
 #[test]
 fn using_no_destructuring_array() {
-    check_invalid_script("using [a, b] = resource;");
+    check_invalid_script("using [] = resource;");
+    check_valid_script("using [a, b] = resource;");
 }
 
 /// Checks that destructuring patterns are rejected for `await using` declarations.
@@ -816,10 +823,12 @@ fn await_using_no_destructuring_object() {
     check_invalid_script("async function f() { await using {x, y} = resource; }");
 }
 
-/// Checks that destructuring patterns are rejected for `await using` declarations.
+/// Checks that `await using [` does not start an `await using` declaration with an array binding
+/// pattern: `await using [a, b]` awaits an element access.
 #[test]
 fn await_using_no_destructuring_array() {
-    check_invalid_script("async function f() { await using [a, b] = resource; }");
+    check_invalid_script("async function f() { await using [] = resource; }");
+    check_valid_script("async function f() { await using [a, b]; }");
 }
 
 /// Checks that `using let` is rejected (let is not allowed as a bound name).
@@ -897,5 +906,208 @@ fn await_using_valid_identifiers() {
         result.is_ok(),
         "Failed to parse await using with multiple bindings: {:?}",
         result.err()
+    );
+}
+
+/// Checks that `using` is an identifier reference wherever a `using` declaration cannot start.
+/// `using` is not a reserved word, and a `using` declaration needs a binding identifier right
+/// after `using`, on the same line.
+#[test]
+fn using_identifier_reference() {
+    for js in [
+        "using;",
+        "using = 6;",
+        "using(1);",
+        "using.x;",
+        "using[0];",
+        "using++;",
+        "using / 2 / 1;",
+        "using in {};",
+        "using instanceof Object;",
+        "`${using}`;",
+        "if (true) using; else 0;",
+        "function f() { return using; }",
+        "function* g() { yield using; }",
+        "async function f() { await using[0]; }",
+        "async function f() { await using / 2 / 1; }",
+        "for (using of []);",
+        "for (using in {});",
+        "\\u0075sing;",
+    ] {
+        check_valid_script(js);
+    }
+}
+
+/// Checks that `using` is accepted as a binding identifier and as a label.
+#[test]
+fn using_binding_identifier() {
+    for js in [
+        "let using = 5;",
+        "var f = function using() {};",
+        "var f = function* using() {};",
+        "var f = async function using() {};",
+        "var f = async function* using() {};",
+        "var c = class using {};",
+        "var f = using => using;",
+        "var f = (using) => using;",
+        "var f = async using => using;",
+        "using: for (;;) { break using; }",
+    ] {
+        check_valid_script(js);
+    }
+}
+
+/// Checks that `using` can be the default binding of an import declaration.
+#[test]
+fn using_default_import() {
+    let interner = &mut Interner::default();
+    let x = interner.get_or_intern_static("x", utf16!("x"));
+    check_module_parser(
+        r#"import using from "x";"#,
+        vec![ModuleItem::ImportDeclaration(ImportDeclaration::new(
+            Some(Identifier::new(Sym::USING, Span::new((1, 8), (1, 13)))),
+            ImportKind::DefaultOrUnnamed,
+            ModuleSpecifier::new(x),
+            Box::default(),
+        ))],
+        interner,
+    );
+}
+
+/// Checks that a line terminator before `using` does not stop a `using` declaration.
+#[test]
+fn using_after_line_terminator() {
+    let interner = &mut Interner::default();
+    let x = interner.get_or_intern_static("x", utf16!("x"));
+    let y = interner.get_or_intern_static("y", utf16!("y"));
+    check_module_parser(
+        "y;\nusing x = y;",
+        vec![
+            ModuleItem::StatementListItem(
+                Statement::Expression(Identifier::new(y, Span::new((1, 1), (1, 2))).into()).into(),
+            ),
+            ModuleItem::StatementListItem(
+                Declaration::Lexical(LexicalDeclaration::Using(
+                    vec![Variable::from_identifier(
+                        Identifier::new(x, Span::new((2, 7), (2, 8))),
+                        Some(Identifier::new(y, Span::new((2, 11), (2, 12))).into()),
+                    )]
+                    .try_into()
+                    .unwrap(),
+                ))
+                .into(),
+            ),
+        ],
+        interner,
+    );
+}
+
+/// Checks that a line terminator after `using` prevents a `using` declaration: `using` is then an
+/// identifier reference, and automatic semicolon insertion ends the statement before `x = 1`.
+#[test]
+fn using_line_terminator_after_using() {
+    let interner = &mut Interner::default();
+    let x = interner.get_or_intern_static("x", utf16!("x"));
+    let y = interner.get_or_intern_static("y", utf16!("y"));
+    check_script_parser(
+        "y;\nusing\nx = 1;",
+        vec![
+            Statement::Expression(Identifier::new(y, Span::new((1, 1), (1, 2))).into()).into(),
+            Statement::Expression(Identifier::new(Sym::USING, Span::new((2, 1), (2, 6))).into())
+                .into(),
+            Statement::Expression(
+                Assign::new(
+                    AssignOp::Assign,
+                    Identifier::new(x, Span::new((3, 1), (3, 2))).into(),
+                    Literal::new(1, Span::new((3, 5), (3, 6))).into(),
+                )
+                .into(),
+            )
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks that a line terminator after `using` does not end the statement when the next line
+/// continues the expression: `using` followed by `[0]` on the next line is an element access.
+#[test]
+fn using_line_terminator_before_element_access() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "using\n[0];",
+        vec![
+            Statement::Expression(Expression::PropertyAccess(
+                SimplePropertyAccess::new(
+                    Identifier::new(Sym::USING, Span::new((1, 1), (1, 6))).into(),
+                    Expression::from(Literal::new(0, Span::new((2, 2), (2, 3)))),
+                )
+                .into(),
+            ))
+            .into(),
+        ],
+        interner,
+    );
+}
+
+/// Checks that `let using` starts a lexical declaration, also in a `for` head. `let` has no
+/// `[no LineTerminator here]` restriction, so `let` followed by `using x` on the next line is one
+/// invalid declaration, not `let;` and a `using` declaration.
+#[test]
+fn let_using_declaration() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "for (let using of []);",
+        vec![
+            Statement::ForOfLoop(ForOfLoop::new(
+                IterableLoopInitializer::Let(Binding::Identifier(Identifier::new(
+                    Sym::USING,
+                    Span::new((1, 10), (1, 15)),
+                ))),
+                ArrayLiteral::new(vec![], false, Span::new((1, 19), (1, 21))).into(),
+                Statement::Empty,
+                false,
+            ))
+            .into(),
+        ],
+        interner,
+    );
+
+    check_invalid_script("let\nusing x = 1;");
+}
+
+/// Checks that a line terminator after `await using` prevents an `await using` declaration:
+/// `using` is then an identifier reference in an `await` expression, and automatic semicolon
+/// insertion ends the statement before `x = 1`.
+#[test]
+fn await_using_line_terminator_after_using() {
+    let interner = &mut Interner::default();
+    let x = interner.get_or_intern_static("x", utf16!("x"));
+    check_module_parser(
+        "await using\nx = 1;",
+        vec![
+            ModuleItem::StatementListItem(
+                Statement::Expression(
+                    Await::new(
+                        Box::new(Identifier::new(Sym::USING, Span::new((1, 7), (1, 12))).into()),
+                        Span::new((1, 1), (1, 12)),
+                    )
+                    .into(),
+                )
+                .into(),
+            ),
+            ModuleItem::StatementListItem(
+                Statement::Expression(
+                    Assign::new(
+                        AssignOp::Assign,
+                        Identifier::new(x, Span::new((2, 1), (2, 2))).into(),
+                        Literal::new(1, Span::new((2, 5), (2, 6))).into(),
+                    )
+                    .into(),
+                )
+                .into(),
+            ),
+        ],
+        interner,
     );
 }

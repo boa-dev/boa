@@ -106,7 +106,8 @@ where
                 | Keyword::Class
                 | Keyword::Async
                 | Keyword::Super
-                | Keyword::Import,
+                | Keyword::Import
+                | Keyword::Using,
                 _,
             ))
             | TokenKind::BooleanLiteral(_)

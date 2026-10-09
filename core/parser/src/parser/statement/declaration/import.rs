@@ -108,7 +108,7 @@ where
                 ImportClause::Namespace(None, alias)
             }
             TokenKind::IdentifierName(_)
-            | TokenKind::Keyword((Keyword::Await | Keyword::Yield, _)) => {
+            | TokenKind::Keyword((Keyword::Await | Keyword::Yield | Keyword::Using, _)) => {
                 let imported_binding = ImportedBinding.parse(cursor, interner)?;
 
                 let tok = cursor.peek(0, interner).or_abrupt()?;
