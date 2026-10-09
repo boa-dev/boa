@@ -5,8 +5,11 @@ use std::future;
 use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
-use boa_engine::module::{ModuleLoader, Referrer};
-use boa_engine::{Context, JsResult, JsString, Module, Source, js_string};
+use boa_engine::module::{MapModuleLoader, ModuleLoader, Referrer};
+use boa_engine::{
+    Context, JsNativeError, JsNativeErrorKind, JsResult, JsString, JsValue, Module, Source,
+    js_string,
+};
 
 #[test]
 fn test_json_module_from_str() {
@@ -192,7 +195,7 @@ fn test_json_module_static_import_with_attributes() {
 
     assert_eq!(
         promise.state(),
-        PromiseState::Fulfilled(boa_engine::JsValue::undefined())
+        PromiseState::Fulfilled(JsValue::undefined())
     );
 
     let value = module
@@ -248,7 +251,7 @@ fn test_json_module_reexport_with_attributes() {
 
     assert_eq!(
         promise.state(),
-        PromiseState::Fulfilled(boa_engine::JsValue::undefined())
+        PromiseState::Fulfilled(JsValue::undefined())
     );
 
     let json = module
@@ -451,4 +454,106 @@ fn test_dynamic_import_symbol_key() {
         }
         PromiseState::Pending => panic!("Dynamic import is still pending"),
     }
+}
+
+/// Linking a module initializes its `var` bindings to `undefined`, while its lexical bindings stay
+/// uninitialized until its body runs.
+#[test]
+fn test_module_var_bindings_are_initialized_at_link_time() {
+    let mut context = Context::default();
+    let module = Module::parse(
+        Source::from_bytes("export var x = 1; export let y = 2;"),
+        None,
+        &mut context,
+    )
+    .unwrap();
+
+    let promise = module.load(&mut context);
+    context.run_jobs().unwrap();
+    assert!(promise.state().as_fulfilled().is_some());
+    module.link(&mut context).unwrap();
+
+    let namespace = module.namespace(&mut context);
+    assert_eq!(
+        namespace.get(js_string!("x"), &mut context).unwrap(),
+        JsValue::undefined()
+    );
+    let error = namespace.get(js_string!("y"), &mut context).unwrap_err();
+    assert_eq!(
+        error.as_native().map(JsNativeError::kind),
+        Some(&JsNativeErrorKind::Reference)
+    );
+}
+
+/// Links and evaluates the module `a`, which imports the module `b`, which imports `a` back, and
+/// returns `a`'s export named `result`.
+///
+/// `b`'s body runs before `a`'s, because `b`'s import of `a` finds `a` already evaluating.
+fn evaluate_cycle(a: &str, b: &str) -> JsValue {
+    let loader = Rc::new(MapModuleLoader::new());
+    let mut context = Context::builder()
+        .module_loader(loader.clone())
+        .build()
+        .unwrap();
+
+    let a = Module::parse(Source::from_bytes(a), None, &mut context).unwrap();
+    let b = Module::parse(Source::from_bytes(b), None, &mut context).unwrap();
+    loader.insert("a", a.clone());
+    loader.insert("b", b);
+
+    let promise = a.load_link_evaluate(&mut context);
+    context.run_jobs().unwrap();
+    if let PromiseState::Rejected(reason) = promise.state() {
+        panic!("module evaluation failed: {}", reason.display());
+    }
+    assert_eq!(
+        promise.state(),
+        PromiseState::Fulfilled(JsValue::undefined())
+    );
+
+    a.namespace(&mut context)
+        .get(js_string!("result"), &mut context)
+        .unwrap()
+}
+
+/// A module's `var` bindings are initialized to `undefined` when the module is linked, so code that
+/// runs before the module's body reads them as `undefined`.
+#[test]
+fn test_module_var_bindings_read_before_evaluation_are_undefined() {
+    let result = evaluate_cycle(
+        r#"
+        import { observed } from "b";
+        export var exported = 1;
+        var local = 2;
+        export function readLocal() { return local; }
+        export const result = observed;
+        "#,
+        r#"
+        import { exported, readLocal } from "a";
+        import * as a from "a";
+        export const observed = [exported, a.exported, readLocal()].map(String).join();
+        "#,
+    );
+
+    assert_eq!(result, js_string!("undefined,undefined,undefined").into());
+}
+
+/// A module's body does not reinitialize its `var` bindings, so a value written to one before the
+/// body runs is kept.
+#[test]
+fn test_module_var_binding_written_before_evaluation_keeps_its_value() {
+    let result = evaluate_cycle(
+        r#"
+        import "b";
+        export var value;
+        export function setValue(v) { value = v; }
+        export const result = value;
+        "#,
+        r#"
+        import { setValue } from "a";
+        setValue(5);
+        "#,
+    );
+
+    assert_eq!(result, JsValue::from(5));
 }

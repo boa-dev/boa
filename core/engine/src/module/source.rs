@@ -29,7 +29,7 @@ use crate::{
     Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsValue,
     NativeFunction, SpannedSourceText,
     builtins::{Promise, promise::PromiseCapability},
-    bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
+    bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     job::NativeAsyncJob,
     js_string,
@@ -1662,6 +1662,7 @@ impl SourceTextModule {
         compiler.async_handler = self.code.has_tla.then(|| compiler.push_handler());
 
         let mut imports = Vec::new();
+        let mut vars = Vec::new();
 
         let (codeblock, functions) = {
             // 7. For each ImportEntry Record in of module.[[ImportEntries]], do
@@ -1747,15 +1748,9 @@ impl SourceTextModule {
                     if !declared_var_names.contains(&name) {
                         // 1. Perform ! env.CreateMutableBinding(dn, false).
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
-                        let binding = env
-                            .get_binding_reference(&name)
-                            .js_expect("binding must exist")?;
-                        let index = compiler.insert_binding(binding);
-                        compiler.emit_binding_access(
-                            BindingAccessOpcode::DefInitVar,
-                            &index,
-                            &CallFrame::undefined_register(),
-                        );
+                        //    deferred to initialization below
+                        let locator = env.get_binding(&name).js_expect("binding must exist")?;
+                        vars.push(locator);
 
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
@@ -1898,6 +1893,21 @@ impl SourceTextModule {
                         );
                     }
                 },
+            }
+        }
+
+        // deferred initialization of var bindings (module-scope bindings always escape in
+        // `BindingEscapeAnalyzer::visit_module_mut`, so these locators address environment slots)
+        {
+            let frame = context.vm.frame_mut();
+            let global = frame.realm.environment();
+            for locator in vars {
+                frame.environments.put_lexical_value(
+                    locator.scope(),
+                    locator.binding_index(),
+                    JsValue::undefined(),
+                    global,
+                );
             }
         }
 
