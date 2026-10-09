@@ -60,6 +60,9 @@ mod namespace;
 mod source;
 mod synthetic;
 
+#[cfg(test)]
+mod tests;
+
 /// Import attribute.
 ///
 /// [spec]: https://tc39.es/ecma262/#table-importattribute-fields
@@ -214,7 +217,8 @@ impl ModuleKind {
 /// Return value of the [`Module::resolve_export`] operation.
 ///
 /// Indicates how to access a specific export in a module.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub(crate) struct ResolvedBinding {
     module: Module,
     binding_name: BindingName,
@@ -224,7 +228,8 @@ pub(crate) struct ResolvedBinding {
 ///
 /// Note that a resolved binding can resolve to a single binding inside a module (`export var a = 1"`)
 /// or to a whole module namespace (`export * as ns from "mod.js"`).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub(crate) enum BindingName {
     /// A local binding.
     Name(JsString),
