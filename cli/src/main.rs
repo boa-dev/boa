@@ -547,8 +547,36 @@ fn evaluate_files(
     Ok(())
 }
 
-#[expect(clippy::too_many_lines)]
 fn main() -> Result<()> {
+    #[cfg(windows)]
+    return run_with_larger_stack(cli_main)?;
+
+    #[cfg(not(windows))]
+    cli_main()
+}
+
+#[cfg(windows)]
+const WINDOWS_MAIN_STACK_SIZE: usize = 16 * 1024 * 1024;
+
+/// Runs the CLI on a larger stack than the 1 `MiB` stack allocated for Windows executables.
+///
+/// Large, valid JavaScript inputs can contain deeply nested expressions. Lowering those
+/// expressions recursively requires more stack than the Windows executable entry point provides.
+#[cfg(windows)]
+fn run_with_larger_stack<T: Send + 'static>(
+    callback: impl FnOnce() -> T + Send + 'static,
+) -> Result<T> {
+    thread::Builder::new()
+        .name("boa".to_owned())
+        .stack_size(WINDOWS_MAIN_STACK_SIZE)
+        .spawn(callback)
+        .wrap_err("failed to start Boa on a dedicated thread")?
+        .join()
+        .map_err(|_| eyre!("Boa's dedicated thread panicked"))
+}
+
+#[expect(clippy::too_many_lines)]
+fn cli_main() -> Result<()> {
     color_eyre::config::HookBuilder::default()
         .display_location_section(false)
         .display_env_section(false)
@@ -824,6 +852,37 @@ fn start_readline_thread(
             Err(e) => eprintln!("readline thread failed: {e}"),
         },
     )
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compiles_deeply_nested_expressions_on_the_cli_stack() {
+        let result = run_with_larger_stack(|| {
+            const DEPTH: usize = 128;
+
+            let mut source = String::with_capacity(DEPTH * "new f()".len() + 1);
+            for _ in 0..DEPTH {
+                source.push_str("new f(");
+            }
+            source.push('0');
+            for _ in 0..DEPTH {
+                source.push(')');
+            }
+            source.push(';');
+
+            let mut context = Context::default();
+            let script = Script::parse(Source::from_bytes(&source), None, &mut context)
+                .expect("deep expression must parse");
+            script
+                .codeblock(&mut context)
+                .expect("deep expression must compile");
+        });
+
+        assert!(result.is_ok());
+    }
 }
 
 /// Adds the CLI runtime to the context with default options.
