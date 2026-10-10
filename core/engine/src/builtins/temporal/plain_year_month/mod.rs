@@ -21,7 +21,7 @@ use boa_gc::{Finalize, Trace};
 
 use icu_calendar::AnyCalendarKind;
 use temporal_rs::{
-    Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth, TinyAsciiStr,
+    Calendar, MonthCode, PlainYearMonth as InnerYearMonth, TinyAsciiStr,
     fields::{CalendarFields, YearMonthCalendarFields},
     options::{DisplayCalendar, Overflow},
     partial::PartialYearMonth,
@@ -32,6 +32,10 @@ use super::{
     create_temporal_duration, is_partial_temporal_object, options::get_difference_settings,
     to_temporal_duration,
 };
+
+#[cfg(feature = "temporal")]
+#[cfg(test)]
+mod tests;
 
 /// The `Temporal.PlainYearMonth` built-in implementation
 ///
@@ -593,10 +597,16 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/add
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.add
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let duration_like = args.get_or_undefined(0);
-        let options = get_options_object(args.get_or_undefined(1))?;
-
-        add_or_subtract_duration(true, this, duration_like, &options, context)
+        // 1. Let plainYearMonth be the this value.
+        // 2. Perform ? RequireInternalSlot(plainYearMonth, [[InitializedTemporalYearMonth]]).
+        // 3. Return ? AddDurationToYearMonth(add, plainYearMonth, temporalDurationLike, options).
+        add_or_subtract_duration(
+            true,
+            this,
+            args.get_or_undefined(0),
+            args.get_or_undefined(1),
+            context,
+        )
     }
 
     /// 9.3.15 `Temporal.PlainYearMonth.prototype.subtract ( temporalDurationLike [ , options ] )`
@@ -611,10 +621,16 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/subtract
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.subtract
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let duration_like = args.get_or_undefined(0);
-        let options = get_options_object(args.get_or_undefined(1))?;
-
-        add_or_subtract_duration(false, this, duration_like, &options, context)
+        // 1. Let plainYearMonth be the this value.
+        // 2. Perform ? RequireInternalSlot(plainYearMonth, [[InitializedTemporalYearMonth]]).
+        // 3. Return ? AddDurationToYearMonth(subtract, plainYearMonth, temporalDurationLike, options).
+        add_or_subtract_duration(
+            false,
+            this,
+            args.get_or_undefined(0),
+            args.get_or_undefined(1),
+            context,
+        )
     }
 
     /// 9.3.16 `Temporal.PlainYearMonth.prototype.until ( other [ , options ] )`
@@ -962,27 +978,15 @@ pub(crate) fn create_temporal_year_month(
     Ok(obj.into())
 }
 
-// 9.5.9 AddDurationToOrSubtractDurationFromPlainYearMonth ( operation, yearMonth, temporalDurationLike, options )
+// 9.5.8 AddDurationToYearMonth ( operation, yearMonth, temporalDurationLike, options )
 fn add_or_subtract_duration(
     is_addition: bool,
     this: &JsValue,
     duration_like: &JsValue,
-    options: &JsObject,
+    options: &JsValue,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let duration: Duration = if duration_like.is_object() {
-        to_temporal_duration(duration_like, context)?
-    } else if let Some(duration_string) = duration_like.as_string() {
-        Duration::from_str(duration_string.to_std_string_escaped().as_str())?
-    } else {
-        return Err(JsNativeError::typ()
-            .with_message("cannot handler string durations yet.")
-            .into());
-    };
-
-    let overflow =
-        get_option(options, js_string!("overflow"), context)?.unwrap_or(Overflow::Constrain);
-
+    // RequireInternalSlot from the calling method must happen before any argument is observed.
     let object = this.as_object();
     let year_month = object
         .as_ref()
@@ -991,6 +995,17 @@ fn add_or_subtract_duration(
             JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
         })?;
 
+    // 1. Let duration be ? ToTemporalDuration(temporalDurationLike).
+    let duration = to_temporal_duration(duration_like, context)?;
+
+    // 4. Let resolvedOptions be ? GetOptionsObject(options).
+    let resolved_options = get_options_object(options)?;
+
+    // 5. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
+    let overflow = get_option(&resolved_options, js_string!("overflow"), context)?
+        .unwrap_or(Overflow::Constrain);
+
+    // Steps 2-3 and 6 onward are handled by `temporal_rs`.
     let inner = &year_month.inner;
     let year_month_result = if is_addition {
         inner.add(&duration, overflow)?
