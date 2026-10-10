@@ -58,6 +58,8 @@ bitflags = "2.13.1"
 clap = "4.6.6"
 colored = "3.1.1"
 cow-utils = "0.1.3"
+diplomat = "=0.15.0"
+diplomat-runtime = "=0.15.1"
 fast-float2 = "0.2.4"
 hashbrown = "0.17.1"
 http = { version = "1.5.0" }
