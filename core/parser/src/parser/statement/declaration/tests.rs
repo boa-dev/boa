@@ -899,3 +899,31 @@ fn await_using_valid_identifiers() {
         result.err()
     );
 }
+
+#[test]
+fn export_default_async() {
+    let interner = &mut Interner::default();
+    let source = Source::from_bytes("export default async;");
+    let mut parser = Parser::new(source);
+    let scope = boa_ast::scope::Scope::new_global();
+    let result = parser.parse_module(&scope, interner);
+    assert!(
+        result.is_ok(),
+        "Failed to parse export default async: {:?}",
+        result.err()
+    );
+}
+
+#[test]
+fn export_default_async_arrow() {
+    let interner = &mut Interner::default();
+    let source = Source::from_bytes("export default async () => {};");
+    let mut parser = Parser::new(source);
+    let scope = boa_ast::scope::Scope::new_global();
+    let result = parser.parse_module(&scope, interner);
+    assert!(
+        result.is_ok(),
+        "Failed to parse export default async arrow: {:?}",
+        result.err()
+    );
+}
