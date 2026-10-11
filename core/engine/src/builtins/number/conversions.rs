@@ -81,16 +81,8 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
     if number.is_nan() {
         return 0;
     }
-    let ret: i32;
-    // SAFETY: Number is not nan so no floating-point exception should throw.
-    unsafe {
-        std::arch::asm!(
-            "fjcvtzs {dst:w}, {src:d}",
-            src = in(vreg) number,
-            dst = out(reg) ret,
-        );
-    }
-    ret
+    // SAFETY: We already check for target_feature = "jsconv" and for NaN.
+    unsafe { core::arch::aarch64::__jcvt(number) }
 }
 
 /// Converts a 64-bit floating point number to an `i32` using [`FJCVTZS`][FJCVTZS] instruction on `ARMv8.3`.
