@@ -317,6 +317,26 @@ fn json_parse_with_no_args_throws_syntax_error() {
 }
 
 #[test]
+fn json_parse_lone_surrogate_escapes() {
+    run_test_actions([
+        TestAction::assert_eq(r#"JSON.parse('"\\ud83d"').length"#, 1),
+        TestAction::assert_eq(r#"JSON.parse('"\\ud83d"').charCodeAt(0)"#, 0xd83d),
+        TestAction::assert_eq(r#"JSON.parse('"\\udc00x"').charCodeAt(0)"#, 0xdc00),
+        TestAction::assert_eq(r#"JSON.parse('["a\\ud83d"]')[0].length"#, 2),
+        TestAction::assert_eq(r#"JSON.parse('"\\ud83d\\ude00"') === "\u{1F600}""#, true),
+    ]);
+}
+
+#[test]
+fn json_parse_invalid_text_still_throws_syntax_error() {
+    run_test_actions([TestAction::assert_native_error(
+        r#"JSON.parse('"\\ud83"');"#,
+        JsNativeErrorKind::Syntax,
+        "invalid escape at line 1 column 7",
+    )]);
+}
+
+#[test]
 fn json_stringify_cyclic_object_throws_type_error() {
     run_test_actions([TestAction::assert_native_error(
         "var a = {}; a.a = a; JSON.stringify(a);",
