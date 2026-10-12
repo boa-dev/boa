@@ -1,0 +1,16 @@
+[package]
+name = "diplomat-gen"
+description = "Generate Boa's C bindings with Diplomat"
+publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+diplomat-tool.workspace = true
+
+[lints]
+workspace = true
