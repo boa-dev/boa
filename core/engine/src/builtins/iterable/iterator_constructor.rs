@@ -342,7 +342,7 @@ impl IteratorConstructor {
             };
 
             // 12.c. If desc is not undefined and desc.[[Enumerable]] is true, then
-            if desc.enumerable() != Some(true) {
+            if !desc.enumerable() {
                 continue;
             }
 
