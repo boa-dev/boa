@@ -125,14 +125,14 @@ async fn fetch_inner<T: Fetcher>(
     // `TryFromJs` and friends).
     let mut signal = signal;
 
-    let request: Request<Vec<u8>> = match resource {
+    let request: Request<Option<Vec<u8>>> = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
             let url = fetcher
                 .resolve_uri(url, &mut context.borrow_mut())
                 .map_err(JsError::from_rust)?;
 
-            let r = HttpRequest::get(url).body(Vec::new());
+            let r = HttpRequest::get(url).body(None);
             r.map_err(JsError::from_rust)?
         }
         Either::Right(request) => {

@@ -25,7 +25,7 @@ mod response;
 #[derive(Default, Debug, Trace, Finalize, JsData)]
 pub struct TestFetcher {
     #[unsafe_ignore_trace]
-    requests_received: RefCell<Vec<Request<Vec<u8>>>>,
+    requests_received: RefCell<Vec<Request<Option<Vec<u8>>>>>,
     #[unsafe_ignore_trace]
     request_mapper: HashMap<Uri, Response<Vec<u8>>>,
 }

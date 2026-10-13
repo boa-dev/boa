@@ -247,7 +247,10 @@ impl Json {
 
         // 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
         //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.
-        if let Err(e) = serde_json::from_str::<serde_json::Value>(&json_string) {
+        //    Only the syntax is checked here: deserializing into a `serde_json::Value` builds
+        //    Rust strings, which rejects valid lone surrogate escapes such as `"\ud83d"`. The
+        //    parser below builds the actual UTF-16 strings.
+        if let Err(e) = serde_json::from_str::<serde::de::IgnoredAny>(&json_string) {
             return Err(JsNativeError::syntax().with_message(e.to_string()).into());
         }
 
