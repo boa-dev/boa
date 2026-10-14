@@ -686,6 +686,9 @@ fn validate_atomic_access(
 
     // 2. Let accessIndex be ? ToIndex(requestIndex).
     let access_index = request_index.to_index(context)?;
+    let access_index: usize = access_index
+        .try_into()
+        .map_err(|_| JsNativeError::range().with_message("index too large"))?;
 
     // 3. Assert: accessIndex ≥ 0.
     //    ensured by the type.
@@ -698,7 +701,7 @@ fn validate_atomic_access(
     }
 
     // 8. Return (accessIndex × elementSize) + offset.
-    let offset = ((access_index * kind.element_size()) + offset) as usize;
+    let offset = (access_index * kind.element_size()) + offset;
     Ok(AtomicAccess {
         byte_offset: offset,
         kind,
