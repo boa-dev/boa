@@ -36,4 +36,41 @@ pub mod ffi {
                 .map(|context| Box::new(Self { _context: context }))
         }
     }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{BoaContext, Context};
+
+        #[test]
+        fn initialization_failure_returns_none() {
+            let context = BoaContext::new().expect("default context should initialize");
+
+            // A blocking context cannot share a thread with this live context.
+            assert!(BoaContext::from_builder(Context::builder().can_block(true)).is_none());
+
+            drop(context);
+
+            // Destruction must release the engine's per-thread context state.
+            let blocking = BoaContext::from_builder(Context::builder().can_block(true))
+                .expect("blocking context should initialize after the conflict is gone");
+            drop(blocking);
+        }
+
+        #[test]
+        fn contexts_can_coexist_and_be_destroyed_in_any_order() {
+            let first = BoaContext::new().expect("first context should initialize");
+            let second = BoaContext::new().expect("second context should initialize");
+            drop(first);
+
+            let third = BoaContext::new().expect("third context should initialize");
+            drop(second);
+            drop(third);
+
+            let blocking = Context::builder()
+                .can_block(true)
+                .build()
+                .expect("all nonblocking contexts should have been released");
+            drop(blocking);
+        }
+    }
 }
