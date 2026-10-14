@@ -10,7 +10,7 @@ mod while_loop;
 
 use crate::{
     declaration::{Binding, Variable},
-    expression::{Identifier, access::PropertyAccess},
+    expression::{Identifier, Call, access::PropertyAccess},
     pattern::Pattern,
 };
 use core::ops::ControlFlow;
@@ -50,6 +50,16 @@ pub enum IterableLoopInitializer {
     Const(Binding),
     /// A pattern with already declared variables.
     Pattern(Pattern),
+    /// Annex B: a call expression as for-in/of LHS (non-strict only).
+    ///
+    /// Per [sec-runtime-errors-for-function-call-assignment-targets], this is
+    /// syntactically valid in non-strict mode but always throws a `ReferenceError`
+    /// at runtime.
+    ///
+    /// [sec-runtime-errors-for-function-call-assignment-targets]:
+    ///     https://tc39.es/ecma262/#sec-runtime-errors-for-function-call-assignment-targets
+    #[cfg(feature = "annex-b")]
+    Call(Box<Call>),
 }
 
 impl ToInternedString for IterableLoopInitializer {
@@ -58,6 +68,8 @@ impl ToInternedString for IterableLoopInitializer {
             Self::Identifier(ident) => return ident.to_interned_string(interner),
             Self::Pattern(pattern) => return pattern.to_interned_string(interner),
             Self::Access(access) => return access.to_interned_string(interner),
+            #[cfg(feature = "annex-b")]
+            Self::Call(call) => return call.to_interned_string(interner),
             Self::Var(binding) => (binding.to_interned_string(interner), "var"),
             Self::Let(binding) => (binding.to_interned_string(interner), "let"),
             Self::Const(binding) => (binding.to_interned_string(interner), "const"),
@@ -78,6 +90,8 @@ impl VisitWith for IterableLoopInitializer {
             Self::Var(b) => visitor.visit_variable(b),
             Self::Let(b) | Self::Const(b) => visitor.visit_binding(b),
             Self::Pattern(p) => visitor.visit_pattern(p),
+            #[cfg(feature = "annex-b")]
+            Self::Call(call) => visitor.visit_call(call),
         }
     }
 
@@ -91,6 +105,8 @@ impl VisitWith for IterableLoopInitializer {
             Self::Var(b) => visitor.visit_variable_mut(b),
             Self::Let(b) | Self::Const(b) => visitor.visit_binding_mut(b),
             Self::Pattern(p) => visitor.visit_pattern_mut(p),
+            #[cfg(feature = "annex-b")]
+            Self::Call(call) => visitor.visit_call_mut(call),
         }
     }
 }
