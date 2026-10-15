@@ -262,3 +262,9 @@ fn regexp_no_panic_on_empty_class_quantifier() {
     // It should return null without panicking.
     run_test_actions([TestAction::assert_eq("/[]*1/u.exec()", JsValue::null())]);
 }
+
+#[test]
+fn regexp_nested_counted_repetition() {
+    // Regression test for https://github.com/boa-dev/boa/issues/5574.
+    run_test_actions([TestAction::assert("/(?:(?:a+)+){2}/.test('aa')")]);
+}
