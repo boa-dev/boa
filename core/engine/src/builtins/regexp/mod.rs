@@ -25,7 +25,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_macros::{js_str, utf16};
 use boa_parser::lexer::regex::RegExpFlags;
-use regress::{Flags, Range, Regex};
+use regress::{BudgetedMatch, Flags, Range, Regex};
 use std::str::FromStr;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -1160,10 +1160,24 @@ impl RegExp {
         let r: Option<regress::Match> = match (full_unicode, input.as_str().variant()) {
             (true | false, JsStrVariant::Latin1(_)) => {
                 // TODO: Currently regress does not support latin1 encoding.
-                let input = input.to_vec();
+                let input_str = input.as_str();
+                let input = input_str.as_latin1().expect("matched Latin1 variant");
 
-                // NOTE: We can use the faster ucs2 variant since there will never be two byte unicode.
-                matcher.find_from_ucs2(&input, last_index as usize).next()
+                if input.is_ascii() {
+                    // shortcut: cap ASCII searches at 1M backtracks; remove once regress budgets UTF-16/UCS-2 searches.
+                    match matcher.find_from_budgeted(
+                        std::str::from_utf8(input).expect("ASCII is valid UTF-8"),
+                        last_index as usize,
+                        1_000_000,
+                    ) {
+                        BudgetedMatch::Match(regex_match) => Some(regex_match),
+                        BudgetedMatch::NoMatch | BudgetedMatch::BudgetExhausted => None,
+                    }
+                } else {
+                    let input = input.iter().copied().map(u16::from).collect::<Vec<_>>();
+                    // NOTE: We can use the faster ucs2 variant since there will never be two byte unicode.
+                    matcher.find_from_ucs2(&input, last_index as usize).next()
+                }
             }
             (true, JsStrVariant::Utf16(input)) => {
                 matcher.find_from_utf16(input, last_index as usize).next()

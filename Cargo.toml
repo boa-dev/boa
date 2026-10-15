@@ -75,7 +75,7 @@ oneshot = "0.2.1"
 phf = { version = "0.14.0", default-features = false }
 pollster = "1.0.1"
 regex = "1.13.1"
-regress = { version = "0.12.0", features = ["utf16"] }
+regress = { git = "https://github.com/ridiculousfish/regress", rev = "6f6ff20c589257ebec89b07d13906b12349c0e24", features = ["utf16"] }
 reqwest = { version = "0.13.4", default-features = false, features = ["rustls-no-provider"] }
 rustls = { version = "0.23.43", default-features = false, features = ["ring"] }
 rustc-hash = { version = "2.1.3", default-features = false }

@@ -262,3 +262,8 @@ fn regexp_no_panic_on_empty_class_quantifier() {
     // It should return null without panicking.
     run_test_actions([TestAction::assert_eq("/[]*1/u.exec()", JsValue::null())]);
 }
+
+#[test]
+fn regexp_nested_repetition_with_empty_alternative_terminates() {
+    run_test_actions([TestAction::assert_eq("/(?:(?:a|)*)*b/.test('a')", false)]);
+}
