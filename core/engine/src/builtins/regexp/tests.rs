@@ -262,3 +262,10 @@ fn regexp_no_panic_on_empty_class_quantifier() {
     // It should return null without panicking.
     run_test_actions([TestAction::assert_eq("/[]*1/u.exec()", JsValue::null())]);
 }
+
+#[test]
+fn regexp_backtracks_from_empty_alternative_to_match() {
+    run_test_actions([TestAction::assert(
+        r"/^(?:(?:\s(?:(?:){0,1}|a))+)+$/.test('\u2028a')",
+    )]);
+}
