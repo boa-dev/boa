@@ -68,7 +68,9 @@ impl IntrinsicObject for Iterator {
         #[cfg(feature = "experimental")]
         let builder = builder
             .static_method(Self::includes, js_string!("includes"), 1)
-            .static_method(Self::join, js_string!("join"), 1);
+            .static_method(Self::join, js_string!("join"), 1)
+            .static_method(Self::chunks, js_string!("chunks"), 1)
+            .static_method(Self::windows, js_string!("windows"), 1);
 
         builder.build();
     }
@@ -470,6 +472,136 @@ impl Iterator {
 
         // 9. Return result.
         Ok(helper.into())
+    }
+
+    /// Validates `chunkSize` / `windowSize` for the iterator chunking methods.
+    ///
+    /// The value must already be an [integral Number][integral] in the inclusive
+    /// interval from 1 to 2<sup>32</sup> − 1. There is no `ToNumber` coercion.
+    ///
+    /// [integral]: https://tc39.es/ecma262/#integral-number
+    #[cfg(feature = "experimental")]
+    fn chunking_size(value: &JsValue) -> JsResult<u32> {
+        // If size is not an integral Number, throw a TypeError exception.
+        let Some(size) = value
+            .as_number()
+            .filter(|number| Number::is_float_integer(*number))
+        else {
+            return Err(js_error!(TypeError: "size must be an integral Number"));
+        };
+
+        // If size is not in the inclusive interval from 1𝔽 to 𝔽(2**32 - 1),
+        // throw a RangeError exception.
+        if !(1.0..=f64::from(u32::MAX)).contains(&size) {
+            return Err(js_error!(RangeError: "size must be between 1 and 2^32 - 1"));
+        }
+
+        #[allow(
+            clippy::cast_possible_truncation,
+            clippy::cast_sign_loss,
+            reason = "range-checked integral Number in 1..=u32::MAX"
+        )]
+        Ok(size as u32)
+    }
+
+    /// `Iterator.prototype.chunks ( chunkSize )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-chunking/#sec-iterator.prototype.chunks
+    #[cfg(feature = "experimental")]
+    fn chunks(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
+        let o = this.as_object().ok_or_else(
+            || js_error!(TypeError: "Iterator.prototype.chunks called on non-object"),
+        )?;
+
+        // 3. Let iterated be the Iterator Record { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
+        let iterated = IteratorRecord::new(o, JsValue::undefined());
+
+        // 4. If chunkSize is not an integral Number, then
+        //    a. Let error be ThrowCompletion(a newly created TypeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        // 5. If chunkSize is not in the inclusive interval from 1𝔽 to 𝔽(2**32 - 1), then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        let size = if_abrupt_close_iterator!(
+            Self::chunking_size(args.get_or_undefined(0)),
+            iterated,
+            context
+        );
+
+        // 6. Set iterated to ? GetIteratorDirect(O).
+        let iterated = get_iterator_direct(iterated.iterator(), context)?;
+
+        // 7-9 are deferred to `IteratorHelper::create` and `Chunks::new`.
+        let result = IteratorHelper::create(iterator_helper::Chunks::new(iterated, size), context);
+
+        // 10. Return result.
+        Ok(result.into())
+    }
+
+    /// `Iterator.prototype.windows ( windowSize [ , undersized ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-chunking/#sec-iterator.prototype.windows
+    #[cfg(feature = "experimental")]
+    fn windows(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
+        let o = this.as_object().ok_or_else(
+            || js_error!(TypeError: "Iterator.prototype.windows called on non-object"),
+        )?;
+
+        // 3. Let iterated be the Iterator Record { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
+        let iterated = IteratorRecord::new(o, JsValue::undefined());
+
+        // 4. If windowSize is not an integral Number, then
+        //    a. Let error be ThrowCompletion(a newly created TypeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        // 5. If windowSize is not in the inclusive interval from 1𝔽 to 𝔽(2**32 - 1), then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        let size = if_abrupt_close_iterator!(
+            Self::chunking_size(args.get_or_undefined(0)),
+            iterated,
+            context
+        );
+
+        // 6. If undersized is undefined, set undersized to "only-full".
+        // 7. If undersized is neither "only-full" nor "allow-partial", then
+        //    a. Let error be ThrowCompletion(a newly created TypeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        let undersized = args.get_or_undefined(1);
+        let allow_partial = match undersized.as_string() {
+            None if undersized.is_undefined() => false,
+            Some(mode) if mode == js_string!("only-full") => false,
+            Some(mode) if mode == js_string!("allow-partial") => true,
+            _ => {
+                return iterated.close(
+                    Err(js_error!(
+                        TypeError: "undersized must be \"only-full\" or \"allow-partial\""
+                    )),
+                    context,
+                );
+            }
+        };
+
+        // 8. Set iterated to ? GetIteratorDirect(O).
+        let iterated = get_iterator_direct(iterated.iterator(), context)?;
+
+        // 9-11 are deferred to `IteratorHelper::create` and `Windows::new`.
+        let result = IteratorHelper::create(
+            iterator_helper::Windows::new(iterated, size, allow_partial),
+            context,
+        );
+
+        // 12. Return result.
+        Ok(result.into())
     }
 
     // ==================== Prototype Methods — Eager (Consuming) ====================

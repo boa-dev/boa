@@ -641,3 +641,172 @@ fn iterator_join_errors() {
         ),
     ]);
 }
+
+// ── Iterator chunking ────────────────────────────────────────────────────────
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_chunks() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3,4,5]).chunks(2)])",
+            js_str!("[[1,2],[3,4],[5]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3,4]).chunks(2)])",
+            js_str!("[[1,2],[3,4]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([]).chunks(2)])",
+            js_str!("[]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1]).chunks(1)])",
+            js_str!("[[1]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1]).chunks(4294967295)])",
+            js_str!("[[1]]"),
+        ),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_windows() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3,4,5]).windows(3)])",
+            js_str!("[[1,2,3],[2,3,4],[3,4,5]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2]).windows(3)])",
+            js_str!("[]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2]).windows(3, 'allow-partial')])",
+            js_str!("[[1,2]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3]).windows(2, 'allow-partial')])",
+            js_str!("[[1,2],[2,3]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3]).windows(2, 'only-full')])",
+            js_str!("[[1,2],[2,3]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([]).windows(1)])",
+            js_str!("[]"),
+        ),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_chunking_argument_errors() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "Iterator.prototype.chunks.call(null, 1)",
+            JsNativeErrorKind::Type,
+            "Iterator.prototype.chunks called on non-object",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.prototype.windows.call(undefined, 1)",
+            JsNativeErrorKind::Type,
+            "Iterator.prototype.windows called on non-object",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).chunks('2')",
+            JsNativeErrorKind::Type,
+            "size must be an integral Number",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).chunks(1.5)",
+            JsNativeErrorKind::Type,
+            "size must be an integral Number",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).chunks(NaN)",
+            JsNativeErrorKind::Type,
+            "size must be an integral Number",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).chunks(Infinity)",
+            JsNativeErrorKind::Type,
+            "size must be an integral Number",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).chunks(0)",
+            JsNativeErrorKind::Range,
+            "size must be between 1 and 2^32 - 1",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).chunks(-1)",
+            JsNativeErrorKind::Range,
+            "size must be between 1 and 2^32 - 1",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).chunks(4294967296)",
+            JsNativeErrorKind::Range,
+            "size must be between 1 and 2^32 - 1",
+        ),
+        TestAction::assert_native_error(
+            "Iterator.from([1]).windows(2, 'invalid')",
+            JsNativeErrorKind::Type,
+            "undersized must be \"only-full\" or \"allow-partial\"",
+        ),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_chunking_is_lazy_and_closes_on_return() {
+    run_test_actions([TestAction::assert(
+        "let calls = 0, closes = 0;
+         const source = {
+             next() { calls++; return { value: calls, done: false }; },
+             return() { closes++; return { done: true }; }
+         };
+         const chunks = Iterator.prototype.chunks.call(source, 2);
+         const windows = Iterator.prototype.windows.call(source, 2);
+         if (calls !== 0 || closes !== 0) throw Error('eager iteration');
+         chunks.next();
+         windows.next();
+         if (calls !== 4) throw Error('wrong number of reads');
+         chunks.return();
+         windows.return();
+         closes === 2",
+    )]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_chunking_yields_distinct_arrays() {
+    run_test_actions([TestAction::assert(
+        "const chunks = Iterator.from([1, 2, 3, 4]).chunks(2);
+         const a = chunks.next().value;
+         a[0] = 99;
+         const b = chunks.next().value;
+         const windows = Iterator.from([1, 2, 3, 4]).windows(2);
+         const w1 = windows.next().value;
+         w1[0] = 99;
+         const w2 = windows.next().value;
+         JSON.stringify(b) === '[3,4]' && JSON.stringify(w2) === '[2,3]'",
+    )]);
+}
+
+#[test]
+#[cfg(feature = "experimental")]
+fn iterator_chunking_closes_on_invalid_args() {
+    run_test_actions([TestAction::assert(
+        "let closed = 0;
+         const source = {
+             next() { return { value: 1, done: false }; },
+             return() { closed++; return { done: true }; }
+         };
+         try { Iterator.prototype.chunks.call(source, 0); } catch (e) {}
+         try { Iterator.prototype.windows.call(source, 1, 'nope'); } catch (e) {}
+         closed === 2",
+    )]);
+}
