@@ -409,8 +409,9 @@ impl ModuleLoader for SimpleModuleLoader {
                 .extension()
                 .is_some_and(|ext| ext.to_string_lossy() == "json")
             {
-                let is_json_type = module_type.is_some_and(|t| t == &js_string!("json"));
-                if !is_json_type {
+                let reads_file_as_data = module_type
+                    .is_some_and(|t| t == &js_string!("json") || t == &js_string!("text"));
+                if !reads_file_as_data {
                     return Err(JsNativeError::typ()
                         .with_message(format!(
                             "module `{short_path}` needs an import attribute of type \"json\""
@@ -438,6 +439,20 @@ impl ModuleLoader for SimpleModuleLoader {
                                     .with_cause(err)
                             },
                         )?
+                    }
+                    "text" => {
+                        // Load as a text module: the default export is the file decoded as UTF-8
+                        let bytes = std::fs::read(&path).map_err(|err| {
+                            JsNativeError::typ()
+                                .with_message(format!("could not open file `{short_path}`"))
+                                .with_cause(JsError::from_rust(err))
+                        })?;
+                        let text = String::from_utf8_lossy(&bytes);
+                        let text = text.strip_prefix('\u{feff}').unwrap_or(&text);
+                        Module::from_value_as_default(
+                            js_string!(text).into(),
+                            &mut context.borrow_mut(),
+                        )
                     }
                     other => {
                         // Unknown module type
