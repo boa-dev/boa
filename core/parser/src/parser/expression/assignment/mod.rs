@@ -22,7 +22,7 @@ use crate::{
             FormalParameterListOrExpression,
             assignment::{
                 arrow_function::{ArrowFunction, ConciseBody},
-                async_arrow_function::AsyncArrowFunction,
+                async_arrow_function::{AsyncArrowFunction, AsyncConciseBody},
                 conditional::ConditionalExpression,
                 r#yield::YieldExpression,
             },
@@ -118,28 +118,29 @@ where
             }
             //  AsyncArrowFunction[?In, ?Yield, ?Await]
             TokenKind::Keyword((Keyword::Async, false)) => {
-                let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
+                let skip_n = if cursor
+                    .peek_is_line_terminator(0, interner)?
+                    .unwrap_or(false)
+                {
                     2
                 } else {
                     1
                 };
 
-                let peek_1 = cursor.peek(1, interner).or_abrupt()?.kind().clone();
                 if !cursor
-                    .peek_is_line_terminator(skip_n, interner)
-                    .or_abrupt()?
-                    && (matches!(peek_1, TokenKind::Punctuator(Punctuator::OpenParen))
-                        || (matches!(
-                            peek_1,
-                            TokenKind::IdentifierName(_)
-                                | TokenKind::Keyword((
-                                    Keyword::Yield | Keyword::Await | Keyword::Of,
-                                    _
-                                ))
-                        ) && matches!(
-                            cursor.peek(2, interner).or_abrupt()?.kind(),
-                            TokenKind::Punctuator(Punctuator::Arrow)
-                        )))
+                    .peek_is_line_terminator(skip_n, interner)?
+                    .unwrap_or(true)
+                    && let Some(peek_1) = cursor.peek(1, interner)?
+                    && (matches!(
+                        peek_1.kind(),
+                        TokenKind::IdentifierName(_)
+                            | TokenKind::Keyword((
+                                Keyword::Yield | Keyword::Await | Keyword::Of,
+                                _
+                            ))
+                    ) && cursor.peek(2, interner)?.is_some_and(|p2| {
+                        matches!(p2.kind(), TokenKind::Punctuator(Punctuator::Arrow))
+                    }))
                 {
                     return Ok(AsyncArrowFunction::new(self.allow_in, self.allow_yield)
                         .parse(cursor, interner)?
@@ -223,6 +224,78 @@ where
 
                 let body_span_end = body.span().end();
                 return Ok(boa_ast::function::ArrowFunction::new(
+                    None,
+                    parameters,
+                    body,
+                    linear_span,
+                    Span::new(position, body_span_end),
+                )
+                .into());
+            }
+            FormalParameterListOrExpression::AsyncArrowHead {
+                fpl: parameters,
+                params_start_position,
+            } => {
+                cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
+
+                cursor.expect(
+                    TokenKind::Punctuator(Punctuator::Arrow),
+                    "async arrow function",
+                    interner,
+                )?;
+                let arrow = cursor.arrow();
+                cursor.set_arrow(true);
+                let body = AsyncConciseBody::new(self.allow_in).parse(cursor, interner)?;
+                cursor.set_arrow(arrow);
+
+                // Early Error: ArrowFormalParameters are UniqueFormalParameters.
+                if parameters.has_duplicates() {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Duplicate parameter name not allowed in this context".into(),
+                        params_start_position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if CoverCallExpressionAndAsyncArrowHead Contains YieldExpression is true.
+                if contains(&parameters, ContainsSymbol::YieldExpression) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Yield expression not allowed in this context".into(),
+                        params_start_position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if CoverCallExpressionAndAsyncArrowHead Contains AwaitExpression is true.
+                if contains(&parameters, ContainsSymbol::AwaitExpression) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Await expression not allowed in this context".into(),
+                        params_start_position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if AsyncConciseBodyContainsUseStrict of AsyncConciseBody is true and
+                // IsSimpleParameterList of CoverCallExpressionAndAsyncArrowHead is false.
+                if body.strict() && !parameters.is_simple() {
+                    return Err(Error::lex(LexError::Syntax(
+                        "Illegal 'use strict' directive in function with non-simple parameter list"
+                            .into(),
+                        params_start_position,
+                    )));
+                }
+
+                // Early Error: It is a Syntax Error if any element of the BoundNames of CoverCallExpressionAndAsyncArrowHead
+                // also occurs in the LexicallyDeclaredNames of AsyncConciseBody.
+                name_in_lexically_declared_names(
+                    &bound_names(&parameters),
+                    &lexically_declared_names(&body),
+                    params_start_position,
+                    interner,
+                )?;
+
+                let linear_pos_end = body.linear_pos_end();
+                let linear_span = start_linear_span.union(linear_pos_end);
+
+                let body_span_end = body.span().end();
+                return Ok(boa_ast::function::AsyncArrowFunction::new(
                     None,
                     parameters,
                     body,
