@@ -899,3 +899,22 @@ fn await_using_valid_identifiers() {
         result.err()
     );
 }
+
+/// Checks that the contextual keywords `of` and `async` can be default import bindings.
+#[test]
+fn import_default_binding_contextual_keywords() {
+    for source in [
+        r#"import of from "./foo.js";"#,
+        r#"import async from "./foo.js";"#,
+    ] {
+        assert!(
+            Parser::new(Source::from_bytes(source))
+                .parse_module(
+                    &boa_ast::scope::Scope::new_global(),
+                    &mut Interner::default()
+                )
+                .is_ok(),
+            "failed to parse `{source}`"
+        );
+    }
+}
