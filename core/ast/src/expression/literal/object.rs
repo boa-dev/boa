@@ -71,7 +71,9 @@ impl ObjectLiteral {
         let mut bindings = Vec::new();
         for (i, property) in self.properties.iter().enumerate() {
             match property {
-                PropertyDefinition::IdentifierReference(ident) if strict && *ident == Sym::EVAL => {
+                PropertyDefinition::IdentifierReference(ident)
+                    if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
+                {
                     return None;
                 }
                 PropertyDefinition::IdentifierReference(ident) => {
@@ -89,7 +91,7 @@ impl ObjectLiteral {
                     (PropertyName::Literal(name), Expression::Identifier(ident))
                         if name.sym() == ident.sym() =>
                     {
-                        if strict && *name == Sym::EVAL {
+                        if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                             return None;
                         }
                         if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name.sym()) {
@@ -102,25 +104,18 @@ impl ObjectLiteral {
                             default_init: None,
                         });
                     }
-                    (PropertyName::Literal(name), Expression::Identifier(ident)) => {
-                        bindings.push(ObjectPatternElement::SingleName {
-                            ident: *ident,
-                            name: PropertyName::Literal(*name),
-                            default_init: None,
-                        });
-                    }
-                    (PropertyName::Literal(name), Expression::ObjectLiteral(object)) => {
+                    (_, Expression::ObjectLiteral(object)) => {
                         let pattern = object.to_pattern(strict)?.into();
                         bindings.push(ObjectPatternElement::Pattern {
-                            name: PropertyName::Literal(*name),
+                            name: name.clone(),
                             pattern,
                             default_init: None,
                         });
                     }
-                    (PropertyName::Literal(name), Expression::ArrayLiteral(array)) => {
+                    (_, Expression::ArrayLiteral(array)) => {
                         let pattern = array.to_pattern(strict)?.into();
                         bindings.push(ObjectPatternElement::Pattern {
-                            name: PropertyName::Literal(*name),
+                            name: name.clone(),
                             pattern,
                             default_init: None,
                         });
@@ -129,23 +124,24 @@ impl ObjectLiteral {
                         if assign.op() != AssignOp::Assign {
                             return None;
                         }
+                        // The initializer was already named when the assignment was parsed, if
+                        // its target is an identifier that is not parenthesized (IsIdentifierRef).
                         match assign.lhs() {
                             AssignTarget::Identifier(ident) => {
-                                let name = name.literal()?;
-                                if name.sym() == ident.sym() {
-                                    if strict && name == Sym::EVAL {
+                                if let Some(name) = name.literal()
+                                    && name.sym() == ident.sym()
+                                {
+                                    if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                                         return None;
                                     }
                                     if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name.sym()) {
                                         return None;
                                     }
                                 }
-                                let mut init = assign.rhs().clone();
-                                init.set_anonymous_function_definition_name(ident);
                                 bindings.push(ObjectPatternElement::SingleName {
                                     ident: *ident,
-                                    name: PropertyName::Literal(name),
-                                    default_init: Some(init),
+                                    name: name.clone(),
+                                    default_init: Some(assign.rhs().clone()),
                                 });
                             }
                             AssignTarget::Pattern(pattern) => {
@@ -164,33 +160,38 @@ impl ObjectLiteral {
                             }
                         }
                     }
-                    (_, Expression::PropertyAccess(access)) => {
-                        bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
-                            name: name.clone(),
-                            access: access.clone(),
-                            default_init: None,
-                        });
-                    }
-                    (PropertyName::Computed(name), Expression::Identifier(ident)) => {
-                        bindings.push(ObjectPatternElement::SingleName {
-                            ident: *ident,
-                            name: PropertyName::Computed(name.clone()),
-                            default_init: None,
-                        });
-                    }
-                    _ => return None,
-                },
-                PropertyDefinition::SpreadObject(spread) => {
-                    match spread {
-                        Expression::Identifier(ident) => {
-                            bindings.push(ObjectPatternElement::RestProperty { ident: *ident });
-                        }
-                        Expression::PropertyAccess(access) => {
-                            bindings.push(ObjectPatternElement::AssignmentRestPropertyAccess {
-                                access: access.clone(),
+                    // Any other target must be a simple assignment target, possibly
+                    // parenthesized: an identifier (not `eval` or `arguments` in strict code)
+                    // or a property access.
+                    (_, target) => match AssignTarget::from_expression_simple(target, strict)? {
+                        AssignTarget::Identifier(ident) => {
+                            bindings.push(ObjectPatternElement::SingleName {
+                                ident,
+                                name: name.clone(),
+                                default_init: None,
                             });
                         }
-                        _ => return None,
+                        AssignTarget::Access(access) => {
+                            bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
+                                name: name.clone(),
+                                access,
+                                default_init: None,
+                            });
+                        }
+                        AssignTarget::Pattern(_) => return None,
+                    },
+                },
+                PropertyDefinition::SpreadObject(spread) => {
+                    match AssignTarget::from_expression_simple(spread, strict)? {
+                        AssignTarget::Identifier(ident) => {
+                            bindings.push(ObjectPatternElement::RestProperty { ident });
+                        }
+                        AssignTarget::Access(access) => {
+                            bindings.push(ObjectPatternElement::AssignmentRestPropertyAccess {
+                                access,
+                            });
+                        }
+                        AssignTarget::Pattern(_) => return None,
                     }
                     if i + 1 != self.properties.len() {
                         return None;

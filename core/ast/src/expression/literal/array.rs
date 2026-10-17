@@ -5,7 +5,7 @@ use crate::expression::operator::assign::{AssignOp, AssignTarget};
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{Span, Spanned};
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
 /// An array is an ordered collection of data (either primitive or object depending upon the
@@ -67,26 +67,8 @@ impl ArrayLiteral {
                 continue;
             };
             match expr {
-                Expression::Identifier(ident) => {
-                    if strict && *ident == Sym::ARGUMENTS {
-                        return None;
-                    }
-
-                    bindings.push(ArrayPatternElement::SingleName {
-                        ident: *ident,
-                        default_init: None,
-                    });
-                }
                 Expression::Spread(spread) => {
                     match spread.target() {
-                        Expression::Identifier(ident) => {
-                            bindings.push(ArrayPatternElement::SingleNameRest { ident: *ident });
-                        }
-                        Expression::PropertyAccess(access) => {
-                            bindings.push(ArrayPatternElement::PropertyAccessRest {
-                                access: access.clone(),
-                            });
-                        }
                         Expression::ArrayLiteral(array) => {
                             let pattern = array.to_pattern(strict)?.into();
                             bindings.push(ArrayPatternElement::PatternRest { pattern });
@@ -95,7 +77,15 @@ impl ArrayLiteral {
                             let pattern = object.to_pattern(strict)?.into();
                             bindings.push(ArrayPatternElement::PatternRest { pattern });
                         }
-                        _ => return None,
+                        target => match AssignTarget::from_expression_simple(target, strict)? {
+                            AssignTarget::Identifier(ident) => {
+                                bindings.push(ArrayPatternElement::SingleNameRest { ident });
+                            }
+                            AssignTarget::Access(access) => {
+                                bindings.push(ArrayPatternElement::PropertyAccessRest { access });
+                            }
+                            AssignTarget::Pattern(_) => return None,
+                        },
                     }
                     if i + 1 != self.arr.len() {
                         return None;
@@ -105,13 +95,13 @@ impl ArrayLiteral {
                     if assign.op() != AssignOp::Assign {
                         return None;
                     }
+                    // The initializer was already named when the assignment was parsed, if its
+                    // target is an identifier that is not parenthesized (IsIdentifierRef).
                     match assign.lhs() {
                         AssignTarget::Identifier(ident) => {
-                            let mut init = assign.rhs().clone();
-                            init.set_anonymous_function_definition_name(ident);
                             bindings.push(ArrayPatternElement::SingleName {
                                 ident: *ident,
-                                default_init: Some(init),
+                                default_init: Some(assign.rhs().clone()),
                             });
                         }
                         AssignTarget::Access(access) => {
@@ -150,13 +140,23 @@ impl ArrayLiteral {
                         default_init: None,
                     });
                 }
-                Expression::PropertyAccess(access) => {
-                    bindings.push(ArrayPatternElement::PropertyAccess {
-                        access: access.clone(),
-                        default_init: None,
-                    });
-                }
-                _ => return None,
+                // Any other target must be a simple assignment target, possibly parenthesized:
+                // an identifier (not `eval` or `arguments` in strict code) or a property access.
+                target => match AssignTarget::from_expression_simple(target, strict)? {
+                    AssignTarget::Identifier(ident) => {
+                        bindings.push(ArrayPatternElement::SingleName {
+                            ident,
+                            default_init: None,
+                        });
+                    }
+                    AssignTarget::Access(access) => {
+                        bindings.push(ArrayPatternElement::PropertyAccess {
+                            access,
+                            default_init: None,
+                        });
+                    }
+                    AssignTarget::Pattern(_) => return None,
+                },
             }
         }
         Some(ArrayPattern::new(bindings.into(), self.span))

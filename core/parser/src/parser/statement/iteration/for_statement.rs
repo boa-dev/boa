@@ -333,10 +333,20 @@ fn initializer_to_iterable_loop_initializer(
     let loop_type = if in_loop { "for-in" } else { "for-of" };
     match initializer {
         ForLoopInitializer::Expression(mut expr) => {
+            // A parenthesized object or array literal is not an assignment pattern.
+            let parenthesized = matches!(expr, ast::Expression::Parenthesized(_));
             while let ast::Expression::Parenthesized(p) = expr {
                 expr = p.expression().clone();
             }
             match expr {
+                ast::Expression::ArrayLiteral(_) | ast::Expression::ObjectLiteral(_)
+                    if parenthesized =>
+                {
+                    Err(Error::lex(LexError::Syntax(
+                        "invalid variable for iterable loop".into(),
+                        position,
+                    )))
+                }
                 ast::Expression::Identifier(ident)
                     if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
                 {

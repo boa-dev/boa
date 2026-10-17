@@ -830,3 +830,29 @@ fn invalid_arrow_function() {
     check_invalid_script(r#"(!()=>"#);
     check_invalid_script(r#"!()=>{}"#);
 }
+
+#[test]
+fn destructuring_assignment_simple_targets() {
+    for js in [
+        "[(a), b] = list;",
+        "({ a: (b) } = obj);",
+        "[...(x)] = list;",
+        "({...(o.p)} = obj);",
+        "({ [k]: [x] } = obj);",
+        "({ 0: x = 1 } = list);",
+    ] {
+        assert!(
+            Parser::new(Source::from_bytes(js))
+                .parse_script(&Scope::new_global(), &mut Interner::default())
+                .is_ok(),
+            "failed to parse `{js}`"
+        );
+    }
+    check_invalid_script("[({a})] = list;");
+    check_invalid_script("[(a = 1)] = list;");
+    check_invalid_script("for (([x]) of list);");
+    check_invalid_script("'use strict'; [eval] = list;");
+    check_invalid_script("'use strict'; ({ a: eval } = obj);");
+    check_invalid_script("'use strict'; ({ arguments } = obj);");
+    check_invalid_script("'use strict'; [...eval] = list;");
+}
