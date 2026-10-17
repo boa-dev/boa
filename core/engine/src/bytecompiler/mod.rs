@@ -1373,11 +1373,9 @@ impl<'ctx> ByteCompiler<'ctx> {
                 });
             }
             None => {
-                self.compile_expr_operand(binary.lhs(), |compiler, lhs| {
-                    compiler.compile_expr_operand(binary.rhs(), |compiler, rhs| {
-                        label_index = compiler.next_opcode_location();
-                        emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
-                    });
+                self.compile_binary_operands(binary.lhs(), binary.rhs(), |compiler, lhs, rhs| {
+                    label_index = compiler.next_opcode_location();
+                    emit_fn(&mut compiler.bytecode, Self::DUMMY_ADDRESS, lhs, rhs);
                 });
             }
         }
