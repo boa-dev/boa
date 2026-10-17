@@ -830,3 +830,25 @@ fn invalid_arrow_function() {
     check_invalid_script(r#"(!()=>"#);
     check_invalid_script(r#"!()=>{}"#);
 }
+
+#[test]
+fn let_as_identifier_in_sloppy_code() {
+    for js in [
+        "let: 42;",
+        "if (1) let: 42;",
+        "(function let() {});",
+        "(function* let() {});",
+        "(async function let() {});",
+        "(async function* let() {});",
+        "let => 0;",
+        "async let => 0;",
+    ] {
+        assert!(
+            Parser::new(Source::from_bytes(js))
+                .parse_script(&Scope::new_global(), &mut Interner::default())
+                .is_ok(),
+            "failed to parse `{js}`"
+        );
+        check_invalid_script(&format!("'use strict'; {js}"));
+    }
+}
