@@ -1668,6 +1668,113 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     /// Compile a [`StatementList`].
+
+    /// Compiles a statement list that may contain top-level `using` declarations,
+    /// wrapping it in try-finally semantics so that every registered resource is
+    /// disposed when the list completes, including abrupt completions.
+    ///
+    /// Used for the top level of scripts and `eval` code, where no block or
+    /// function body provides the disposal scope.
+    pub(crate) fn compile_statement_list_with_disposal(
+        &mut self,
+        list: &StatementList,
+        use_expr: bool,
+    ) {
+        #[cfg(feature = "experimental")]
+        let using_count: u32 = {
+            use boa_ast::{
+                declaration::LexicalDeclaration,
+                operations::{LexicallyScopedDeclaration, lexically_scoped_declarations},
+            };
+
+            lexically_scoped_declarations(list)
+                .iter()
+                .filter_map(|decl| {
+                    if let LexicallyScopedDeclaration::LexicalDeclaration(
+                        LexicalDeclaration::Using(u) | LexicalDeclaration::AwaitUsing(u),
+                    ) = decl
+                    {
+                        Some(u.as_ref().len() as u32)
+                    } else {
+                        None
+                    }
+                })
+                .sum()
+        };
+
+        #[cfg(not(feature = "experimental"))]
+        let using_count: u32 = 0;
+
+        if using_count == 0 {
+            self.compile_statement_list(list, use_expr, false);
+            return;
+        }
+
+        #[cfg(feature = "experimental")]
+        {
+            use crate::bytecompiler::jump_control::JumpControlInfoFlags;
+
+            // Same try-finally pattern as blocks and function bodies with `using`.
+            let finally_re_throw = self.register_allocator.alloc();
+            let finally_jump_index = self.register_allocator.alloc();
+
+            self.bytecode.emit_store_true(finally_re_throw.variable());
+            self.bytecode.emit_store_zero(finally_jump_index.variable());
+
+            self.push_try_with_finally_control_info(
+                &finally_re_throw,
+                &finally_jump_index,
+                use_expr,
+            );
+
+            let handler = self.push_handler();
+
+            self.compile_statement_list(list, use_expr, false);
+
+            self.bytecode.emit_store_false(finally_re_throw.variable());
+
+            let finally_jump = self.jump();
+
+            self.patch_handler(handler);
+
+            let catch_handler = self.push_handler();
+            let error = self.register_allocator.alloc();
+            self.bytecode.emit_exception(error.variable());
+            self.bytecode.emit_store_true(finally_re_throw.variable());
+
+            let no_throw = self.jump();
+            self.patch_handler(catch_handler);
+
+            self.patch_jump(no_throw);
+            self.patch_jump(finally_jump);
+
+            let finally_start = self.next_opcode_location();
+            self.jump_info
+                .last_mut()
+                .expect("there should be a jump control info")
+                .flags |= JumpControlInfoFlags::IN_FINALLY;
+
+            let value = self.register_allocator.alloc();
+            self.bytecode
+                .emit_set_register_from_accumulator(value.variable());
+
+            self.bytecode.emit_dispose_resources(using_count.into());
+
+            self.bytecode.emit_set_accumulator(value.variable());
+            self.register_allocator.dealloc(value);
+
+            let do_not_throw_exit = self.jump_if_false(&finally_re_throw);
+            self.bytecode.emit_throw(error.variable());
+            self.register_allocator.dealloc(error);
+            self.patch_jump(do_not_throw_exit);
+
+            self.pop_try_with_finally_control_info(finally_start);
+
+            self.register_allocator.dealloc(finally_re_throw);
+            self.register_allocator.dealloc(finally_jump_index);
+        }
+    }
+
     pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool, block: bool) {
         if use_expr || self.jump_control_info_has_use_expr() {
             let mut use_expr_index = 0;

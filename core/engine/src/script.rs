@@ -157,7 +157,7 @@ impl Script {
             }
 
             compiler.global_declaration_instantiation(source);
-            compiler.compile_statement_list(source.statements(), true, false);
+            compiler.compile_statement_list_with_disposal(source.statements(), true);
 
             Gc::new(compiler.finish())
         };

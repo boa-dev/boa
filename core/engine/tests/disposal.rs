@@ -5,7 +5,7 @@
 
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{Context, JsValue, Source};
+use boa_engine::{Context, JsValue, Source, js_string};
 
 #[test]
 fn basic_disposal() {
@@ -305,4 +305,97 @@ fn suppressed_error_on_multiple_dispose_errors() {
     assert!(result_str.contains("SuppressedError"));
     assert!(result_str.contains("first error"));
     assert!(result_str.contains("second error"));
+}
+
+#[test]
+fn top_level_disposal() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r"
+        using x = {
+            [Symbol.dispose]() {
+                globalThis.disposed = true;
+            }
+        };
+        'done';
+        ",
+    ));
+
+    if let Err(ref e) = result {
+        eprintln!("Error: {e:?}");
+    }
+    assert!(result.is_ok());
+    // The completion value of the script must be preserved across disposal.
+    assert_eq!(result.unwrap(), JsValue::from(js_string!("done")));
+
+    let disposed = context
+        .eval(Source::from_bytes("globalThis.disposed"))
+        .unwrap();
+    assert_eq!(disposed, JsValue::from(true));
+}
+
+#[test]
+fn top_level_disposal_order() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r"
+        globalThis.order = [];
+        using a = { [Symbol.dispose]() { globalThis.order.push('a'); } };
+        using b = { [Symbol.dispose]() { globalThis.order.push('b'); } };
+        42;
+        ",
+    ));
+
+    if let Err(ref e) = result {
+        eprintln!("Error: {e:?}");
+    }
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), JsValue::from(42));
+
+    let order = context
+        .eval(Source::from_bytes("globalThis.order.join(',')"))
+        .unwrap();
+    assert_eq!(order, JsValue::from(js_string!("b,a")));
+}
+
+#[test]
+fn top_level_disposal_on_exception() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r"
+        using x = {
+            [Symbol.dispose]() {
+                globalThis.disposed = true;
+            }
+        };
+        throw new Error('boom');
+        ",
+    ));
+
+    assert!(result.is_err());
+    let disposed = context
+        .eval(Source::from_bytes("globalThis.disposed"))
+        .unwrap();
+    assert_eq!(disposed, JsValue::from(true));
+}
+
+#[test]
+fn eval_disposal() {
+    let mut context = Context::default();
+
+    let result = context.eval(Source::from_bytes(
+        r#"
+        eval("using x = { [Symbol.dispose]() { globalThis.evalDisposed = true; } };");
+        globalThis.evalDisposed;
+        "#,
+    ));
+
+    if let Err(ref e) = result {
+        eprintln!("Error: {e:?}");
+    }
+    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), JsValue::from(true));
 }

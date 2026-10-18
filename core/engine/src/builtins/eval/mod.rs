@@ -318,7 +318,7 @@ impl Eval {
 
         compiler.eval_declaration_instantiation(&body, strict, &variable_scope, bindings);
 
-        compiler.compile_statement_list(body.statements(), true, false);
+        compiler.compile_statement_list_with_disposal(body.statements(), true);
 
         let code_block = Gc::new(compiler.finish());
 
