@@ -1,3 +1,4 @@
+use super::AlignedVec;
 use crate::object::JsArrayBuffer;
 use crate::{TestAction, run_test_actions};
 
@@ -308,4 +309,238 @@ fn shared_array_buffer_slice_empty() {
         ),
         TestAction::assert("result.length === 0"),
     ]);
+}
+
+/// Tests that an externally-backed `ArrayBuffer` aliases the embedder's memory
+/// with zero copies: JS writes are visible to the embedder and vice versa.
+#[test]
+fn external_array_buffer_zero_copy() {
+    use crate::{Context, JsValue, Source, js_string, property::Attribute};
+
+    // `AlignedVec` allocations satisfy the 8-byte alignment required for external regions.
+    let mut backing: AlignedVec<u8> = AlignedVec::from_iter(0, [0u8; 8]);
+    let context = &mut Context::default();
+
+    // SAFETY: `backing` stays alive and unmoved while `context` can reach the buffer.
+    let buffer =
+        unsafe { JsArrayBuffer::from_external_ptr(backing.as_mut_ptr(), backing.len(), context) };
+
+    assert!(buffer.is_external());
+    assert_eq!(buffer.byte_length(), 8);
+
+    context
+        .register_global_property(js_string!("buf"), buffer.clone(), Attribute::all())
+        .unwrap();
+
+    // A write from the JS side must be visible through the embedder's memory.
+    context
+        .eval(Source::from_bytes("new Uint8Array(buf)[1] = 42;"))
+        .unwrap();
+    assert_eq!(backing[1], 42);
+
+    // A write from the embedder's side must be visible to JS.
+    backing[2] = 7;
+    let value = context
+        .eval(Source::from_bytes("new Uint8Array(buf)[2]"))
+        .unwrap();
+    assert_eq!(value, JsValue::from(7));
+
+    // Direct slice access is not available for external buffers, but copying out is.
+    assert!(buffer.data().is_none());
+    assert_eq!(buffer.to_vec().as_deref().map(|v| v[1]), Some(42));
+}
+
+/// Tests the safe `from_external_data` constructor, including an 8-byte-wide view
+/// to exercise the aligned access paths.
+#[test]
+fn external_array_buffer_from_data() {
+    use crate::{Context, JsValue, Source, js_string, property::Attribute};
+
+    // `Box::leak` gives the exclusive `&'static mut [u8]` region that the safe
+    // constructor requires; the struct's alignment guarantees the 8-byte alignment
+    // needed by the wider typed-array views.
+    #[repr(align(8))]
+    struct Backing([u8; 16]);
+    let backing: &'static mut Backing = Box::leak(Box::new(Backing([0; 16])));
+
+    let context = &mut Context::default();
+    let buffer = JsArrayBuffer::from_external_data(&mut backing.0, context);
+
+    assert!(buffer.is_external());
+    assert_eq!(buffer.byte_length(), 16);
+
+    context
+        .register_global_property(js_string!("buf"), buffer.clone(), Attribute::all())
+        .unwrap();
+
+    context
+        .eval(Source::from_bytes(
+            "new Float64Array(buf)[1] = 1.5; new Uint8Array(buf)[0] = 3;",
+        ))
+        .unwrap();
+
+    // The embedder gave up its own reference to the region, so the contents are
+    // verified through the buffer itself.
+    let mut contents = [0u8; 16];
+    contents.copy_from_slice(&buffer.to_vec().expect("buffer is not detached"));
+    assert_eq!(contents[0], 3);
+    assert_eq!(
+        f64::from_ne_bytes(contents[8..16].try_into().unwrap()).to_bits(),
+        1.5f64.to_bits()
+    );
+
+    let value = context
+        .eval(Source::from_bytes("new Float64Array(buf)[1]"))
+        .unwrap();
+    assert_eq!(value, JsValue::from(1.5));
+}
+
+/// Tests that detaching an externally-backed `ArrayBuffer` releases the engine's
+/// reference into the region and returns a copy of its contents, while resizing
+/// and transferring still fail.
+#[test]
+fn external_array_buffer_detach_releases_region() {
+    use crate::{Context, JsValue};
+
+    let mut backing: AlignedVec<u8> = AlignedVec::from_iter(0, [1u8, 2, 3, 4, 5, 6, 7, 8]);
+    let context = &mut Context::default();
+
+    // SAFETY: `backing` stays alive and unmoved while `context` can reach the buffer.
+    let buffer =
+        unsafe { JsArrayBuffer::from_external_ptr(backing.as_mut_ptr(), backing.len(), context) };
+
+    // Resizing an externally-backed buffer must fail.
+    assert!(buffer.borrow_mut().data_mut().resize(4).is_err());
+    assert_eq!(buffer.byte_length(), 8);
+
+    // Detaching must succeed, returning a copy of the region's contents and dropping
+    // the engine's reference into the region.
+    let contents = buffer.detach(&JsValue::undefined()).unwrap();
+    assert_eq!(contents.as_slice(), &[1u8, 2, 3, 4, 5, 6, 7, 8]);
+    assert_eq!(buffer.byte_length(), 0);
+    assert!(buffer.to_vec().is_none());
+
+    // The embedder still owns the region, which is untouched by the detach.
+    assert_eq!(&backing[..], &[1u8, 2, 3, 4, 5, 6, 7, 8]);
+}
+
+/// Tests that `ArrayBuffer.prototype.slice` copies data out of an externally-backed
+/// buffer into a new, Boa-owned buffer.
+#[test]
+fn external_array_buffer_slice() {
+    use crate::{Context, JsValue, Source, js_string, property::Attribute};
+
+    let mut backing: AlignedVec<u8> = AlignedVec::from_iter(0, [10u8, 11, 12, 13, 14, 15, 16, 17]);
+    let context = &mut Context::default();
+
+    // SAFETY: `backing` stays alive and unmoved while `context` can reach the buffer.
+    let buffer =
+        unsafe { JsArrayBuffer::from_external_ptr(backing.as_mut_ptr(), backing.len(), context) };
+
+    context
+        .register_global_property(js_string!("buf"), buffer, Attribute::all())
+        .unwrap();
+
+    let value = context
+        .eval(Source::from_bytes(
+            "var sliced = new Uint8Array(buf.slice(2, 6)); sliced[0] + sliced[3]",
+        ))
+        .unwrap();
+    assert_eq!(value, JsValue::from(12 + 15));
+
+    // The slice is an independent, Boa-owned buffer: writes to it must not be
+    // visible through the external region.
+    context.eval(Source::from_bytes("sliced[0] = 99;")).unwrap();
+    assert_eq!(backing[2], 12);
+}
+
+/// Tests that constructing an external buffer over a misaligned region panics.
+#[test]
+#[should_panic(expected = "external buffer memory must be aligned")]
+fn external_array_buffer_misaligned_panics() {
+    use crate::Context;
+
+    let mut backing: AlignedVec<u8> = AlignedVec::from_iter(0, [0u8; 8]);
+    let context = &mut Context::default();
+
+    // SAFETY: the pointer is valid for `len - 1` bytes; the constructor must panic
+    // before the buffer is ever used because the base address is misaligned.
+    let _buffer = unsafe {
+        JsArrayBuffer::from_external_ptr(backing.as_mut_ptr().add(1), backing.len() - 1, context)
+    };
+}
+
+/// Tests that an externally-backed `SharedArrayBuffer` aliases the embedder's
+/// memory with zero copies.
+#[test]
+fn external_shared_array_buffer_zero_copy() {
+    use crate::{
+        Context, JsValue, Source, js_string, object::builtins::JsSharedArrayBuffer,
+        property::Attribute,
+    };
+
+    let mut backing: AlignedVec<u8> = AlignedVec::from_iter(0, [0u8; 8]);
+    let context = &mut Context::default();
+
+    // SAFETY: `backing` stays alive and unmoved while `context` can reach the buffer.
+    let buffer = unsafe {
+        JsSharedArrayBuffer::from_external_ptr(backing.as_mut_ptr(), backing.len(), context)
+    };
+
+    assert!(buffer.is_external());
+    assert_eq!(buffer.byte_length(), 8);
+
+    context
+        .register_global_property(js_string!("sab"), buffer, Attribute::all())
+        .unwrap();
+
+    // A write from the JS side must be visible through the embedder's memory.
+    context
+        .eval(Source::from_bytes("new Uint8Array(sab)[0] = 99;"))
+        .unwrap();
+    assert_eq!(backing[0], 99);
+
+    // A write from the embedder's side must be visible to JS.
+    backing[3] = 123;
+    let value = context
+        .eval(Source::from_bytes("new Uint8Array(sab)[3]"))
+        .unwrap();
+    assert_eq!(value, JsValue::from(123));
+
+    // Externally-backed shared buffers are fixed-length.
+    let growable = context.eval(Source::from_bytes("sab.growable")).unwrap();
+    assert_eq!(growable, JsValue::from(false));
+}
+
+/// Tests the safe `SharedArrayBuffer::from_external_data` constructor, including
+/// `Atomics` operations over the external region.
+#[test]
+fn external_shared_array_buffer_from_data() {
+    use crate::{
+        Context, JsValue, Source, js_string, object::builtins::JsSharedArrayBuffer,
+        property::Attribute,
+    };
+    use portable_atomic::AtomicU8;
+    use std::sync::atomic::Ordering;
+
+    #[repr(align(8))]
+    struct Backing([AtomicU8; 8]);
+    static BACKING: Backing = Backing([const { AtomicU8::new(0) }; 8]);
+
+    let context = &mut Context::default();
+    let buffer = JsSharedArrayBuffer::from_external_data(&BACKING.0, context);
+
+    assert!(buffer.is_external());
+
+    context
+        .register_global_property(js_string!("sab"), buffer, Attribute::all())
+        .unwrap();
+
+    let value = context
+        .eval(Source::from_bytes(
+            "var ta = new Int32Array(sab); Atomics.add(ta, 0, 7); Atomics.load(ta, 0)",
+        ))
+        .unwrap();
+    assert_eq!(value, JsValue::from(7));
+    assert_eq!(BACKING.0[0].load(Ordering::Relaxed), 7);
 }
