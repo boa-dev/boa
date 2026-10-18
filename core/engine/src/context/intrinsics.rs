@@ -1100,6 +1100,9 @@ pub struct IntrinsicObjects {
     /// [`%Array.prototype.toString%`](https://tc39.es/ecma262/#sec-array.prototype.tostring)
     array_prototype_to_string: JsFunction,
 
+    /// [`%RegExp.prototype.exec%`](https://tc39.es/ecma262/#sec-regexp.prototype.exec)
+    regexp_prototype_exec: JsFunction,
+
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
@@ -1172,6 +1175,7 @@ impl IntrinsicObjects {
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
             array_prototype_to_string: JsFunction::empty_intrinsic_function(false),
+            regexp_prototype_exec: JsFunction::empty_intrinsic_function(false),
             iterator_prototypes: IteratorPrototypes::default(),
             generator: JsObject::with_null_proto(),
             async_generator: JsObject::with_null_proto(),
@@ -1222,6 +1226,15 @@ impl IntrinsicObjects {
     #[must_use]
     pub fn array_prototype_to_string(&self) -> JsFunction {
         self.array_prototype_to_string.clone()
+    }
+
+    /// Gets the [`%RegExp.prototype.exec%`][spec] intrinsic function.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
+    #[inline]
+    #[must_use]
+    pub fn regexp_prototype_exec(&self) -> JsFunction {
+        self.regexp_prototype_exec.clone()
     }
 
     /// Gets the cached iterator prototypes.
