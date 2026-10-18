@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 
 use crate::{
-    lexer::{TokenKind, token::ContainsEscapeSequence},
+    lexer::{Token, TokenKind, token::ContainsEscapeSequence},
     parser::{
         Error, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
@@ -184,17 +184,43 @@ where
                         }
                     }
                     TokenKind::Keyword((Keyword::Async, false)) => {
-                        let next_token = cursor.peek(2, interner).or_abrupt()?;
-                        if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
-                            AstExportDeclaration::DefaultAsyncGeneratorDeclaration(
-                                AsyncGeneratorDeclaration::new(false, true, true)
-                                    .parse(cursor, interner)?,
-                            )
+                        let skip_n = if cursor
+                            .peek_is_line_terminator(0, interner)?
+                            .unwrap_or(false)
+                        {
+                            2
                         } else {
-                            AstExportDeclaration::DefaultAsyncFunctionDeclaration(
-                                AsyncFunctionDeclaration::new(false, true, true)
-                                    .parse(cursor, interner)?,
-                            )
+                            1
+                        };
+                        let is_line_terminator = cursor
+                            .peek_is_line_terminator(skip_n, interner)?
+                            .unwrap_or(true);
+
+                        if !is_line_terminator
+                            && cursor.peek(1, interner)?.map(Token::kind)
+                                == Some(&TokenKind::Keyword((Keyword::Function, false)))
+                        {
+                            let is_generator = cursor.peek(2, interner)?.map(Token::kind)
+                                == Some(&TokenKind::Punctuator(Punctuator::Mul));
+
+                            if is_generator {
+                                AstExportDeclaration::DefaultAsyncGeneratorDeclaration(
+                                    AsyncGeneratorDeclaration::new(false, true, true)
+                                        .parse(cursor, interner)?,
+                                )
+                            } else {
+                                AstExportDeclaration::DefaultAsyncFunctionDeclaration(
+                                    AsyncFunctionDeclaration::new(false, true, true)
+                                        .parse(cursor, interner)?,
+                                )
+                            }
+                        } else {
+                            let expr = AssignmentExpression::new(true, false, true)
+                                .parse(cursor, interner)?;
+
+                            cursor.expect_semicolon("default expression export", interner)?;
+
+                            AstExportDeclaration::DefaultAssignmentExpression(expr)
                         }
                     }
                     TokenKind::Keyword((Keyword::Class, false)) => {
