@@ -420,6 +420,9 @@ fn assignment_to_non_assignable() {
 
 #[test]
 fn assignment_to_non_assignable_ctd() {
+    // Annex B: CallExpression as LHS in non-strict mode is a runtime ReferenceError,
+    // not a parse-time SyntaxError.
+    // https://tc39.es/ecma262/#sec-runtime-errors-for-function-call-assignment-targets
     run_test_actions(
         [
             "(()=>{})() -= 5",
@@ -436,8 +439,8 @@ fn assignment_to_non_assignable_ctd() {
         .map(|src| {
             TestAction::assert_native_error(
                 src,
-                JsNativeErrorKind::Syntax,
-                "Invalid left-hand side in assignment at line 1, col 12",
+                JsNativeErrorKind::Reference,
+                "Invalid left-hand side in assignment",
             )
         }),
     );
@@ -458,14 +461,15 @@ fn multicharacter_assignment_to_non_assignable() {
 
 #[test]
 fn multicharacter_assignment_to_non_assignable_ctd() {
+    // Annex B: runtime ReferenceError, not parse-time SyntaxError.
     run_test_actions(
         ["(()=>{})() **= 5", "(()=>{})() <<= 5", "(()=>{})() >>= 5"]
             .into_iter()
             .map(|src| {
                 TestAction::assert_native_error(
                     src,
-                    JsNativeErrorKind::Syntax,
-                    "Invalid left-hand side in assignment at line 1, col 12",
+                    JsNativeErrorKind::Reference,
+                    "Invalid left-hand side in assignment",
                 )
             }),
     );
@@ -488,6 +492,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 
 #[test]
 fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
+    // Annex B: runtime ReferenceError, not parse-time SyntaxError.
     run_test_actions(
         [
             "(()=>{})() >>>= 5",
@@ -499,8 +504,8 @@ fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
         .map(|src| {
             TestAction::assert_native_error(
                 src,
-                JsNativeErrorKind::Syntax,
-                "Invalid left-hand side in assignment at line 1, col 12",
+                JsNativeErrorKind::Reference,
+                "Invalid left-hand side in assignment",
             )
         }),
     );
