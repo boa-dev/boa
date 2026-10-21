@@ -142,6 +142,22 @@ impl Scope {
         }
     }
 
+    /// Deep clones the scope.
+    #[must_use]
+    pub fn deep_clone(&self) -> Self {
+        Self {
+            inner: Rc::new(Inner {
+                unique_id: self.inner.unique_id,
+                outer: self.inner.outer.as_ref().map(Self::deep_clone),
+                index: self.inner.index.clone(),
+                bindings: self.inner.bindings.clone(),
+                function: self.inner.function,
+                this_escaped: self.inner.this_escaped.clone(),
+                context: self.inner.context.clone(),
+            }),
+        }
+    }
+
     /// Checks if the scope has only local bindings.
     #[must_use]
     pub fn all_bindings_local(&self) -> bool {
