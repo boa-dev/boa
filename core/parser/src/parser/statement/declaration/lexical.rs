@@ -178,6 +178,32 @@ where
     }
 }
 
+/// Check if the given token, the one after `using` on the same line, starts the binding list of a
+/// `using` declaration: an identifier, as patterns aren't allowed there. Otherwise `using` is an
+/// identifier (`using[x]`, `using.x`).
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/proposal-explicit-resource-management/#prod-UsingDeclaration
+pub(crate) fn allowed_token_after_using(token: Option<&Token>) -> bool {
+    matches!(
+        token.map(Token::kind),
+        Some(
+            TokenKind::IdentifierName(_)
+                | TokenKind::Keyword((
+                    Keyword::Await
+                        | Keyword::Yield
+                        | Keyword::Let
+                        | Keyword::Async
+                        | Keyword::Of
+                        | Keyword::Using,
+                    _
+                ))
+        )
+    )
+}
+
 /// Check if the given token is valid after the `let` keyword of a lexical declaration.
 pub(crate) fn allowed_token_after_let(token: Option<&Token>) -> bool {
     matches!(

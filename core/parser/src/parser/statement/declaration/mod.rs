@@ -20,7 +20,7 @@ pub(in crate::parser) use self::{
         ClassDeclaration, FunctionDeclaration, HoistableDeclaration, class_decl::ClassTail,
     },
     import::ImportDeclaration,
-    lexical::{LexicalDeclaration, allowed_token_after_let},
+    lexical::{LexicalDeclaration, allowed_token_after_let, allowed_token_after_using},
 };
 use crate::{
     Error,

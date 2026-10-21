@@ -26,7 +26,10 @@ use self::{
     block::BlockStatement,
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
-    declaration::{Declaration, ExportDeclaration, ImportDeclaration, allowed_token_after_let},
+    declaration::{
+        Declaration, ExportDeclaration, ImportDeclaration, allowed_token_after_let,
+        allowed_token_after_using,
+    },
     expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
@@ -424,12 +427,19 @@ where
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind().clone() {
-            TokenKind::Keyword((
-                Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Using,
-                _,
-            )) => Declaration::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)
-                .map(ast::StatementListItem::from),
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, _)) => {
+                Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
+            // `using` with no identifier after it on the same line is an identifier itself.
+            TokenKind::Keyword((Keyword::Using, false))
+                if allowed_token_after_using(cursor.peek_no_skip_line_term(1, interner)?) =>
+            {
+                Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
             TokenKind::Keyword((Keyword::Let, false))
                 if allowed_token_after_let(cursor.peek(1, interner)?) =>
             {
