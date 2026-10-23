@@ -1,5 +1,6 @@
 //! C bindings for the Boa JavaScript engine.
 //!
+//! The C API and its ownership rules are documented in the crate's README.
 //! Rust applications should use `boa_engine` directly.
 
 /// Entry points used by the generated C bindings.
