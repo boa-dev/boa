@@ -606,6 +606,10 @@ impl Set {
 
         // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
         if this.borrow().data().len() <= other_rec.size {
+            // `otherRec.[[Has]]` can delete entries of O.[[SetData]]. Lock the set so deleted
+            // entries are replaced by empty ones and the remaining entries keep their indices.
+            let _lock = SetLock::new(&this);
+
             // a. Let thisSize be the number of elements in O.[[SetData]].
             let mut this_size = this.borrow().data().full_len();
             // b. Let index be 0.
@@ -691,6 +695,10 @@ impl Set {
         if this.borrow().data().len() > other_rec.size {
             return Ok(JsValue::from(false));
         }
+
+        // `otherRec.[[Has]]` can delete entries of O.[[SetData]]. Lock the set so deleted
+        // entries are replaced by empty ones and the remaining entries keep their indices.
+        let _lock = SetLock::new(&this);
 
         // 5. Let thisSize be the number of elements in O.[[SetData]].
         let mut this_size = this.borrow().data().full_len();
@@ -938,6 +946,10 @@ impl Set {
 
         // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
         if this.borrow().data().len() <= other_rec.size {
+            // `otherRec.[[Has]]` can delete entries of O.[[SetData]]. Lock the set so deleted
+            // entries are replaced by empty ones and the remaining entries keep their indices.
+            let _lock = SetLock::new(&this);
+
             // a. Let thisSize be the number of elements in O.[[SetData]].
             let mut this_size = this.borrow().data().full_len();
             // b. Let index be 0.
@@ -964,10 +976,10 @@ impl Set {
                     //     b. If SetDataHas(resultSetData, e) is false, then
                     //        i. Append e to resultSetData.
                     result_set.add(e);
-                    //  3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
-                    //  4. Set thisSize to the number of elements in O.[[SetData]].
-                    this_size = this.borrow().data().full_len();
                 }
+                //      3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
+                //      4. Set thisSize to the number of elements in O.[[SetData]].
+                this_size = this.borrow().data().full_len();
             }
 
         // 6. Else,
