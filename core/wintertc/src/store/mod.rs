@@ -3,6 +3,7 @@ use boa_engine::bigint::RawBigInt;
 use boa_engine::builtins::array_buffer::{AlignedVec, SharedArrayBuffer};
 use boa_engine::builtins::error::ErrorKind;
 use boa_engine::builtins::typed_array::TypedArrayKind;
+use boa_engine::object::builtins::JsArrayBuffer;
 use boa_engine::value::TryIntoJs;
 use boa_engine::{Context, JsError, JsResult, JsString, JsValue, JsVariant, js_error};
 use rustc_hash::FxHashSet;
@@ -204,16 +205,40 @@ impl JsValueStore {
         transfer: Vec<JsValue>,
     ) -> JsResult<Self> {
         let mut seen = from::SeenMap::default();
-        // Verify the validity of the transfer list and make it a set.
-        let transfer = transfer
-            .into_iter()
-            .map(|v| match v.variant() {
-                JsVariant::Object(o) if from::is_transferable(&o) => Ok(o),
-                _ => Err(unsupported_transfer()),
-            })
-            .collect::<Result<FxHashSet<_>, _>>()?;
+        let mut unique = FxHashSet::default();
+        let mut transfers = Vec::with_capacity(transfer.len());
 
-        let v = from::try_from_js_value(value, &transfer, &mut seen, context)?;
+        for value in transfer {
+            let JsVariant::Object(object) = value.variant() else {
+                return Err(unsupported_transfer());
+            };
+            let buffer =
+                JsArrayBuffer::from_object(object.clone()).map_err(|_| unsupported_transfer())?;
+            if !unique.insert(object.clone()) || buffer.data().is_none() {
+                return Err(unsupported_transfer());
+            }
+
+            let store = Self::empty();
+            seen.insert(&object, store.clone());
+            transfers.push((buffer, store));
+        }
+
+        let v = from::try_from_js_value(value, &mut seen, context)?;
+
+        // A getter can detach a listed buffer while the value is serialized.
+        // Check every buffer before transferring any of them.
+        if transfers.iter().any(|(buffer, _)| buffer.data().is_none()) {
+            return Err(unsupported_transfer());
+        }
+
+        for (buffer, mut store) in transfers {
+            let data = buffer.detach(&JsValue::undefined())?;
+            // SAFETY: This store was created empty above and is filled exactly once.
+            unsafe {
+                store.replace(ValueStoreInner::ArrayBuffer(data));
+            }
+        }
+
         Ok(v)
     }
 }
