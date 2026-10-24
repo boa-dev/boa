@@ -3,6 +3,8 @@ use crate::BOA_GC;
 mod allocation;
 mod cell;
 mod erased;
+#[cfg(feature = "gc-stats")]
+mod stats;
 mod std_types;
 mod weak;
 mod weak_map;
