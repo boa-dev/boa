@@ -208,3 +208,31 @@ fn uint8array_from_base64_rejects_trailing_non_whitespace_after_padding() {
         "Invalid base64 string",
     )]);
 }
+
+#[test]
+fn bigint_typed_array_with_throws_when_buffer_shrinks() {
+    run_test_actions([
+        TestAction::run(
+            "let rab = new ArrayBuffer(16, { maxByteLength: 16 }); let ta = new BigInt64Array(rab);",
+        ),
+        TestAction::assert_native_error(
+            "ta.with(0, { valueOf() { rab.resize(8); return 0n; } })",
+            JsNativeErrorKind::Type,
+            "cannot convert undefined to a BigInt",
+        ),
+    ]);
+}
+
+#[test]
+fn bigint_typed_array_filter_throws_when_buffer_shrinks() {
+    run_test_actions([
+        TestAction::run(
+            "let rab = new ArrayBuffer(16, { maxByteLength: 16 }); let ta = new BigInt64Array(rab);",
+        ),
+        TestAction::assert_native_error(
+            "ta.filter(() => { rab.resize(8); return true; })",
+            JsNativeErrorKind::Type,
+            "cannot convert undefined to a BigInt",
+        ),
+    ]);
+}
