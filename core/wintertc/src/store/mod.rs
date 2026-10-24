@@ -214,7 +214,7 @@ impl JsValueStore {
             };
             let buffer =
                 JsArrayBuffer::from_object(object.clone()).map_err(|_| unsupported_transfer())?;
-            if !unique.insert(object.clone()) || buffer.data().is_none() {
+            if !unique.insert(object.clone()) {
                 return Err(unsupported_transfer());
             }
 
@@ -224,12 +224,6 @@ impl JsValueStore {
         }
 
         let v = from::try_from_js_value(value, &mut seen, context)?;
-
-        // A getter can detach a listed buffer while the value is serialized.
-        // Check every buffer before transferring any of them.
-        if transfers.iter().any(|(buffer, _)| buffer.data().is_none()) {
-            return Err(unsupported_transfer());
-        }
 
         for (buffer, mut store) in transfers {
             let data = buffer.detach(&JsValue::undefined())?;

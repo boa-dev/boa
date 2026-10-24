@@ -86,27 +86,36 @@ fn duplicate_transfer_is_rejected_without_detaching() {
 }
 
 #[test]
-fn buffer_detached_by_getter_does_not_detach_other_transfers() {
+fn detached_transfer_is_checked_in_list_order() {
     run_test_actions([TestAction::run(indoc! {r#"
-        const first = new ArrayBuffer(8);
-        const second = new ArrayBuffer(8);
-        const value = {
-            first,
-            get detachSecond() {
-                structuredClone(second, { transfer: [second] });
-                return true;
-            },
-        };
+        function attempt(reverse) {
+            const first = new ArrayBuffer(8);
+            const second = new ArrayBuffer(8);
+            const value = {
+                first,
+                get detachSecond() {
+                    structuredClone(second, { transfer: [second] });
+                    return true;
+                },
+            };
 
-        let threw = false;
-        try {
-            structuredClone(value, { transfer: [first, second] });
-        } catch {
-            threw = true;
+            let threw = false;
+            try {
+                structuredClone(value, {
+                    transfer: reverse ? [second, first] : [first, second],
+                });
+            } catch {
+                threw = true;
+            }
+
+            return [threw, first.byteLength, second.byteLength];
         }
 
-        if (!threw || first.byteLength !== 8 || second.byteLength !== 0) {
-            throw new Error("a transfer was detached before all buffers were checked");
+        const forward = attempt(false);
+        const reverse = attempt(true);
+        if (!forward[0] || forward[1] !== 0 || forward[2] !== 0 ||
+            !reverse[0] || reverse[1] !== 8 || reverse[2] !== 0) {
+            throw new Error("transfer entries were not checked in list order");
         }
     "#})]);
 }
