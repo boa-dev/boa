@@ -8,7 +8,7 @@ use std::time::Duration;
 /// The garbage collector is thread-local, so each thread has its own statistics.
 ///
 /// Counters and timings are cumulative since the thread started or since the last call
-/// to [`reset_stats`](crate::reset_stats).
+/// to [`reset_stats`].
 ///
 /// Byte counts are shallow: they only include the size of each `Gc` and `Ephemeron`
 /// allocation itself, not heap memory owned by the allocated values (for example the
@@ -54,7 +54,7 @@ pub struct GcStats {
     /// Bytes currently allocated for live `Gc` and `Ephemeron` values.
     ///
     /// This is read when the snapshot is taken and is not affected by
-    /// [`reset_stats`](crate::reset_stats).
+    /// [`reset_stats`].
     pub bytes_allocated: usize,
 }
 
