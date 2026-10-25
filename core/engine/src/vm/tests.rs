@@ -724,14 +724,21 @@ fn local_postfix_update_converts_once(op: &str) {
 #[test_case::test_case("++"; "increment")]
 #[test_case::test_case("--"; "decrement")]
 fn local_postfix_update_preserves_binding_on_conversion_error(op: &str) {
-    run_test_actions([TestAction::assert(format!(
-        "(() => {{
-            let n = {{ [Symbol.toPrimitive]() {{ throw 42; }} }};
-            const original = n;
-            try {{ const old = n{op}; }} catch (error) {{
-                return error === 42 && n === original;
-            }}
-            return false;
-        }})()"
-    ))]);
+    for stmt in [
+        format!("const old = n{op};"),
+        format!("n{op};"),
+        format!("const next = {op}n;"),
+        format!("{op}n;"),
+    ] {
+        run_test_actions([TestAction::assert(format!(
+            "(() => {{
+                let n = {{ [Symbol.toPrimitive]() {{ throw 42; }} }};
+                const original = n;
+                try {{ {stmt} }} catch (error) {{
+                    return error === 42 && n === original;
+                }}
+                return false;
+            }})()"
+        ))]);
+    }
 }
