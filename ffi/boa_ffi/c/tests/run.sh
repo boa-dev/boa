@@ -21,7 +21,7 @@ library_dir=$(CDPATH= cd -- "$CARGO_TARGET_DIR/$host/debug" && pwd)
 test_dir=$(mktemp -d "${TMPDIR:-/tmp}/boa-ffi-c.XXXXXX")
 trap 'rm -rf "$test_dir"' EXIT HUP INT TERM
 
-for test_name in context value; do
+for test_name in context value error; do
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -pedantic \
         -I "$script_dir/../generated" "$script_dir/$test_name.c" \
         "$library_dir/$library_name" "-Wl,-rpath,$library_dir" \
