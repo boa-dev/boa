@@ -540,3 +540,200 @@ fn response_body_buffer_sources() {
         }),
     ]);
 }
+
+#[test]
+fn response_url_list_and_redirected() {
+    use crate::fetch::Fetcher;
+    use crate::fetch::request::JsRequest;
+    use crate::fetch::response::JsResponse;
+    use boa_engine::{Finalize, JsData, JsObject, JsResult, JsString, Trace, js_error};
+    use std::cell::RefCell;
+    use std::future;
+    use std::rc::Rc;
+
+    #[derive(Clone, Debug, Trace, Finalize, JsData)]
+    struct RedirectTestFetcher;
+
+    impl Fetcher for RedirectTestFetcher {
+        fn fetch(
+            self: Rc<Self>,
+            request: JsRequest,
+            _signal: Option<JsObject>,
+            _context: &RefCell<&mut Context>,
+        ) -> impl Future<Output = JsResult<JsResponse>> {
+            let uri = request.uri().to_string();
+            let resp = Response::new(b"ok".to_vec());
+            let result = match request.uri().path() {
+                "/direct" => Ok(JsResponse::basic(JsString::from(uri), resp)),
+                "/redirect" => Ok(JsResponse::basic_with_url_list(
+                    vec![
+                        JsString::from("http://unit.test/redirect"),
+                        JsString::from("http://unit.test/target#frag"),
+                    ],
+                    resp,
+                )),
+                "/bounce" => Ok(JsResponse::basic_with_url_list(
+                    vec![
+                        JsString::from("http://unit.test/bounce"),
+                        JsString::from("http://unit.test/hop"),
+                        JsString::from("http://unit.test/bounce#frag"),
+                    ],
+                    resp,
+                )),
+                _ => Err(js_error!("unexpected path")),
+            };
+            future::ready(result)
+        }
+    }
+
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            crate::fetch::register(RedirectTestFetcher, None, ctx)
+                .expect("failed to register RedirectTestFetcher");
+        }),
+        TestAction::run(
+            r#"
+                // Synthetic responses have an empty URL list.
+                const constructed = new Response("body");
+                assertEq(constructed.url, "");
+                assertEq(constructed.redirected, false);
+
+                const errResp = Response.error();
+                assertEq(errResp.url, "");
+                assertEq(errResp.redirected, false);
+
+                const redirStatic = Response.redirect("http://unit.test/other");
+                assertEq(redirStatic.url, "");
+                assertEq(redirStatic.redirected, false);
+
+                const jsonStatic = Response.json({ a: 1 });
+                assertEq(jsonStatic.url, "");
+                assertEq(jsonStatic.redirected, false);
+
+                globalThis.response = (async () => {
+                    const direct = await fetch("http://unit.test/direct");
+                    assertEq(direct.redirected, false);
+                    assertEq(direct.url, "http://unit.test/direct");
+
+                    const redirected = await fetch("http://unit.test/redirect");
+                    assertEq(redirected.redirected, true);
+                    assertEq(redirected.url, "http://unit.test/target");
+
+                    const cloned = redirected.clone();
+                    assertEq(cloned.redirected, true);
+                    assertEq(cloned.url, "http://unit.test/target");
+
+                    // Redirect A -> B -> A has URL list size 3 (> 1).
+                    const bounced = await fetch("http://unit.test/bounce");
+                    assertEq(bounced.redirected, true);
+                    assertEq(bounced.url, "http://unit.test/bounce");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[cfg(feature = "reqwest-blocking")]
+#[test]
+fn fetch_redirect_updates_url_and_redirected() {
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let addr = listener.local_addr().unwrap();
+    let bounce_visits = Arc::new(AtomicUsize::new(0));
+    let bounce_visits_server = Arc::clone(&bounce_visits);
+
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .ok();
+
+    std::thread::spawn(move || {
+        // Handle incoming requests for:
+        // - /redirect -> 302 Location: /target#frag -> 200
+        // - /target -> 200
+        // - /bounce -> 302 Location: /bounce-hop -> 302 Location: /bounce#frag -> 200
+        for stream in listener.incoming().flatten() {
+            let mut stream = stream;
+            let mut buf = [0u8; 1024];
+            let n = stream.read(&mut buf).unwrap();
+            let req = String::from_utf8_lossy(&buf[..n]);
+            let path = req
+                .lines()
+                .next()
+                .and_then(|line| line.split_whitespace().nth(1))
+                .unwrap_or("/");
+
+            let response = match path {
+                "/redirect" => {
+                    "HTTP/1.1 302 Found\r\nLocation: /target#frag\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                        .to_string()
+                }
+                "/target" => {
+                    "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok".to_string()
+                }
+                "/bounce" => {
+                    if bounce_visits_server.fetch_add(1, Ordering::SeqCst) == 0 {
+                        "HTTP/1.1 302 Found\r\nLocation: /bounce-hop\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                            .to_string()
+                    } else {
+                        "HTTP/1.1 200 OK\r\nContent-Length: 6\r\nConnection: close\r\n\r\nbounce"
+                            .to_string()
+                    }
+                }
+                "/bounce-hop" => {
+                    "HTTP/1.1 302 Found\r\nLocation: /bounce#frag\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                        .to_string()
+                }
+                _ => "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                    .to_string(),
+            };
+            drop(stream.write_all(response.as_bytes()));
+            drop(stream.flush());
+        }
+    });
+
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(move |ctx| {
+            crate::fetch::register(crate::fetch::BlockingReqwestFetcher::default(), None, ctx)
+                .expect("failed to register BlockingReqwestFetcher");
+        }),
+        TestAction::run(format!(
+            r#"
+                globalThis.response = (async () => {{
+                    const r = await fetch("http://{addr}/redirect");
+                    assertEq(r.redirected, true);
+                    assertEq(r.url, "http://{addr}/target");
+                    assertEq(await r.text(), "ok");
+
+                    const cloned = r.clone();
+                    assertEq(cloned.redirected, true);
+                    assertEq(cloned.url, "http://{addr}/target");
+
+                    const direct = await fetch("http://{addr}/target#frag");
+                    assertEq(direct.redirected, false);
+                    assertEq(direct.url, "http://{addr}/target");
+
+                    // Redirect A -> B -> A should still report redirected === true
+                    // because the response URL list has size > 1.
+                    const bounced = await fetch("http://{addr}/bounce");
+                    assertEq(bounced.redirected, true);
+                    assertEq(bounced.url, "http://{addr}/bounce");
+                    assertEq(await bounced.text(), "bounce");
+                }})();
+            "#
+        )),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}

@@ -590,6 +590,7 @@ dependencies = [
  "reqwest",
  "rstest",
  "rustc-hash 2.1.3",
+ "rustls",
  "serde_json",
  "temp-env",
  "test-case",
