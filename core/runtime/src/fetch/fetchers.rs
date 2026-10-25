@@ -27,10 +27,39 @@ impl Fetcher for ErrorFetcher {
 
 /// Implementation of `Fetcher` that uses the blocking `reqwest` library as the backend.
 #[cfg(feature = "reqwest-blocking")]
-#[derive(Default, Debug, Clone, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct BlockingReqwestFetcher {
     #[unsafe_ignore_trace]
     client: reqwest::blocking::Client,
+    #[unsafe_ignore_trace]
+    url_list: std::sync::Arc<std::sync::Mutex<Vec<url::Url>>>,
+}
+
+#[cfg(feature = "reqwest-blocking")]
+impl Default for BlockingReqwestFetcher {
+    fn default() -> Self {
+        use std::sync::{Arc, Mutex};
+
+        let url_list = Arc::new(Mutex::new(Vec::new()));
+        let url_list_clone = Arc::clone(&url_list);
+
+        // Record each redirect target URL so `Response.url` and `Response.redirected`
+        // reflect the full WHATWG Fetch response URL list (https://github.com/boa-dev/boa/issues/5310).
+        let custom_policy = reqwest::redirect::Policy::custom(move |attempt| {
+            url_list_clone
+                .lock()
+                .expect("should not be poisoned")
+                .push(attempt.url().clone());
+            reqwest::redirect::Policy::default().redirect(attempt)
+        });
+
+        let client = reqwest::blocking::Client::builder()
+            .redirect(custom_policy)
+            .build()
+            .unwrap_or_default();
+
+        Self { client, url_list }
+    }
 }
 
 #[cfg(feature = "reqwest-blocking")]
@@ -67,7 +96,16 @@ impl Fetcher for BlockingReqwestFetcher {
             Err(err) => return future::ready(Err(err)),
         };
 
-        let resp = match self.client.execute(req).map_err(JsError::from_rust) {
+        self.url_list
+            .lock()
+            .expect("should not be poisoned")
+            .clear();
+
+        let result = self.client.execute(req);
+        let redirected_urls =
+            std::mem::take(&mut *self.url_list.lock().expect("should not be poisoned"));
+
+        let resp = match result.map_err(JsError::from_rust) {
             Ok(resp) => resp,
             Err(err) => return future::ready(Err(err)),
         };
@@ -95,11 +133,19 @@ impl Fetcher for BlockingReqwestFetcher {
             }
         }
 
+        let mut url_list = Vec::with_capacity(1 + redirected_urls.len());
+        url_list.push(JsString::from(url));
+        url_list.extend(
+            redirected_urls
+                .into_iter()
+                .map(|u| JsString::from(u.as_str())),
+        );
+
         future::ready(
             builder
                 .body(bytes.to_vec())
                 .map_err(JsError::from_rust)
-                .map(|request| JsResponse::basic(JsString::from(url), request)),
+                .map(|request| JsResponse::basic_with_url_list(url_list, request)),
         )
     }
 }
