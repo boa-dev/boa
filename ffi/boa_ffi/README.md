@@ -21,9 +21,10 @@ The library is `target/debug/libboa_ffi.dylib` on macOS or
 needed in C programs and link against this library.
 
 The C test runner requires a native macOS or Linux environment and a C11 compiler
-(`cc`, or an executable specified by `CC`). It builds for the Rust host explicitly,
-honors `CARGO_TARGET_DIR`, and runs against that build's library. Its library is in
-`target/<host>/debug/` by default. Windows support is not covered by this runner.
+(`cc`, or an executable specified by `CC`). By default it builds for the Rust
+host explicitly in `target/<host>/debug/`, honors `CARGO_TARGET_DIR`, and runs
+against that build's library; `--ci` reuses Cargo's `ci` profile build. Windows
+support is not covered by this runner.
 
 Rust tests cover initialization failure, context cleanup, value types, numeric
 round trips, retained error data and inspection without JavaScript execution.
@@ -120,9 +121,9 @@ are not exposed yet; their underlying data remains in the error handle.
 length, including any embedded NUL. It requires no context and returns an owned
 handle for each known category. Aggregate construction starts with no members.
 The reserved `Other` category is for inspecting unrecognized native categories;
-passing it to the constructor returns `NULL`. Allocation failures and unexpected
-panics may abort. Message inputs must be valid UTF-8; invalid encodings, invalid
-enum discriminants and invalid pointers violate the caller's contract.
+passing `Other` or malformed UTF-8 to the constructor returns `NULL`. Allocation
+failures and unexpected panics may abort. Invalid enum discriminants and invalid
+non-empty pointers violate the caller's contract.
 
 ```c
 #include <stdio.h>

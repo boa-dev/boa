@@ -45,6 +45,33 @@ static bool native_errors(void) {
         }
     }
 
+    JsError *empty = JsError_from_native(JsNativeErrorKind_Error,
+        (DiplomatStringView){.data = NULL, .len = 0});
+    if (empty == NULL) {
+        return false;
+    }
+    JsError_as_native_result empty_info = JsError_as_native(empty);
+    bool empty_valid = empty_info.is_ok &&
+        empty_info.ok.kind == JsNativeErrorKind_Error &&
+        empty_info.ok.message.len == 0;
+    JsError_destroy(empty);
+    if (!empty_valid) {
+        return false;
+    }
+
+    const DiplomatStringView rejected_messages[] = {
+        {.data = "\xFF", .len = 1},
+        {.data = expected, .len = 7},
+        {.data = "\xED\xA0\x80", .len = 3},
+    };
+    for (size_t i = 0; i < sizeof(rejected_messages) / sizeof(rejected_messages[0]); ++i) {
+        JsError *invalid = JsError_from_native(JsNativeErrorKind_Type, rejected_messages[i]);
+        if (invalid != NULL) {
+            JsError_destroy(invalid);
+            return false;
+        }
+    }
+
     JsError *other = JsError_from_native(JsNativeErrorKind_Other,
         (DiplomatStringView){.data = "", .len = 0});
     if (other != NULL) {

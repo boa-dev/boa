@@ -265,13 +265,13 @@ jobs:
       - name: Check generated C headers
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          cargo run --locked -p diplomat-gen
+          cargo run --locked --profile ci -p diplomat-gen
           git status --short --untracked-files=all -- ffi/boa_ffi/c/generated/
           test -z "$(git status --porcelain --untracked-files=all -- ffi/boa_ffi/c/generated/)"
 
       - name: Test C bindings
         if: ${{ matrix.os != 'windows-latest' }}
-        run: ./ffi/boa_ffi/c/tests/run.sh
+        run: ./ffi/boa_ffi/c/tests/run.sh --ci
 
   cross-tests:
     name: Test

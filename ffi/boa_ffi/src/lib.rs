@@ -15,7 +15,7 @@ pub mod ffi {
         JsNativeErrorKind as BoaJsNativeErrorKind, JsValue as BoaJsValue, context::ContextBuilder,
         value::Type,
     };
-    use diplomat_runtime::{DiplomatOption, DiplomatUtf8StrSlice};
+    use diplomat_runtime::{DiplomatOption, DiplomatStr, DiplomatUtf8StrSlice};
 
     /// An owned Boa context, exposed as an opaque C handle.
     ///
@@ -169,10 +169,12 @@ pub mod ffi {
     impl JsError {
         /// Creates a native error, copying the UTF-8 message, including any NULs.
         ///
-        /// Returns null in C for `Other`. Aggregate errors start with no members.
-        /// No context is required. Allocation failures and panics may abort.
+        /// Returns null in C for `Other` or malformed UTF-8. Aggregate errors start
+        /// with no members. No context is required. Allocation failures and panics
+        /// may abort.
         #[must_use]
-        pub fn from_native(kind: JsNativeErrorKind, message: &str) -> Option<Box<JsError>> {
+        pub fn from_native(kind: JsNativeErrorKind, message: &DiplomatStr) -> Option<Box<JsError>> {
+            let message = std::str::from_utf8(message).ok()?;
             let error = match kind {
                 JsNativeErrorKind::Error => BoaJsNativeError::error(),
                 JsNativeErrorKind::Eval => BoaJsNativeError::eval(),
@@ -406,7 +408,8 @@ pub mod ffi {
                 ),
             ] {
                 for message in ["", "invalid \u{1f980} input", "before\0after"] {
-                    let error = JsError::from_native(kind, message).expect("known category");
+                    let error =
+                        JsError::from_native(kind, message.as_bytes()).expect("known category");
                     assert_eq!(error.get_representation(), JsErrorRepresentation::Native);
                     let info = error.as_native().expect("native details");
                     assert_eq!(info.kind, kind);
@@ -415,7 +418,10 @@ pub mod ffi {
                     assert!(error.as_opaque().is_none());
                 }
             }
-            assert!(JsError::from_native(JsNativeErrorKind::Other, "reserved").is_none());
+            assert!(JsError::from_native(JsNativeErrorKind::Other, b"reserved").is_none());
+            for invalid in [&b"\xff"[..], b"bad \xf0\x9f\xa6", b"\xed\xa0\x80"] {
+                assert!(JsError::from_native(JsNativeErrorKind::Type, invalid).is_none());
+            }
         }
 
         #[test]
