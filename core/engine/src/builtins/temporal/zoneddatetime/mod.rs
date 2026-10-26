@@ -11,7 +11,7 @@ use crate::{
         temporal::{calendar::to_temporal_calendar_identifier, options::get_digits_option},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
+    js_error, js_string,
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
@@ -1612,25 +1612,65 @@ impl ZonedDateTime {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.zoneddatetime.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime/toLocaleString
-    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // TODO: Update for ECMA-402 compliance
+    fn to_locale_string(
+        this: &JsValue,
+        _args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let zonedDateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
         let object = this.as_object();
         let zdt = object
             .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
-            })?;
+            .ok_or_else(
+                || js_error!(TypeError: "the this object must be a ZonedDateTime object."),
+            )?;
 
-        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
-            DisplayOffset::Auto,
-            DisplayTimeZone::Auto,
-            DisplayCalendar::Auto,
-            ToStringRoundingOptions::default(),
-            context.timezone_provider(),
-        )?;
+        #[cfg(feature = "intl")]
+        {
+            use crate::builtins::intl::date_time_format::{
+                FormatDefaults, FormatType, create_date_time_format, format_date_time,
+            };
+            // 3. Let dateTimeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all, zonedDateTime.[[TimeZone]]).
+            let locales = _args.get_or_undefined(0);
+            let options = _args.get_or_undefined(1);
 
-        Ok(JsString::from(ixdtf).into())
+            let dtf = create_date_time_format(
+                locales,
+                options,
+                FormatType::Any,
+                FormatDefaults::All,
+                context,
+            )?;
+            // 4. If zonedDateTime.[[Calendar]] is not "iso8601" and CalendarEquals(zonedDateTime.[[Calendar]], dateTimeFormat.[[Calendar]]) is false,
+            // throw a RangeError exception.
+            let zdt_cal = zdt.inner.calendar();
+            let dtf_cal = dtf.calendar_algorithm();
+
+            if !zdt_cal.is_iso() && zdt_cal.identifier() != dtf_cal.as_str() {
+                return Err(
+                    js_error!(RangeError: "calendars {} and {} aren't compatible", zdt_cal.identifier(), dtf_cal.as_str()),
+                );
+            }
+            // 5. Let instant be ! CreateTemporalInstant(zonedDateTime.[[EpochNanoseconds]]).
+            // 6. Return ? FormatDateTime(dateTimeFormat, instant).
+            let inst = create_temporal_instant(zdt.inner.to_instant(), None, context)?;
+            format_date_time(&dtf, &inst, context)
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+                DisplayOffset::Auto,
+                DisplayTimeZone::Auto,
+                DisplayCalendar::Auto,
+                ToStringRoundingOptions::default(),
+                context.timezone_provider(),
+            )?;
+
+            Ok(JsString::from(ixdtf).into())
+        }
     }
 
     /// 6.3.43 `Temporal.ZonedDateTime.prototype.toJSON ( )`
