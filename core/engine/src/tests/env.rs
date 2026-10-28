@@ -200,3 +200,39 @@ fn eval_created_bindings_can_be_deleted_5333() {
         ),
     ]);
 }
+
+#[test]
+// https://github.com/boa-dev/boa/issues/5332
+fn eval_var_leak_across_calls_5332() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            function f(s) { return eval(s); };
+        "#}),
+        TestAction::assert_eq(r#"f("eval('var x = 1;'); typeof x")"#, js_str!("number")),
+        TestAction::assert_eq(r#"f("typeof x")"#, js_str!("undefined")),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function makeF() {
+                    return function(s) { return eval(s); };
+                }
+                var f1 = makeF();
+                var f2 = makeF();
+                f1("var y = 42;");
+                f2("typeof y");
+            "#},
+            js_str!("undefined"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function g(s) {
+                    eval(s);
+                    return typeof z;
+                }
+                var r1 = g("var z = 'hello';");
+                var r2 = g("1;");
+                r1 + ':' + r2;
+            "#},
+            js_str!("string:undefined"),
+        ),
+    ]);
+}
