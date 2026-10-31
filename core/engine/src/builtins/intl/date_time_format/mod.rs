@@ -1180,6 +1180,7 @@ fn best_fit_date_time_format(format_options: &FormatOptions) -> JsResult<Composi
     let mut builder = FieldSetBuilder::default();
     builder.length = format_options.to_length();
     builder.date_fields = format_options.to_date_fields();
+    builder.year_style = format_options.to_year_style();
     builder.time_precision = format_options.to_time_fields();
     builder.zone_style = format_options.to_zone_style();
     builder
