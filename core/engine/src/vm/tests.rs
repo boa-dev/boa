@@ -680,3 +680,65 @@ fn with_object_environment_binding_deleted_in_unscopables() {
         TestAction::assert("strictThrew === true"),
     ]);
 }
+
+#[test_case::test_case("++", "2", "1"; "increment")]
+#[test_case::test_case("--", "0", "-1"; "decrement")]
+fn local_postfix_update_returns_numeric_value(op: &str, updated_one: &str, updated_zero: &str) {
+    for (initial, old, updated) in [
+        ("'1'", "1", updated_one),
+        ("true", "1", updated_one),
+        ("null", "0", updated_zero),
+        ("1", "1", updated_one),
+        ("1n", "1n", if op == "++" { "2n" } else { "0n" }),
+        ("undefined", "NaN", "NaN"),
+        ("-0", "-0", if op == "++" { "1" } else { "-1" }),
+        ("({ valueOf() { return 1; } })", "1", updated_one),
+    ] {
+        let body =
+            format!("const old = n{op}; return Object.is(old, {old}) && Object.is(n, {updated});");
+        for source in [
+            format!("(() => {{ var n = {initial}; {body} }})()"),
+            format!("(() => {{ let n = {initial}; {body} }})()"),
+            format!("(function(n) {{ {body} }})({initial})"),
+            format!("(function(n) {{ 'use strict'; {body} }})({initial})"),
+        ] {
+            run_test_actions([TestAction::assert(source)]);
+        }
+    }
+}
+
+#[test_case::test_case("++"; "increment")]
+#[test_case::test_case("--"; "decrement")]
+fn local_postfix_update_converts_once(op: &str) {
+    run_test_actions([TestAction::assert(format!(
+        "(() => {{
+            let calls = 0;
+            let n = {{ [Symbol.toPrimitive]() {{ calls++; return 1n; }} }};
+            const old = n{op};
+            return old === 1n && n === {}n && calls === 1;
+        }})()",
+        if op == "++" { 2 } else { 0 },
+    ))]);
+}
+
+#[test_case::test_case("++"; "increment")]
+#[test_case::test_case("--"; "decrement")]
+fn local_postfix_update_preserves_binding_on_conversion_error(op: &str) {
+    for stmt in [
+        format!("const old = n{op};"),
+        format!("n{op};"),
+        format!("const next = {op}n;"),
+        format!("{op}n;"),
+    ] {
+        run_test_actions([TestAction::assert(format!(
+            "(() => {{
+                let n = {{ [Symbol.toPrimitive]() {{ throw 42; }} }};
+                const original = n;
+                try {{ {stmt} }} catch (error) {{
+                    return error === 42 && n === original;
+                }}
+                return false;
+            }})()"
+        ))]);
+    }
+}
