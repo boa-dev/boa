@@ -44,6 +44,7 @@ default = [
 dhat = ["dep:dhat"]
 fast-allocator = ["dep:mimalloc-safe", "dep:tikv-jemallocator"]
 fetch = ["boa_runtime/fetch", "boa_runtime/reqwest-blocking"]
+gc-stats = ["boa_gc/gc-stats"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }

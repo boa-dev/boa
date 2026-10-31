@@ -19,6 +19,8 @@ extern crate self as boa_gc;
 
 mod cell;
 mod pointers;
+#[cfg(feature = "gc-stats")]
+mod stats;
 mod trace;
 
 pub(crate) mod internals;
@@ -36,6 +38,8 @@ pub use boa_macros::{Finalize, Trace};
 pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
+#[cfg(feature = "gc-stats")]
+pub use stats::{GcStats, reset_stats, stats};
 
 type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
@@ -48,6 +52,8 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     strongs: Vec::default(),
     weaks: Vec::default(),
     weak_maps: Vec::default(),
+    #[cfg(feature = "gc-stats")]
+    stats: GcStats::default(),
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -84,6 +90,8 @@ struct BoaGc {
     strongs: Vec<GcErasedPointer>,
     weaks: Vec<EphemeronPointer>,
     weak_maps: Vec<ErasedWeakMapBoxPointer>,
+    #[cfg(feature = "gc-stats")]
+    stats: GcStats,
 }
 
 impl Drop for BoaGc {
@@ -140,6 +148,11 @@ impl Allocator {
 
             gc.strongs.push(erased);
             gc.runtime.bytes_allocated += element_size;
+            #[cfg(feature = "gc-stats")]
+            {
+                gc.stats.total_bytes_allocated += element_size as u64;
+                gc.stats.objects_allocated += 1;
+            }
 
             ptr
         })
@@ -159,6 +172,11 @@ impl Allocator {
 
             gc.weaks.push(erased);
             gc.runtime.bytes_allocated += element_size;
+            #[cfg(feature = "gc-stats")]
+            {
+                gc.stats.total_bytes_allocated += element_size as u64;
+                gc.stats.objects_allocated += 1;
+            }
 
             ptr
         })
@@ -206,6 +224,20 @@ struct Unreachables {
     weak: Vec<NonNull<dyn ErasedEphemeronBox>>,
 }
 
+/// Runs `$body` adding its runtime to `$gc.stats.$field` when `gc-stats` is enabled
+macro_rules! timed {
+    ($gc:ident . $field:ident, $body:expr) => {{
+        #[cfg(feature = "gc-stats")]
+        let start = std::time::Instant::now();
+        let result = $body;
+        #[cfg(feature = "gc-stats")]
+        {
+            $gc.stats.$field += start.elapsed();
+        }
+        result
+    }};
+}
+
 /// This collector currently functions in four main phases
 ///
 /// Mark -> Finalize -> Mark -> Sweep
@@ -223,58 +255,100 @@ struct Collector;
 impl Collector {
     /// Run a collection on the full heap.
     fn collect(gc: &mut BoaGc) {
+        #[cfg(feature = "gc-stats")]
+        let total_start = std::time::Instant::now();
+
         gc.runtime.collections += 1;
 
-        Self::trace_non_roots(gc);
+        #[cfg(feature = "gc-stats")]
+        {
+            gc.stats.collections += 1;
+        }
+
+        timed!(gc.trace_non_roots_time, Self::trace_non_roots(gc));
 
         let mut tracer = Tracer::new();
 
-        let unreachables = Self::mark_heap(&mut tracer, &gc.strongs, &gc.weaks, &gc.weak_maps);
+        let unreachables = timed!(
+            gc.mark_time,
+            Self::mark_heap(&mut tracer, &gc.strongs, &gc.weaks, &gc.weak_maps)
+        );
 
         assert!(tracer.is_empty(), "The queue should be empty");
 
         // Only finalize if there are any unreachable nodes.
         if !unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
-            // Finalize all the unreachable nodes.
-            // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
-            unsafe { Self::finalize(unreachables) };
+            #[cfg(feature = "gc-stats")]
+            {
+                gc.stats.finalizing_collections += 1;
+            }
+
+            timed!(gc.finalize_time, {
+                // Finalize all the unreachable nodes.
+                // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
+                unsafe { Self::finalize(unreachables) }
+            });
 
             // Reuse the tracer's already allocated capacity.
-            let _final_unreachables =
-                Self::mark_heap(&mut tracer, &gc.strongs, &gc.weaks, &gc.weak_maps);
-        }
-
-        // SAFETY: The head of our linked list is always valid per the invariants of our GC.
-        unsafe {
-            Self::sweep(
-                &mut gc.strongs,
-                &mut gc.weaks,
-                &mut gc.runtime.bytes_allocated,
+            let _final_unreachables = timed!(
+                gc.remark_time,
+                Self::mark_heap(&mut tracer, &gc.strongs, &gc.weaks, &gc.weak_maps)
             );
         }
 
-        // Weak maps have to be cleared after the sweep, since the process dereferences GcBoxes.
-        gc.weak_maps.retain(|w| {
-            // SAFETY: The caller must ensure the validity of every node of `heap_start`.
-            let node_ref = unsafe { w.as_ref() };
+        #[cfg(feature = "gc-stats")]
+        let (bytes_before, objects_before) = (
+            gc.runtime.bytes_allocated,
+            gc.strongs.len() + gc.weaks.len(),
+        );
 
-            if node_ref.is_live() {
-                node_ref.clear_dead_entries();
-
-                true
-            } else {
-                // SAFETY:
-                // The `Allocator` must always ensure its start node is a valid, non-null pointer that
-                // was allocated by `Box::from_raw(Box::new(..))`.
-                let _unmarked_node = unsafe { Box::from_raw(w.as_ptr()) };
-
-                false
+        timed!(gc.sweep_time, {
+            // SAFETY: The head of our linked list is always valid per the invariants of our GC.
+            unsafe {
+                Self::sweep(
+                    &mut gc.strongs,
+                    &mut gc.weaks,
+                    &mut gc.runtime.bytes_allocated,
+                );
             }
         });
+
+        #[cfg(feature = "gc-stats")]
+        {
+            gc.stats.total_bytes_freed += (bytes_before - gc.runtime.bytes_allocated) as u64;
+            gc.stats.objects_swept += (objects_before - gc.strongs.len() - gc.weaks.len()) as u64;
+        }
+
+        // Weak maps have to be cleared after the sweep, since the process dereferences GcBoxes.
+        timed!(
+            gc.weak_map_prune_time,
+            gc.weak_maps.retain(|w| {
+                // SAFETY: The caller must ensure the validity of every node of `heap_start`.
+                let node_ref = unsafe { w.as_ref() };
+
+                if node_ref.is_live() {
+                    node_ref.clear_dead_entries();
+
+                    true
+                } else {
+                    // SAFETY:
+                    // The `Allocator` must always ensure its start node is a valid, non-null pointer that
+                    // was allocated by `Box::from_raw(Box::new(..))`.
+                    let _unmarked_node = unsafe { Box::from_raw(w.as_ptr()) };
+
+                    false
+                }
+            })
+        );
 
         gc.strongs.shrink_to(gc.strongs.len() >> 2);
         gc.weaks.shrink_to(gc.weaks.len() >> 2);
         gc.weak_maps.shrink_to(gc.weak_maps.len() >> 2);
+
+        #[cfg(feature = "gc-stats")]
+        {
+            gc.stats.total_time += total_start.elapsed();
+        }
     }
 
     fn trace_non_roots(gc: &BoaGc) {
