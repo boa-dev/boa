@@ -15,8 +15,12 @@ fn get_by_name<const LENGTH: bool>(
         if let Some(object) = object.as_object()
             && object.is_array()
         {
-            let value = object.borrow().properties().storage[0].clone();
-            context.vm.set_register(dst.into(), value);
+            let value = object
+                .borrow()
+                .properties()
+                .indexed_properties
+                .array_length();
+            context.vm.set_register(dst.into(), value.into());
             return Ok(());
         } else if let Some(string) = object.as_string() {
             // NOTE: Since we’re using the prototype returned directly by `base_class()`,
