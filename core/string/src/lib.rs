@@ -27,7 +27,7 @@ mod tests;
 use self::iter::Windows;
 use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy, JsStringDebugInfo};
 use crate::iter::CodePointsIter;
-use crate::r#type::{Latin1, Utf16};
+use crate::r#type::{InternalStringType, Latin1, Utf16};
 pub use crate::vtable::StaticString;
 use crate::vtable::{SequenceString, SliceString};
 #[doc(inline)]
@@ -703,6 +703,59 @@ impl JsString {
         };
 
         StaticJsStrings::get_string(&string.as_str()).unwrap_or(string)
+    }
+
+    /// Creates a new [`JsString`] from `n` copies of `s`.
+    ///
+    /// Returns [`None`] if `n * s.len()` overflows or the result cannot be allocated.
+    /// This fills a single buffer of length `n * s.len()` instead of building an
+    /// intermediate list of `n` string views.
+    #[must_use]
+    pub fn repeat(s: JsStr<'_>, n: usize) -> Option<Self> {
+        if n == 0 || s.is_empty() {
+            return Some(Self::default());
+        }
+        if n == 1 {
+            return Some(Self::from(s));
+        }
+        let total = s.len().checked_mul(n)?;
+        let string = match s.variant() {
+            JsStrVariant::Latin1(bytes) => Self::repeat_bytes::<Latin1>(bytes, total)?,
+            JsStrVariant::Utf16(units) => Self::repeat_bytes::<Utf16>(units, total)?,
+        };
+        Some(StaticJsStrings::get_string(&string.as_str()).unwrap_or(string))
+    }
+
+    /// Allocates `total` units and fills them by doubling copies of `src`.
+    ///
+    /// `total` must be a positive multiple of `src.len()`.
+    fn repeat_bytes<T: InternalStringType>(src: &[T::Byte], total: usize) -> Option<Self> {
+        debug_assert!(!src.is_empty());
+        debug_assert!(total >= src.len());
+        debug_assert_eq!(total % src.len(), 0);
+
+        let ptr = SequenceString::<T>::try_allocate(total).ok()?;
+
+        // SAFETY:
+        // - `try_allocate` returns a valid `SequenceString<T>` with room for `total` units
+        //   of `T::Byte`, and writes the header (including `len = total`).
+        // - The first `copy_nonoverlapping` reads `src.len()` units from a valid slice and
+        //   writes them to the start of the allocation; `src` and the new allocation do not overlap.
+        // - Each doubling copy moves `to_copy` units from `[0, filled)` to `[filled, filled + to_copy)`.
+        //   Those ranges are adjacent and non-overlapping, and `filled + to_copy <= total`, so
+        //   both source and destination stay in-bounds.
+        // - Alignment of `data` is guaranteed by `try_allocate`.
+        unsafe {
+            let data = (&raw mut (*ptr.as_ptr()).data).cast::<T::Byte>();
+            ptr::copy_nonoverlapping(src.as_ptr(), data, src.len());
+            let mut filled = src.len();
+            while filled < total {
+                let to_copy = filled.min(total - filled);
+                ptr::copy_nonoverlapping(data, data.add(filled), to_copy);
+                filled += to_copy;
+            }
+            Some(Self { ptr: ptr.cast() })
+        }
     }
 
     /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.

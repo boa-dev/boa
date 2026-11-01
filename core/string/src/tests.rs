@@ -141,6 +141,39 @@ fn concat() {
 }
 
 #[test]
+fn repeat() {
+    assert_eq!(
+        JsString::repeat(JsStr::latin1(b"ab"), 0).unwrap(),
+        JsString::default()
+    );
+    assert_eq!(
+        JsString::repeat(JsStr::latin1(b""), 8).unwrap(),
+        JsString::default()
+    );
+    assert_eq!(
+        JsString::repeat(JsStr::latin1(b"ab"), 1).unwrap().as_str(),
+        JsStr::latin1(b"ab")
+    );
+    assert_eq!(
+        JsString::repeat(JsStr::latin1(b"ab"), 8).unwrap().as_str(),
+        JsStr::latin1(b"abababababababab")
+    );
+
+    let utf16 = JsString::from(&[0xD83D, 0xDE00][..]);
+    let repeated = JsString::repeat(utf16.as_str(), 3).unwrap();
+    assert_eq!(repeated.len(), 6);
+    assert_eq!(&repeated, &[0xD83D, 0xDE00, 0xD83D, 0xDE00, 0xD83D, 0xDE00]);
+
+    let long = JsString::repeat(JsStr::latin1(b"xy"), 1024).unwrap();
+    assert_eq!(long.len(), 2048);
+    assert!(
+        long.as_str()
+            .as_latin1()
+            .is_some_and(|s| s.starts_with(b"xy") && s.ends_with(b"xy"))
+    );
+}
+
+#[test]
 fn trim_start_non_ascii_to_ascii() {
     let s = "\u{2029}abc";
     let x = JsString::from(s);
