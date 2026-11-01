@@ -1113,6 +1113,15 @@ impl<T: NativeObject> JsObject<T> {
     /// ```
     pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self {
         let internal_methods = data.internal_methods();
+        Self::new_unique_with_vtable(prototype, data, internal_methods)
+    }
+
+    /// Creates a new `JsObject` from prototype, data and the internal methods it dispatches to.
+    pub(crate) fn new_unique_with_vtable<O: Into<Option<JsObject>>>(
+        prototype: O,
+        data: T,
+        internal_methods: &'static InternalObjectMethods,
+    ) -> Self {
         let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
                 data: ObjectData::new(data),
