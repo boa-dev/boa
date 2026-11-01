@@ -412,6 +412,92 @@ fn iterator_helper_return_closes_underlying() {
     ]);
 }
 
+// ── Iterator chunking ────────────────────────────────────────────────────────
+
+#[test]
+fn iterator_chunks() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3,4,5]).chunks(2)])",
+            js_str!("[[1,2],[3,4],[5]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3,4]).chunks(2)])",
+            js_str!("[[1,2],[3,4]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([]).chunks(2)])",
+            js_str!("[]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1]).chunks(4294967295)])",
+            js_str!("[[1]]"),
+        ),
+    ]);
+}
+
+#[test]
+fn iterator_windows() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3,4,5]).windows(3)])",
+            js_str!("[[1,2,3],[2,3,4],[3,4,5]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2]).windows(3)])",
+            js_str!("[]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2]).windows(3, 'allow-partial')])",
+            js_str!("[[1,2]]"),
+        ),
+        TestAction::assert_eq(
+            "JSON.stringify([...Iterator.from([1,2,3]).windows(2, 'allow-partial')])",
+            js_str!("[[1,2],[2,3]]"),
+        ),
+    ]);
+}
+
+#[test]
+fn iterator_chunking_argument_errors() {
+    run_test_actions([TestAction::assert(
+        "(() => {
+           for (const method of ['chunks', 'windows']) {
+             for (const size of [undefined, '2', 1.5, NaN, Infinity]) {
+               try { Iterator.from([1])[method](size); return false; }
+               catch (e) { if (!(e instanceof TypeError)) return false; }
+             }
+             for (const size of [0, -1, 4294967296]) {
+               try { Iterator.from([1])[method](size); return false; }
+               catch (e) { if (!(e instanceof RangeError)) return false; }
+             }
+           }
+           try { Iterator.from([1]).windows(1, 'invalid'); return false; }
+           catch (e) { return e instanceof TypeError; }
+         })()",
+    )]);
+}
+
+#[test]
+fn iterator_chunking_is_lazy_and_closes_on_return() {
+    run_test_actions([TestAction::assert(
+        "let calls = 0, closes = 0;
+         const source = {
+           next() { calls++; return { value: calls, done: false }; },
+           return() { closes++; return { done: true }; }
+         };
+         const chunks = Iterator.prototype.chunks.call(source, 2);
+         const windows = Iterator.prototype.windows.call(source, 2);
+         if (calls !== 0 || closes !== 0) throw Error('eager iteration');
+         chunks.next();
+         windows.next();
+         if (calls !== 4) throw Error('wrong number of reads');
+         chunks.return();
+         windows.return();
+         closes === 2;",
+    )]);
+}
+
 // ── Chaining ─────────────────────────────────────────────────────────────────
 
 #[test]

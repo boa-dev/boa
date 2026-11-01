@@ -49,20 +49,24 @@ macro_rules! if_abrupt_close_iterator {
     };
 }
 
+mod chunks;
 mod concat;
 mod drop;
 mod filter;
 mod flat_map;
 mod map;
 mod take;
+mod windows;
 mod zip;
 
+pub(crate) use chunks::Chunks;
 pub(crate) use concat::{Concat, IterableRecord};
 pub(crate) use drop::Drop;
 pub(crate) use filter::Filter;
 pub(crate) use flat_map::FlatMap;
 pub(crate) use map::Map;
 pub(crate) use take::Take;
+pub(crate) use windows::Windows;
 pub(crate) use zip::{Zip, ZipMode, ZipResultKind};
 
 #[derive(Debug, Finalize, Trace)]

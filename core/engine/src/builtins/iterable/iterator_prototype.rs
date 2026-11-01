@@ -46,6 +46,8 @@ impl IntrinsicObject for Iterator {
             .static_method(Self::take, js_string!("take"), 1)
             .static_method(Self::drop, js_string!("drop"), 1)
             .static_method(Self::flat_map, js_string!("flatMap"), 1)
+            .static_method(Self::chunks, js_string!("chunks"), 1)
+            .static_method(Self::windows, js_string!("windows"), 1)
             .static_method(Self::reduce, js_string!("reduce"), 1)
             .static_method(Self::to_array, js_string!("toArray"), 0)
             .static_method(Self::for_each, js_string!("forEach"), 1)
@@ -79,6 +81,22 @@ impl IntrinsicObject for Iterator {
 }
 
 impl Iterator {
+    /// Validates the size used by the iterator chunking methods.
+    fn chunking_size(value: &JsValue) -> JsResult<u32> {
+        let Some(size) = value
+            .as_number()
+            .filter(|size| size.is_finite() && size.fract() == 0.0)
+        else {
+            return Err(js_error!(TypeError: "size must be an integral Number"));
+        };
+
+        if !(1.0..=f64::from(u32::MAX)).contains(&size) {
+            return Err(js_error!(RangeError: "size must be between 1 and 2^32 - 1"));
+        }
+
+        Ok(size as u32)
+    }
+
     /// `get Iterator.prototype.constructor`
     ///
     /// More information:
@@ -470,6 +488,58 @@ impl Iterator {
 
         // 9. Return result.
         Ok(helper.into())
+    }
+
+    /// `Iterator.prototype.chunks ( chunkSize )`
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-chunking/#sec-iterator.prototype.chunks
+    fn chunks(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let iterator = this.as_object().ok_or_else(
+            || js_error!(TypeError: "Iterator.prototype.chunks called on non-object"),
+        )?;
+        let iterated = IteratorRecord::new(iterator, JsValue::undefined());
+        let size = if_abrupt_close_iterator!(
+            Self::chunking_size(args.get_or_undefined(0)),
+            iterated,
+            context
+        );
+        let iterated = get_iterator_direct(iterated.iterator(), context)?;
+
+        Ok(IteratorHelper::create(iterator_helper::Chunks::new(iterated, size), context).into())
+    }
+
+    /// `Iterator.prototype.windows ( windowSize [ , undersized ] )`
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-chunking/#sec-iterator.prototype.windows
+    fn windows(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let iterator = this.as_object().ok_or_else(
+            || js_error!(TypeError: "Iterator.prototype.windows called on non-object"),
+        )?;
+        let iterated = IteratorRecord::new(iterator, JsValue::undefined());
+        let size = if_abrupt_close_iterator!(
+            Self::chunking_size(args.get_or_undefined(0)),
+            iterated,
+            context
+        );
+        let undersized = args.get_or_undefined(1);
+        let allow_partial = match undersized.as_string() {
+            None if undersized.is_undefined() => false,
+            Some(mode) if mode == js_string!("only-full") => false,
+            Some(mode) if mode == js_string!("allow-partial") => true,
+            _ => {
+                return iterated.close(
+                    Err(js_error!(TypeError: "undersized must be 'only-full' or 'allow-partial'")),
+                    context,
+                );
+            }
+        };
+        let iterated = get_iterator_direct(iterated.iterator(), context)?;
+
+        Ok(IteratorHelper::create(
+            iterator_helper::Windows::new(iterated, size, allow_partial),
+            context,
+        )
+        .into())
     }
 
     // ==================== Prototype Methods — Eager (Consuming) ====================
