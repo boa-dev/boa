@@ -62,6 +62,7 @@ fn set_by_name(
     drop(object_borrowed);
 
     let name: PropertyKey = ic.name.clone().into();
+    let shape = object.borrow().shape().clone();
 
     let context = &mut InternalMethodPropertyContext::new(context);
     let succeeded = object.__set__(name.clone(), value.clone(), receiver.clone(), context)?;
@@ -71,13 +72,15 @@ fn set_by_name(
             .into());
     }
 
-    // Cache the property.
+    // Cache the property, unless the set changed the object's shape (e.g. a setter that defines
+    // an own property): the slot was looked up in the previous shape.
     let slot = *context.slot();
-    if succeeded && slot.is_cacheable() {
+    if succeeded
+        && slot.is_cacheable()
+        && object.borrow().shape().to_addr_usize() == shape.to_addr_usize()
+    {
         let ic = &context.vm.frame().code_block.ic[usize::from(index)];
-        let object_borrowed = object.borrow();
-        let shape = object_borrowed.shape();
-        ic.set(shape, slot);
+        ic.set(&shape, slot);
     }
 
     Ok(())
