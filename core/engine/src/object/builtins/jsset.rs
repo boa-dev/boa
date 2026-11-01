@@ -25,6 +25,19 @@ impl JsSet {
     ///
     /// Doesn't matches JavaScript `new Set()` as it doesn't takes an iterator
     /// similar to Rust initialization.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context,
+    /// # };
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    ///
+    /// assert_eq!(set.size(), 0);
+    /// ```
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         Self {
@@ -39,6 +52,32 @@ impl JsSet {
     /// Returns the size of the `Set` as an integer.
     ///
     /// Same as JavaScript's `set.size`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    ///
+    /// assert_eq!(set.size(), 0);
+    ///
+    /// set.add(1, context)?;
+    /// set.add(2, context)?;
+    ///
+    /// assert_eq!(set.size(), 2);
+    ///
+    /// // Adding a duplicate element does not increase size
+    ///
+    /// set.add(1, context)?;
+    /// assert_eq!(set.size(), 2);
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     #[must_use]
     pub fn size(&self) -> usize {
@@ -49,6 +88,27 @@ impl JsSet {
     /// Returns the Set object with added value.
     ///
     /// Same as JavaScript's `set.add(value)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    ///
+    /// set.add(1, context)?;
+    /// set.add(2, context)?;
+    ///
+    /// assert_eq!(set.size(), 2);
+    /// assert!(set.has(1));
+    /// assert!(set.has(2));
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn add<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
@@ -59,7 +119,28 @@ impl JsSet {
     /// Adds slice as a single element.
     /// Returns the Set object with added slice.
     ///
-    /// Same as JavaScript's `set.add(["one", "two", "three"])`
+    /// Same as JavaScript's `set.add(["one", "two", "three"])`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult, JsValue,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    ///
+    /// // Adds the first item in the argument slice; extra arguments are ignored
+    /// set.add_items(&[JsValue::new(1), JsValue::new(2)], context)?;
+    ///
+    /// assert_eq!(set.size(), 1);
+    /// assert!(set.has(1));
+    /// assert!(!set.has(2));
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn add_items(&self, items: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Set::add(&self.inner.clone().into(), items, context)
@@ -68,6 +149,29 @@ impl JsSet {
     /// Removes all elements from the Set object.
     ///
     /// Same as JavaScript's `set.clear()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    ///
+    /// set.add(1, context)?;
+    /// set.add(2, context)?;
+    /// assert_eq!(set.size(), 2);
+    ///
+    /// set.clear();
+    ///
+    /// assert_eq!(set.size(), 0);
+    /// assert!(!set.has(1));
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn clear(&self) {
         self.inner.borrow_mut().data_mut().clear();
@@ -78,6 +182,29 @@ impl JsSet {
     /// successfully removed or not.
     ///
     /// Same as JavaScript's `set.delete(value)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    ///
+    /// set.add(1, context)?;
+    /// assert_eq!(set.size(), 1);
+    ///
+    /// assert!(set.delete(1));
+    /// assert_eq!(set.size(), 0);
+    ///
+    /// // Deleting an element that does not exist returns false
+    /// assert!(!set.delete(1));
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn delete<T>(&self, value: T) -> bool
     where
         T: Into<JsValue>,
@@ -91,6 +218,26 @@ impl JsSet {
     /// with the given value in the Set object or not.
     ///
     /// Same as JavaScript's `set.has(value)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    ///
+    /// assert!(!set.has(1));
+    ///
+    /// set.add(1, context)?;
+    /// assert!(set.has(1));
+    /// assert!(!set.has(2));
+    /// # Ok(())
+    /// # }
+    /// ```
     #[must_use]
     pub fn has<T>(&self, value: T) -> bool
     where
@@ -105,6 +252,32 @@ impl JsSet {
     /// for each element in the Set object in insertion order.
     ///
     /// Same as JavaScript's `set.values()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult, js_string,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    /// set.add(1, context)?;
+    ///
+    /// let iterator = set.values(context)?;
+    /// let first = iterator.next(context)?;
+    /// let first_obj = first.as_object().unwrap();
+    ///
+    /// assert_eq!(first_obj.get(js_string!("value"), context)?, 1.into());
+    /// assert_eq!(first_obj.get(js_string!("done"), context)?, false.into());
+    ///
+    /// let second = iterator.next(context)?;
+    /// let second_obj = second.as_object().unwrap();
+    /// assert_eq!(second_obj.get(js_string!("done"), context)?, true.into());
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsSetIterator> {
         let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
@@ -118,6 +291,28 @@ impl JsSet {
     /// for each element in the Set object in insertion order.
     ///
     /// Same as JavaScript's `set.keys()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult, js_string,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    /// set.add(10, context)?;
+    ///
+    /// let iterator = set.keys(context)?;
+    /// let first = iterator.next(context)?;
+    /// let first_obj = first.as_object().unwrap();
+    ///
+    /// assert_eq!(first_obj.get(js_string!("value"), context)?, 10.into());
+    /// assert_eq!(first_obj.get(js_string!("done"), context)?, false.into());
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsSetIterator> {
         let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
@@ -131,6 +326,34 @@ impl JsSet {
     /// Returns `Undefined`.
     ///
     /// Same as JavaScript's `set.forEach(values)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult, JsValue, Source,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    /// set.add(1, context)?;
+    /// set.add(2, context)?;
+    ///
+    /// let callback = context
+    ///     .eval(Source::from_bytes(b"(val) => { globalThis.last = val; }"))?
+    ///     .as_function()
+    ///     .unwrap();
+    ///
+    /// set.for_each(callback, JsValue::undefined(), context)?;
+    ///
+    /// assert_eq!(
+    ///     context.eval(Source::from_bytes(b"globalThis.last"))?,
+    ///     JsValue::new(2)
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn for_each(
         &self,
@@ -145,7 +368,31 @@ impl JsSet {
         )
     }
 
-    /// Executes the provided callback function for each key-value pair within the [`JsSet`].
+    /// Executes the provided callback function for each value within the [`JsSet`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsResult,
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let set = JsSet::new(context);
+    /// set.add(10, context)?;
+    /// set.add(20, context)?;
+    ///
+    /// let mut sum = 0;
+    /// set.for_each_native(|value| {
+    ///     sum += value.as_i32().unwrap_or_default();
+    ///     Ok(())
+    /// })?;
+    ///
+    /// assert_eq!(sum, 30);
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn for_each_native<F>(&self, f: F) -> JsResult<()>
     where
@@ -156,12 +403,46 @@ impl JsSet {
     }
 
     /// Utility: Creates `JsSet` from `JsObject`, otherwise returns the original object as an `Err`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::{builtins::JsSet, JsObject},
+    /// #     Context,
+    /// # };
+    /// let context = &mut Context::default();
+    ///
+    /// // Converting a valid JsSet to a JsObject and back succeeds
+    /// let set = JsSet::new(context);
+    /// let obj: JsObject = set.into();
+    /// assert!(JsSet::from_object(obj).is_ok());
+    ///
+    /// // Converting an ordinary object without set data returns Err
+    /// let ordinary = JsObject::with_null_proto();
+    /// assert!(JsSet::from_object(ordinary).is_err());
+    /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> Result<Self, JsObject> {
         object.downcast::<OrderedSet>().map(|o| Self { inner: o })
     }
 
     /// Utility: Creates a `JsSet` from a `<IntoIterator<Item = JsValue>` convertible object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// #     object::builtins::JsSet,
+    /// #     Context, JsValue,
+    /// # };
+    /// let context = &mut Context::default();
+    /// let set = JsSet::from_iter([JsValue::new(1), JsValue::new(2), JsValue::new(1)], context);
+    ///
+    /// assert_eq!(set.size(), 2);
+    /// assert!(set.has(1));
+    /// assert!(set.has(2));
+    /// ```
     pub fn from_iter<I>(elements: I, context: &mut Context) -> Self
     where
         I: IntoIterator<Item = JsValue>,
