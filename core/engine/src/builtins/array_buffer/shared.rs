@@ -1,5 +1,5 @@
 use std::{
-    ptr,
+    ptr, slice,
     sync::{Arc, atomic::Ordering},
 };
 
@@ -21,7 +21,7 @@ use crate::{
     string::StaticJsStrings,
 };
 
-use super::{get_max_byte_len, utils::copy_shared_to_shared};
+use super::{assert_external_memory_alignment, get_max_byte_len, utils::copy_shared_to_shared};
 
 /// The internal representation of a `SharedArrayBuffer` object.
 ///
@@ -34,6 +34,29 @@ pub struct SharedArrayBuffer {
     data: Arc<Inner>,
 }
 
+/// The backing memory of a [`SharedArrayBuffer`].
+///
+/// Both variants hold slices of atomics, so `SharedData` is automatically `Send` and
+/// `Sync`; the creator of an externally-backed `SharedArrayBuffer` guarantees that the
+/// external region stays valid and unmoved for the whole lifetime of the buffer.
+#[derive(Debug)]
+enum SharedData {
+    /// Memory allocated and owned by Boa.
+    Owned(AlignedBox<[AtomicU8]>),
+    /// Memory owned by the embedder. See [`SharedArrayBuffer::from_external_data`].
+    External(&'static [AtomicU8]),
+}
+
+impl SharedData {
+    /// Gets the whole allocated region, disregarding the current atomic length.
+    fn full_buffer(&self) -> &[AtomicU8] {
+        match self {
+            Self::Owned(buffer) => buffer,
+            Self::External(buffer) => buffer,
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Inner {
     // Technically we should have an `[[ArrayBufferData]]` internal slot,
@@ -44,14 +67,14 @@ struct Inner {
     // The maximum buffer length is represented by `buffer.len()`, and `current_len` has the current
     // buffer length, or `None` if this is a fixed buffer; in this case, `buffer.len()` will be
     // the true length of the buffer.
-    buffer: AlignedBox<[AtomicU8]>,
+    buffer: SharedData,
     current_len: Option<AtomicUsize>,
 }
 
 impl Default for Inner {
     fn default() -> Self {
         Self {
-            buffer: AlignedVec::new(0).into_boxed_slice(),
+            buffer: SharedData::Owned(AlignedVec::new(0).into_boxed_slice()),
             current_len: None,
         }
     }
@@ -66,28 +89,103 @@ impl SharedArrayBuffer {
         }
     }
 
+    /// Creates a `SharedArrayBuffer` over an embedder-owned memory region.
+    ///
+    /// The bytes of the buffer alias the provided region directly; writes done through
+    /// JavaScript are immediately visible to the embedder and vice versa. Boa never
+    /// allocates, grows nor frees the region, and only ever accesses it with atomic
+    /// operations. Accesses to the region from other threads must be synchronized with
+    /// the JavaScript code that may access the buffer concurrently, exactly like for
+    /// any other `SharedArrayBuffer` memory.
+    ///
+    /// Externally-backed shared buffers are always fixed-length and cannot be grown.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the region is non-empty and its base address is not aligned to 8
+    /// bytes. `Atomics` and typed array views (`Int32Array`, `Float64Array`,
+    /// `BigInt64Array`, ...) perform aligned atomic accesses of up to 8 bytes on the
+    /// backing memory, so the base address must satisfy the largest alignment those
+    /// accesses need.
+    #[must_use]
+    pub fn from_external_data(data: &'static [AtomicU8]) -> Self {
+        assert_external_memory_alignment(data);
+        Self {
+            data: Arc::new(Inner {
+                buffer: SharedData::External(data),
+                current_len: None,
+            }),
+        }
+    }
+
+    /// Creates a `SharedArrayBuffer` over the embedder-owned memory region starting at
+    /// `ptr` with `len` bytes.
+    ///
+    /// This is a convenience wrapper that builds the `&'static [AtomicU8]` slice from
+    /// its raw parts and delegates to [`SharedArrayBuffer::from_external_data`]; see
+    /// that method for the aliasing and threading guarantees of the returned buffer.
+    ///
+    /// # Safety
+    ///
+    /// The caller must guarantee that:
+    ///
+    /// - `ptr` is valid for reads and writes of `len` bytes, and the region stays
+    ///   valid **and unmoved** at the same address for the whole lifetime of the
+    ///   returned buffer and all of its clones (including clones sent to other
+    ///   agents/threads). Note that regions that can relocate, like a growable
+    ///   `WebAssembly` linear memory that moves its base address on `memory.grow`,
+    ///   silently invalidate the buffer unless the embedder guarantees that no
+    ///   relocation happens while the buffer is alive.
+    /// - All accesses to the region from outside the returned buffer are performed
+    ///   with atomic operations, or are otherwise synchronized with any JavaScript
+    ///   code that may access the buffer concurrently.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `ptr` is null, if `len` is bigger than `isize::MAX`, or if the region
+    /// is non-empty and `ptr` is not aligned to 8 bytes.
+    #[must_use]
+    pub unsafe fn from_external_ptr(ptr: *mut u8, len: usize) -> Self {
+        assert!(!ptr.is_null(), "`ptr` must be non-null");
+        assert!(
+            isize::try_from(len).is_ok(),
+            "`len` must not exceed `isize::MAX`"
+        );
+        // SAFETY: `AtomicU8` is guaranteed to have the same layout as `u8`, and the
+        // caller guarantees that the region is valid for reads and writes of `len`
+        // bytes for the whole lifetime of the buffer and all of its clones.
+        let data = unsafe { slice::from_raw_parts(ptr.cast_const().cast::<AtomicU8>(), len) };
+        Self::from_external_data(data)
+    }
+
+    /// Returns `true` if this buffer is backed by embedder-owned memory.
+    #[must_use]
+    pub fn is_external(&self) -> bool {
+        matches!(self.data.buffer, SharedData::External(_))
+    }
+
     /// Gets the length of this `SharedArrayBuffer`.
     pub(crate) fn len(&self, ordering: Ordering) -> usize {
-        self.data
-            .current_len
-            .as_ref()
-            .map_or_else(|| self.data.buffer.len(), |len| len.load(ordering))
+        self.data.current_len.as_ref().map_or_else(
+            || self.data.buffer.full_buffer().len(),
+            |len| len.load(ordering),
+        )
     }
 
     /// Gets the inner bytes of this `SharedArrayBuffer`.
     pub(crate) fn bytes(&self, ordering: Ordering) -> &[AtomicU8] {
-        &self.data.buffer[..self.len(ordering)]
+        &self.data.buffer.full_buffer()[..self.len(ordering)]
     }
 
     /// Gets the inner data of the buffer without accessing the current atomic length.
     #[track_caller]
     pub(crate) fn bytes_with_len(&self, len: usize) -> &[AtomicU8] {
-        &self.data.buffer[..len]
+        &self.data.buffer.full_buffer()[..len]
     }
 
     /// Gets a pointer to the internal shared buffer.
     pub(crate) fn as_ptr(&self) -> *const AtomicU8 {
-        (*self.data.buffer).as_ptr()
+        self.data.buffer.full_buffer().as_ptr()
     }
 
     pub(crate) fn is_fixed_len(&self) -> bool {
@@ -290,7 +388,7 @@ impl SharedArrayBuffer {
         // 5. Else,
         //     a. Let length be O.[[ArrayBufferMaxByteLength]].
         // 6. Return 𝔽(length).
-        Ok(buf.data.buffer.len().into())
+        Ok(buf.data.buffer.full_buffer().len().into())
     }
 
     /// [`SharedArrayBuffer.prototype.grow ( newLength )`][spec].
@@ -338,7 +436,7 @@ impl SharedArrayBuffer {
         // d. If newByteLength < currentByteLength or newByteLength > O.[[ArrayBufferMaxByteLength]], throw a RangeError exception.
         // Extracting this condition outside the CAS since throwing early doesn't affect the correct
         // behaviour of the loop.
-        if new_byte_len > buf.data.buffer.len() as u64 {
+        if new_byte_len > buf.data.buffer.full_buffer().len() as u64 {
             return Err(JsNativeError::range()
                 .with_message(
                     "SharedArrayBuffer.grow: new length cannot be bigger than `maxByteLength`",
@@ -541,7 +639,7 @@ impl SharedArrayBuffer {
             prototype,
             Self {
                 data: Arc::new(Inner {
-                    buffer: block,
+                    buffer: SharedData::Owned(block),
                     current_len,
                 }),
             },
