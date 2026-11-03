@@ -733,8 +733,9 @@ impl String {
 
         let n = n as usize;
 
-        // Charge each repetition against the VM loop-iteration limit.
-        let mut result = Vec::with_capacity(n);
+        // Reserve before charging loop iterations so a huge count cannot abort
+        // the process on `Vec::with_capacity`.
+        let mut result = context.try_vec_with_capacity(n)?;
         for _ in 0..n {
             crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
             result.push(string.as_str());
@@ -1576,10 +1577,12 @@ impl String {
             if r == 0 { q } else { q + 1 }
         };
 
-        let mut truncated_string_filler = Vec::with_capacity(fill_len as usize);
+        let fill_len_usize =
+            usize::try_from(fill_len).map_err(|_| crate::error::RuntimeLimitError::Allocation)?;
+        let mut truncated_string_filler = context.try_vec_with_capacity(fill_len_usize)?;
         let filler_slice = filler.to_vec();
         for _ in 0..repetitions {
-            let remaining = fill_len as usize - truncated_string_filler.len();
+            let remaining = fill_len_usize - truncated_string_filler.len();
             if remaining >= filler_slice.len() {
                 truncated_string_filler.extend_from_slice(&filler_slice);
             } else {

@@ -79,6 +79,7 @@ fn join() {
         TestAction::assert_eq("['a'].join('.')", js_str!("a")),
         TestAction::assert_eq("['a', 'b', 'c'].join('.')", js_str!("a.b.c")),
         TestAction::assert_eq("let a=[];a[0]=a;a[1]=a;a[2]=a;a.join()", js_str!(",,")),
+        TestAction::assert_eq("[3, 1, 2].sort().join(',')", js_str!("1,2,3")),
     ]);
 }
 

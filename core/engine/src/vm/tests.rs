@@ -680,3 +680,37 @@ fn with_object_environment_binding_deleted_in_unscopables() {
         TestAction::assert("strictThrew === true"),
     ]);
 }
+
+#[test]
+fn js_controlled_allocation_limit() {
+    run_test_actions([
+        TestAction::assert_runtime_limit_error(
+            "'a'.repeat(0xFFFFFFFF)",
+            RuntimeLimitError::Allocation,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "new Array(0xFFFFFFFF).join()",
+            RuntimeLimitError::Allocation,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "new Array(0xFFFFFFFF).sort()",
+            RuntimeLimitError::Allocation,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "'a'.padStart(0xFFFFFFFF)",
+            RuntimeLimitError::Allocation,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "JSON.stringify(new Array(0xFFFFFFFF))",
+            RuntimeLimitError::Allocation,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "Reflect.apply(function () {}, null, { length: 0xFFFFFFFF })",
+            RuntimeLimitError::Allocation,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "new Array(0xFFFFFFFF).toLocaleString()",
+            RuntimeLimitError::Allocation,
+        ),
+    ]);
+}

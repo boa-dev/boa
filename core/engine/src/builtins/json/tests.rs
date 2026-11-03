@@ -362,3 +362,11 @@ fn json_stringify_cyclic_nested_object_throws_type_error() {
         "cyclic object value",
     )]);
 }
+
+#[test]
+fn json_stringify_huge_array_hits_allocation_limit() {
+    run_test_actions([TestAction::assert_runtime_limit_error(
+        "JSON.stringify(new Array(0xFFFFFFFF))",
+        crate::error::RuntimeLimitError::Allocation,
+    )]);
+}

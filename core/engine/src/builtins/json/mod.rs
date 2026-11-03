@@ -1148,7 +1148,7 @@ impl Json {
         };
 
         // 5. Let partial be a new empty List.
-        let mut partial = Vec::with_capacity(len as usize);
+        let mut partial = context.try_vec_with_len(len)?;
 
         // 7. Let index be 0.
         let mut index = 0;
