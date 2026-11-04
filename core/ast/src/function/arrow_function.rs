@@ -133,7 +133,7 @@ impl ToIndentedString for ArrowFunction {
 
 impl From<ArrowFunction> for Expression {
     fn from(decl: ArrowFunction) -> Self {
-        Self::ArrowFunction(decl)
+        Self::ArrowFunction(Box::new(decl))
     }
 }
 
