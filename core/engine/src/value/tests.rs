@@ -724,6 +724,38 @@ fn to_int32() {
 }
 
 #[test]
+fn to_small_ints_large_values() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        let f = JsValue::new;
+
+        // |x| >= 2^63 used to saturate
+        for x in [1e40, 2f64.powi(63), 1e20, -1e20] {
+            assert_eq!(f(x).to_uint8(ctx).unwrap(), 0);
+            assert_eq!(f(x).to_int8(ctx).unwrap(), 0);
+            assert_eq!(f(x).to_uint16(ctx).unwrap(), 0);
+            assert_eq!(f(x).to_int16(ctx).unwrap(), 0);
+        }
+        assert_eq!(f(2f64.powi(53) + 2.0).to_uint8(ctx).unwrap(), 2);
+
+        // boundaries
+        assert_eq!(f(256.0).to_uint8(ctx).unwrap(), 0);
+        assert_eq!(f(-1.0).to_uint8(ctx).unwrap(), 255);
+        assert_eq!(f(128.0).to_int8(ctx).unwrap(), -128);
+        assert_eq!(f(-129.0).to_int8(ctx).unwrap(), 127);
+        assert_eq!(f(65536.0).to_uint16(ctx).unwrap(), 0);
+        assert_eq!(f(32768.0).to_int16(ctx).unwrap(), -32768);
+
+        // non-finite
+        for x in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            assert_eq!(f(x).to_uint8(ctx).unwrap(), 0);
+            assert_eq!(f(x).to_int8(ctx).unwrap(), 0);
+            assert_eq!(f(x).to_uint16(ctx).unwrap(), 0);
+            assert_eq!(f(x).to_int16(ctx).unwrap(), 0);
+        }
+    })]);
+}
+
+#[test]
 fn to_string() {
     run_test_actions([TestAction::inspect_context(|ctx| {
         assert_eq!(&JsValue::null().to_string(ctx).unwrap(), "null");

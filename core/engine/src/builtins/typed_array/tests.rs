@@ -55,6 +55,23 @@ fn uint8array_numeric_coercion() {
 }
 
 #[test]
+fn typed_array_large_values_numeric_coercion() {
+    run_test_actions([
+        TestAction::run("let a = new Uint8Array([1e40, 2**63, 1e20, 2**53 + 2]);"),
+        TestAction::assert_eq("a[0]", 0),
+        TestAction::assert_eq("a[1]", 0),
+        TestAction::assert_eq("a[2]", 0),
+        TestAction::assert_eq("a[3]", 2),
+        TestAction::run("let b = new Int8Array([1e40]);"),
+        TestAction::assert_eq("b[0]", 0),
+        TestAction::run("let c = new Uint16Array([1e40]);"),
+        TestAction::assert_eq("c[0]", 0),
+        TestAction::run("let d = new Int16Array([1e40]);"),
+        TestAction::assert_eq("d[0]", 0),
+    ]);
+}
+
+#[test]
 fn float32array_storage() {
     run_test_actions([
         TestAction::run("let f = new Float32Array(1); f[0] = 1.5;"),
