@@ -207,16 +207,6 @@ impl ByteCompiler<'_> {
 
         let mut static_elements = Vec::new();
 
-        if let Some(scope) = class.name_scope {
-            let binding = scope.get_identifier_reference(class_name.clone());
-            let index = self.insert_binding(binding);
-            self.emit_binding_access(
-                BindingAccessOpcode::PutLexicalValue,
-                &index,
-                &class_register,
-            );
-        }
-
         for element in class.elements {
             match element {
                 ClassElement::MethodDefinition(m) => match m.name() {
@@ -505,6 +495,10 @@ impl ByteCompiler<'_> {
                         PropertyName::Computed(name) => {
                             let name_register = self.register_allocator.alloc();
                             self.compile_expr(name, &name_register);
+                            self.bytecode.emit_to_property_key(
+                                name_register.variable(),
+                                name_register.variable(),
+                            );
                             StaticFieldName::Register(name_register)
                         }
                     };
@@ -635,6 +629,19 @@ impl ByteCompiler<'_> {
             }
         }
 
+        // ClassDefinitionEvaluation initializes the class binding after evaluating
+        // all element names, but before executing static initializers.
+        // https://tc39.es/ecma262/#sec-runtime-semantics-classdefinitionevaluation
+        if let Some(scope) = class.name_scope {
+            let binding = scope.get_identifier_reference(class_name.clone());
+            let index = self.insert_binding(binding);
+            self.emit_binding_access(
+                BindingAccessOpcode::PutLexicalValue,
+                &index,
+                &class_register,
+            );
+        }
+
         for element in static_elements {
             match element {
                 StaticElement::StaticBlock(code) => {
@@ -682,8 +689,6 @@ impl ByteCompiler<'_> {
                         }
                         StaticFieldName::Register(key) => {
                             if is_anonymous_function {
-                                self.bytecode
-                                    .emit_to_property_key(key.variable(), key.variable());
                                 self.bytecode.emit_set_function_name(
                                     value.variable(),
                                     key.variable(),
