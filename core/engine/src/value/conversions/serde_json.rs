@@ -139,6 +139,9 @@ impl JsValue {
                         .with_message("cyclic object value")
                         .into());
                 }
+                // Bound the nesting depth by the recursion limit instead of overflowing the
+                // native stack.
+                context.check_native_recursion(seen_objects.len())?;
                 seen_objects.insert(obj.clone());
                 let mut value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
@@ -301,6 +304,28 @@ mod tests {
                 v.to_json(ctx).unwrap() == Some(json!(60_466_176))
             }),
         ]);
+    }
+
+    #[test]
+    fn to_json_deeply_nested_hits_recursion_limit() {
+        let mut context = Context::default();
+        context.runtime_limits_mut().set_recursion_limit(128);
+        // Built iteratively, so constructing it is not what gets limited.
+        let mut value = JsValue::from(JsObject::with_null_proto());
+        for _ in 0..100_000 {
+            let outer = JsObject::with_null_proto();
+            outer
+                .set(js_string!("a"), value, true, &mut context)
+                .unwrap();
+            value = outer.into();
+        }
+        let err = value.to_json(&mut context).unwrap_err();
+        assert!(matches!(
+            err.as_engine(),
+            Some(crate::error::EngineError::RuntimeLimit(
+                crate::error::RuntimeLimitError::Recursion
+            ))
+        ));
     }
 
     #[test]
