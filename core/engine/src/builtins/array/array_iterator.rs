@@ -119,7 +119,7 @@ impl ArrayIterator {
                     .into());
             };
 
-            f.array_length(buf.len())
+            f.array_length(buf.len()) as u64
         } else {
             array_iterator.array.length_of_array_like(context)?
         };

@@ -1211,8 +1211,8 @@ impl JsUint8Array {
                     .with_message("typed array is outside the bounds of its inner buffer")
                     .into());
             }
-            let byte_offset = ta.byte_offset() as usize;
-            let byte_len = ta.byte_length(buf_byte_len) as usize;
+            let byte_offset = ta.byte_offset();
+            let byte_len = ta.byte_length(buf_byte_len);
             slice.subslice(byte_offset..byte_offset + byte_len).to_vec()
         };
         Ok(vec)
