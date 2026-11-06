@@ -11,15 +11,16 @@ pub(crate) struct IncrementLoopIteration;
 impl IncrementLoopIteration {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
+        context.host_hooks.check_interrupt()?;
+
         let max = context.vm.runtime_limits.loop_iteration_limit();
-        let frame = context.vm.frame_mut();
-        let previous_iteration_count = frame.loop_iteration_count;
+        let previous_iteration_count = context.vm.loop_iteration_count;
 
         if previous_iteration_count >= max {
             return Err(RuntimeLimitError::LoopIteration.into());
         }
 
-        frame.loop_iteration_count = previous_iteration_count.wrapping_add(1);
+        context.vm.loop_iteration_count = previous_iteration_count.wrapping_add(1);
         Ok(())
     }
 }

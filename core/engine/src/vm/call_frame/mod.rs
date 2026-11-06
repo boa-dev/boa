@@ -69,9 +69,6 @@ pub struct CallFrame {
     #[unsafe_ignore_trace]
     pub(crate) binding_stack: ThinVec<BindingLocator>,
 
-    /// How many iterations a loop has done.
-    pub(crate) loop_iteration_count: u64,
-
     /// `[[ScriptOrModule]]`
     pub(crate) active_runnable: Option<ActiveRunnable>,
 
@@ -154,7 +151,6 @@ impl CallFrame {
             iterators: ThinVec::new(),
             binding_stack: ThinVec::new(),
             code_block,
-            loop_iteration_count: 0,
             active_runnable,
             environments,
             realm,
