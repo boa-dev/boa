@@ -349,6 +349,34 @@ fn to_string() {
 }
 
 #[test]
+fn to_string_non_power_of_two_radix() {
+    // Digits must round back to the input, also when the radix is not a power of two.
+    // See <https://github.com/boa-dev/boa/issues/5636>.
+    run_test_actions([
+        TestAction::assert_eq(
+            "(0.6206327010376135).toString(36)",
+            js_str!("0.mcc8m4rge08"),
+        ),
+        TestAction::assert_eq("(1e21).toString(36)", js_str!("5v1j4f4ds7a000")),
+        TestAction::assert_eq("(-1e21).toString(36)", js_str!("-5v1j4f4ds7a000")),
+        TestAction::assert_eq(
+            "(1e300).toString(36)",
+            js_str!(
+                "fhgyjdfcg6j00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+            ),
+        ),
+        TestAction::assert_eq("(1/3).toString(3)", js_str!("0.1")),
+        TestAction::assert_eq(
+            "(-0.5).toString(3)",
+            js_str!("-0.1111111111111111111111111111111112"),
+        ),
+        TestAction::assert_eq("(123.456).toString(36)", js_str!("3f.gez4w97ry")),
+        TestAction::assert_eq("(2**53 + 2).toString(7)", js_str!("5350140446150306056")),
+        TestAction::assert_eq("(Number.MAX_VALUE).toString(36).length", 199),
+    ]);
+}
+
+#[test]
 fn num_to_string_exponential() {
     run_test_actions([
         TestAction::assert_eq("(0).toString()", js_str!("0")),
@@ -655,7 +683,7 @@ fn issue_2717() {
         ),
         TestAction::assert_eq(
             "(0.23046743672210102).toString(36)",
-            js_str!("0.8aoosla2phj"),
+            js_str!("0.8aoosla2phh"),
         ),
     ]);
 }
