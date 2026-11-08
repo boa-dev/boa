@@ -481,10 +481,8 @@ pub(crate) fn proxy_exotic_get_own_property(
         .js_expect("Proxy object internal internal method called on non-proxy object")?
         .try_data()?;
 
-    // dbg!(key);
     // 5. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
     let Some(trap) = handler.get_method(js_string!("getOwnPropertyDescriptor"), context)? else {
-        // dbg!("here");
         // 6. If trap is undefined, then
         // a. Return ? target.[[GetOwnProperty]](P).
         return target.__get_own_property__(key, context);
