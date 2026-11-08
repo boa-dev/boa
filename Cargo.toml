@@ -54,19 +54,19 @@ small_btree = { version = "~0.1.0", path = "utils/small_btree" }
 # Shared deps
 arbitrary = "1"
 base64 = "0.23.1"
-bitflags = "2.13.1"
-clap = "4.6.6"
+bitflags = "2.13.2"
+clap = "4.6.7"
 colored = "3.1.1"
 cow-utils = "0.1.3"
 fast-float2 = "0.2.4"
 hashbrown = "0.17.1"
 http = { version = "1.5.0" }
 iana-time-zone = "0.1.65"
-indexmap = { version = "2.14.0", default-features = false }
-indoc = "2.0.7"
+indexmap = { version = "2.14.2", default-features = false }
+indoc = "2.0.8"
 itoa = "1.0.18"
 tikv-jemallocator = "0.7"
-mimalloc-safe = "0.1.65"
+mimalloc-safe = "0.1.69"
 lz4_flex = "0.14.0"
 num-bigint = "0.5.1"
 num-traits = "0.2.19"
@@ -76,14 +76,14 @@ phf = { version = "0.14.0", default-features = false }
 pollster = "1.0.1"
 regex = "1.13.1"
 regress = { version = "0.12.0", features = ["utf16"] }
-reqwest = { version = "0.13.4", default-features = false, features = ["rustls-no-provider"] }
-rustls = { version = "0.23.43", default-features = false, features = ["ring"] }
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider"] }
+rustls = { version = "0.23.46", default-features = false, features = ["ring"] }
 rustc-hash = { version = "2.1.3", default-features = false }
-serde_json = "1.0.151"
+serde_json = "1.0.154"
 serde = "1.0.229"
 static_assertions = "1.1.0"
-textwrap = "0.16.2"
-thin-vec = "0.2.19"
+textwrap = "0.16.4"
+thin-vec = "0.2.21"
 time = { version = "0.3.55", default-features = false, features = [
     "local-offset",
     "large-dates",
@@ -91,34 +91,34 @@ time = { version = "0.3.55", default-features = false, features = [
     "formatting",
     "macros",
 ] }
-log = "0.4.34"
+log = "0.4.35"
 simple_logger = "5.2.0"
 cargo_metadata = "0.23.1"
-trybuild = "1.0.120"
+trybuild = "1.0.122"
 rayon = "1.12.0"
-toml = "1.1.4"
+toml = "1.2.1"
 color-eyre = "0.6.5"
-comfy-table = { version = "8.0.0", default-features = false }
+comfy-table = { version = "8.0.1", default-features = false }
 serde_repr = "0.1.21"
 bus = "2.4.1"
-wasm-bindgen = { version = "0.2.127", default-features = false }
+wasm-bindgen = { version = "0.2.130", default-features = false }
 getrandom = { version = "0.4.3", default-features = false }
 console_error_panic_hook = "0.1.7"
-wasm-bindgen-test = "0.3.77"
+wasm-bindgen-test = "0.3.80"
 smol = "2.0.2"
 rustyline = { version = "19.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.47"
-syn = { version = "3.0.4", default-features = false }
+syn = { version = "3.0.9", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.14"
 measureme = "12.0.3"
 pastey = "0.2.3"
-rand = "0.10.2"
+rand = "0.10.3"
 num-integer = "0.1.47"
 ryu-js = "1.0.3"
 tap = "1.0.1"
-thiserror = { version = "2.0.20", default-features = false }
+thiserror = { version = "2.0.21", default-features = false }
 dashmap = "6.2.1"
 num_enum = "0.7.6"
 itertools = { version = "0.15.0", default-features = false }
@@ -126,8 +126,8 @@ portable-atomic = "1.15.0"
 bytemuck = { version = "1.25.2", default-features = false }
 arrayvec = "0.7.8"
 intrusive-collections = "0.10.3"
-cfg-if = "1.0.4"
-either = "1.18.0"
+cfg-if = "1.0.5"
+either = "1.19.0"
 sys-locale = "0.3.2"
 timezone_provider = { version = "0.2.6" }
 temporal_rs = { version = "0.2.6", default-features = false, features = ["float64_representable_durations"] }
@@ -135,10 +135,10 @@ web-time = "1.1.0"
 criterion = "0.8.2"
 float-cmp = "0.10.0"
 futures-lite = "2.6.1"
-test-case = "3.3.1"
+test-case = "3.4.1"
 rstest = "0.28.0"
 url = "2.5.8"
-tokio = { version = "1.53.1", default-features = false }
+tokio = { version = "1.54.1", default-features = false }
 futures-concurrency = "7.7.1"
 dynify = "0.1.2"
 futures-channel = "0.3.34"
@@ -148,8 +148,8 @@ strum = { version = "0.28", features = ["derive"] }
 unsend = { version = "0.2.1", default-features = false }
 husky-rs = "0.4.0"
 async-channel = "2.5.0"
-data-encoding = "2.11.0"
-data-encoding-macro = "0.1.20"
+data-encoding = "2.11.1"
+data-encoding-macro = "0.1.21"
 
 # ICU4X core
 
@@ -175,10 +175,10 @@ icu_normalizer = { version = "~2.3.0", default-features = false }
 icu_decimal = { version = "~2.3.0", default-features = false }
 icu_locale_fallback = { version = "~2.3.0", default-features = false }
 writeable = "0.6.4"
-tinystr = "0.8.4"
-yoke = "0.8.3"
+tinystr = "0.8.5"
+yoke = "0.8.4"
 zerofrom = "0.1.8"
-fixed_decimal = "0.7.2"
+fixed_decimal = "0.7.3"
 
 [workspace.metadata.workspaces]
 allow_branch = "main"

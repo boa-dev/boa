@@ -210,9 +210,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14
+          - os: macos-latest
           - os: windows-latest
-          - os: ubuntu-24.04-arm
+          - os: ubuntu-26.04-arm
           - os: ubuntu-latest
     steps:
       - name: Set environment
