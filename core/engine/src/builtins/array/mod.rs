@@ -315,6 +315,8 @@ impl Array {
                     .with_message("cannot set non-writable property: length")
                     .into());
             }
+
+            return Ok(());
         }
 
         o.set(StaticJsStrings::LENGTH, len, true, context)?;
