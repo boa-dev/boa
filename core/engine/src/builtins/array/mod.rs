@@ -25,6 +25,7 @@ use crate::{
             get_prototype_from_constructor, ordinary_define_own_property, ordinary_delete,
             ordinary_get_own_property,
         },
+        shape::slot::SlotAttributes,
     },
     property::{
         Attribute, CompletePropertyDescriptor, PropertyDescriptor, PropertyKey, PropertyNameKind,
@@ -3645,6 +3646,8 @@ fn array_exotic_get_own_property(
                 .get(index.get()));
         }
         PropertyKey::String(key) if *key == StaticJsStrings::LENGTH => {
+            context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
+
             let obj = obj.borrow();
             let len = obj.properties().indexed_properties.array_length();
             let writable = obj.properties().indexed_properties.array_length_writable();
