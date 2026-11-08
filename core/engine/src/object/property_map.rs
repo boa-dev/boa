@@ -166,21 +166,18 @@ impl IndexedProperties {
                 let mut success = true;
                 let mut highest_index = 0;
 
-                let mut highest_non_configurable_index = 0;
+                let mut highest_non_configurable_length: u32 = 0;
                 for (key, descriptor) in map.as_ref() {
                     if !descriptor.configurable() {
-                        highest_non_configurable_index = highest_non_configurable_index.max(*key);
+                        highest_non_configurable_length =
+                            highest_non_configurable_length.max(*key + 1);
                     }
                 }
 
                 map.retain(|&key, descriptor| {
                     if key >= new_length {
                         if descriptor.configurable() {
-                            if key <= highest_non_configurable_index {
-                                return true;
-                            }
-
-                            return false;
+                            return key < highest_non_configurable_length;
                         }
 
                         success = false;
@@ -193,7 +190,8 @@ impl IndexedProperties {
                 if success {
                     *length = new_length;
                 } else {
-                    *length = highest_index.max(highest_non_configurable_index) + 1;
+                    let highest_length = highest_index + 1;
+                    *length = highest_length.max(highest_non_configurable_length);
                 }
                 return success;
             }

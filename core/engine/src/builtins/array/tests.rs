@@ -985,3 +985,38 @@ fn array_prototype_find_edge_cases() {
         "#}),
     ]);
 }
+
+#[test]
+fn shrink_length_to_zero_deletes_configurable_sparse_property() {
+    run_test_actions([
+        TestAction::assert(indoc! {r#"
+            var a = [];
+            Object.defineProperty(a, 0, { value: 1, enumerable: false, configurable: true });
+            a.length = 0;
+            a.length === 0 && !(0 in a)
+        "#}),
+        TestAction::assert(indoc! {r#"
+            var a = [];
+            Object.defineProperty(a, 0, { value: 1, writable: false, configurable: true });
+            a.length = 0;
+            a.length === 0 && !(0 in a)
+        "#}),
+        TestAction::assert(indoc! {r#"
+            var a = [];
+            Object.defineProperty(a, 0, { value: 1, configurable: true, enumerable: false });
+            Object.defineProperty(a, 1, { value: 2, configurable: false });
+            a.length = 0;
+            a.length === 2 && (0 in a) && (1 in a)
+        "#}),
+    ]);
+}
+
+#[test]
+fn shrink_length_keeps_non_configurable_sparse_property() {
+    run_test_actions([TestAction::assert(indoc! {r#"
+        var a = [];
+        Object.defineProperty(a, 0, { value: 1, enumerable: false });
+        a.length = 0;
+        a.length === 1 && (0 in a)
+    "#})]);
+}
