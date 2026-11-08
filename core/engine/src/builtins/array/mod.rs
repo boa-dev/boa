@@ -299,6 +299,37 @@ impl BuiltInConstructor for Array {
     }
 }
 
+/// A mutable view over the elements of a dense array, regardless of its element representation.
+enum DenseArray<'a> {
+    I32 { vec: &'a mut ThinVec<i32> },
+    F64 { vec: &'a mut ThinVec<f64> },
+    Element { vec: &'a mut ThinVec<JsValue> },
+}
+
+impl DenseArray<'_> {
+    /// Number of stored elements (may be smaller than the array length if it has trailing holes).
+    fn len(&self) -> usize {
+        match self {
+            Self::I32 { vec } => vec.len(),
+            Self::F64 { vec } => vec.len(),
+            Self::Element { vec } => vec.len(),
+        }
+    }
+
+    /// Removes and returns the element at `index`, shifting the following elements down.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index >= self.len()`.
+    fn remove(&mut self, index: usize) -> JsValue {
+        match self {
+            Self::I32 { vec } => vec.remove(index).into(),
+            Self::F64 { vec } => vec.remove(index).into(),
+            Self::Element { vec } => vec.remove(index),
+        }
+    }
+}
+
 impl Array {
     /// Optimized helper function, that sets the length of the array.
     fn set_length(o: &JsObject, len: u64, context: &mut Context) -> JsResult<()> {
@@ -307,7 +338,6 @@ impl Array {
 
             let indexed = &mut borrowed_object.properties_mut().indexed_properties;
 
-            // NOTE: The "length" property is the first element.
             let success = indexed.array_length_writable() && indexed.set_array_length(len as u32);
 
             // 5. If success is false and Throw is true, throw a TypeError exception.
@@ -322,6 +352,41 @@ impl Array {
 
         o.set(StaticJsStrings::LENGTH, len, true, context)?;
         Ok(())
+    }
+
+    /// Runs `f` on the elements of `o` if it is an array with a dense representation and a
+    /// writable `length`, then updates the array length to the value left in `f`'s second argument.
+    ///
+    /// `f` returns `Ok(None)` to decline (it must not modify anything in that case), in which
+    /// case this returns `Ok(None)` and the caller must fall back to the spec-compliant path.
+    fn dense_array_fast_path<F>(o: &JsObject, f: F) -> JsResult<Option<JsValue>>
+    where
+        F: FnOnce(DenseArray<'_>, &mut u32) -> JsResult<Option<JsValue>>,
+    {
+        if !o.is_array() {
+            return Ok(None);
+        }
+
+        let mut borrowed_object = o.borrow_mut();
+        let indexed = &mut borrowed_object.properties_mut().indexed_properties;
+        if !indexed.array_length_writable() {
+            return Ok(None);
+        }
+
+        let mut new_length = indexed.array_length();
+        let result = match indexed {
+            IndexedProperties::DenseI32 { vec, .. } => f(DenseArray::I32 { vec }, &mut new_length)?,
+            IndexedProperties::DenseF64 { vec, .. } => f(DenseArray::F64 { vec }, &mut new_length)?,
+            IndexedProperties::DenseElement { vec, .. } => {
+                f(DenseArray::Element { vec }, &mut new_length)?
+            }
+            _ => return Ok(None),
+        };
+
+        if result.is_some() && indexed.array_length() != new_length {
+            indexed.set_array_length(new_length);
+        }
+        Ok(result)
     }
 
     /// Utility for constructing `Array` objects.
@@ -1209,6 +1274,22 @@ impl Array {
     pub(crate) fn shift(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
+
+        // NON-STANDARD: Fast path: dense arrays without holes.
+        if let Some(result) = Self::dense_array_fast_path(&o, |mut dense, length| {
+            if dense.len() != *length as usize {
+                return Ok(None);
+            }
+            if dense.len() == 0 {
+                return Ok(Some(JsValue::undefined()));
+            }
+            let first = dense.remove(0);
+            *length -= 1;
+            Ok(Some(first))
+        })? {
+            return Ok(result);
+        }
+
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If len = 0, then
@@ -1219,38 +1300,6 @@ impl Array {
             // b. Return undefined.
             return Ok(JsValue::undefined());
         }
-
-        // // Small optimization for arrays using dense properties
-        // // TODO: this optimization could be generalized to many other objects with
-        // // slot-based dense property maps.
-        // if o.is_array() {
-        //     let mut o_borrow = o.borrow_mut();
-        //     if let IndexedProperties::DenseI32 { vec: dense, length } =
-        //         &mut o_borrow.properties_mut().indexed_properties
-        //     {
-        //         if len <= dense.len() as u64 {
-        //             let v = dense.remove(0);
-        //             *length = (len - 1) as u32;
-        //             return Ok(v.into());
-        //         }
-        //     }
-        //     if let IndexedProperties::DenseF64 { vec: dense, length } =
-        //         &mut o_borrow.properties_mut().indexed_properties
-        //     {
-        //         if len <= dense.len() as u64 {
-        //             let v = dense.remove(0);
-        //             *length = (len - 1) as u32;
-        //             return Ok(v.into());
-        //         }
-        //     }
-        //     if let Some((dense, length)) = o_borrow.properties_mut().dense_indexed_properties_mut()
-        //         && len <= dense.len() as u64
-        //     {
-        //         let v = dense.remove(0);
-        //         *length = (len - 1) as u32;
-        //         return Ok(v);
-        //     }
-        // }
 
         // 4. Let first be ? Get(O, "0").
         let first = o.get(0, context)?;
