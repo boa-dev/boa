@@ -774,14 +774,17 @@ Cannot both specify accessors and a value or writable attribute",
 
         while let Some(o) = obj {
             if o.is_array() && *key == PropertyKey::String(StaticJsStrings::LENGTH) {
+                let o_borrow = o.borrow();
                 return Some(CompletePropertyDescriptor::Data {
-                    value: o
-                        .borrow()
+                    value: o_borrow
                         .properties()
                         .indexed_properties
                         .array_length()
                         .into(),
-                    writable: false,
+                    writable: o_borrow
+                        .properties()
+                        .indexed_properties
+                        .array_length_writable(),
                     enumerable: false,
                     configurable: false,
                 });
