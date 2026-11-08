@@ -1020,3 +1020,19 @@ fn shrink_length_keeps_non_configurable_sparse_property() {
         a.length === 1 && (0 in a)
     "#})]);
 }
+
+// See https://github.com/boa-dev/boa/issues/5620
+#[test]
+fn array_length_should_not_be_included_as_ic_hit() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            function f() {
+                let a = [1,2,3];
+                a.length = 0;
+                return 0 in a;
+            }
+        "#}),
+        TestAction::assert_eq("f()", false),
+        TestAction::assert_eq("f()", false),
+    ]);
+}
