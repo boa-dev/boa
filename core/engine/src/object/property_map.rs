@@ -111,8 +111,8 @@ impl IndexedProperties {
             return Self::default();
         }
         Self::DenseElement {
+            length: elements.len() as u32,
             vec: elements,
-            length: 0,
             length_writable: true,
         }
     }
