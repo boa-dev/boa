@@ -39,7 +39,7 @@ pub enum IndexedProperties {
     DenseI32 {
         /// The contiguous array of i32 values representing the dense storage.
         vec: ThinVec<i32>,
-        /// The length of the dense storage.
+        /// The Array length property value.
         length: u32,
         /// Whether the length of the dense storage is writable.
         length_writable: bool,
@@ -49,7 +49,7 @@ pub enum IndexedProperties {
     DenseF64 {
         /// The contiguous array of f64 values representing the dense storage.
         vec: ThinVec<f64>,
-        /// The length of the dense storage.
+        /// The Array length property value.
         length: u32,
         /// Whether the length of the dense storage is writable.
         length_writable: bool,
@@ -59,7 +59,7 @@ pub enum IndexedProperties {
     DenseElement {
         /// The contiguous array of `JsValue` representing the dense storage.
         vec: ThinVec<JsValue>,
-        /// The length of the dense storage.
+        /// The Array length property value.
         length: u32,
         /// Whether the length of the dense storage is writable.
         length_writable: bool,
