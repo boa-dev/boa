@@ -8,7 +8,7 @@ use crate::{
     Context, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
     builtins::promise::{PromiseCapability, ResolvingFunctions},
     environments::EnvironmentStack,
-    error::RuntimeLimitError,
+    error::{EngineError, RuntimeLimitError},
     object::JsFunction,
     realm::Realm,
     script::Script,
@@ -17,7 +17,17 @@ use crate::{
 };
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use shadow_stack::ShadowStack;
-use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
+use std::{
+    future::Future,
+    ops::ControlFlow,
+    path::Path,
+    pin::Pin,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+    task,
+};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
@@ -82,6 +92,9 @@ pub struct Vm {
     /// This eliminates the conversion between [`crate::JsNativeError`] and [`crate::JsValue`] if not needed.
     pub(crate) pending_exception: Option<JsError>,
     pub(crate) runtime_limits: RuntimeLimits,
+
+    /// Stops execution at the next loop iteration or function call once set to `true`.
+    pub(crate) interrupt: Option<Arc<AtomicBool>>,
 
     /// This is used to assign a native (rust) function as the active function,
     /// because we don't push a frame for them.
@@ -418,6 +431,7 @@ impl Vm {
             return_value: JsValue::undefined(),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
+            interrupt: None,
             native_active_function: None,
             host_call_depth: 0,
             shadow_stack: ShadowStack::default(),
@@ -426,6 +440,19 @@ impl Vm {
             #[cfg(feature = "trace")]
             current_frame: None,
         }
+    }
+
+    /// Fails with [`EngineError::Interrupted`] once the interrupt flag is set.
+    #[inline]
+    pub(crate) fn check_interrupt(&self) -> JsResult<()> {
+        if self
+            .interrupt
+            .as_ref()
+            .is_some_and(|flag| flag.load(Ordering::Relaxed))
+        {
+            return Err(EngineError::Interrupted.into());
+        }
+        Ok(())
     }
 
     #[track_caller]
@@ -1015,6 +1042,8 @@ impl Context {
 
     /// Checks if we haven't exceeded the defined runtime limits.
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
+        self.vm.check_interrupt()?;
+
         // Must throw if the number of recursive calls exceeds the defined limit.
         //
         // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking

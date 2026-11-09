@@ -523,6 +523,7 @@ pub mod ffi {
                 EngineError::from(RuntimeLimitError::LoopIteration),
                 EngineError::from(RuntimeLimitError::Recursion),
                 EngineError::from(RuntimeLimitError::StackSize),
+                EngineError::Interrupted,
                 EngineError::from(
                     PanicError::new("engine panic")
                         .with_source(BoaJsNativeError::error().with_message("source")),
