@@ -19,9 +19,9 @@ jobs:
             os: ubuntu-latest
             binary_extension: ""
           - target: aarch64-apple-darwin
-            os: macos-14
+            os: macos-latest
           - target: aarch64-unknown-linux-gnu
-            os: ubuntu-24.04-arm
+            os: ubuntu-26.04-arm
             binary_extension: ""
           - target: x86_64-pc-windows-msvc
             os: windows-latest
@@ -41,7 +41,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Build
         run: cargo build --target ${{ matrix.target }} --release --locked --bin boa
