@@ -728,24 +728,49 @@ fn to_small_ints_large_values() {
     run_test_actions([TestAction::inspect_context(|ctx| {
         let f = JsValue::new;
 
-        // |x| >= 2^63 used to saturate
+        // |x| >= 2^63 used to saturate before the fix; must all yield 0
         for x in [1e40, 2f64.powi(63), 1e20, -1e20] {
             assert_eq!(f(x).to_uint8(ctx).unwrap(), 0);
             assert_eq!(f(x).to_int8(ctx).unwrap(), 0);
             assert_eq!(f(x).to_uint16(ctx).unwrap(), 0);
             assert_eq!(f(x).to_int16(ctx).unwrap(), 0);
         }
-        assert_eq!(f(2f64.powi(53) + 2.0).to_uint8(ctx).unwrap(), 2);
 
-        // boundaries
+        // 2^53 + 2: a large float whose lower bits are non-zero — positive case
+        let large_pos = 2f64.powi(53) + 2.0;
+        assert_eq!(f(large_pos).to_uint8(ctx).unwrap(), 2);
+        assert_eq!(f(large_pos).to_int8(ctx).unwrap(), 2);
+        assert_eq!(f(large_pos).to_uint16(ctx).unwrap(), 2);
+        assert_eq!(f(large_pos).to_int16(ctx).unwrap(), 2);
+
+        // -(2^53 + 2): large *negative* float with non-zero lower bits.
+        // Two's-complement wrap: modulo 2^32 gives 0xFFFF_FFFE → lower bytes 0xFE / 0xFFFE.
+        let large_neg = -(2f64.powi(53) + 2.0);
+        assert_eq!(f(large_neg).to_uint8(ctx).unwrap(), 254_u8);
+        assert_eq!(f(large_neg).to_int8(ctx).unwrap(), -2_i8);
+        assert_eq!(f(large_neg).to_uint16(ctx).unwrap(), 65534_u16);
+        assert_eq!(f(large_neg).to_int16(ctx).unwrap(), -2_i16);
+
+        // 2^32 + 1: wraps modulo 2^32 → 1 in all narrower types
+        let wrap32 = 2f64.powi(32) + 1.0;
+        assert_eq!(f(wrap32).to_uint8(ctx).unwrap(), 1);
+        assert_eq!(f(wrap32).to_int8(ctx).unwrap(), 1);
+        assert_eq!(f(wrap32).to_uint16(ctx).unwrap(), 1);
+        assert_eq!(f(wrap32).to_int16(ctx).unwrap(), 1);
+
+        // boundaries — u8 / i8
         assert_eq!(f(256.0).to_uint8(ctx).unwrap(), 0);
         assert_eq!(f(-1.0).to_uint8(ctx).unwrap(), 255);
         assert_eq!(f(128.0).to_int8(ctx).unwrap(), -128);
         assert_eq!(f(-129.0).to_int8(ctx).unwrap(), 127);
-        assert_eq!(f(65536.0).to_uint16(ctx).unwrap(), 0);
-        assert_eq!(f(32768.0).to_int16(ctx).unwrap(), -32768);
 
-        // non-finite
+        // boundaries — u16 / i16
+        assert_eq!(f(65536.0).to_uint16(ctx).unwrap(), 0);
+        assert_eq!(f(-1.0).to_uint16(ctx).unwrap(), 65535);
+        assert_eq!(f(32768.0).to_int16(ctx).unwrap(), -32768);
+        assert_eq!(f(-32769.0).to_int16(ctx).unwrap(), 32767);
+
+        // non-finite inputs must yield 0 for all narrow types
         for x in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
             assert_eq!(f(x).to_uint8(ctx).unwrap(), 0);
             assert_eq!(f(x).to_int8(ctx).unwrap(), 0);
