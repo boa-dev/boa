@@ -513,3 +513,125 @@ fn set_iterator_after_clear_and_add() {
         TestAction::assert("second.value === 'second' && !second.done"),
     ]);
 }
+
+/// `Set.prototype.intersection` — `has` mutates the receiver while it is being iterated.
+#[test]
+fn intersection_receiver_mutated_by_has() {
+    run_test_actions([
+        TestAction::run_harness(),
+        // Deleting the visited element must not skip the next one.
+        TestAction::run(indoc! {r#"
+            let deleting = new Set([1, 2, 3]);
+            let deletingSeen = [];
+            let deletingResult = deleting.intersection({
+                size: 100,
+                has(v) {
+                    deletingSeen.push(v);
+                    deleting.delete(v);
+                    return true;
+                },
+                keys() {
+                    throw new Error("unexpected call to `keys`");
+                },
+            });
+        "#}),
+        TestAction::assert("arrayEquals(deletingSeen, [1, 2, 3])"),
+        TestAction::assert("arrayEquals([...deletingResult], [1, 2, 3])"),
+        TestAction::assert_eq("deleting.size", 0),
+        // An element that is deleted and added again is visited twice, but only appears
+        // once in the result.
+        TestAction::run(indoc! {r#"
+            let reinserting = new Set([1, 2, 3]);
+            let reinsertingSeen = [];
+            let reinsertingResult = reinserting.intersection({
+                size: 100,
+                has(v) {
+                    if (v === 2 && !reinsertingSeen.includes(v)) {
+                        reinserting.delete(v);
+                        reinserting.add(v);
+                    }
+                    reinsertingSeen.push(v);
+                    return true;
+                },
+                keys() {
+                    throw new Error("unexpected call to `keys`");
+                },
+            });
+        "#}),
+        TestAction::assert("arrayEquals(reinsertingSeen, [1, 2, 3, 2])"),
+        TestAction::assert("arrayEquals([...reinsertingResult], [1, 2, 3])"),
+        TestAction::assert("arrayEquals([...reinserting], [1, 3, 2])"),
+        // Elements added by a call to `has` that returned `false` are still visited.
+        TestAction::run(indoc! {r#"
+            let growing = new Set([1]);
+            let growingSeen = [];
+            let growingResult = growing.intersection({
+                size: 100,
+                has(v) {
+                    growingSeen.push(v);
+                    if (v === 1) {
+                        growing.add(2);
+                    }
+                    return v === 2;
+                },
+                keys() {
+                    throw new Error("unexpected call to `keys`");
+                },
+            });
+        "#}),
+        TestAction::assert("arrayEquals(growingSeen, [1, 2])"),
+        TestAction::assert("arrayEquals([...growingResult], [2])"),
+    ]);
+}
+
+/// `Set.prototype.isSubsetOf` — `has` deletes each visited element of the receiver.
+#[test]
+fn is_subset_of_receiver_mutated_by_has() {
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::run(indoc! {r#"
+            let set = new Set([1, 2, 3]);
+            let seen = [];
+            let result = set.isSubsetOf({
+                size: 100,
+                has(v) {
+                    seen.push(v);
+                    set.delete(v);
+                    return true;
+                },
+                keys() {
+                    throw new Error("unexpected call to `keys`");
+                },
+            });
+        "#}),
+        TestAction::assert_eq("result", true),
+        TestAction::assert("arrayEquals(seen, [1, 2, 3])"),
+        TestAction::assert_eq("set.size", 0),
+    ]);
+}
+
+/// `Set.prototype.isDisjointFrom` — `has` deletes each visited element of the receiver.
+#[test]
+fn is_disjoint_from_receiver_mutated_by_has() {
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::run(indoc! {r#"
+            let set = new Set([1, 2, 3]);
+            let seen = [];
+            let result = set.isDisjointFrom({
+                size: 100,
+                has(v) {
+                    seen.push(v);
+                    set.delete(v);
+                    return false;
+                },
+                keys() {
+                    throw new Error("unexpected call to `keys`");
+                },
+            });
+        "#}),
+        TestAction::assert_eq("result", true),
+        TestAction::assert("arrayEquals(seen, [1, 2, 3])"),
+        TestAction::assert_eq("set.size", 0),
+    ]);
+}
