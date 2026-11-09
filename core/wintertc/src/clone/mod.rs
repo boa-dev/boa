@@ -51,3 +51,6 @@ pub mod js_module {
 pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
     js_module::boa_register(realm, context)
 }
+
+#[cfg(test)]
+mod tests;
