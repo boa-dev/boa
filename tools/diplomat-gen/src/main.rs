@@ -6,7 +6,7 @@ use diplomat_tool::{DocsUrlGenerator, config::Config};
 
 fn main() -> io::Result<()> {
     let crate_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ffi/boa_ffi");
-    let headers = crate_dir.join("c/generated");
+    let headers = crate_dir.join("bindings/c");
 
     // This directory contains only generated files. Remove obsolete headers too.
     match fs::remove_dir_all(&headers) {

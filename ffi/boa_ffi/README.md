@@ -12,12 +12,12 @@ Use the Rust toolchain required by the workspace. From the repository root:
 ```sh
 cargo build --locked -p boa_ffi
 cargo test --locked -p boa_ffi
-./ffi/boa_ffi/c/tests/run.sh
+./ffi/boa_ffi/tests/c/run.sh
 ```
 
 The library is `target/debug/libboa_ffi.dylib` on macOS or
 `target/debug/libboa_ffi.so` on Linux with Cargo's default configuration. Include
-`c/generated/BoaContext.h`, `c/generated/JsValue.h` and `c/generated/JsError.h` as
+`bindings/c/BoaContext.h`, `bindings/c/JsValue.h` and `bindings/c/JsError.h` as
 needed in C programs and link against this library.
 
 The C test runner requires a native macOS or Linux environment and a C11 compiler
@@ -31,8 +31,8 @@ round trips, retained error data and inspection without JavaScript execution.
 Object retention is checked across garbage collection. The C tests exercise
 context/value/error lifecycle, numeric edge cases and message encoding through
 the generated headers and shared library. They check results explicitly, so
-defining `NDEBUG` does not disable the tests. The existing CI workflow runs the
-C tests on its native macOS/Linux runners and checks header regeneration on Linux.
+defining `NDEBUG` does not disable the tests. A dedicated CI job runs header
+regeneration and the C tests across macOS and Linux.
 
 ## Regenerate headers
 
@@ -40,11 +40,11 @@ C tests on its native macOS/Linux runners and checks header regeneration on Linu
 cargo run --locked -p diplomat-gen
 ```
 
-The workspace pins Diplomat and `diplomat-tool` to 0.15.0, with
-`diplomat-runtime` 0.15.1. `Cargo.lock` also fixes their transitive dependencies;
-no globally installed `diplomat-tool` is needed. Regeneration replaces all of
-`c/generated/`, including removing obsolete headers. Do not edit those files by
-hand. Include regenerated headers with changes to the Rust bridge.
+Diplomat's version requirements live in the workspace `Cargo.toml`, and
+`Cargo.lock` fixes the resolved versions, so no globally installed
+`diplomat-tool` is needed. Regeneration replaces all of `bindings/c/`, including
+removing obsolete headers. Do not edit those files by hand. Include regenerated
+headers with changes to the Rust bridge.
 
 ## Context ownership
 
