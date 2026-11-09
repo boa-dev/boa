@@ -262,6 +262,54 @@ jobs:
       - name: Test bytecode output
         run: cargo insta test -p insta-bytecode
 
+  ffi-tests:
+    name: Test FFI
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs:
+      - fmt
+      - typos
+      - clippy
+      - docs
+      - msrv
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+          - os: ubuntu-26.04-arm
+          - os: ubuntu-latest
+    steps:
+      - name: Set environment
+        # Setting `RUSTFLAGS` overrides any flags set on .cargo/config.toml, so we need to
+        # set the target flags instead which are cumulative.
+        # Track https://github.com/rust-lang/cargo/issues/5376
+        run: |
+          target=$(rustc -vV | awk '/^host/ { print $2 }' | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+          echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+        with:
+          toolchain: stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+
+      - name: Check generated C headers
+        run: |
+          cargo run --locked --profile ci -p diplomat-gen
+          git status --short --untracked-files=all -- ffi/boa_ffi/bindings/c/
+          test -z "$(git status --porcelain --untracked-files=all -- ffi/boa_ffi/bindings/c/)"
+
+      - name: Test C bindings
+        run: ./ffi/boa_ffi/tests/c/run.sh --ci
+
   cross-tests:
     name: Test
     runs-on: ubuntu-latest
