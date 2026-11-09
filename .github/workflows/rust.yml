@@ -58,7 +58,7 @@ jobs:
           persist-credentials: false
 
       - name: Check for typos
-        uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
+        uses: crate-ci/typos@4c8b7f51ca60df14e3c5ca82770dfbbe6c3dae85 # v1.52.0
 
   clippy:
     name: Lint
@@ -81,7 +81,7 @@ jobs:
           components: clippy
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Install cargo-workspaces
         uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
@@ -121,7 +121,7 @@ jobs:
           toolchain: stable
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
@@ -181,7 +181,7 @@ jobs:
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Install cargo-tarpaulin
         uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
@@ -210,9 +210,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-14
+          - os: macos-latest
           - os: windows-latest
-          - os: ubuntu-24.04-arm
+          - os: ubuntu-26.04-arm
           - os: ubuntu-latest
     steps:
       - name: Set environment
@@ -246,7 +246,7 @@ jobs:
           locked: true
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Build tests
         run: cargo test --no-run --profile ci
@@ -261,6 +261,54 @@ jobs:
         run: cargo test --doc --profile ci --features annex-b,intl_bundled,experimental
       - name: Test bytecode output
         run: cargo insta test -p insta-bytecode
+
+  ffi-tests:
+    name: Test FFI
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs:
+      - fmt
+      - typos
+      - clippy
+      - docs
+      - msrv
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+          - os: ubuntu-26.04-arm
+          - os: ubuntu-latest
+    steps:
+      - name: Set environment
+        # Setting `RUSTFLAGS` overrides any flags set on .cargo/config.toml, so we need to
+        # set the target flags instead which are cumulative.
+        # Track https://github.com/rust-lang/cargo/issues/5376
+        run: |
+          target=$(rustc -vV | awk '/^host/ { print $2 }' | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+          echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+        with:
+          toolchain: stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+
+      - name: Check generated C headers
+        run: |
+          cargo run --locked --profile ci -p diplomat-gen
+          git status --short --untracked-files=all -- ffi/boa_ffi/bindings/c/
+          test -z "$(git status --porcelain --untracked-files=all -- ffi/boa_ffi/bindings/c/)"
+
+      - name: Test C bindings
+        run: ./ffi/boa_ffi/tests/c/run.sh --ci
 
   cross-tests:
     name: Test
@@ -303,7 +351,7 @@ jobs:
           git: https://github.com/cross-rs/cross
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Run tests
         run: |
@@ -374,7 +422,7 @@ jobs:
           toolchain: stable
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Install cargo-fuzz
         uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
@@ -410,7 +458,7 @@ jobs:
           toolchain: stable
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Install cargo-workspaces
         uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
@@ -450,7 +498,7 @@ jobs:
           persist-credentials: false
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Check Semver
         uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239 # v2
