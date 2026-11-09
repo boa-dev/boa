@@ -15,9 +15,9 @@
 
 
 
-BoaContext* BoaContext_new(void);
+BoaContext* boa_BoaContext_new(void);
 
-void BoaContext_destroy(BoaContext* self);
+void boa_BoaContext_destroy(BoaContext* self);
 
 
 

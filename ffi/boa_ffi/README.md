@@ -52,20 +52,20 @@ headers with changes to the Rust bridge.
 #include "BoaContext.h"
 
 int main(void) {
-    BoaContext *context = BoaContext_new();
+    BoaContext *context = boa_BoaContext_new();
     if (context == NULL) {
         return 1;
     }
-    BoaContext_destroy(context);
+    boa_BoaContext_destroy(context);
     return 0;
 }
 ```
 
-- `BoaContext_new()` returns one owned handle, or `NULL` on an ordinary engine
+- `boa_BoaContext_new()` returns one owned handle, or `NULL` on an ordinary engine
   initialization error. It uses Boa's fallible context builder.
-- Destroy each successful result exactly once with `BoaContext_destroy()`.
+- Destroy each successful result exactly once with `boa_BoaContext_destroy()`.
   Its argument must be a live, non-null context pointer returned by this API.
-  `BoaContext_destroy(NULL)` is invalid. Do not use C's `free()` on a handle.
+  `boa_BoaContext_destroy(NULL)` is invalid. Do not use C's `free()` on a handle.
 - Copying a pointer creates an alias, not another owned handle. After destruction,
   every alias is invalid.
 - Use and destroy a context on the thread that created it. Calls on the same
@@ -75,34 +75,34 @@ int main(void) {
 
 ## Value handles
 
-`JsValue_from_number(double)`, `JsValue_from_null()` and
-`JsValue_from_undefined()` each return one owned, non-null value handle. They
+`boa_JsValue_from_number(double)`, `boa_JsValue_from_null()` and
+`boa_JsValue_from_undefined()` each return one owned, non-null value handle. They
 require no context, and these primitive values remain usable after a context
 is destroyed. Allocation failures and unexpected Rust panics may abort the process.
 
 ```c
-JsValue *value = JsValue_from_number(7.0);
-JsValue_as_number_result number = JsValue_as_number(value);
+JsValue *value = boa_JsValue_from_number(7.0);
+boa_JsValue_as_number_result number = boa_JsValue_as_number(value);
 if (number.is_ok) {
     printf("%g\n", number.ok);
 }
-JsValue_destroy(value);
+boa_JsValue_destroy(value);
 ```
 
-`JsValue_get_type()` borrows the handle and returns its `JsValueType`. It reports
+`boa_JsValue_get_type()` borrows the handle and returns its `JsValueType`. It reports
 the ECMAScript language type: null and undefined are distinct, and functions
 have the object type. This differs from JavaScript's `typeof` operator.
 The underlying handle retains the original Boa value, including object identity.
 
-`JsValue_as_number()` borrows the handle and returns a tagged optional double.
+`boa_JsValue_as_number()` borrows the handle and returns a tagged optional double.
 Check `is_ok` before reading `ok`; only number values have a numeric payload.
 Null and undefined produce an absent result without coercion. NaN is a present
 number, as are infinities and signed zeros. NaN payload bits are not guaranteed.
 
 All value calls, including destruction, must stay on the creating thread. Getters
 require a live, non-null value handle and do not consume it. Destroy each owned
-handle exactly once with `JsValue_destroy()`, and invalidate every pointer alias
-afterward. `JsValue_destroy(NULL)` and C's `free()` are invalid for these handles.
+handle exactly once with `boa_JsValue_destroy()`, and invalidate every pointer alias
+afterward. `boa_JsValue_destroy(NULL)` and C's `free()` are invalid for these handles.
 
 ## Errors
 
@@ -112,12 +112,12 @@ afterward. `JsValue_destroy(NULL)` and C's `free()` are invalid for these handle
 - `Opaque` contains an arbitrary thrown value, including JavaScript Error objects.
 - `Engine` is an engine failure that JavaScript cannot catch.
 
-`JsError_get_representation()` and the getters inspect stored data without running
+`boa_JsError_get_representation()` and the getters inspect stored data without running
 JavaScript. They do not read object properties or normalize opaque Error objects
 into native errors. Engine details, cause/aggregate traversal and normalization
 are not exposed yet; their underlying data remains in the error handle.
 
-`JsError_from_native()` copies the supplied UTF-8 message, using its explicit byte
+`boa_JsError_from_native()` copies the supplied UTF-8 message, using its explicit byte
 length, including any embedded NUL. It requires no context and returns an owned
 handle for each known category. Aggregate construction starts with no members.
 The reserved `Other` category is for inspecting unrecognized native categories;
@@ -131,37 +131,37 @@ non-empty pointers violate the caller's contract.
 
 int main(void) {
     const char message[] = "invalid input";
-    JsError *error = JsError_from_native(JsNativeErrorKind_Type,
+    JsError *error = boa_JsError_from_native(JsNativeErrorKind_Type,
         (DiplomatStringView){.data = message, .len = sizeof(message) - 1});
     if (error == NULL) {
         return 1;
     }
-    JsError_as_native_result info = JsError_as_native(error);
+    boa_JsError_as_native_result info = boa_JsError_as_native(error);
     if (!info.is_ok) {
-        JsError_destroy(error);
+        boa_JsError_destroy(error);
         return 1;
     }
     fwrite(info.ok.message.data, 1, info.ok.message.len, stdout);
     fputc('\n', stdout);
-    JsError_destroy(error);
+    boa_JsError_destroy(error);
     return 0;
 }
 ```
 
-`JsError_as_native()` returns a tagged optional category/message pair. Check
+`boa_JsError_as_native()` returns a tagged optional category/message pair. Check
 `is_ok` before reading `ok`; an empty message is present, while an opaque or engine
 error has no native details. The message bytes are borrowed from the error and
 remain valid until that error is destroyed. Use the byte length, not `strlen()`
 or `%s`. Do not free the message or retain its view after destroying the error.
 
-`JsError_from_opaque()` borrows a value and retains a clone; the caller keeps the
-input handle and may destroy it independently. `JsError_as_opaque()` returns a
+`boa_JsError_from_opaque()` borrows a value and retains a clone; the caller keeps the
+input handle and may destroy it independently. `boa_JsError_as_opaque()` returns a
 new owned value handle for the stored payload, or `NULL` for native/engine errors.
 Null and undefined payloads return present handles with their respective types.
-Each returned payload must be destroyed with `JsValue_destroy()`, independently
+Each returned payload must be destroyed with `boa_JsValue_destroy()`, independently
 of the error. Object identity is preserved. Keep a context alive while using
 resources that depend on it, including retained objects.
 
 Use and destroy errors on their creating thread. Getters require live, non-null
-handles. Destroy each owned error exactly once with `JsError_destroy()`; pointer
-aliases then become invalid. `JsError_destroy(NULL)` and C's `free()` are invalid.
+handles. Destroy each owned error exactly once with `boa_JsError_destroy()`; pointer
+aliases then become invalid. `boa_JsError_destroy(NULL)` and C's `free()` are invalid.

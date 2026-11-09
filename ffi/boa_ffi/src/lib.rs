@@ -2,9 +2,14 @@
 //!
 //! The C API and its ownership rules are documented in the crate's README.
 //! Rust applications should use `boa_engine` directly.
+#![cfg_attr(
+    not(test),
+    forbid(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)
+)]
 
 /// Entry points used by the generated C bindings.
 #[diplomat::bridge]
+#[diplomat::abi_rename = "boa_{0}"]
 #[allow(
     clippy::unnecessary_box_returns,
     reason = "Diplomat transfers opaque handle ownership to C through boxed pointers"
@@ -20,7 +25,7 @@ pub mod ffi {
     /// An owned Boa context, exposed as an opaque C handle.
     ///
     /// Keep the handle on the thread that created it. Destroy it exactly once
-    /// with `BoaContext_destroy`; copying the pointer does not copy ownership.
+    /// with `boa_BoaContext_destroy`; copying the pointer does not copy ownership.
     /// The destructor requires a live, non-null handle. Do not call `free` on it.
     #[derive(Debug)]
     #[diplomat::opaque_mut]
@@ -75,7 +80,7 @@ pub mod ffi {
     /// An owned JavaScript value, exposed as an opaque C handle.
     ///
     /// Keep it on its creating thread and destroy it exactly once with
-    /// `JsValue_destroy`. Getters borrow a live, non-null handle without
+    /// `boa_JsValue_destroy`. Getters borrow a live, non-null handle without
     /// transferring ownership. Do not call `free` on it.
     #[derive(Debug)]
     #[diplomat::opaque]
@@ -161,7 +166,7 @@ pub mod ffi {
     /// An owned Boa error, retaining its original representation and data.
     ///
     /// Keep it on its creating thread and destroy it exactly once with
-    /// `JsError_destroy`. Getters borrow a live, non-null handle.
+    /// `boa_JsError_destroy`. Getters borrow a live, non-null handle.
     #[derive(Debug)]
     #[diplomat::opaque]
     pub struct JsError(BoaJsError);
@@ -217,7 +222,7 @@ pub mod ffi {
         #[must_use]
         #[allow(
             clippy::elidable_lifetime_names,
-            reason = "Diplomat 0.15 requires a named lifetime for this borrowed return type"
+            reason = "Diplomat requires a named lifetime for this borrowed return type"
         )]
         pub fn as_native<'a>(&'a self) -> Option<JsNativeErrorInfo<'a>> {
             self.0.as_native().map(|error| JsNativeErrorInfo {
@@ -239,7 +244,7 @@ pub mod ffi {
         /// Returns a new owned handle for an opaque payload, or null in C otherwise.
         ///
         /// Null and undefined payloads are present. Destroy each returned handle
-        /// with `JsValue_destroy`, independently of this error. No JavaScript runs.
+        /// with `boa_JsValue_destroy`, independently of this error. No JavaScript runs.
         #[must_use]
         pub fn as_opaque(&self) -> Option<Box<JsValue>> {
             self.0

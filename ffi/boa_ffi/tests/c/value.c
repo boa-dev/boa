@@ -26,39 +26,39 @@ int main(void) {
     };
 
     for (size_t i = 0; i < sizeof(numbers) / sizeof(numbers[0]); ++i) {
-        JsValue *value = JsValue_from_number(numbers[i]);
+        JsValue *value = boa_JsValue_from_number(numbers[i]);
         for (size_t read = 0; read < 2; ++read) {
-            JsValue_as_number_result result = JsValue_as_number(value);
-            if (JsValue_get_type(value) != JsValueType_Number ||
+            boa_JsValue_as_number_result result = boa_JsValue_as_number(value);
+            if (boa_JsValue_get_type(value) != JsValueType_Number ||
                 !result.is_ok || !same_number(result.ok, numbers[i])) {
-                JsValue_destroy(value);
+                boa_JsValue_destroy(value);
                 fprintf(stderr, "number round trip failed at index %zu\n", i);
                 return EXIT_FAILURE;
             }
         }
-        JsValue_destroy(value);
+        boa_JsValue_destroy(value);
     }
 
-    BoaContext *context = BoaContext_new();
+    BoaContext *context = boa_BoaContext_new();
     if (context == NULL) {
         fputs("context failed to initialize\n", stderr);
         return EXIT_FAILURE;
     }
-    JsValue *null_value = JsValue_from_null();
-    JsValue *undefined_value = JsValue_from_undefined();
-    JsValue *number = JsValue_from_number(42.5);
-    BoaContext_destroy(context);
+    JsValue *null_value = boa_JsValue_from_null();
+    JsValue *undefined_value = boa_JsValue_from_undefined();
+    JsValue *number = boa_JsValue_from_number(42.5);
+    boa_BoaContext_destroy(context);
 
-    JsValue_as_number_result result = JsValue_as_number(number);
-    bool valid = JsValue_get_type(null_value) == JsValueType_Null &&
-        JsValue_get_type(undefined_value) == JsValueType_Undefined &&
-        !JsValue_as_number(null_value).is_ok &&
-        !JsValue_as_number(undefined_value).is_ok &&
-        JsValue_get_type(number) == JsValueType_Number &&
+    boa_JsValue_as_number_result result = boa_JsValue_as_number(number);
+    bool valid = boa_JsValue_get_type(null_value) == JsValueType_Null &&
+        boa_JsValue_get_type(undefined_value) == JsValueType_Undefined &&
+        !boa_JsValue_as_number(null_value).is_ok &&
+        !boa_JsValue_as_number(undefined_value).is_ok &&
+        boa_JsValue_get_type(number) == JsValueType_Number &&
         result.is_ok && same_number(result.ok, 42.5);
-    JsValue_destroy(null_value);
-    JsValue_destroy(undefined_value);
-    JsValue_destroy(number);
+    boa_JsValue_destroy(null_value);
+    boa_JsValue_destroy(undefined_value);
+    boa_JsValue_destroy(number);
     if (!valid) {
         fputs("primitive values failed after context destruction\n", stderr);
         return EXIT_FAILURE;

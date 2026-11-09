@@ -19,18 +19,18 @@
 
 
 
-JsError* JsError_from_native(JsNativeErrorKind kind, DiplomatStringView message);
+JsError* boa_JsError_from_native(JsNativeErrorKind kind, DiplomatStringView message);
 
-JsError* JsError_from_opaque(const JsValue* value);
+JsError* boa_JsError_from_opaque(const JsValue* value);
 
-JsErrorRepresentation JsError_get_representation(const JsError* self);
+JsErrorRepresentation boa_JsError_get_representation(const JsError* self);
 
-typedef struct JsError_as_native_result {union {JsNativeErrorInfo ok; }; bool is_ok;} JsError_as_native_result;
-JsError_as_native_result JsError_as_native(const JsError* self);
+typedef struct boa_JsError_as_native_result {union {JsNativeErrorInfo ok; }; bool is_ok;} boa_JsError_as_native_result;
+boa_JsError_as_native_result boa_JsError_as_native(const JsError* self);
 
-JsValue* JsError_as_opaque(const JsError* self);
+JsValue* boa_JsError_as_opaque(const JsError* self);
 
-void JsError_destroy(JsError* self);
+void boa_JsError_destroy(JsError* self);
 
 
 
