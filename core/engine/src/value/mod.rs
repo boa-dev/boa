@@ -4,7 +4,7 @@
 
 use num_bigint::BigInt;
 use num_integer::Integer;
-use num_traits::{ToPrimitive, Zero};
+use num_traits::ToPrimitive;
 use std::{ops::Sub, sync::LazyLock};
 
 use boa_gc::{Finalize, Trace};
@@ -1142,23 +1142,10 @@ impl JsValue {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
-        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
-        if number.is_nan() || number.is_zero() || number.is_infinite() {
-            return Ok(0);
-        }
-
-        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.abs().floor().copysign(number) as i64;
-
-        // 4. Let int8bit be int modulo 2^8.
-        let int_8_bit = int % 2i64.pow(8);
-
-        // 5. If int8bit ≥ 2^7, return 𝔽(int8bit - 2^8); otherwise return 𝔽(int8bit).
-        if int_8_bit >= 2i64.pow(7) {
-            Ok((int_8_bit - 2i64.pow(8)) as i8)
-        } else {
-            Ok(int_8_bit as i8)
-        }
+        // 2-5. ToInt32 already returns 0 for NaN/±0/±∞ and reduces modulo 2^32.
+        // Casting to i8 keeps the low 8 bits, which is int modulo 2^8 mapped
+        // into the signed range.
+        Ok(f64_to_int32(number) as i8)
     }
 
     /// `7.1.11 ToUint8 ( argument )`
@@ -1171,19 +1158,9 @@ impl JsValue {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
-        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
-        if number.is_nan() || number.is_zero() || number.is_infinite() {
-            return Ok(0);
-        }
-
-        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.abs().floor().copysign(number) as i64;
-
-        // 4. Let int8bit be int modulo 2^8.
-        let int_8_bit = int % 2i64.pow(8);
-
-        // 5. Return 𝔽(int8bit).
-        Ok(int_8_bit as u8)
+        // 2-5. ToUint32 already returns 0 for NaN/±0/±∞ and reduces modulo 2^32.
+        // Casting to u8 keeps the low 8 bits, which is int modulo 2^8.
+        Ok(f64_to_uint32(number) as u8)
     }
 
     /// `7.1.12 ToUint8Clamp ( argument )`
@@ -1243,23 +1220,10 @@ impl JsValue {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
-        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
-        if number.is_nan() || number.is_zero() || number.is_infinite() {
-            return Ok(0);
-        }
-
-        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.abs().floor().copysign(number) as i64;
-
-        // 4. Let int16bit be int modulo 2^16.
-        let int_16_bit = int % 2i64.pow(16);
-
-        // 5. If int16bit ≥ 2^15, return 𝔽(int16bit - 2^16); otherwise return 𝔽(int16bit).
-        if int_16_bit >= 2i64.pow(15) {
-            Ok((int_16_bit - 2i64.pow(16)) as i16)
-        } else {
-            Ok(int_16_bit as i16)
-        }
+        // 2-5. ToInt32 already returns 0 for NaN/±0/±∞ and reduces modulo 2^32.
+        // Casting to i16 keeps the low 16 bits, which is int modulo 2^16 mapped
+        // into the signed range.
+        Ok(f64_to_int32(number) as i16)
     }
 
     /// `7.1.9 ToUint16 ( argument )`
@@ -1272,19 +1236,9 @@ impl JsValue {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
-        // 2. If number is NaN, +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return +0𝔽.
-        if number.is_nan() || number.is_zero() || number.is_infinite() {
-            return Ok(0);
-        }
-
-        // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.abs().floor().copysign(number) as i64;
-
-        // 4. Let int16bit be int modulo 2^16.
-        let int_16_bit = int % 2i64.pow(16);
-
-        // 5. Return 𝔽(int16bit).
-        Ok(int_16_bit as u16)
+        // 2-5. ToUint32 already returns 0 for NaN/±0/±∞ and reduces modulo 2^32.
+        // Casting to u16 keeps the low 16 bits, which is int modulo 2^16.
+        Ok(f64_to_uint32(number) as u16)
     }
 
     /// `7.1.15 ToBigInt64 ( argument )`

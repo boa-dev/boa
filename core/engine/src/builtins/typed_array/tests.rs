@@ -55,6 +55,52 @@ fn uint8array_numeric_coercion() {
 }
 
 #[test]
+fn typed_array_large_values_numeric_coercion() {
+    run_test_actions([
+        // --- Uint8Array ---
+        // Large values that used to saturate at 255; must all wrap to 0
+        TestAction::run("let a = new Uint8Array([1e40, 2**63, 1e20, -(2**63), -1e20, 2**53 + 2]);"),
+        TestAction::assert_eq("a[0]", 0), // 1e40      → 0
+        TestAction::assert_eq("a[1]", 0), // 2^63      → 0
+        TestAction::assert_eq("a[2]", 0), // 1e20      → 0
+        TestAction::assert_eq("a[3]", 0), // -(2^63)   → 0
+        TestAction::assert_eq("a[4]", 0), // -1e20     → 0
+        TestAction::assert_eq("a[5]", 2), // 2^53+2: lower 8 bits → 2
+        // Large *negative* float with non-zero lower bits: -(2^53+2) → 0xFFFFFFFE mod 256 = 254
+        TestAction::run("let a2 = new Uint8Array([-(2**53 + 2)]);"),
+        TestAction::assert_eq("a2[0]", 254),
+        // 2^32+1 wraps modulo 2^32 → 1
+        TestAction::run("let a3 = new Uint8Array([2**32 + 1]);"),
+        TestAction::assert_eq("a3[0]", 1),
+        // Boundary: 256 wraps to 0, -1 wraps to 255
+        TestAction::run("let a4 = new Uint8Array([256, -1]);"),
+        TestAction::assert_eq("a4[0]", 0),
+        TestAction::assert_eq("a4[1]", 255),
+        // --- Int8Array ---
+        TestAction::run("let b = new Int8Array([1e40, -(2**53 + 2), 2**32 + 1, 128, -129]);"),
+        TestAction::assert_eq("b[0]", 0),    // 1e40        → 0
+        TestAction::assert_eq("b[1]", -2),   // -(2^53+2)   → 0xFE → -2 as i8
+        TestAction::assert_eq("b[2]", 1),    // 2^32+1      → 1
+        TestAction::assert_eq("b[3]", -128), // 128         → -128 (wraps)
+        TestAction::assert_eq("b[4]", 127),  // -129        → 127 (wraps)
+        // --- Uint16Array ---
+        TestAction::run("let c = new Uint16Array([1e40, -(2**53 + 2), 2**32 + 1, 65536, -1]);"),
+        TestAction::assert_eq("c[0]", 0),     // 1e40        → 0
+        TestAction::assert_eq("c[1]", 65534), // -(2^53+2)   → 0xFFFFFFFE mod 65536 = 65534
+        TestAction::assert_eq("c[2]", 1),     // 2^32+1      → 1
+        TestAction::assert_eq("c[3]", 0),     // 65536       → 0 (wraps)
+        TestAction::assert_eq("c[4]", 65535), // -1          → 65535
+        // --- Int16Array ---
+        TestAction::run("let d = new Int16Array([1e40, -(2**53 + 2), 2**32 + 1, 32768, -32769]);"),
+        TestAction::assert_eq("d[0]", 0),      // 1e40        → 0
+        TestAction::assert_eq("d[1]", -2),     // -(2^53+2)   → 0xFFFE → -2 as i16
+        TestAction::assert_eq("d[2]", 1),      // 2^32+1      → 1
+        TestAction::assert_eq("d[3]", -32768), // 32768       → -32768 (wraps)
+        TestAction::assert_eq("d[4]", 32767),  // -32769      → 32767 (wraps)
+    ]);
+}
+
+#[test]
 fn float32array_storage() {
     run_test_actions([
         TestAction::run("let f = new Float32Array(1); f[0] = 1.5;"),
