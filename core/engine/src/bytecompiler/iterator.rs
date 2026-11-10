@@ -57,6 +57,9 @@ impl ByteCompiler<'_> {
         let loop_ = self.next_opcode_location();
         self.push_loop_control_info(None, loop_, false);
 
+        self.bytecode.emit_iterator_done(temp.variable());
+        let done = self.jump_if_true(&temp);
+
         self.bytecode.emit_increment_loop_iteration();
 
         self.iterator_next(false);
@@ -71,6 +74,7 @@ impl ByteCompiler<'_> {
         self.bytecode.emit_jump(loop_);
         self.pop_loop_control_info();
 
+        self.patch_jump(done);
         self.patch_jump(end);
         self.register_allocator.dealloc(temp);
     }
