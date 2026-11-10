@@ -378,9 +378,7 @@ pub(crate) fn native_function_call(
     .map_err(|err| err.inject_realm(context.realm().clone()));
 
     context.vm.native_active_function = None;
-    context.vm.frames.pop();
-
-    context.vm.shadow_stack.pop();
+    context.vm.pop_frame();
 
     context.vm.stack.push(result?);
 
@@ -468,9 +466,7 @@ fn native_function_construct(
         });
 
     context.vm.native_active_function = None;
-    context.vm.frames.pop();
-
-    context.vm.shadow_stack.pop();
+    context.vm.pop_frame();
 
     context.vm.stack.push(result?);
 

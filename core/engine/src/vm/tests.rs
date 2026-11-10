@@ -680,3 +680,137 @@ fn with_object_environment_binding_deleted_in_unscopables() {
         TestAction::assert("strictThrew === true"),
     ]);
 }
+
+#[test]
+fn nested_function_loop_runtime_limit_and_stack_unwind() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(15);
+            context.runtime_limits_mut().set_stack_size_limit(128);
+        }),
+        TestAction::run(indoc! {r#"
+            function innerLoop() {
+                for (let i = 0; i < 6; ++i) {}
+            }
+        "#}),
+        // 2 * 6 + 2 = 14 iterations <= 15
+        TestAction::assert_eq(
+            indoc! {r#"
+                let total = 0;
+                for (let j = 0; j < 2; ++j) {
+                    innerLoop();
+                    total += 1;
+                }
+                total
+            "#},
+            2,
+        ),
+        // 3 * 6 + 3 = 21 iterations > 15; must trip LoopIteration even though each
+        // individual call frame executes fewer than 15 iterations.
+        TestAction::assert_runtime_limit_error(
+            indoc! {r#"
+                for (let j = 0; j < 3; ++j) {
+                    innerLoop();
+                }
+            "#},
+            RuntimeLimitError::LoopIteration,
+        ),
+        // Repeated uncatchable aborts at the entry frame must truncate stack slots
+        // cleanly and never accumulate toward `stack_size_limit`.
+        TestAction::inspect_context(|context| {
+            for _ in 0..100 {
+                let err = context
+                    .eval(Source::from_bytes(
+                        "{ let a = 1, b = 2, c = 3; while (true) {} }",
+                    ))
+                    .unwrap_err();
+                assert_eq!(
+                    err,
+                    crate::error::EngineError::RuntimeLimit(RuntimeLimitError::LoopIteration)
+                        .into()
+                );
+            }
+        }),
+        TestAction::assert_eq("1 + 1", 2),
+    ]);
+}
+
+#[test]
+fn host_hooks_check_interrupt() {
+    use crate::JsResult;
+    use crate::context::{ContextBuilder, HostHooks};
+    use std::rc::Rc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    struct CountdownInterruptHooks {
+        remaining: AtomicUsize,
+    }
+
+    impl HostHooks for CountdownInterruptHooks {
+        fn check_interrupt(&self) -> JsResult<()> {
+            let prev = self.remaining.load(Ordering::Relaxed);
+            if prev == 0 {
+                return Err(RuntimeLimitError::Interrupt.into());
+            }
+            self.remaining.store(prev - 1, Ordering::Relaxed);
+            Ok(())
+        }
+    }
+
+    let hooks = Rc::new(CountdownInterruptHooks {
+        remaining: AtomicUsize::new(5),
+    });
+
+    let mut context = ContextBuilder::new()
+        .host_hooks(hooks.clone())
+        .build()
+        .unwrap();
+
+    // Uncatchable interrupt inside `try / catch` wrapping an infinite loop.
+    let err = context
+        .eval(Source::from_bytes(indoc! {r#"
+            var count = 0;
+            try {
+                while (true) {
+                    count++;
+                }
+            } catch (e) {
+                count = -1;
+            }
+        "#}))
+        .unwrap_err();
+    assert_eq!(
+        err,
+        crate::error::EngineError::RuntimeLimit(RuntimeLimitError::Interrupt).into()
+    );
+
+    // Reset the countdown and verify the context remains usable and `count` stopped at 5.
+    hooks.remaining.store(100, Ordering::Relaxed);
+    assert_eq!(
+        context.eval(Source::from_bytes("count")),
+        Ok(JsValue::new(5))
+    );
+
+    // Interrupt also triggers on function calls without loops.
+    hooks.remaining.store(3, Ordering::Relaxed);
+    let err = context
+        .eval(Source::from_bytes(indoc! {r#"
+            function recurse(n) {
+                return recurse(n + 1);
+            }
+            try {
+                recurse(0);
+            } catch (e) {}
+        "#}))
+        .unwrap_err();
+    assert_eq!(
+        err,
+        crate::error::EngineError::RuntimeLimit(RuntimeLimitError::Interrupt).into()
+    );
+
+    hooks.remaining.store(100, Ordering::Relaxed);
+    assert_eq!(
+        context.eval(Source::from_bytes("40 + 2")),
+        Ok(JsValue::new(42))
+    );
+}

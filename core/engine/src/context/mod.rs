@@ -117,7 +117,7 @@ pub struct Context {
     #[cfg(feature = "intl")]
     intl_provider: icu::IntlProvider,
 
-    host_hooks: Rc<dyn HostHooks>,
+    pub(crate) host_hooks: Rc<dyn HostHooks>,
 
     clock: Rc<dyn Clock>,
 
