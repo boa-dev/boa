@@ -51,7 +51,7 @@ impl<R> TokenParser<R> for Arguments
 where
     R: ReadChar,
 {
-    type Output = (Box<[Expression]>, Span);
+    type Output = (Box<[Expression]>, Span, bool);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let start = cursor
@@ -60,6 +60,7 @@ where
             .start();
 
         let mut args = Vec::new();
+        let mut has_trailing_comma = false;
         let end = loop {
             cursor.set_goal(InputElement::RegExp);
             let next_token = cursor.peek(0, interner).or_abrupt()?;
@@ -83,6 +84,7 @@ where
                     }
 
                     if let Some(next) = cursor.next_if(Punctuator::CloseParen, interner)? {
+                        has_trailing_comma = true;
                         break next.span().end();
                     }
                 }
@@ -118,6 +120,10 @@ where
             }
         };
         cursor.set_goal(InputElement::Div);
-        Ok((args.into_boxed_slice(), Span::new(start, end)))
+        Ok((
+            args.into_boxed_slice(),
+            Span::new(start, end),
+            has_trailing_comma,
+        ))
     }
 }

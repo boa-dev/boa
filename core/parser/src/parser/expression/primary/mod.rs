@@ -553,7 +553,7 @@ where
 }
 
 /// Convert an expression to a formal parameter and append it to the given parameter list.
-fn expression_to_formal_parameters(
+pub(crate) fn expression_to_formal_parameters(
     node: &ast::Expression,
     parameters: &mut Vec<FormalParameter>,
     strict: bool,
