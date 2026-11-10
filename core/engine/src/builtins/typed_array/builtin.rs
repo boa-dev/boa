@@ -848,9 +848,8 @@ impl BuiltinTypedArray {
         // 10. Let n be 0.
         // 11. For each element e of kept, do
         for (n, e) in kept.iter().enumerate() {
-            // a. Perform ! Set(A, ! ToString(𝔽(n)), e, true).
-            a.set(n, e.clone(), true, context)
-                .js_expect("Set cannot fail here")?;
+            // a. Perform ? Set(A, ! ToString(𝔽(n)), e, true).
+            a.set(n, e.clone(), true, context)?;
             // b. Set n to n + 1.
         }
 
@@ -2650,10 +2649,8 @@ impl BuiltinTypedArray {
                 // c. Else, let fromValue be ! Get(O, Pk).
                 ta.get(k, context).js_expect("cannot fail per the spec")?
             };
-            // d. Perform ! Set(A, Pk, fromValue, true).
-            new_array
-                .set(k, value, true, context)
-                .js_expect("cannot fail per the spec")?;
+            // d. Perform ? Set(A, Pk, fromValue, true).
+            new_array.set(k, value, true, context)?;
 
             // e. Set k to k + 1.
         }
