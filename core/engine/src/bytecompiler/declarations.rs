@@ -1100,18 +1100,19 @@ impl ByteCompiler<'_> {
                         // 4. Else,
                         else {
                             // a. Let initialValue be ! env.GetBindingValue(n, false).
-                            let binding = scope
+                            //
+                            // `scope` here is varEnv. The parameter binding lives on `env`
+                            // (`parameter_scope`), which does not contain the shadowed `var`.
+                            let param_binding = scopes
+                                .parameter_scope()
                                 .get_binding_reference(&n_string)
-                                .expect("must have binding");
-                            let index = self.get_binding(&binding);
+                                .expect("parameter binding must exist");
+                            let index = self.get_binding(&param_binding);
                             self.emit_binding_access(BindingAccessOpcode::GetName, &index, &value);
                         }
 
                         // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                         let index = self.insert_binding(binding);
-
-                        // TODO: What?
-                        self.bytecode.emit_store_undefined(value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                         self.register_allocator.dealloc(value);
 
