@@ -58,6 +58,15 @@ impl ByteCompiler<'_> {
     /// A loop can have more than one label (`a: b: for (;;)`), but only the innermost one is
     /// attached to the loop's own jump info; the outer ones are separate labelled-statement infos
     /// pushed right before it. A `continue` to any of them has to continue the loop itself.
+    ///
+    /// In the spec, [LabelledEvaluation of a `LabelledStatement`][labelled] appends its label to
+    /// `labelSet` and passes the set down to the labelled item, so a loop under `a: b:` gets
+    /// the label set « a, b ». [LoopContinues][loop-continues] then returns `true` for a
+    /// `continue` completion whose target is any label in that set (step 4), which means
+    /// `continue a` continues the loop the same way `continue b` does.
+    ///
+    /// [labelled]: https://tc39.es/ecma262/#sec-labelled-statements-runtime-semantics-labelledevaluation
+    /// [loop-continues]: https://tc39.es/ecma262/#sec-loopcontinues
     fn continue_target(&self, label: Sym) -> Option<usize> {
         let found = self
             .jump_info
