@@ -965,6 +965,10 @@ impl Json {
         value: &JsObject,
         context: &mut Context,
     ) -> JsResult<JsString> {
+        // Serialization recurses natively; bound the nesting depth by the recursion limit
+        // instead of overflowing the native stack.
+        context.check_native_recursion(state.stack_set.len())?;
+
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         if !state.stack_set.insert(value.clone()) {
             return Err(JsNativeError::typ()
@@ -1124,6 +1128,10 @@ impl Json {
         value: &JsObject,
         context: &mut Context,
     ) -> JsResult<JsString> {
+        // Serialization recurses natively; bound the nesting depth by the recursion limit
+        // instead of overflowing the native stack.
+        context.check_native_recursion(state.stack_set.len())?;
+
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         if !state.stack_set.insert(value.clone()) {
             return Err(JsNativeError::typ()
