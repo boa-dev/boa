@@ -1555,7 +1555,7 @@ impl Date {
         // 6. Return ! FormatDateTime(dateFormat, x).
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
-        let dtf = create_date_time_format(locales, options, required, defaults, context)?;
+        let dtf = create_date_time_format(locales, options, required, defaults, None, context)?;
         format_date_time(&dtf, x, context)
     }
 
