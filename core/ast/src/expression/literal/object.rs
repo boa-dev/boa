@@ -41,6 +41,7 @@ use core::{fmt::Write as _, ops::ControlFlow};
 #[derive(Clone, Debug, PartialEq)]
 pub struct ObjectLiteral {
     properties: Box<[PropertyDefinition]>,
+    has_trailing_comma_spread: bool,
     span: Span,
 }
 
@@ -48,12 +49,13 @@ impl ObjectLiteral {
     /// Create a new [`ObjectLiteral`].
     #[inline]
     #[must_use]
-    pub fn new<T>(properties: T, span: Span) -> Self
+    pub fn new<T>(properties: T, has_trailing_comma_spread: bool, span: Span) -> Self
     where
         T: Into<Box<[PropertyDefinition]>>,
     {
         Self {
             properties: properties.into(),
+            has_trailing_comma_spread,
             span,
         }
     }
@@ -65,9 +67,21 @@ impl ObjectLiteral {
         &self.properties
     }
 
+    /// Indicates if a spread property in the object literal is followed by a trailing comma.
+    /// This is a syntax error if the object literal is converted into a pattern.
+    #[inline]
+    #[must_use]
+    pub const fn has_trailing_comma_spread(&self) -> bool {
+        self.has_trailing_comma_spread
+    }
+
     /// Converts the object literal into an [`ObjectPattern`].
     #[must_use]
     pub fn to_pattern(&self, strict: bool) -> Option<ObjectPattern> {
+        if self.has_trailing_comma_spread() {
+            return None;
+        }
+
         let mut bindings = Vec::new();
         for (i, property) in self.properties.iter().enumerate() {
             match property {
