@@ -577,7 +577,7 @@ pub struct ByteCompiler<'ctx> {
 
 pub(crate) enum BindingKind {
     Stack(u32),
-    Local(Option<u32>),
+    Local(u32),
     Global(u32),
 }
 
@@ -771,33 +771,39 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.get_or_insert_name(name.description())
     }
 
-    // TODO: Make this return `Option<BindingKind>` instead of making BindingKind::Local
-    //       inner field optional.
+    /// Returns the kind of an existing binding.
+    ///
+    /// Returns `None` for a local binding that has no register yet, which means
+    /// it is accessed before being initialized.
     #[inline]
-    pub(crate) fn get_binding(&mut self, binding: &IdentifierReference) -> BindingKind {
+    pub(crate) fn get_binding(&mut self, binding: &IdentifierReference) -> Option<BindingKind> {
         if binding.is_global_object() {
             if let Some(index) = self.bindings_map.get(&binding.locator()) {
-                return BindingKind::Global(*index);
+                return Some(BindingKind::Global(*index));
             }
 
             let index = self.bindings.len() as u32;
             self.bindings.push(binding.locator().clone());
             self.bindings_map.insert(binding.locator(), index);
-            return BindingKind::Global(index);
+            return Some(BindingKind::Global(index));
         }
 
         if binding.local() {
-            return BindingKind::Local(self.local_binding_registers.get(binding).copied());
+            return self
+                .local_binding_registers
+                .get(binding)
+                .copied()
+                .map(BindingKind::Local);
         }
 
         if let Some(index) = self.bindings_map.get(&binding.locator()) {
-            return BindingKind::Stack(*index);
+            return Some(BindingKind::Stack(*index));
         }
 
         let index = self.bindings.len() as u32;
         self.bindings.push(binding.locator().clone());
         self.bindings_map.insert(binding.locator(), index);
-        BindingKind::Stack(index)
+        Some(BindingKind::Stack(index))
     }
 
     #[inline]
@@ -814,12 +820,12 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
 
         if binding.local() {
-            return BindingKind::Local(Some(
+            return BindingKind::Local(
                 *self
                     .local_binding_registers
                     .entry(binding)
                     .or_insert_with(|| self.register_allocator.alloc_persistent().index()),
-            ));
+            );
         }
 
         if let Some(index) = self.bindings_map.get(&binding.locator()) {
@@ -918,6 +924,27 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.bytecode.emit_push_from_register(src.variable());
     }
 
+    /// Emits a binding access for the result of [`Self::get_binding`].
+    ///
+    /// A `None` binding is a local binding that is not initialized yet, so this emits
+    /// a `ReferenceError` throw instead of the access.
+    pub(crate) fn emit_binding_access_opt(
+        &mut self,
+        opcode: BindingAccessOpcode,
+        binding: Option<&BindingKind>,
+        value: &Register,
+    ) {
+        if let Some(binding) = binding {
+            self.emit_binding_access(opcode, binding, value);
+        } else {
+            let error_msg = self.get_or_insert_literal(Literal::String(js_string!(
+                "access of uninitialized binding"
+            )));
+            self.bytecode
+                .emit_throw_new_reference_error(error_msg.into());
+        }
+    }
+
     pub(crate) fn emit_binding_access(
         &mut self,
         opcode: BindingAccessOpcode,
@@ -994,14 +1021,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     .bytecode
                     .emit_delete_name(value.variable(), (*index).into()),
             },
-            BindingKind::Local(None) => {
-                let error_msg = self.get_or_insert_literal(Literal::String(js_string!(
-                    "access of uninitialized binding"
-                )));
-                self.bytecode
-                    .emit_throw_new_reference_error(error_msg.into());
-            }
-            BindingKind::Local(Some(index)) => match opcode {
+            BindingKind::Local(index) => match opcode {
                 BindingAccessOpcode::GetName
                 | BindingAccessOpcode::GetNameOrUndefined
                 | BindingAccessOpcode::GetNameAndLocator => {
@@ -1492,7 +1512,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.bytecode.emit_move(dst.variable(), cached_reg.into());
                     return;
                 }
-                self.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
+                self.emit_binding_access_opt(BindingAccessOpcode::GetName, index.as_ref(), dst);
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => {
@@ -1583,7 +1603,11 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                 let value = self.register_allocator.alloc();
                 if !is_lexical {
-                    self.emit_binding_access(BindingAccessOpcode::GetLocator, &index, &value);
+                    self.emit_binding_access_opt(
+                        BindingAccessOpcode::GetLocator,
+                        index.as_ref(),
+                        &value,
+                    );
                 }
                 self.register_allocator.dealloc(value);
 
@@ -1602,7 +1626,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                         Err(BindingLocatorError::Silent) => {}
                     }
                 } else {
-                    self.emit_binding_access(BindingAccessOpcode::SetNameByLocator, &index, value);
+                    self.emit_binding_access_opt(
+                        BindingAccessOpcode::SetNameByLocator,
+                        index.as_ref(),
+                        value,
+                    );
                 }
             }
             Access::Property { access } => match access {
@@ -1722,7 +1750,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let name = name.to_js_string(self.interner());
                 let binding = self.lexical_scope.get_identifier_reference(name);
                 let index = self.get_binding(&binding);
-                self.emit_binding_access(BindingAccessOpcode::DeleteName, &index, dst);
+                self.emit_binding_access_opt(BindingAccessOpcode::DeleteName, index.as_ref(), dst);
             }
             Access::This => self.bytecode.emit_store_true(dst.variable()),
         }
@@ -1829,7 +1857,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             let name = self.resolve_identifier_expect(*name);
             let binding = self.lexical_scope.get_identifier_reference(name);
             let index = self.get_binding(&binding);
-            if let BindingKind::Local(Some(local_reg)) = &index {
+            if let Some(BindingKind::Local(local_reg)) = &index {
                 inner_fn(self, RegisterOperand::from(*local_reg));
                 return;
             }
@@ -2428,11 +2456,19 @@ impl<'ctx> ByteCompiler<'ctx> {
                     let index = self.get_binding(&binding);
 
                     let value = self.register_allocator.alloc();
-                    self.emit_binding_access(BindingAccessOpcode::GetName, &index, &value);
+                    self.emit_binding_access_opt(
+                        BindingAccessOpcode::GetName,
+                        index.as_ref(),
+                        &value,
+                    );
                     match self.variable_scope.set_mutable_binding_var(name.clone()) {
                         Ok(binding) => {
                             let index = self.get_binding(&binding);
-                            self.emit_binding_access(BindingAccessOpcode::SetName, &index, &value);
+                            self.emit_binding_access_opt(
+                                BindingAccessOpcode::SetName,
+                                index.as_ref(),
+                                &value,
+                            );
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_string(name);
@@ -2675,8 +2711,8 @@ impl<'ctx> ByteCompiler<'ctx> {
                         let binding = self.lexical_scope.get_identifier_reference(name);
                         let index = self.get_binding(&binding);
                         let index = match index {
-                            BindingKind::Global(index) | BindingKind::Stack(index) => index,
-                            BindingKind::Local(_) => {
+                            Some(BindingKind::Global(index) | BindingKind::Stack(index)) => index,
+                            Some(BindingKind::Local(_)) | None => {
                                 unreachable!("with binding cannot be local")
                             }
                         };

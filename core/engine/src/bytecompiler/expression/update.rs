@@ -48,7 +48,7 @@ impl ByteCompiler<'_> {
                         .lexical_scope
                         .set_mutable_binding(name.clone())
                         .is_ok()
-                    && let BindingKind::Local(Some(local_reg)) = &index
+                    && let Some(BindingKind::Local(local_reg)) = &index
                 {
                     let local_op = (*local_reg).into();
 
@@ -84,11 +84,15 @@ impl ByteCompiler<'_> {
                 }
 
                 if is_lexical {
-                    compiler.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
+                    compiler.emit_binding_access_opt(
+                        BindingAccessOpcode::GetName,
+                        index.as_ref(),
+                        dst,
+                    );
                 } else {
-                    compiler.emit_binding_access(
+                    compiler.emit_binding_access_opt(
                         BindingAccessOpcode::GetNameAndLocator,
-                        &index,
+                        index.as_ref(),
                         dst,
                     );
                 }
@@ -117,9 +121,9 @@ impl ByteCompiler<'_> {
                         Err(BindingLocatorError::Silent) => {}
                     }
                 } else {
-                    compiler.emit_binding_access(
+                    compiler.emit_binding_access_opt(
                         BindingAccessOpcode::SetNameByLocator,
-                        &index,
+                        index.as_ref(),
                         &value,
                     );
                 }

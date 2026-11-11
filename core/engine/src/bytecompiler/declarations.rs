@@ -1104,7 +1104,11 @@ impl ByteCompiler<'_> {
                                 .get_binding_reference(&n_string)
                                 .expect("must have binding");
                             let index = self.get_binding(&binding);
-                            self.emit_binding_access(BindingAccessOpcode::GetName, &index, &value);
+                            self.emit_binding_access_opt(
+                                BindingAccessOpcode::GetName,
+                                index.as_ref(),
+                                &value,
+                            );
                         }
 
                         // 5. Perform ! varEnv.InitializeBinding(n, initialValue).

@@ -39,9 +39,9 @@ impl ByteCompiler<'_> {
                         let identifier = identifier.to_js_string(self.interner());
                         let binding = self.lexical_scope.get_identifier_reference(identifier);
                         let index = self.get_binding(&binding);
-                        self.emit_binding_access(
+                        self.emit_binding_access_opt(
                             BindingAccessOpcode::GetNameOrUndefined,
-                            &index,
+                            index.as_ref(),
                             dst,
                         );
                     }
