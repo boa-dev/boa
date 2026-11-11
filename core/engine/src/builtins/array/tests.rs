@@ -1,6 +1,7 @@
 use super::Array;
 use crate::{
-    Context, JsNativeErrorKind, JsValue, TestAction, builtins::Number, js_string, run_test_actions,
+    Context, JsNativeErrorKind, JsValue, TestAction, builtins::Number, error::RuntimeLimitError,
+    js_string, run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;
@@ -148,6 +149,38 @@ fn flat() {
                 )
             "#}),
         TestAction::assert("arrayEquals( [[[[[['a']]]]]].flat(Infinity), ['a'] )"),
+    ]);
+}
+
+/// Regression test for <https://github.com/boa-dev/boa/issues/5655>.
+///
+/// `Array.prototype.flat(Infinity)` maps `Infinity` to `u64::MAX`, for which the
+/// `newDepth = depth - 1` decrement is a no-op. `FlattenIntoArray` self-recurses
+/// on the native stack without passing any runtime-limit checkpoint, so a
+/// self-referential array (or an array nested deeper than the recursion limit)
+/// exhausted the OS stack instead of raising the limit error.
+#[test]
+fn flat_recursion_limit() {
+    run_test_actions([
+        TestAction::assert_runtime_limit_error(
+            indoc! {r#"
+                const a = [1];
+                a[0] = a;
+                a.flat(Infinity);
+            "#},
+            RuntimeLimitError::Recursion,
+        ),
+        // Finite depth beyond the recursion limit (512) must also stop cleanly.
+        TestAction::assert_runtime_limit_error(
+            indoc! {r#"
+                let deep = [0];
+                for (let i = 0; i < 2000; ++i) { deep = [deep]; }
+                deep.flat(Infinity);
+            "#},
+            RuntimeLimitError::Recursion,
+        ),
+        // `flat(1)` on a self-referential array must still flatten exactly one level.
+        TestAction::assert_eq("a.flat(0).length", 1),
     ]);
 }
 
