@@ -452,3 +452,49 @@ fn test_dynamic_import_symbol_key() {
         PromiseState::Pending => panic!("Dynamic import is still pending"),
     }
 }
+
+#[test]
+fn test_default_export_named_evaluation() {
+    fn default_export(src: &[u8], context: &mut Context) -> boa_engine::JsValue {
+        let module = Module::parse(Source::from_bytes(src), None, context).unwrap();
+        let promise = module.load_link_evaluate(context);
+        context.run_jobs().unwrap();
+        if let PromiseState::Rejected(e) = promise.state() {
+            panic!("Unexpected error: {:?}", e.to_string(context).unwrap());
+        }
+        module
+            .namespace(context)
+            .get(js_string!("default"), context)
+            .unwrap()
+    }
+
+    fn name_of(value: &boa_engine::JsValue, context: &mut Context) -> boa_engine::JsValue {
+        value
+            .as_object()
+            .unwrap()
+            .get(js_string!("name"), context)
+            .unwrap()
+    }
+
+    let mut context = Context::default();
+    let sources: [&[u8]; 3] = [
+        b"export default (function () {});",
+        b"export default (class {});",
+        b"export default (() => {});",
+    ];
+    for src in sources {
+        let value = default_export(src, &mut context);
+        let name = name_of(&value, &mut context)
+            .to_string(&mut context)
+            .unwrap();
+        assert_eq!(name, js_string!("default"));
+    }
+
+    // The class is named before its static elements are defined, so a static
+    // `name` method replaces the name.
+    let value = default_export(
+        b"export default (class { static name() { return 'method'; } });",
+        &mut context,
+    );
+    assert!(name_of(&value, &mut context).is_callable());
+}

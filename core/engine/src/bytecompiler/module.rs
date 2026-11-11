@@ -1,4 +1,4 @@
-use super::{ByteCompiler, Literal, ToJsString};
+use super::{ByteCompiler, ToJsString};
 use crate::vm::opcode::BindingOpcode;
 use boa_ast::{ModuleItem, ModuleItemList, declaration::ExportDeclaration};
 use boa_interner::Sym;
@@ -65,24 +65,17 @@ impl ByteCompiler<'_> {
                         }
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
+                        // 1. If IsAnonymousFunctionDefinition(AssignmentExpression) is true, then
+                        //     a. Let value be ? NamedEvaluation of AssignmentExpression with argument "default".
+                        //    The parser has already named it "default".
+                        // 2. Else,
+                        //     a. Let rhs be ? Evaluation of AssignmentExpression.
+                        //     b. Let value be ? GetValue(rhs).
                         let function = self.register_allocator.alloc();
                         self.compile_expr(expr, &function);
 
-                        if expr.is_anonymous_function_definition() {
-                            let default = self
-                                .interner()
-                                .resolve_expect(Sym::DEFAULT)
-                                .into_common(false);
-                            let key = self.register_allocator.alloc();
-                            self.emit_store_literal(Literal::String(default), &key);
-                            self.bytecode.emit_set_function_name(
-                                function.variable(),
-                                key.variable(),
-                                0u32.into(),
-                            );
-                            self.register_allocator.dealloc(key);
-                        }
-
+                        // 3. Let env be the running execution context's LexicalEnvironment.
+                        // 4. Perform ? InitializeBoundName("*default*", value, env).
                         let name = Sym::DEFAULT_EXPORT.to_js_string(self.interner());
                         self.emit_binding(BindingOpcode::InitLexical, name, &function);
                         self.register_allocator.dealloc(function);
