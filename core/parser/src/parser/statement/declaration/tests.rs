@@ -804,10 +804,12 @@ fn using_no_destructuring_object() {
     check_invalid_script("using {x, y} = resource;");
 }
 
-/// Checks that destructuring patterns are rejected for `using` declarations.
+/// Checks that destructuring patterns are rejected for `using` declarations. `using [a, b] = x` is
+/// a computed member assignment, as `using` is an identifier there, so the pattern is empty, as in
+/// test262's `using-invalid-arraybindingpattern.js`: invalid either way.
 #[test]
 fn using_no_destructuring_array() {
-    check_invalid_script("using [a, b] = resource;");
+    check_invalid_script("using [] = resource;");
 }
 
 /// Checks that destructuring patterns are rejected for `await using` declarations.
@@ -898,4 +900,29 @@ fn await_using_valid_identifiers() {
         "Failed to parse await using with multiple bindings: {:?}",
         result.err()
     );
+}
+
+/// Checks that `using` is an identifier where no identifier follows it on the same line: in
+/// expressions, and at the start of a statement before `[`, `.`, `(` or a line terminator.
+#[test]
+fn using_as_identifier() {
+    for code in [
+        "var using = {}; using['a'] = 1;",
+        "var using = {}; !using['b'];",
+        "var using = {}; delete using['a'];",
+        "var using = {}; using.a = 1;",
+        "var using = function() {}; using();",
+        "var using = {}, a = 0, b = 1; using [a, b] = 2;",
+        "var using = 1, x; using\nx = 2;",
+        "function f(using) { return using + 1; }",
+    ] {
+        let scope = boa_ast::scope::Scope::new_global();
+        let result =
+            Parser::new(Source::from_bytes(code)).parse_script(&scope, &mut Interner::default());
+        assert!(
+            result.is_ok(),
+            "Failed to parse `{code}`: {:?}",
+            result.err()
+        );
+    }
 }
