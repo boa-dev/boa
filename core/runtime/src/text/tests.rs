@@ -2,7 +2,7 @@ use crate::test::{TestAction, run_test_actions_with};
 use crate::text;
 use boa_engine::object::builtins::JsUint8Array;
 use boa_engine::property::Attribute;
-use boa_engine::{Context, JsString, js_str, js_string};
+use boa_engine::{Context, JsString, Source, js_str, js_string};
 use indoc::indoc;
 use test_case::test_case;
 
@@ -475,4 +475,378 @@ fn decoder_handle_data_view_offset_and_length() {
         ],
         context,
     );
+}
+
+#[test]
+fn decoder_fatal_getter() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const d1 = new TextDecoder();
+                const d2 = new TextDecoder("utf-8", { fatal: true });
+                const d3 = new TextDecoder("utf-8", { fatal: false });
+                fatal1 = d1.fatal;
+                fatal2 = d2.fatal;
+                fatal3 = d3.fatal;
+                hasFatal = "fatal" in d1;
+            "#}),
+            TestAction::inspect_context(|context| {
+                let v1 = context
+                    .global_object()
+                    .get(js_str!("fatal1"), context)
+                    .unwrap();
+                let v2 = context
+                    .global_object()
+                    .get(js_str!("fatal2"), context)
+                    .unwrap();
+                let v3 = context
+                    .global_object()
+                    .get(js_str!("fatal3"), context)
+                    .unwrap();
+                let has = context
+                    .global_object()
+                    .get(js_str!("hasFatal"), context)
+                    .unwrap();
+                assert_eq!(v1.as_boolean(), Some(false));
+                assert_eq!(v2.as_boolean(), Some(true));
+                assert_eq!(v3.as_boolean(), Some(false));
+                assert_eq!(has.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf8_invalid_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-8", { fatal: true });
+                try {
+                    decoder.decode(Uint8Array.of(0xf0, 0x80, 0x80));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test_case("utf-8", "0xef, 0xbb, 0xbf, 0x41, 0xf0, 0x9f, 0x98, 0x80")]
+#[test_case("utf-16le", "0xff, 0xfe, 0x41, 0, 0x3d, 0xd8, 0, 0xde")]
+#[test_case("utf-16be", "0xfe, 0xff, 0, 0x41, 0xd8, 0x3d, 0xde, 0")]
+fn decoder_fatal_accepts_valid_input(encoding: &str, bytes: &str) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let source = format!(
+        "const input = Uint8Array.of({bytes});
+         const decoder = new TextDecoder('{encoding}', {{ fatal: true }});
+         const keepBOM = new TextDecoder('{encoding}', {{ fatal: true, ignoreBOM: true }});
+         decoder.decode(input) === 'A😀' &&
+         keepBOM.decode(input) === '\\uFEFFA😀' &&
+         decoder.decode(new Uint8Array()) === '' && decoder.decode() === ''"
+    );
+    let result = context.eval(Source::from_bytes(&source)).unwrap();
+    assert_eq!(result.as_boolean(), Some(true));
+}
+
+#[test]
+fn decoder_fatal_utf16le_invalid_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16le", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0x00]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16be_invalid_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16be", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0x00]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_utf16_unaligned_buffer() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const buffer = new ArrayBuffer(8);
+                const u8 = new Uint8Array(buffer, 1, 4);
+                // "Hi" in UTF-16LE at unaligned offset: [72, 0, 105, 0]
+                u8[0] = 72;
+                u8[1] = 0;
+                u8[2] = 105;
+                u8[3] = 0;
+                decodedLe = new TextDecoder("utf-16le").decode(u8);
+            "#}),
+            TestAction::inspect_context(|context| {
+                let decoded = context
+                    .global_object()
+                    .get(js_str!("decodedLe"), context)
+                    .unwrap();
+                assert_eq!(decoded.as_string(), Some(js_string!("Hi")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_utf16le_surrogates() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16le");
+                res = decoder.decode(new Uint8Array([0x00, 0xd8]));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let res = context
+                    .global_object()
+                    .get(js_str!("res"), context)
+                    .unwrap();
+                assert_eq!(res.as_string(), Some(js_string!("\u{FFFD}")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_utf16be_surrogates() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16be");
+                res = decoder.decode(new Uint8Array([0xd8, 0x00]));
+            "#}),
+            TestAction::inspect_context(|context| {
+                let res = context
+                    .global_object()
+                    .get(js_str!("res"), context)
+                    .unwrap();
+                assert_eq!(res.as_string(), Some(js_string!("\u{FFFD}")));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16le_surrogates_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16le", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0x00, 0xd8]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test]
+fn decoder_fatal_utf16be_surrogates_throws() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(indoc! {r#"
+                const decoder = new TextDecoder("utf-16be", { fatal: true });
+                try {
+                    decoder.decode(new Uint8Array([0xd8, 0x00]));
+                    thrown = false;
+                } catch (e) {
+                    thrown = e instanceof TypeError;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                let thrown = context
+                    .global_object()
+                    .get(js_str!("thrown"), context)
+                    .unwrap();
+                assert_eq!(thrown.as_boolean(), Some(true));
+            }),
+        ],
+        context,
+    );
+}
+
+#[test_case("{ fatal: 1, ignoreBOM: 1 }", true, true; "numbers")]
+#[test_case("{ fatal: 'false', ignoreBOM: 'false' }", true, true; "strings")]
+#[test_case("{ fatal: null, ignoreBOM: null }", false, false; "null_members")]
+#[test_case("{ fatal: 0, ignoreBOM: '' }", false, false; "falsy_members")]
+#[test_case("Object.create({ fatal: true, ignoreBOM: true })", true, true; "inherited")]
+#[test_case("{ get fatal() { return true; }, get ignoreBOM() { return true; } }", true, true; "getters")]
+#[test_case("new Proxy({}, { get(_, key) { return key === 'fatal'; } })", true, false; "proxy")]
+#[test_case("null", false, false; "null_dictionary")]
+#[test_case("undefined", false, false; "undefined_dictionary")]
+#[test_case("{}", false, false; "empty_dictionary")]
+#[test_case("{ fatal: { valueOf() { throw 1; } }, ignoreBOM: [] }", true, true; "objects")]
+fn decoder_option_conversion(options: &str, fatal: bool, ignore_bom: bool) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let source = format!(
+        "const decoder = new TextDecoder('utf-8', {options});
+         decoder.fatal === {fatal} && decoder.ignoreBOM === {ignore_bom}"
+    );
+    let result = context.eval(Source::from_bytes(&source)).unwrap();
+    assert_eq!(result.as_boolean(), Some(true), "{options}");
+}
+
+#[test]
+fn decoder_option_getter_order_and_errors() {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let result = context
+        .eval(Source::from_bytes(indoc! {r#"
+        const reads = [];
+        const options = {
+            get fatal() { reads.push('fatal'); return true; },
+            get ignoreBOM() { reads.push('ignoreBOM'); return false; }
+        };
+        const decoder = new TextDecoder('utf-8', options);
+        let fatalThrows = false;
+        try { decoder.decode(Uint8Array.of(0xff)); }
+        catch (error) { fatalThrows = error instanceof TypeError; }
+
+        const sentinel = {};
+        let errorPreserved = false;
+        let readAfterError = false;
+        try {
+            new TextDecoder('utf-8', {
+                get fatal() { throw sentinel; },
+                get ignoreBOM() { readAfterError = true; }
+            });
+        } catch (error) { errorPreserved = error === sentinel; }
+        reads.join(',') === 'fatal,ignoreBOM' && fatalThrows &&
+            errorPreserved && !readAfterError
+    "#}))
+        .unwrap();
+    assert_eq!(result.as_boolean(), Some(true));
+}
+
+#[test_case(&[], "", false; "empty")]
+#[test_case(&[0x41, 0, 0x3d, 0xd8, 0, 0xde], "A😀", false; "valid_pair")]
+#[test_case(&[0, 0xd8], "\u{FFFD}", true; "lone_high_surrogate")]
+#[test_case(&[0, 0xdc], "\u{FFFD}", true; "lone_low_surrogate")]
+#[test_case(&[0, 0xd8, 0x41, 0], "\u{FFFD}A", true; "high_then_ascii")]
+#[test_case(&[0, 0xd8, 0x41], "\u{FFFD}", true; "high_then_odd_byte")]
+#[test_case(&[0, 0xdc, 0x41], "\u{FFFD}\u{FFFD}", true; "low_then_odd_byte")]
+#[test_case(&[0, 0xd8, 0, 0xd8, 0x41], "\u{FFFD}\u{FFFD}", true; "two_high_then_odd_byte")]
+#[test_case(&[0x3d, 0xd8, 0, 0xde, 0x41], "😀\u{FFFD}", true; "pair_then_odd_byte")]
+fn decoder_utf16_error_sequences(input: &[u8], expected: &str, invalid: bool) {
+    let mut big_endian = input.to_vec();
+    for pair in big_endian.as_chunks_mut::<2>().0 {
+        pair.swap(0, 1);
+    }
+    for fatal in [false, true] {
+        let little = super::encodings::utf16le::decode(input, true, fatal);
+        let big = super::encodings::utf16be::decode(&big_endian, true, fatal);
+        if fatal && invalid {
+            assert!(little.is_err());
+            assert!(big.is_err());
+        } else {
+            assert_eq!(little.unwrap(), JsString::from(expected));
+            assert_eq!(big.unwrap(), JsString::from(expected));
+        }
+    }
+}
+
+#[test_case("utf-16le", "72, 0, 105, 0", false; "little_endian")]
+#[test_case("utf-16be", "0, 72, 0, 105", false; "big_endian")]
+#[test_case("utf-16le", "72, 0, 105, 0", true; "little_endian_fatal")]
+#[test_case("utf-16be", "0, 72, 0, 105", true; "big_endian_fatal")]
+fn decoder_utf16_unaligned_views(encoding: &str, bytes: &str, fatal: bool) {
+    let context = &mut Context::default();
+    text::register(None, context).unwrap();
+    let source = format!(
+        "const buffer = Uint8Array.of(255, {bytes}, 255).buffer;
+         const decoder = new TextDecoder('{encoding}', {{ fatal: {fatal} }});
+         decoder.decode(new Uint8Array(buffer, 1, 4)) === 'Hi' &&
+         decoder.decode(new DataView(buffer, 1, 4)) === 'Hi'"
+    );
+    let result = context.eval(Source::from_bytes(&source)).unwrap();
+    assert_eq!(result.as_boolean(), Some(true));
 }
