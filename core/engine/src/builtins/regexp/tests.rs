@@ -278,3 +278,87 @@ fn regexp_no_panic_on_empty_class_quantifier() {
     // It should return null without panicking.
     run_test_actions([TestAction::assert_eq("/[]*1/u.exec()", JsValue::null())]);
 }
+
+#[test]
+fn split_with_captures_and_limit() {
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::assert(r#"arrayEquals("a1b2c".split(/(\d)/), ["a", "1", "b", "2", "c"])"#),
+        TestAction::assert(r#"arrayEquals("a-b-c".split(/-/, 2), ["a", "b"])"#),
+        TestAction::assert(r#"arrayEquals("a-b-c".split(/-/, 0), [])"#),
+        TestAction::assert(r#"arrayEquals("abc".split(/x/), ["abc"])"#),
+        TestAction::assert(r#"arrayEquals("".split(/a/), [""])"#),
+        TestAction::assert(r#"arrayEquals("".split(/(?:)/), [])"#),
+    ]);
+}
+
+#[test]
+fn split_empty_matches() {
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::assert(r#"arrayEquals("foo".split(/(?:)/), ["f", "o", "o"])"#),
+        TestAction::assert(r#"arrayEquals("aba".split(/a/), ["", "b", ""])"#),
+        TestAction::assert(r#"arrayEquals("xax".split(/a*/), ["x", "x"])"#),
+        TestAction::assert(r#"arrayEquals("x".split(/$/), ["x"])"#),
+        TestAction::assert(r#"arrayEquals("x".split(/^/), ["x"])"#),
+        TestAction::assert(r#"arrayEquals("x".split(/\b/), ["x"])"#),
+    ]);
+}
+
+#[test]
+fn split_unicode_and_latin1() {
+    run_test_actions([
+        TestAction::run_harness(),
+        // Latin-1 stored string.
+        TestAction::assert(r#"arrayEquals("café".split(/é/), ["caf", ""])"#),
+        TestAction::assert(r#"arrayEquals("aa".split(/a/), ["", "", ""])"#),
+        // UTF-16 / surrogate pair: without `u`, empty matches split by code unit.
+        TestAction::assert(r#"arrayEquals("😀".split(/(?:)/), ["\uD83D", "\uDE00"])"#),
+        TestAction::assert(r#"arrayEquals("😀".split(/(?:)/u), ["😀"])"#),
+        TestAction::assert(r#"arrayEquals("😀".split(/(?:)/v), ["😀"])"#),
+    ]);
+}
+
+#[test]
+fn split_overridden_exec_is_called_at_every_index() {
+    // A user-defined `exec` is observable, so @@split must take the spec path
+    // and call it at every index instead of searching forward once per piece.
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            var calls = [];
+            var orig = RegExp.prototype.exec;
+            RegExp.prototype.exec = function(s) {
+                calls.push(this.lastIndex);
+                return orig.call(this, s);
+            };
+            var result = "aba".split(/a/);
+            RegExp.prototype.exec = orig;
+        "#}),
+        TestAction::run_harness(),
+        TestAction::assert(r#"arrayEquals(result, ["", "b", ""])"#),
+        TestAction::assert(r#"arrayEquals(calls, [0, 1, 2])"#),
+    ]);
+}
+
+#[test]
+fn sticky_exec() {
+    run_test_actions([
+        TestAction::run_harness(),
+        TestAction::run(indoc! {r#"
+            var re = /a/y;
+            var first = re.exec("aaa");
+            var second = re.exec("aaa");
+            var third = re.exec("aaa");
+            var done = re.exec("aaa");
+        "#}),
+        TestAction::assert(r#"arrayEquals(first, ["a"])"#),
+        TestAction::assert_eq("first.index", 0),
+        TestAction::assert(r#"arrayEquals(second, ["a"])"#),
+        TestAction::assert_eq("second.index", 1),
+        TestAction::assert(r#"arrayEquals(third, ["a"])"#),
+        TestAction::assert_eq("third.index", 2),
+        TestAction::assert_eq("done", JsValue::null()),
+        TestAction::assert_eq("re.lastIndex", 0),
+        TestAction::assert_eq("/a/y.exec('baa')", JsValue::null()),
+    ]);
+}
