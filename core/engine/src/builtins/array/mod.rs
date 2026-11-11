@@ -1921,7 +1921,21 @@ impl Array {
                     let element_len = element.length_of_array_like(context)?;
 
                     // 4. Set targetIndex to ? FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
-                    target_index = Self::flatten_into_array(
+                    //
+                    // `FlattenIntoArray` self-recurses on the native stack, and its depth
+                    // argument alone does not bound the recursion: `flat(Infinity)` maps
+                    // to `u64::MAX`, for which the decrement is a no-op, so a
+                    // self-referential array or a deep enough nested array exhausts the
+                    // OS stack. Account for each native level like a nested host call and
+                    // enforce the configured runtime recursion limit, mirroring what the
+                    // VM does on entry into `Context::run()`.
+                    context.vm.host_call_depth += 1;
+                    if let Err(err) = context.check_runtime_limits() {
+                        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
+                        return Err(err);
+                    }
+
+                    let result = Self::flatten_into_array(
                         target,
                         &element,
                         element_len,
@@ -1930,7 +1944,9 @@ impl Array {
                         None,
                         &JsValue::undefined(),
                         context,
-                    )?;
+                    );
+                    context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
+                    target_index = result?;
 
                 // vi. Else
                 } else {
