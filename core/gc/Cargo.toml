@@ -21,6 +21,8 @@ boa_string = ["dep:boa_string"]
 either = ["dep:either"]
 # Enable default implementations of trace and finalize for the arrayvec crate
 arrayvec = ["dep:arrayvec"]
+# Enable collection of GC statistics (allocation/free counters and per-phase timings)
+gc-stats = []
 
 [dependencies]
 boa_macros.workspace = true
