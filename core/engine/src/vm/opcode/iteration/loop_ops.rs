@@ -4,13 +4,15 @@ use crate::{Context, JsResult, vm::opcode::Operation};
 /// `IncrementLoopIteration` implements the Opcode Operation for `Opcode::IncrementLoopIteration`.
 ///
 /// Operation:
-///  - Increment loop iteration count.
+///  - Check the interrupt flag and increment loop iteration count.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct IncrementLoopIteration;
 
 impl IncrementLoopIteration {
     #[inline(always)]
     pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
+        context.vm.check_interrupt()?;
+
         let max = context.vm.runtime_limits.loop_iteration_limit();
         let frame = context.vm.frame_mut();
         let previous_iteration_count = frame.loop_iteration_count;
