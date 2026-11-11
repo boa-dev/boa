@@ -8,7 +8,8 @@ use boa_engine::interop::JsClass;
 use boa_engine::object::builtins::TypedJsFunction;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
+    Context, Finalize, JsData, JsObject, JsResult, JsStr, JsString, JsValue, Trace, boa_class,
+    js_error,
 };
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
@@ -41,9 +42,16 @@ fn normalize_header_value(value: &str) -> &str {
 /// If the value is not a valid header value, an error is returned.
 #[inline]
 fn to_header_value(value: impl AsRef<str>) -> JsResult<HeaderValue> {
-    normalize_header_value(value.as_ref())
-        .parse()
-        .map_err(|_| js_error!(TypeError: "Invalid header value."))
+    let bytes = normalize_header_value(value.as_ref())
+        .chars()
+        .map(|ch| u8::try_from(u32::from(ch)))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| js_error!(TypeError: "Header value contains a character above 0xFF."))?;
+    HeaderValue::from_bytes(&bytes).map_err(|_| js_error!(TypeError: "Invalid header value."))
+}
+
+pub(super) fn header_value_to_js_string(value: &HeaderValue) -> JsString {
+    JsString::from(JsStr::latin1(value.as_bytes()))
 }
 
 /// A JavaScript wrapper for the `Headers` object.
@@ -139,7 +147,7 @@ impl JsHeaders {
     /// or adds the header if it does not already exist.
     ///
     /// # Errors
-    /// If the key or value is not valid ASCII, an error is returned.
+    /// If the key or value is not a valid HTTP header byte string, an error is returned.
     pub fn append(&mut self, key: Convert<String>, value: Convert<String>) -> JsResult<()> {
         let key = to_header_name(key.as_ref())?;
         let value = to_header_value(value.as_ref())?;
@@ -185,7 +193,7 @@ impl JsHeaders {
         let this_arg = this_arg.unwrap_or_default();
         for (k, v) in this.clone_inner().headers.borrow().iter() {
             let k = JsString::from(k.as_str());
-            let v = JsString::from(v.to_str().unwrap_or(""));
+            let v = header_value_to_js_string(v);
             callback.call_with_this(&this_arg, context, (v, k, object.clone()))?;
         }
         Ok(())
@@ -205,13 +213,18 @@ impl JsHeaders {
             .borrow()
             .get_all(name.clone())
             .into_iter()
-            .map(|v| v.to_str().unwrap_or(""))
+            .map(|v| {
+                v.as_bytes()
+                    .iter()
+                    .map(|&byte| char::from(byte))
+                    .collect::<String>()
+            })
             .fold(None, |mut acc, v| {
                 let str = acc.get_or_insert_with(String::new);
                 if !str.is_empty() {
                     str.push_str(", ");
                 }
-                str.push_str(v);
+                str.push_str(&v);
                 acc
             });
 
@@ -224,7 +237,7 @@ impl JsHeaders {
             .borrow()
             .get_all("Set-Cookie")
             .into_iter()
-            .map(|v| JsString::from(v.to_str().unwrap_or("")))
+            .map(header_value_to_js_string)
             .collect()
     }
 
