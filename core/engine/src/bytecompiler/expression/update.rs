@@ -37,10 +37,11 @@ impl ByteCompiler<'_> {
                 //   Inc(dst, local); Move(local, dst) → 2 ops
                 //
                 // Post-increment (i++):
-                //   Move(dst, local); Inc(local, local) → 2 ops
+                //   Move(dst, local); Inc(local, dst) → 2 ops
                 //
-                // Inc(local, local) works because Inc writes new to dst AFTER old to src,
-                // so when dst==src the new value wins.
+                // Inc/Dec leave the numeric old value in their source register and
+                // write the new value to their destination register. When the result
+                // is discarded, both operands can use the local register.
                 //
                 // Skip for const bindings — they must fall through to emit ThrowMutateImmutable.
                 if is_lexical
@@ -63,13 +64,13 @@ impl ByteCompiler<'_> {
                     }
 
                     if post {
-                        // Save old value to dst (post-increment returns old value).
+                        // Postfix updates return ToNumeric(oldValue), not the original value.
+                        // See https://github.com/boa-dev/boa/pull/1913.
                         compiler.bytecode.emit_move(dst.variable(), local_op);
-                        // Increment in-place.
                         if increment {
-                            compiler.bytecode.emit_inc(local_op, local_op);
+                            compiler.bytecode.emit_inc(local_op, dst.variable());
                         } else {
-                            compiler.bytecode.emit_dec(local_op, local_op);
+                            compiler.bytecode.emit_dec(local_op, dst.variable());
                         }
                     } else {
                         if increment {
