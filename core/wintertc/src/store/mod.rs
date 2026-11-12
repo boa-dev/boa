@@ -11,10 +11,26 @@ use std::sync::Arc;
 mod from;
 mod to;
 
+/// Maximum nesting depth allowed while converting between a [`JsValue`] and a
+/// [`JsValueStore`].
+///
+/// Both conversions are implemented as recursive native functions, so this limit
+/// is what turns an overly deep object graph into a catchable `DataCloneError`
+/// instead of a native stack overflow that aborts the process. It is kept well
+/// below the native stack capacity to account for the larger frames of debug
+/// builds and for the deserialization pass, which uses a different call chain.
+const MAX_CLONE_DEPTH: usize = 256;
+
 /// Convenience method to avoid copy-pasting the same message.
 #[inline]
 fn unsupported_type() -> JsError {
     js_error!(Error: "DataCloneError: unsupported type for structured data")
+}
+
+/// Error returned when the value is nested deeper than [`MAX_CLONE_DEPTH`].
+#[inline]
+fn depth_limit_exceeded() -> JsError {
+    js_error!(Error: "DataCloneError: object graph is too deeply nested")
 }
 
 #[inline]

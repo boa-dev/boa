@@ -1,6 +1,9 @@
 //! All methods for serializing a [`JsValue`] into a [`JsValueStore`].
 
-use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
+use crate::store::{
+    JsValueStore, MAX_CLONE_DEPTH, StringStore, ValueStoreInner, depth_limit_exceeded,
+    unsupported_type,
+};
 use boa_engine::builtins::array_buffer::{AlignedVec, ArrayBuffer};
 use boa_engine::builtins::error::Error;
 use boa_engine::object::builtins::{
@@ -13,18 +16,24 @@ use rustc_hash::{FxHashMap, FxHashSet};
 
 /// A Map of seen objects when walking through the value. We use the address
 /// of the inner object as it is unique per JavaScript value.
+///
+/// It also tracks the current recursion depth so that both conversions can
+/// reject overly deep object graphs before exhausting the native stack.
 #[derive(Default)]
-pub(super) struct SeenMap(FxHashMap<usize, JsValueStore>);
+pub(super) struct SeenMap {
+    values: FxHashMap<usize, JsValueStore>,
+    depth: usize,
+}
 
 impl SeenMap {
     fn get(&self, object: &JsObject) -> Option<JsValueStore> {
         let addr = std::ptr::from_ref(object.as_ref()).addr();
-        self.0.get(&addr).cloned()
+        self.values.get(&addr).cloned()
     }
 
     fn insert(&mut self, original: &JsObject, object: JsValueStore) {
         let addr = std::ptr::from_ref(original.as_ref()).addr();
-        self.0.insert(addr, object);
+        self.values.insert(addr, object);
     }
 }
 
@@ -296,6 +305,22 @@ fn try_from_js_object_clone(
 }
 
 pub(super) fn try_from_js_value(
+    value: &JsValue,
+    transfer: &FxHashSet<JsObject>,
+    seen: &mut SeenMap,
+    context: &mut Context,
+) -> JsResult<JsValueStore> {
+    if seen.depth >= MAX_CLONE_DEPTH {
+        return Err(depth_limit_exceeded());
+    }
+
+    seen.depth += 1;
+    let result = try_from_js_value_inner(value, transfer, seen, context);
+    seen.depth -= 1;
+    result
+}
+
+fn try_from_js_value_inner(
     value: &JsValue,
     transfer: &FxHashSet<JsObject>,
     seen: &mut SeenMap,
