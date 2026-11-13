@@ -1,3 +1,5 @@
+use thin_vec::{ThinVec, thin_vec};
+
 use crate::{
     JsObject, JsString, JsValue, NativeFunction, js_string,
     native_function::{NativeFunctionObject, NativeFunctionPointer},
@@ -169,13 +171,13 @@ pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
     length: usize,
 
     constructor_property_table: PropertyTableInner,
-    constructor_storage: Vec<JsValue>,
+    constructor_storage: ThinVec<JsValue>,
     constructor: JsObject,
     #[cfg(debug_assertions)]
     constructor_storage_slots_expected: usize,
 
     prototype_property_table: PropertyTableInner,
-    prototype_storage: Vec<JsValue>,
+    prototype_storage: ThinVec<JsValue>,
     prototype: JsObject,
     #[cfg(debug_assertions)]
     prototype_storage_slots_expected: usize,
@@ -525,7 +527,7 @@ impl BuiltInCallable<'_> {
                 constructor: None,
                 realm: Some(self.realm.clone()),
             },
-            vec![JsValue::new(self.length), JsValue::new(self.name)],
+            thin_vec![JsValue::new(self.length), JsValue::new(self.name)],
         );
 
         JsFunction::from_object_unchecked(object)
@@ -601,7 +603,7 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
                 SC::CONSTRUCTOR_STORAGE_SLOTS
                     + BuiltInConstructorWithPrototype::OWN_CONSTRUCTOR_STORAGE_SLOTS,
             ),
-            constructor_storage: Vec::with_capacity(
+            constructor_storage: ThinVec::with_capacity(
                 SC::CONSTRUCTOR_STORAGE_SLOTS
                     + BuiltInConstructorWithPrototype::OWN_CONSTRUCTOR_STORAGE_SLOTS,
             ),
@@ -612,7 +614,7 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
                 SC::PROTOTYPE_STORAGE_SLOTS
                     + BuiltInConstructorWithPrototype::OWN_PROTOTYPE_STORAGE_SLOTS,
             ),
-            prototype_storage: Vec::with_capacity(
+            prototype_storage: ThinVec::with_capacity(
                 SC::PROTOTYPE_STORAGE_SLOTS
                     + BuiltInConstructorWithPrototype::OWN_PROTOTYPE_STORAGE_SLOTS,
             ),

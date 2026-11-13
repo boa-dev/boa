@@ -7,6 +7,7 @@ use icu_list::{
     provider::{ListAndV1, ListFormatterPatterns},
 };
 use icu_locale::Locale;
+use thin_vec::thin_vec;
 use writeable::adapters::CoreWriteAsPartsWrite;
 
 use crate::{
@@ -335,7 +336,7 @@ impl ListFormat {
                 .intrinsics()
                 .templates()
                 .ordinary_object()
-                .create(OrdinaryObject, vec![]);
+                .create(OrdinaryObject, thin_vec![]);
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
             o.create_data_property_or_throw(js_string!("type"), js_string!(typ), context)
@@ -384,7 +385,7 @@ impl ListFormat {
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(OrdinaryObject, vec![]);
+            .create(OrdinaryObject, thin_vec![]);
 
         // 4. For each row of Table 11, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

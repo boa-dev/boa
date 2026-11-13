@@ -48,6 +48,7 @@ macro_rules! if_abrupt_close_iterator {
 
 // Export macro to crate level
 pub(crate) use if_abrupt_close_iterator;
+use thin_vec::thin_vec;
 
 use super::OrdinaryObject;
 
@@ -213,7 +214,7 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
         .intrinsics()
         .templates()
         .iterator_result()
-        .create(OrdinaryObject, vec![value, done.into()]);
+        .create(OrdinaryObject, thin_vec![value, done.into()]);
 
     // 5. Return obj.
     obj.into()
