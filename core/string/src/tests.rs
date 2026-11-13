@@ -548,6 +548,63 @@ fn split() {
 }
 
 #[test]
+fn windows_nth_and_size_hint() {
+    let latin1 = b"abcdefg";
+    let utf16: Vec<u16> = "ab\u{20ac}defg".encode_utf16().collect();
+
+    for size in 1..=8 {
+        for n in 0..=8 {
+            let mut windows = JsStr::latin1(latin1).windows(size);
+            let mut expected = latin1.windows(size);
+            assert_eq!(windows.size_hint(), expected.size_hint());
+            assert_eq!(windows.nth(n), expected.nth(n).map(JsStr::latin1));
+            assert_eq!(windows.size_hint(), expected.size_hint());
+            assert_eq!(windows.next(), expected.next().map(JsStr::latin1));
+
+            let mut windows = JsStr::utf16(&utf16).windows(size);
+            let mut expected = utf16.windows(size);
+            assert_eq!(windows.size_hint(), expected.size_hint());
+            assert_eq!(windows.nth(n), expected.nth(n).map(JsStr::utf16));
+            assert_eq!(windows.size_hint(), expected.size_hint());
+            assert_eq!(windows.next(), expected.next().map(JsStr::utf16));
+        }
+    }
+}
+
+#[test]
+fn index_of_from_index() {
+    let latin1 = JsStr::latin1(b"ab@cd@@e@");
+    let utf16_units: Vec<u16> = "ab@\u{20ac}d@@e@".encode_utf16().collect();
+    let utf16 = JsStr::utf16(&utf16_units);
+    let at = JsStr::latin1(b"@");
+    let at_at = JsStr::latin1(b"@@");
+    let empty = JsStr::latin1(b"");
+
+    for haystack in [latin1, utf16] {
+        let len = haystack.len();
+        for from_index in 0..=len + 2 {
+            let naive = |needle: JsStr<'_>| {
+                (from_index..=len.saturating_sub(needle.len())).find(|&i| {
+                    i + needle.len() <= len && haystack.get_expect(i..i + needle.len()) == needle
+                })
+            };
+            assert_eq!(haystack.index_of(at, from_index), naive(at));
+            assert_eq!(haystack.index_of(at_at, from_index), naive(at_at));
+            assert_eq!(
+                haystack.index_of(empty, from_index),
+                (from_index <= len).then_some(from_index)
+            );
+        }
+    }
+
+    // A match right at a large `from_index` in a long string.
+    let long = "abcdefghi@".repeat(100_000);
+    let long = JsStr::latin1(long.as_bytes());
+    assert_eq!(long.index_of(at, 999_990), Some(999_999));
+    assert_eq!(long.index_of(at, 1_000_000), None);
+}
+
+#[test]
 fn trim() {
     // Very basic test for trimming. The extensive testing is done by `boa_engine`.
     let base_str = JsString::from(" \u{000B} Hello World \t ");
