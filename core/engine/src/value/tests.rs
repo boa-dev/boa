@@ -1652,3 +1652,32 @@ mod js_value_macro {
         );
     }
 }
+
+#[test]
+fn display_obj_bounds_nesting_depth() {
+    use crate::Context;
+
+    let context = &mut Context::default();
+    // Build a deep acyclic chain of plain objects and display it with the
+    // expanded (`console.dir`) printer. Before the depth limit this recursed
+    // without bound: the output is O(depth^2) in indentation and the indent
+    // width eventually exceeds `u16`, panicking inside `core::fmt`.
+    let script = r#"
+        let root = {};
+        let cur = root;
+        for (let i = 0; i < 1000; i++) {
+            cur.next = {};
+            cur = cur.next;
+        }
+        root
+    "#;
+    let source = crate::Source::from_bytes(script);
+    let value = context.eval(source).expect("script should run");
+    let displayed = value.display_obj(true);
+
+    assert!(
+        displayed.contains("[Object]"),
+        "deep chain should be collapsed, got: {}",
+        &displayed[..displayed.len().min(200)]
+    );
+}
