@@ -605,7 +605,7 @@ dependencies = [
  "lz4_flex",
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
  "synstructure",
  "test-case",
 ]
@@ -763,7 +763,7 @@ checksum = "6a1f896587b6f2c069c73d2f0913e2d590c3990285cd2f0b6aa02b786b4c679c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -912,7 +912,7 @@ dependencies = [
  "heck",
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -1216,7 +1216,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c54e03a951783e8b327515db3f2a2fd0e3bed362a96b066f341ce66ed49b4ead"
 dependencies = [
  "data-encoding",
- "syn 3.0.9",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -1238,7 +1238,7 @@ checksum = "495503291b258422ea2bb9863d9f4e31eadbc5bcbdbe8b721769fa2c98dc4d41"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
  "synstructure",
 ]
 
@@ -1256,7 +1256,7 @@ checksum = "1b034bd7d5f032402a2479444dcc6f74e36a03f31854d41680fb240ef682a1ac"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -1284,7 +1284,7 @@ dependencies = [
  "diplomat_core",
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -1315,7 +1315,7 @@ dependencies = [
  "itertools 0.14.0",
  "quote",
  "serde",
- "syn 3.0.9",
+ "syn 3.0.10",
  "syn-inline-mod",
  "toml 0.8.23",
 ]
@@ -1333,7 +1333,7 @@ dependencies = [
  "serde",
  "smallvec",
  "strck",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -1344,7 +1344,7 @@ checksum = "c6232dd377dcc64799954cbd3a9bb882e9cdc1308ccd87b1c098f1fb2eaf82a8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -1663,7 +1663,7 @@ checksum = "9fb9654ba8355388abeb8dcb4fc62f511300867002afc858860463bdd9fe0c44"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -2553,9 +2553,9 @@ dependencies = [
 
 [[package]]
 name = "itoa"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
+checksum = "3bd1574e617a9a6c1f8f8181bd7e841e1f20e4277607ef28945765188d6284d4"
 
 [[package]]
 name = "ixdtf"
@@ -2649,9 +2649,9 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
 name = "libmimalloc-sys2"
-version = "0.1.65"
+version = "0.1.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c68ecbf07017a81a170a98fd1486d340dd304bc1099d2ca9aceff310fc42e9d"
+checksum = "7dba4922950d581f24b14e2331e64777f6800a6155877cb2e2b5b8ea7749b4b5"
 dependencies = [
  "cc",
  "cmake",
@@ -2715,9 +2715,9 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "mimalloc-safe"
-version = "0.1.69"
+version = "0.1.70"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91a05b5362ba7c45b5a2359693236833e97fd4378ee448effb663462941f9500"
+checksum = "deca8fbcd65d382e64050604b1e608e99d6c0bdcf3ff0d36c20ca852e847c458"
 dependencies = [
  "libmimalloc-sys2",
 ]
@@ -3539,7 +3539,7 @@ checksum = "6b45a652b0c95353d3206b7f5355f4c034ba08400ddfd0dcb7c1f788c244185a"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -3668,7 +3668,7 @@ checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -3692,7 +3692,7 @@ checksum = "8d3b1629de253c70a0508c3899572da79ca359fdab27c7920ff00406df418906"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -3944,9 +3944,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "3.0.9"
+version = "3.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d78c8dee4c7bf0e14673097256fed6142ce9d3b85a408189d07482442145823b"
+checksum = "4ae9ccbea3a7b0b09443036490c8f34a8b1b760fd345e5c0dae0aac718faea79"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3960,7 +3960,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88d5cd09c54d02e69217d362ee45b62821932cb16778a4513a722364ba4cb098"
 dependencies = [
  "proc-macro2",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -3980,7 +3980,7 @@ checksum = "901704edd0dfe137f1987838ee4f259e4e063c31371bdb423f7ae38ec6f77f02"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -4084,7 +4084,7 @@ dependencies = [
  "cfg-if",
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -4095,7 +4095,7 @@ checksum = "802d6165a14df1598b7290a8c546df402940d3cfbe82d15c0fd35de176771693"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
  "test-case-core",
 ]
 
@@ -4133,7 +4133,7 @@ checksum = "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -4261,7 +4261,7 @@ checksum = "78773a2a397f451582ce068015985c33193cf6dea8b74d2a639fe457b2f07b0e"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -4689,7 +4689,7 @@ dependencies = [
  "bumpalo",
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
  "wasm-bindgen-shared",
 ]
 
@@ -4731,7 +4731,7 @@ checksum = "238071aa4c5b268e57d21018621a2e2403c29dd11c55dbdf790ed47fdb9241c0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -5102,7 +5102,7 @@ checksum = "ec8ebde2db3681e8c9980cc27822030e68752690ddfa9473e739aeb4dbde6d71"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
  "synstructure",
 ]
 
@@ -5143,7 +5143,7 @@ checksum = "f75b4683f6c7f45248d4d64056a24298c6281e0993356d7d1b4a1a962ef10d4a"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
  "synstructure",
 ]
 
@@ -5203,7 +5203,7 @@ checksum = "c3743ddbf47738d929cd1ae2e199d40d0162979dfe31aef8ae646d2bf00bf97a"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 3.0.9",
+ "syn 3.0.10",
 ]
 
 [[package]]
