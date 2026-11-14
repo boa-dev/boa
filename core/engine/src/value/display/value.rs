@@ -25,6 +25,14 @@ use crate::{
 /// Maximum nesting depth before objects/arrays are collapsed
 pub(super) const COMPACT_DEPTH_LIMIT: u32 = 2;
 
+/// Maximum nesting depth used by the expanded (`console.dir`) printer.
+///
+/// The expanded printer indents every line, so its output is `O(depth^2)` and
+/// unbounded recursion over an acyclic object chain can exhaust memory; it also
+/// feeds the indentation to `core::fmt` as a width, which panics past `u16`.
+/// Collapsing at a fixed depth bounds both.
+pub(super) const EXPANDED_DEPTH_LIMIT: u32 = 32;
+
 pub(crate) fn log_value_to(
     f: &mut fmt::Formatter<'_>,
     x: &JsValue,
