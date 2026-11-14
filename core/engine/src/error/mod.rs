@@ -314,6 +314,9 @@ pub enum RuntimeLimitError {
     /// Error for reaching the maximum stack size
     #[error("reached the maximum stack size on this execution")]
     StackSize,
+    /// Error for a JS-controlled allocation that exceeds the configured byte cap.
+    #[error("reached the maximum allocation size on this execution")]
+    Allocation,
 }
 
 /// Internal panic error.

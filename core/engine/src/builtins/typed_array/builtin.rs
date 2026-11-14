@@ -1210,7 +1210,7 @@ impl BuiltinTypedArray {
         };
 
         // 6. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize);
+        let mut r = context.try_vec_with_len(len)?;
 
         // 7. Let k be 0.
         // 8. Repeat, while k < len,
@@ -2535,7 +2535,7 @@ impl BuiltinTypedArray {
             }
         };
 
-        let mut r = Vec::with_capacity((len + len.saturating_sub(1)) as usize);
+        let mut r = context.try_vec_with_capacity(Context::try_join_capacity(len)?)?;
 
         for k in 0..len {
             if k > 0 {

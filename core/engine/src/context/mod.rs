@@ -1,6 +1,7 @@
 //! The ECMAScript context.
 
 use std::any::Any;
+use std::mem::size_of;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -15,6 +16,7 @@ use temporal_rs::provider::TimeZoneProvider;
 #[cfg(any(feature = "temporal", feature = "intl"))]
 use timezone_provider::experimental_tzif::ZeroCompiledTzdbProvider;
 
+use crate::error::RuntimeLimitError;
 use crate::job::Job;
 use crate::js_error;
 use crate::module::DynModuleLoader;
@@ -601,6 +603,38 @@ impl Context {
     #[inline]
     pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
         &mut self.vm.runtime_limits
+    }
+
+    /// Create an empty `Vec` reserved for `capacity` elements, failing instead of aborting.
+    ///
+    /// Checks `capacity * size_of::<T>()` against [`RuntimeLimits::max_allocation`], then
+    /// uses [`Vec::try_reserve_exact`]. Cap exceeded is an uncatchable
+    /// [`RuntimeLimitError::Allocation`]; allocator failure is a catchable `RangeError`.
+    pub(crate) fn try_vec_with_capacity<T>(&self, capacity: usize) -> JsResult<Vec<T>> {
+        let Some(needed) = capacity.checked_mul(size_of::<T>()) else {
+            return Err(RuntimeLimitError::Allocation.into());
+        };
+        if needed > self.runtime_limits().max_allocation() {
+            return Err(RuntimeLimitError::Allocation.into());
+        }
+
+        let mut vec = Vec::new();
+        vec.try_reserve_exact(capacity)
+            .map_err(|_| JsNativeError::range().with_message("memory allocation failed"))?;
+        Ok(vec)
+    }
+
+    /// [`try_vec_with_capacity`](Self::try_vec_with_capacity) for a JS array-like `length`.
+    pub(crate) fn try_vec_with_len<T>(&self, len: u64) -> JsResult<Vec<T>> {
+        let capacity = usize::try_from(len).map_err(|_| RuntimeLimitError::Allocation)?;
+        self.try_vec_with_capacity(capacity)
+    }
+
+    /// Capacity for `len` items plus `len.saturating_sub(1)` separators.
+    pub(crate) fn try_join_capacity(len: u64) -> JsResult<usize> {
+        let len = usize::try_from(len).map_err(|_| RuntimeLimitError::Allocation)?;
+        len.checked_add(len.saturating_sub(1))
+            .ok_or_else(|| RuntimeLimitError::Allocation.into())
     }
 
     /// Returns `true` if this context can be suspended by an `Atomics.wait` call.

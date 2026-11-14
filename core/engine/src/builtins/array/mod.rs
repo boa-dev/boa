@@ -1004,7 +1004,7 @@ impl Array {
         };
 
         // 5. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize + len.saturating_sub(1) as usize);
+        let mut r = context.try_vec_with_capacity(Context::try_join_capacity(len)?)?;
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
         for k in 0..len {
@@ -2203,7 +2203,7 @@ impl Array {
         };
 
         // 4. Let R be the empty String.
-        let mut r = Vec::with_capacity(len as usize + len.saturating_sub(1) as usize);
+        let mut r = context.try_vec_with_capacity(Context::try_join_capacity(len)?)?;
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -2641,8 +2641,7 @@ impl Array {
         F: Fn(&JsValue, &JsValue, &mut Context) -> JsResult<Ordering>,
     {
         // 1. Let items be a new empty List.
-        // doesn't matter if it clamps since it's just a best-effort optimization
-        let mut items = Vec::with_capacity(len as usize);
+        let mut items = context.try_vec_with_len(len)?;
 
         // 2. Let k be 0.
         // 3. Repeat, while k < len,
