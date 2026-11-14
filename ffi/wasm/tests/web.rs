@@ -1,6 +1,6 @@
 //! Tests for the wasm module.
 
-#![expect(
+#![allow(
     unused_crate_dependencies,
     reason = "https://github.com/rust-lang/rust/issues/95513"
 )]
