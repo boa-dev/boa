@@ -4,21 +4,31 @@ use std::fmt::{self, Display, Write};
 use crate::property::CompletePropertyDescriptor;
 use crate::{JsObject, JsString, JsValue, js_string, property::PropertyKey};
 
+/// Indentation width per nesting level of the expanded object display.
+const INDENT_SIZE: usize = 4;
+
+/// Indentation of the contents of an object at `depth` levels of nesting.
+///
+/// The top-level object's properties are indented once, so a depth of `d`
+/// renders its contents at `(d + 1) * INDENT_SIZE`.
+fn indent_of(depth: u32) -> usize {
+    (depth as usize).saturating_add(1) * INDENT_SIZE
+}
+
 fn print_obj_value_internals(
     f: &mut fmt::Formatter<'_>,
     obj: &JsObject,
-    indent: usize,
     depth: u32,
     encounters: &mut HashSet<usize>,
 ) -> fmt::Result {
     let object = obj.borrow();
+    let indent = indent_of(depth);
     write!(f, "{:>indent$}__proto__: ", "")?;
     if let Some(object) = object.prototype() {
         log_object_to_internal(
             f,
             &object.clone().into(),
             encounters,
-            indent.wrapping_add(4),
             depth.saturating_add(1),
             true,
         )?;
@@ -32,11 +42,11 @@ fn print_obj_value_internals(
 fn print_obj_value_props(
     f: &mut fmt::Formatter<'_>,
     obj: &JsObject,
-    indent: usize,
     depth: u32,
     encounters: &mut HashSet<usize>,
     print_internals: bool,
 ) -> fmt::Result {
+    let indent = indent_of(depth);
     let mut keys: Vec<_> = obj
         .borrow()
         .properties()
@@ -66,7 +76,6 @@ fn print_obj_value_props(
                     f,
                     value,
                     encounters,
-                    indent.wrapping_add(4),
                     depth.saturating_add(1),
                     print_internals,
                 )?;
@@ -90,7 +99,6 @@ pub(super) fn log_object_to_internal(
     f: &mut fmt::Formatter<'_>,
     data: &JsValue,
     encounters: &mut HashSet<usize>,
-    indent: usize,
     depth: u32,
     print_internals: bool,
 ) -> fmt::Result {
@@ -135,10 +143,11 @@ pub(super) fn log_object_to_internal(
         f.write_str("{\n")?;
 
         if print_internals {
-            print_obj_value_internals(f, &v, indent, depth, encounters)?;
+            print_obj_value_internals(f, &v, depth, encounters)?;
         }
-        print_obj_value_props(f, &v, indent, depth, encounters, print_internals)?;
-        write!(f, "{:>indent$}}}", "", indent = indent.saturating_sub(4))?;
+        print_obj_value_props(f, &v, depth, encounters, print_internals)?;
+        let closing_indent = (depth as usize) * INDENT_SIZE;
+        write!(f, "{:>closing_indent$}}}", "")?;
 
         // If the current object is referenced in a different branch,
         // it will not cause an infinite printing loop, so it is safe to be printed again
@@ -251,7 +260,7 @@ impl JsValue {
         struct DisplayObj<'a>(&'a JsValue, bool);
         impl Display for DisplayObj<'_> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                log_object_to_internal(f, self.0, &mut HashSet::new(), 4, 0, self.1)
+                log_object_to_internal(f, self.0, &mut HashSet::new(), 0, self.1)
             }
         }
 
