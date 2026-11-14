@@ -11,6 +11,9 @@ use std::sync::Arc;
 mod from;
 mod to;
 
+#[cfg(test)]
+mod tests;
+
 /// Convenience method to avoid copy-pasting the same message.
 #[inline]
 fn unsupported_type() -> JsError {
