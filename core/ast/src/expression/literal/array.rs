@@ -134,6 +134,10 @@ impl ArrayLiteral {
                                 });
                             }
                         },
+                        // Annex B: a Call as assignment target is never a valid
+                        // destructuring element — treat as invalid pattern.
+                        #[cfg(feature = "annex-b")]
+                        AssignTarget::Call(_) => return None,
                     }
                 }
                 Expression::ArrayLiteral(array) => {

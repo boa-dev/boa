@@ -74,6 +74,12 @@ fn as_simple(
             Ok(Some(UpdateTarget::PropertyAccess(access.clone())))
         }
         Expression::Parenthesized(p) => as_simple(p.expression(), position, strict),
+        // Annex B: in non-strict mode a CallExpression is a valid (runtime-error) update target.
+        // The ReferenceError is emitted at runtime by the bytecompiler.
+        #[cfg(feature = "annex-b")]
+        Expression::Call(call) if !strict => {
+            Ok(Some(UpdateTarget::Call(Box::new(call.clone()))))
+        }
         _ => Ok(None),
     }
 }
