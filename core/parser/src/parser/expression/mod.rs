@@ -15,6 +15,8 @@ mod primary;
 mod unary;
 mod update;
 
+pub(crate) use primary::expression_to_formal_parameters;
+
 pub(in crate::parser) mod await_expr;
 
 #[cfg(test)]
