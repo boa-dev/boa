@@ -508,6 +508,63 @@ fn bigger_switch_example() {
 }
 
 #[test]
+fn switch_case_binding_tdz() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                function h(x) {
+                    switch (x) {
+                        case 0: let a = "s";
+                        case 1: return a;
+                    }
+                }
+                h(0);
+            "#},
+            js_str!("s"),
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function h(x) {
+                    switch (x) {
+                        case 0: let a = "s";
+                        case 1: return a;
+                    }
+                }
+                h(1);
+            "#},
+            JsNativeErrorKind::Reference,
+            "access of uninitialized binding",
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function t(x) {
+                    switch (x) {
+                        case 0: let a = "s";
+                        case 1: return typeof a;
+                    }
+                }
+                t(1);
+            "#},
+            JsNativeErrorKind::Reference,
+            "access of uninitialized binding",
+        ),
+        TestAction::assert_native_error(
+            indoc! {r#"
+                function c(x) {
+                    switch (x) {
+                        case 0: const a = "s";
+                        case 1: return a;
+                    }
+                }
+                c(1);
+            "#},
+            JsNativeErrorKind::Reference,
+            "access of uninitialized binding",
+        ),
+    ]);
+}
+
+#[test]
 fn break_labelled_if_statement() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"
