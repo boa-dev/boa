@@ -491,6 +491,15 @@ fn parse_int() {
 }
 
 #[test]
+fn parse_int_rounds_long_decimals_once() {
+    run_test_actions([
+        TestAction::assert_eq("parseInt('123456789012345678')", 1.2345678901234568e17),
+        TestAction::assert_eq("parseInt('99999999999999999999')", 1e20),
+        TestAction::assert_eq("parseInt('123456789012345680000')", 1.2345678901234568e20),
+    ]);
+}
+
+#[test]
 fn parse_int_varying_radix() {
     let base_str = "1000";
     let tests = (2..36).flat_map(|radix| {

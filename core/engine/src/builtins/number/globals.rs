@@ -118,16 +118,26 @@ fn from_js_str_radix(src: JsStr<'_>, radix: u8) -> Option<f64> {
         if digit < radix { Some(digit) } else { None }
     }
 
+    let digits_len = src.len();
     let src = src
         .iter()
         .map(|x| u8::try_from(x).expect("should be ascii string"));
 
-    let result = if can_not_overflow(radix, src.len()) {
+    let result = if can_not_overflow(radix, digits_len) {
         let mut result = 0;
         for c in src {
             result = result * u64::from(radix) + u64::from(to_digit(c, radix)?);
         }
         result as f64
+    } else if radix == 10 {
+        // Accumulating in `f64` rounds at every digit. Parse the decimal digits
+        // with a correctly-rounded conversion instead, so the mathematical
+        // integer is rounded only once.
+        let mut digits = String::with_capacity(digits_len);
+        for c in src {
+            digits.push(char::from(b'0' + to_digit(c, radix)?));
+        }
+        fast_float2::parse::<f64, &str>(&digits).ok()?
     } else {
         let mut result = 0f64;
         for c in src {
