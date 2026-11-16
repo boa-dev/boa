@@ -64,14 +64,14 @@ impl JsDataView {
             let buffer = buffer.data();
 
             // 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-            let Some(slice) = buffer.bytes() else {
+            if buffer.is_detached() {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer is detached")
                     .into());
-            };
+            }
 
             // 5. Let bufferByteLength be ArrayBufferByteLength(buffer, seq-cst).
-            let buf_len = slice.len() as u64;
+            let buf_len = buffer.len() as u64;
 
             // 6. If offset > bufferByteLength, throw a RangeError exception.
             if offset > buf_len {
@@ -110,10 +110,14 @@ impl JsDataView {
 
         // 11. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         // 12. Set bufferByteLength to ArrayBufferByteLength(buffer, seq-cst).
-        let Some(buf_byte_len) = buffer.borrow().data().bytes().map(|s| s.len() as u64) else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer is detached")
-                .into());
+        let buf_byte_len = {
+            let buffer = buffer.borrow();
+            if buffer.data().is_detached() {
+                return Err(JsNativeError::typ()
+                    .with_message("ArrayBuffer is detached")
+                    .into());
+            }
+            buffer.data().len() as u64
         };
 
         // 13. If offset > bufferByteLength, throw a RangeError exception.
