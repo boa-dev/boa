@@ -35,6 +35,7 @@ impl ByteCompiler<'_> {
         let default_label = self.jump();
         let mut default_label_set = false;
 
+        self.switch_depth += 1;
         for (label, case) in labels.into_iter().zip(switch.cases()) {
             // Check if it's the default case.
             let label = if label == Self::DUMMY_LABEL {
@@ -47,6 +48,7 @@ impl ByteCompiler<'_> {
 
             self.compile_statement_list(case.body(), use_expr, true);
         }
+        self.switch_depth -= 1;
 
         if !default_label_set {
             self.patch_jump(default_label);

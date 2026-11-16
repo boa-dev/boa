@@ -1,10 +1,26 @@
+use boa_ast::scope::BindingLocator;
+
 use crate::{
-    Context, JsExpect, JsResult, JsValue,
+    Context, JsError, JsExpect, JsResult, JsValue,
     error::JsNativeError,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
     vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
+
+/// Creates the error for a binding that is not initialized or does not exist.
+fn missing_binding_error(locator: &BindingLocator) -> JsError {
+    if locator.is_global() {
+        let name = locator.name().to_std_string_escaped();
+        JsNativeError::reference()
+            .with_message(format!("{name} is not defined"))
+            .into()
+    } else {
+        JsNativeError::reference()
+            .with_message("access of uninitialized binding")
+            .into()
+    }
+}
 
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`
 ///
@@ -22,10 +38,9 @@ impl GetName {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
-            let name = binding_locator.name().to_std_string_escaped();
-            JsNativeError::reference().with_message(format!("{name} is not defined"))
-        })?;
+        let result = context
+            .get_binding(&binding_locator)?
+            .ok_or_else(|| missing_binding_error(&binding_locator))?;
         context.vm.set_register(value.into(), result);
         Ok(())
     }
@@ -105,10 +120,9 @@ impl GetNameGlobal {
             return Ok(());
         }
 
-        let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
-            let name = binding_locator.name().to_std_string_escaped();
-            JsNativeError::reference().with_message(format!("{name} is not defined"))
-        })?;
+        let result = context
+            .get_binding(&binding_locator)?
+            .ok_or_else(|| missing_binding_error(&binding_locator))?;
 
         context.vm.set_register(dst.into(), result);
         Ok(())
@@ -164,10 +178,9 @@ impl GetNameAndLocator {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
-            let name = binding_locator.name().to_std_string_escaped();
-            JsNativeError::reference().with_message(format!("{name} is not defined"))
-        })?;
+        let result = context
+            .get_binding(&binding_locator)?
+            .ok_or_else(|| missing_binding_error(&binding_locator))?;
 
         context.vm.frame_mut().binding_stack.push(binding_locator);
         context.vm.set_register(value.into(), result);
@@ -206,10 +219,7 @@ impl GetNameOrUndefined {
         } else if is_global {
             JsValue::undefined()
         } else {
-            let name = binding_locator.name().to_std_string_escaped();
-            return Err(JsNativeError::reference()
-                .with_message(format!("{name} is not defined"))
-                .into());
+            return Err(missing_binding_error(&binding_locator));
         };
 
         context.vm.set_register(value.into(), result);
