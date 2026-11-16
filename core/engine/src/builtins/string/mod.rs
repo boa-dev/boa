@@ -13,7 +13,7 @@ use crate::{
     Context, JsArgs, JsExpect, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::JsNativeError,
+    error::{JsNativeError, RuntimeLimitError},
     js_string,
     object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyDescriptor},
@@ -733,15 +733,23 @@ impl String {
 
         let n = n as usize;
 
-        // Charge each repetition against the VM loop-iteration limit.
-        let mut result = Vec::with_capacity(n);
-        for _ in 0..n {
-            crate::vm::opcode::IncrementLoopIteration::operation((), context)?;
-            result.push(string.as_str());
+        // Charge all repetitions against the VM loop-iteration limit in one step
+        // so a huge `n` cannot allocate a `Vec` of `n` views before the limit fires.
+        let max = context.vm.runtime_limits.loop_iteration_limit();
+        let frame = context.vm.frame_mut();
+        let remaining = max.saturating_sub(frame.loop_iteration_count);
+        if n as u64 > remaining {
+            return Err(RuntimeLimitError::LoopIteration.into());
         }
+        frame.loop_iteration_count = frame.loop_iteration_count.wrapping_add(n as u64);
 
         // 6. Return the String value that is made from n copies of S appended together.
-        Ok(JsString::concat_array(&result).into())
+        let Some(repeated) = JsString::repeat(string.as_str(), n) else {
+            return Err(JsNativeError::range()
+                .with_message("String.prototype.repeat: cannot allocate the result string")
+                .into());
+        };
+        Ok(repeated.into())
     }
 
     /// `String.prototype.slice( beginIndex [, endIndex] )`
