@@ -1,8 +1,10 @@
 use boa_gc::Gc;
+use boa_macros::js_str;
 use boa_parser::Source;
+use indoc::indoc;
 
 use crate::{
-    Context, JsObject, JsResult, JsValue,
+    Context, JsObject, JsResult, JsValue, TestAction,
     builtins::{OrdinaryObject, function::OrdinaryFunction},
     js_string,
     object::{
@@ -10,6 +12,7 @@ use crate::{
         shape::slot::SlotAttributes,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    run_test_actions,
     vm::CodeBlock,
 };
 
@@ -464,4 +467,51 @@ fn test_megamorphic_inline_cache() -> JsResult<()> {
     assert!(code.ic[0].megamorphic.get());
 
     Ok(())
+}
+
+#[test]
+fn prototype_getter_that_shadows_itself_runs_once() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            var loads = 0;
+            var proto = {};
+            Object.defineProperty(proto, 'value', {
+                get: function() {
+                    loads++;
+                    Object.defineProperty(this, 'value', { value: 42, writable: true });
+                    return this.value;
+                }
+            });
+            function getValue(obj) { return obj.value; }
+            var obj = Object.create(proto);
+            getValue(obj);
+            getValue(obj);
+            getValue(obj);
+            loads;
+        "#},
+        1,
+    )]);
+}
+
+#[test]
+fn prototype_setter_that_shadows_itself_runs_once() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            var stores = 0;
+            var proto = {};
+            Object.defineProperty(proto, 'value', {
+                set: function(value) {
+                    stores++;
+                    Object.defineProperty(this, 'value', { value: value, writable: true });
+                }
+            });
+            function setValue(obj, value) { obj.value = value; }
+            var obj = Object.create(proto);
+            setValue(obj, 1);
+            setValue(obj, 2);
+            setValue(obj, 3);
+            [stores, obj.value].join();
+        "#},
+        js_str!("1,3"),
+    )]);
 }
