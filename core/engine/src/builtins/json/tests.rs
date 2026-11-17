@@ -362,3 +362,181 @@ fn json_stringify_cyclic_nested_object_throws_type_error() {
         "cyclic object value",
     )]);
 }
+
+#[test]
+fn json_parse_proto_key_is_an_own_property() {
+    run_test_actions([
+        TestAction::assert(
+            r#"Object.getPrototypeOf(JSON.parse('{"__proto__": 1}')) === Object.prototype"#,
+        ),
+        TestAction::assert(
+            r#"Object.getOwnPropertyNames(JSON.parse('{"__proto__": 1}'))[0] === "__proto__""#,
+        ),
+        TestAction::assert_eq(
+            r#"JSON.parse('{"__proto__": {"x": 1}}').x"#,
+            JsValue::undefined(),
+        ),
+    ]);
+}
+
+#[test]
+fn json_parse_duplicate_keys_keep_first_position_and_last_value() {
+    run_test_actions([TestAction::assert_eq(
+        r#"JSON.stringify(JSON.parse('{"a": 1, "b": 2, "a": 3}'))"#,
+        js_str!(r#"{"a":3,"b":2}"#),
+    )]);
+}
+
+#[test]
+fn json_parse_numbers() {
+    run_test_actions([
+        TestAction::assert("Object.is(JSON.parse('-0'), -0)"),
+        TestAction::assert_eq(
+            "JSON.parse('123456789012345678901234567890')",
+            1.234_567_890_123_456_8e29,
+        ),
+        TestAction::assert_eq("JSON.parse('1e-7')", 1e-7),
+        TestAction::assert_eq("JSON.parse('-12.5E+2')", -1250.0),
+        TestAction::assert_eq("JSON.parse(' [ 2147483648 ] ')[0]", 2_147_483_648.0),
+        TestAction::assert_native_error(
+            "JSON.parse('01')",
+            JsNativeErrorKind::Syntax,
+            "trailing characters at line 1 column 2",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('1.')",
+            JsNativeErrorKind::Syntax,
+            "EOF while parsing a value at line 1 column 2",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('+1')",
+            JsNativeErrorKind::Syntax,
+            "expected value at line 1 column 1",
+        ),
+    ]);
+}
+
+#[test]
+fn json_parse_strings() {
+    run_test_actions([
+        TestAction::assert_eq(r#"JSON.parse('"a\\u00e9\\n\\"b"')"#, js_str!("aé\n\"b")),
+        // A lone surrogate, escaped or raw, is a valid JSON string.
+        TestAction::assert_eq(r#"JSON.parse('"\\ud800"').charCodeAt(0)"#, 0xD800),
+        TestAction::assert_eq(
+            r#"JSON.parse('"' + String.fromCharCode(0xDC00) + '"').charCodeAt(0)"#,
+            0xDC00,
+        ),
+        TestAction::assert_eq(r#"JSON.parse('"ünïcödé ✓"')"#, js_str!("ünïcödé ✓")),
+        TestAction::assert_native_error(
+            r#"JSON.parse('"a\nb"')"#,
+            JsNativeErrorKind::Syntax,
+            "control character (\\u0000-\\u001F) found while parsing a string at line 1 column 3",
+        ),
+        TestAction::assert_native_error(
+            r#"JSON.parse('"\\x41"')"#,
+            JsNativeErrorKind::Syntax,
+            "invalid escape at line 1 column 3",
+        ),
+        TestAction::assert_native_error(
+            r#"JSON.parse('"abc')"#,
+            JsNativeErrorKind::Syntax,
+            "EOF while parsing a string at line 1 column 4",
+        ),
+    ]);
+}
+
+#[test]
+fn json_parse_structure_errors() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "JSON.parse('[1, 2,]')",
+            JsNativeErrorKind::Syntax,
+            "trailing comma at line 1 column 7",
+        ),
+        TestAction::assert_native_error(
+            r#"JSON.parse('{"a": 1,}')"#,
+            JsNativeErrorKind::Syntax,
+            "trailing comma at line 1 column 9",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('[1 2]')",
+            JsNativeErrorKind::Syntax,
+            "expected `,` or `]` at line 1 column 4",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('{a: 1}')",
+            JsNativeErrorKind::Syntax,
+            "key must be a string at line 1 column 2",
+        ),
+        TestAction::assert_native_error(
+            r#"JSON.parse('{"a" 1}')"#,
+            JsNativeErrorKind::Syntax,
+            "expected `:` at line 1 column 6",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('[\\n1,\\n')",
+            JsNativeErrorKind::Syntax,
+            "EOF while parsing a list at line 3 column 0",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('tru')",
+            JsNativeErrorKind::Syntax,
+            "EOF while parsing a value at line 1 column 3",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('nul1')",
+            JsNativeErrorKind::Syntax,
+            "expected ident at line 1 column 4",
+        ),
+        TestAction::assert_native_error(
+            "JSON.parse('\\u00a0 1')",
+            JsNativeErrorKind::Syntax,
+            "expected value at line 1 column 1",
+        ),
+    ]);
+}
+
+#[test]
+fn json_parse_deep_nesting_does_not_overflow() {
+    run_test_actions([
+        TestAction::assert_eq(
+            "let s = '['.repeat(100000) + ']'.repeat(100000); let v = JSON.parse(s); let d = 0; while (Array.isArray(v)) { d++; v = v[0]; } d",
+            100_000,
+        ),
+        TestAction::assert_eq(
+            r#"let o = '{"a":'.repeat(50000) + '1' + '}'.repeat(50000); let w = JSON.parse(o); let e = 0; while (typeof w === "object") { e++; w = w.a; } e"#,
+            50_000,
+        ),
+    ]);
+}
+
+#[test]
+fn json_parse_reviver_source_after_nesting() {
+    run_test_actions([TestAction::assert_eq(
+        indoc! {r#"
+            const seen = [];
+            JSON.parse('{"a": [1.50, {"b": -0.0}], "c": "x"}', function (key, value, context) {
+                if (typeof value !== "object") seen.push(key + "=" + context.source);
+                return value;
+            });
+            seen.join(" ")
+        "#},
+        js_str!("0=1.50 b=-0.0 c=\"x\""),
+    )]);
+}
+
+#[test]
+fn json_parse_floats_from_utf16_and_long_input() {
+    run_test_actions([
+        // The `\u20ac` makes the text a UTF-16 string.
+        TestAction::assert_eq(r#"JSON.parse('["\u20ac", 1.5e3]')[1]"#, 1500.0),
+        TestAction::assert_eq(r#"JSON.parse('["\u20ac", -0.25]')[1]"#, -0.25),
+        // Longer than the 64-byte stack buffer, Latin-1 and UTF-16.
+        TestAction::assert_eq("JSON.parse('1.' + '0'.repeat(100) + '1')", 1.0),
+        TestAction::assert_eq(
+            r#"JSON.parse('["\u20ac", 1.' + '0'.repeat(100) + '1]')[1]"#,
+            1.0,
+        ),
+        TestAction::assert_eq("JSON.parse('1e400')", f64::INFINITY),
+    ]);
+}
