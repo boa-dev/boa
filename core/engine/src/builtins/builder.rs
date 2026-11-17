@@ -5,7 +5,7 @@ use crate::{
         CONSTRUCTOR, FunctionBinding, JsFunction, JsPrototype, PROTOTYPE,
         shape::{property_table::PropertyTableInner, slot::SlotAttributes},
     },
-    property::{Attribute, PropertyDescriptor, PropertyKey},
+    property::{Attribute, CompletePropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
 };
@@ -67,11 +67,12 @@ impl ApplyToObject for Constructor {
     fn apply_to(self, object: &JsObject) {
         object.insert(
             PROTOTYPE,
-            PropertyDescriptor::builder()
-                .value(self.prototype.clone())
-                .writable(false)
-                .enumerable(false)
-                .configurable(false),
+            CompletePropertyDescriptor::Data {
+                value: self.prototype.clone().into(),
+                writable: false,
+                enumerable: false,
+                configurable: false,
+            },
         );
 
         {
@@ -79,11 +80,12 @@ impl ApplyToObject for Constructor {
             prototype.set_prototype(self.inherits);
             prototype.insert(
                 CONSTRUCTOR,
-                PropertyDescriptor::builder()
-                    .value(object.clone())
-                    .writable(self.attributes.writable())
-                    .enumerable(self.attributes.enumerable())
-                    .configurable(self.attributes.configurable()),
+                CompletePropertyDescriptor::Data {
+                    value: object.clone().into(),
+                    writable: self.attributes.writable(),
+                    enumerable: self.attributes.enumerable(),
+                    configurable: self.attributes.configurable(),
+                },
             );
         }
     }
@@ -109,19 +111,21 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
         }
         object.insert(
             StaticJsStrings::LENGTH,
-            PropertyDescriptor::builder()
-                .value(self.length)
-                .writable(false)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: self.length.into(),
+                writable: false,
+                enumerable: false,
+                configurable: true,
+            },
         );
         object.insert(
             js_string!("name"),
-            PropertyDescriptor::builder()
-                .value(self.name)
-                .writable(false)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: self.name.into(),
+                writable: false,
+                enumerable: false,
+                configurable: true,
+            },
         );
 
         self.kind.apply_to(object);
@@ -641,11 +645,12 @@ impl<T> BuiltInBuilder<'_, T> {
 
         self.object.insert(
             binding.binding,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: function.into(),
+                writable: true,
+                enumerable: false,
+                configurable: true,
+            },
         );
         self
     }
@@ -656,12 +661,15 @@ impl<T> BuiltInBuilder<'_, T> {
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.object.insert(key, property);
+        self.object.insert(
+            key,
+            CompletePropertyDescriptor::Data {
+                value: value.into(),
+                writable: attribute.writable(),
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
         self
     }
 
@@ -676,21 +684,17 @@ impl<T> BuiltInBuilder<'_, T> {
     where
         K: Into<PropertyKey>,
     {
-        let mut property = PropertyDescriptor::builder()
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-
-        if let Some(get) = get {
-            property = property.get(get);
-        }
-
-        if let Some(set) = set {
-            property = property.set(set);
-        }
-
         let key = key.into();
 
-        self.object.insert(key, property);
+        self.object.insert(
+            key,
+            CompletePropertyDescriptor::Accessor {
+                get,
+                set,
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
 
         self
     }

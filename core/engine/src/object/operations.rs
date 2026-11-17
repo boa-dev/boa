@@ -1,5 +1,6 @@
 use super::internal_methods::InternalMethodPropertyContext;
 use crate::js_error;
+use crate::property::CompletePropertyDescriptor;
 use crate::value::JsVariant;
 use crate::{
     Context, JsExpect, JsResult, JsSymbol, JsValue,
@@ -629,13 +630,15 @@ impl JsObject {
             // b. If currentDesc is not undefined, then
             if let Some(current_desc) = current_desc {
                 // i. If currentDesc.[[Configurable]] is true, return false.
-                if current_desc.expect_configurable() {
+                if current_desc.configurable() {
                     return Ok(false);
                 }
                 // ii. If level is frozen and IsDataDescriptor(currentDesc) is true, then
-                if level.is_frozen() && current_desc.is_data_descriptor() {
+                if level.is_frozen()
+                    && let CompletePropertyDescriptor::Data { writable, .. } = current_desc
+                {
                     // 1. If currentDesc.[[Writable]] is true, return false.
-                    if current_desc.expect_writable() {
+                    if writable {
                         return Ok(false);
                     }
                 }
@@ -755,7 +758,7 @@ impl JsObject {
                     .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc
-                    && desc.expect_enumerable()
+                    && desc.enumerable()
                 {
                     match kind {
                         // 1. If kind is key, append key to properties.
@@ -931,8 +934,7 @@ impl JsObject {
 
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc
-                    && let Some(enumerable) = desc.enumerable()
-                    && enumerable
+                    && desc.enumerable()
                 {
                     // 1. Let propValue be ? Get(from, nextKey).
                     let prop_value = from.__get__(&key, from.clone().into(), context)?;

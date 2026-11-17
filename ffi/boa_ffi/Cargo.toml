@@ -1,0 +1,21 @@
+[package]
+name = "boa_ffi"
+description = "C bindings for the Boa JavaScript engine"
+publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+boa_engine.workspace = true
+diplomat.workspace = true
+diplomat-runtime.workspace = true
+
+[lints]
+workspace = true

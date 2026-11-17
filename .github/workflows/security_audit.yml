@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 jobs:
   audit:
     runs-on: ubuntu-latest
