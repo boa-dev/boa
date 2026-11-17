@@ -10,6 +10,7 @@ use crate::{
     Context, JsData, JsResult,
     builtins::{
         Array, BuiltInBuilder, IntrinsicObject, JsValue, iterable::create_iter_result_object,
+        map::ordered_map::CollectionLock,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -21,19 +22,19 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
-#[derive(Debug, Trace)]
-struct SetIteratorLock(JsObject<OrderedSet>);
-
-impl SetIteratorLock {
-    fn new(js_object: JsObject<OrderedSet>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
-        Self(js_object)
-    }
+#[derive(Debug, Trace, Finalize)]
+struct SetIteratorLock {
+    set: JsObject<OrderedSet>,
+    // Released by its own drop, without borrowing the set, so the garbage collector can drop it
+    // while the set is borrowed.
+    #[unsafe_ignore_trace]
+    _lock: CollectionLock,
 }
 
-impl Finalize for SetIteratorLock {
-    fn finalize(&self) {
-        self.0.borrow_mut().data_mut().unlock();
+impl SetIteratorLock {
+    fn new(set: JsObject<OrderedSet>) -> Self {
+        let lock = set.borrow_mut().data_mut().lock();
+        Self { set, _lock: lock }
     }
 }
 
@@ -114,7 +115,7 @@ impl SetIterator {
 
         if let Some(obj) = set_iterator.iterated_set.take() {
             let e = {
-                let mut entries = obj.0.borrow_mut();
+                let mut entries = obj.set.borrow_mut();
                 let entries = entries.data_mut();
                 let len = entries.full_len();
                 loop {

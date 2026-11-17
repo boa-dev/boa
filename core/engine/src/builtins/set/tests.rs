@@ -1,4 +1,7 @@
-use crate::{JsNativeErrorKind, JsValue, TestAction, object::builtins::JsSet, run_test_actions};
+use super::ordered_set::OrderedSet;
+use crate::{
+    JsNativeErrorKind, JsObject, JsValue, TestAction, object::builtins::JsSet, run_test_actions,
+};
 use indoc::indoc;
 
 #[test]
@@ -511,6 +514,113 @@ fn set_iterator_after_clear_and_add() {
         ),
         TestAction::assert("first.value === 'first' && !first.done"),
         TestAction::assert("second.value === 'second' && !second.done"),
+    ]);
+}
+
+/// Asserts that `set` holds `len` elements and no deleted ones.
+fn assert_compact(set: &JsObject, len: usize) {
+    let set = set.downcast_ref::<OrderedSet>().unwrap();
+    assert_eq!((set.len(), set.full_len()), (len, len));
+}
+
+#[test]
+fn iterator_lock_finalized_while_set_borrowed() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        let set = JsSet::new(ctx);
+        set.add(1, ctx).unwrap();
+        drop(set.values(ctx).unwrap());
+
+        // The dead iterator is collected while the set is borrowed.
+        let borrow = set.borrow();
+        boa_gc::force_collect();
+        drop(borrow);
+
+        // Its lock is released all the same, so deleted elements don't pile up.
+        for i in 100..200 {
+            set.add(i, ctx).unwrap();
+            set.delete(i);
+        }
+        assert_compact(&set.into(), 1);
+    })]);
+}
+
+#[test]
+fn for_each_throw_compacts_on_next_mutation() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const set = new Set([1, 2, 3]);
+            try {
+                set.forEach(() => {
+                    set.delete(2);
+                    throw new Error();
+                });
+            } catch {}
+            set.add(4);
+        "#}),
+        TestAction::assert_with_op("set", |set, _| {
+            assert_compact(&set.as_object().unwrap(), 3);
+            true
+        }),
+    ]);
+}
+
+#[test]
+fn set_methods_results_are_unlocked() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const set = new Set([1, 2, 3]);
+            const iterator = set.values();
+            set.delete(1);
+            const results = [
+                set.union(new Set()),
+                set.difference(new Set([3])),
+                set.symmetricDifference(new Set([4])),
+            ];
+            for (const result of results) {
+                result.add(9);
+                result.delete(9);
+            }
+        "#}),
+        TestAction::assert_with_op("results[0]", |set, _| {
+            assert_compact(&set.as_object().unwrap(), 2);
+            true
+        }),
+        TestAction::assert_with_op("results[1]", |set, _| {
+            assert_compact(&set.as_object().unwrap(), 1);
+            true
+        }),
+        TestAction::assert_with_op("results[2]", |set, _| {
+            assert_compact(&set.as_object().unwrap(), 3);
+            true
+        }),
+    ]);
+}
+
+#[test]
+fn set_methods_visit_each_element_when_has_deletes() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            function visits(method) {
+                const set = new Set([1, 2, 3]);
+                const seen = [];
+                const other = {
+                    size: 3,
+                    has(value) {
+                        seen.push(value);
+                        if (value === 1) set.delete(1);
+                        return method === "isDisjointFrom" ? false : true;
+                    },
+                    keys() {
+                        return [].values();
+                    },
+                };
+                set[method](other);
+                return seen.join();
+            }
+        "#}),
+        TestAction::assert("visits('isSubsetOf') === '1,2,3'"),
+        TestAction::assert("visits('isDisjointFrom') === '1,2,3'"),
+        TestAction::assert("visits('intersection') === '1,2,3'"),
     ]);
 }
 

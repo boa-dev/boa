@@ -23,7 +23,7 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        canonicalize_keyed_collection_key, set::ordered_set::SetLock,
+        canonicalize_keyed_collection_key,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -438,7 +438,7 @@ impl Set {
             ));
         };
 
-        let _lock = SetLock::new(&obj);
+        let _lock = obj.borrow_mut().data_mut().lock();
 
         // 4. Let entries be S.[[SetData]].
         // 5. Let numEntries be the number of elements in entries.
@@ -492,7 +492,7 @@ impl Set {
                     TypeError: "method `Set.prototype.forEach` called on incompatible receiver"
                 )
             })?;
-        let _lock = SetLock::new(&set);
+        let _lock = set.borrow_mut().data_mut().lock();
 
         let mut index = 0;
         loop {
@@ -607,6 +607,8 @@ impl Set {
 
         // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
         if this.borrow().data().len() <= other_rec.size {
+            // `otherRec.[[Has]]` can delete elements: keep their indices until the loop is done.
+            let _lock = this.borrow_mut().data_mut().lock();
             // a. Let thisSize be the number of elements in O.[[SetData]].
             let mut this_size = this.borrow().data().full_len();
             // b. Let index be 0.
@@ -693,6 +695,8 @@ impl Set {
             return Ok(JsValue::from(false));
         }
 
+        // `otherRec.[[Has]]` can delete elements: keep their indices until the loop is done.
+        let _lock = this.borrow_mut().data_mut().lock();
         // 5. Let thisSize be the number of elements in O.[[SetData]].
         let mut this_size = this.borrow().data().full_len();
         // 6. Let index be 0.
@@ -939,6 +943,8 @@ impl Set {
 
         // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
         if this.borrow().data().len() <= other_rec.size {
+            // `otherRec.[[Has]]` can delete elements: keep their indices until the loop is done.
+            let _lock = this.borrow_mut().data_mut().lock();
             // a. Let thisSize be the number of elements in O.[[SetData]].
             let mut this_size = this.borrow().data().full_len();
             // b. Let index be 0.

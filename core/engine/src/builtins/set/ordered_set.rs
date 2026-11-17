@@ -1,16 +1,34 @@
 //! Implements a set type that preserves insertion order.
 
-use crate::{JsData, JsValue, builtins::map::ordered_map::MapKey, object::JsObject};
+use crate::{
+    JsData, JsValue,
+    builtins::map::ordered_map::{CollectionLock, MapKey},
+};
 use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::IndexSet;
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 /// A type wrapping `indexmap::IndexSet`
-#[derive(Default, Clone, Finalize, JsData)]
+#[derive(Default, Finalize, JsData)]
 pub struct OrderedSet {
     inner: IndexSet<MapKey>,
-    lock: u32,
+    lock: Option<Rc<()>>,
     empty_count: usize,
+}
+
+impl Clone for OrderedSet {
+    /// Clones the elements only: the clone has no empty elements and no locks.
+    fn clone(&self) -> Self {
+        let mut inner = self.inner.clone();
+        if self.empty_count > 0 {
+            inner.retain(|k| matches!(k, MapKey::Key(_)));
+        }
+        Self {
+            inner,
+            lock: None,
+            empty_count: 0,
+        }
+    }
 }
 
 unsafe impl Trace for OrderedSet {
@@ -41,7 +59,7 @@ impl OrderedSet {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             inner: IndexSet::with_capacity(capacity),
-            lock: 0,
+            lock: None,
             empty_count: 0,
         }
     }
@@ -80,6 +98,7 @@ impl OrderedSet {
     ///
     /// Computes in **O(1)** time (amortized average).
     pub fn add(&mut self, value: JsValue) -> bool {
+        self.compact();
         self.inner.insert(MapKey::Key(value))
     }
 
@@ -89,7 +108,8 @@ impl OrderedSet {
     ///
     /// Computes in **O(n)** time (average).
     pub fn delete(&mut self, value: &JsValue) -> bool {
-        if self.lock == 0 {
+        self.compact();
+        if !self.is_locked() {
             self.inner.shift_remove(value)
         } else if self.inner.contains(value) {
             self.inner.insert(MapKey::Empty(self.empty_count));
@@ -102,17 +122,17 @@ impl OrderedSet {
 
     /// Removes all elements in the set, while preserving its capacity.
     pub fn clear(&mut self) {
-        if self.lock == 0 {
-            self.inner.clear();
-            self.inner.shrink_to_fit();
-            self.empty_count = 0;
-        } else {
+        if self.is_locked() {
             let len = self.inner.len();
             self.inner.clear();
             for i in 0..len {
                 self.inner.insert(MapKey::Empty(i));
             }
             self.empty_count = len;
+        } else {
+            self.inner.clear();
+            self.inner.shrink_to_fit();
+            self.empty_count = 0;
         }
     }
 
@@ -149,34 +169,27 @@ impl OrderedSet {
         })
     }
 
-    /// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
+    /// Locks the set until the returned lock is dropped.
     ///
     /// This allows objects to be removed from the set during iteration without affecting the indexes until the iteration has completed.
-    pub(crate) fn lock(&mut self) {
-        self.lock += 1;
+    /// The empty entries left by removals are dropped by the next mutation after the last lock is released.
+    pub(crate) fn lock(&mut self) -> CollectionLock {
+        self.compact();
+        CollectionLock::new(&mut self.lock)
     }
 
-    /// Decreases the lock counter and, if 0, removes all empty entries.
-    pub(crate) fn unlock(&mut self) {
-        self.lock -= 1;
-        if self.lock == 0 {
+    /// Returns `true` if a lock on the set is alive.
+    fn is_locked(&self) -> bool {
+        self.lock
+            .as_ref()
+            .is_some_and(|lock| Rc::strong_count(lock) > 1)
+    }
+
+    /// Removes all empty entries, unless the set is locked.
+    fn compact(&mut self) {
+        if self.empty_count > 0 && !self.is_locked() {
             self.inner.retain(|k| matches!(k, MapKey::Key(_)));
             self.empty_count = 0;
         }
-    }
-}
-
-pub(crate) struct SetLock<'a>(&'a JsObject<OrderedSet>);
-
-impl<'a> SetLock<'a> {
-    pub(crate) fn new(js_object: &'a JsObject<OrderedSet>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
-        Self(js_object)
-    }
-}
-
-impl Drop for SetLock<'_> {
-    fn drop(&mut self) {
-        self.0.borrow_mut().data_mut().unlock();
     }
 }
