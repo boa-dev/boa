@@ -15,7 +15,6 @@ boa_engine.workspace = true
 boa_gc.workspace = true
 boa_wintertc.workspace = true
 bus = { workspace = true, optional = true }
-bytemuck.workspace = true
 either = { workspace = true, optional = true }
 futures = "0.3.32"
 futures-lite.workspace = true
@@ -28,7 +27,6 @@ url = { workspace = true, optional = true }
 [dev-dependencies]
 indoc.workspace = true
 rstest.workspace = true
-test-case.workspace = true
 textwrap.workspace = true
 temp-env.workspace = true
 
@@ -49,7 +47,7 @@ default = [
 ]
 
 all = ["default", "reqwest-blocking"]
-url = ["dep:url"]
+url = ["boa_wintertc/url"]
 fetch = [
     "dep:url",
     "dep:either",
