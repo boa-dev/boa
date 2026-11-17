@@ -544,6 +544,7 @@ impl Map {
                 }
 
                 let Some((k, v)) = map.get_index(index) else {
+                    index += 1;
                     continue;
                 };
 

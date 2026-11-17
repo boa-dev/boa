@@ -1,4 +1,4 @@
-use crate::{JsNativeErrorKind, TestAction, run_test_actions};
+use crate::{JsNativeErrorKind, JsValue, TestAction, object::builtins::JsSet, run_test_actions};
 use indoc::indoc;
 
 #[test]
@@ -512,4 +512,24 @@ fn set_iterator_after_clear_and_add() {
         TestAction::assert("first.value === 'first' && !first.done"),
         TestAction::assert("second.value === 'second' && !second.done"),
     ]);
+}
+
+#[test]
+fn for_each_native_skips_deleted_entries() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        let set = JsSet::new(ctx);
+        for i in 1..=3 {
+            set.add(i, ctx).unwrap();
+        }
+        let mut values = Vec::new();
+        set.for_each_native(|value| {
+            if value == JsValue::new(1) {
+                set.delete(2);
+            }
+            values.push(value);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(values, [JsValue::new(1), JsValue::new(3)]);
+    })]);
 }

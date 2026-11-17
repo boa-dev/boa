@@ -504,6 +504,7 @@ impl Set {
                     if let Some(k) = set.get_index(index) {
                         k.clone()
                     } else {
+                        index += 1;
                         continue;
                     }
                 } else {

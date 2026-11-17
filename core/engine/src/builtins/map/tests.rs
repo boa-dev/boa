@@ -1,4 +1,4 @@
-use crate::{JsNativeErrorKind, JsValue, TestAction, run_test_actions};
+use crate::{JsNativeErrorKind, JsValue, TestAction, object::builtins::JsMap, run_test_actions};
 use boa_macros::js_str;
 use indoc::indoc;
 
@@ -413,4 +413,24 @@ fn iterator_after_clear_and_set() {
         TestAction::assert("first.value === 1 && !first.done"),
         TestAction::assert("second.value === 2 && !second.done"),
     ]);
+}
+
+#[test]
+fn for_each_native_skips_deleted_entries() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        let map = JsMap::new(ctx);
+        for i in 1..=3 {
+            map.set(i, i, ctx).unwrap();
+        }
+        let mut keys = Vec::new();
+        map.for_each_native(|key, _| {
+            if key == JsValue::new(1) {
+                map.delete(2, ctx)?;
+            }
+            keys.push(key);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(keys, [JsValue::new(1), JsValue::new(3)]);
+    })]);
 }
