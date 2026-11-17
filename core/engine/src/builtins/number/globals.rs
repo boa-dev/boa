@@ -358,7 +358,7 @@ pub(crate) fn parse_float(
         return Ok(JsValue::nan());
     }
 
-    let value = match input_string.as_str() {
+    let value = match trimmed_string.as_str() {
         JsStr::Latin1(s) => fast_float2::parse_partial::<f64, _>(s),
         JsStr::Utf16(s) => {
             // TODO: Explore adding direct UTF-16 parsing support to fast_float2.
@@ -366,7 +366,7 @@ pub(crate) fn parse_float(
             fast_float2::parse_partial::<f64, _>(s.as_bytes())
         }
         JsStr::Rope(_) => {
-            let s = input_string.as_str().to_std_string_lossy();
+            let s = trimmed_string.as_str().to_std_string_lossy();
             fast_float2::parse_partial::<f64, _>(s.as_bytes())
         }
     };

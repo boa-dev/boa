@@ -25,7 +25,7 @@ pub use rope::RopeString;
 #[repr(C, align(8))]
 #[derive(Debug, Clone, Copy)]
 pub struct JsStringHeader {
-    /// Kind tag identifying the string type. Used to index into [`VTABLES`].
+    /// Kind tag identifying the string type. Used to index into `VTABLES`.
     pub kind: JsStringKind,
     /// Length of the string in code units.
     pub(crate) len: usize,
@@ -55,7 +55,7 @@ impl JsStringHeader {
 /// Static vtable for `JsString` operations.
 ///
 /// This contains function pointers for polymorphic operations.
-/// Vtables are stored by value in the global [`VTABLES`] array, indexed by [`JsStringKind`].
+/// Vtables are stored by value in the global `VTABLES` array, indexed by [`JsStringKind`].
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct JsStringVTable {
