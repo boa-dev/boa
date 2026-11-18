@@ -232,7 +232,7 @@ static RAW_STATICS_CACHE: LazyLock<FxHashMap<JsStr<'static>, &'static StaticStri
     LazyLock::new(|| RAW_STATICS.iter().map(|s| (s.str, s)).collect());
 
 /// Array of raw static strings that aren't reference counted.
-const RAW_STATICS: &[StaticString] = &[
+pub(crate) const RAW_STATICS: &[StaticString] = &[
     StaticString::new(JsStr::latin1("".as_bytes())),
     // Well known symbols
     StaticString::new(JsStr::latin1("Symbol.asyncIterator".as_bytes())),
