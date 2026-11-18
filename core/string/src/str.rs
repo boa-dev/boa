@@ -35,6 +35,9 @@ pub enum JsStr<'a> {
     Rope(RopeSlice<'a>),
 }
 
+/// Backwards-compatible type alias for [`JsStr`].
+pub type JsStrVariant<'a> = JsStr<'a>;
+
 // SAFETY: JsStr<'_> has only immutable references to Sync types, so this is safe.
 unsafe impl Sync for JsStr<'_> {}
 

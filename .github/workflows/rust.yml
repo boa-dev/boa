@@ -455,4 +455,4 @@ jobs:
       - name: Check Semver
         uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239 # v2
         with:
-          exclude: boa_wintertc
+          exclude: boa_wintertc, boa_string

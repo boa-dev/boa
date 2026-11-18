@@ -39,7 +39,8 @@ pub use crate::{
     code_point::CodePoint,
     common::StaticJsStrings,
     iter::Iter,
-    str::JsStr,
+    str::{JsStr, JsStrVariant},
+    vtable::JsStringHeader as RawJsString,
 };
 use std::ptr::NonNull;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
