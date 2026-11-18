@@ -279,7 +279,7 @@ impl ToIndentedString for AsyncGeneratorExpression {
 impl From<AsyncGeneratorExpression> for Expression {
     #[inline]
     fn from(expr: AsyncGeneratorExpression) -> Self {
-        Self::AsyncGeneratorExpression(expr)
+        Self::AsyncGeneratorExpression(Box::new(expr))
     }
 }
 

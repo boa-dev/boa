@@ -282,7 +282,7 @@ impl ToIndentedString for AsyncFunctionExpression {
 impl From<AsyncFunctionExpression> for Expression {
     #[inline]
     fn from(expr: AsyncFunctionExpression) -> Self {
-        Self::AsyncFunctionExpression(expr)
+        Self::AsyncFunctionExpression(Box::new(expr))
     }
 }
 
