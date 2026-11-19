@@ -831,13 +831,14 @@ fn invalid_arrow_function() {
     check_invalid_script(r#"!()=>{}"#);
 }
 
-/// Deeply nested input must fail to parse instead of overflowing the native stack.
+/// Deeply nested input must fail to parse instead of overflowing the native stack, and small stacks must
+/// still parse ordinary input.
 #[cfg(target_os = "linux")]
 #[test]
 fn deep_nesting_is_a_syntax_error() {
-    let parse = |js: String| {
+    let parse = |stack_size: usize, js: String| {
         std::thread::Builder::new()
-            .stack_size(2 * 1024 * 1024)
+            .stack_size(stack_size)
             .spawn(move || {
                 Parser::new(Source::from_bytes(&js))
                     .parse_script(&Scope::new_global(), &mut Interner::default())
@@ -849,14 +850,17 @@ fn deep_nesting_is_a_syntax_error() {
             .expect("the parser thread panicked")
     };
 
-    for js in [
-        format!("{}1{}", "(".repeat(100_000), ")".repeat(100_000)),
-        format!("{}{}", "[".repeat(100_000), "]".repeat(100_000)),
-        "{".repeat(100_000),
-        format!("{}1", "!".repeat(100_000)),
-    ] {
-        let error = parse(js).expect_err("deeply nested input should not parse");
-        assert!(error.contains("too much recursion"), "{error}");
+    for stack_size in [256 * 1024, 2 * 1024 * 1024] {
+        for js in [
+            format!("{}1{}", "(".repeat(100_000), ")".repeat(100_000)),
+            format!("{}{}", "[".repeat(100_000), "]".repeat(100_000)),
+            "{".repeat(100_000),
+            format!("{}1", "!".repeat(100_000)),
+        ] {
+            let error = parse(stack_size, js).expect_err("deeply nested input should not parse");
+            assert!(error.contains("too much recursion"), "{error}");
+        }
+        assert!(parse(stack_size, "let a = 1; a + 2".to_owned()).is_ok());
     }
-    assert!(parse("((((1))))".to_owned()).is_ok());
+    assert!(parse(2 * 1024 * 1024, "((((1))))".to_owned()).is_ok());
 }
