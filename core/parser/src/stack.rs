@@ -63,8 +63,41 @@ fn stack_bounds() -> Option<(usize, usize)> {
     Some((high.checked_sub(size)?, high))
 }
 
+/// The current thread's stack as `(low, high)` addresses.
+#[cfg(target_vendor = "apple")]
+#[allow(unsafe_code)]
+fn stack_bounds() -> Option<(usize, usize)> {
+    // SAFETY: only queries the current thread; `pthread_get_stackaddr_np` returns the stack's high end.
+    let (high, size) = unsafe {
+        let thread = libc::pthread_self();
+        (
+            libc::pthread_get_stackaddr_np(thread) as usize,
+            libc::pthread_get_stacksize_np(thread),
+        )
+    };
+    Some((high.checked_sub(size)?, high))
+}
+
+/// The current thread's stack as `(low, high)` addresses.
+#[cfg(all(windows, not(target_vendor = "win7")))]
+#[allow(unsafe_code, clippy::unnecessary_wraps)]
+fn stack_bounds() -> Option<(usize, usize)> {
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        fn GetCurrentThreadStackLimits(low_limit: *mut usize, high_limit: *mut usize);
+    }
+    let (mut low, mut high) = (0, 0);
+    // SAFETY: writes the current thread's stack bounds to the two locals.
+    unsafe { GetCurrentThreadStackLimits(&raw mut low, &raw mut high) };
+    Some((low, high))
+}
+
 /// The current thread's stack bounds are unknown on this platform.
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(any(
+    target_os = "linux",
+    target_vendor = "apple",
+    all(windows, not(target_vendor = "win7"))
+)))]
 fn stack_bounds() -> Option<(usize, usize)> {
     None
 }

@@ -833,7 +833,11 @@ fn invalid_arrow_function() {
 
 /// Deeply nested input must fail to parse instead of overflowing the native stack, and small stacks must
 /// still parse ordinary input.
-#[cfg(target_os = "linux")]
+#[cfg(any(
+    target_os = "linux",
+    target_vendor = "apple",
+    all(windows, not(target_vendor = "win7"))
+))]
 #[test]
 fn deep_nesting_is_a_syntax_error() {
     let parse = |stack_size: usize, js: String| {
