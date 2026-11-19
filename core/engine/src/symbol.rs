@@ -170,6 +170,18 @@ impl JsSymbol {
     /// Creates a new symbol.
     ///
     /// Returns `None` if the maximum number of possible symbols has been reached (`u64::MAX`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{js_string, JsSymbol};
+    ///
+    /// let sym = JsSymbol::new(Some(js_string!("my symbol"))).unwrap();
+    /// assert_eq!(sym.description(), Some(js_string!("my symbol")));
+    ///
+    /// let empty_sym = JsSymbol::new(None).unwrap();
+    /// assert_eq!(empty_sym.description(), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn new(description: Option<JsString>) -> Option<Self> {
@@ -186,6 +198,18 @@ impl JsSymbol {
     }
 
     /// Returns the `Symbol` description.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{js_string, JsSymbol};
+    ///
+    /// let sym = JsSymbol::new(Some(js_string!("desc"))).unwrap();
+    /// assert_eq!(sym.description(), Some(js_string!("desc")));
+    ///
+    /// let iterator = JsSymbol::iterator();
+    /// assert_eq!(iterator.description(), Some(js_string!("Symbol.iterator")));
+    /// ```
     #[inline]
     #[must_use]
     pub fn description(&self) -> Option<JsString> {
@@ -208,6 +232,18 @@ impl JsSymbol {
     ///
     /// Equivalent to `[description]`, but returns the empty string if the symbol doesn't have a
     /// description.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{js_string, JsSymbol};
+    ///
+    /// let sym = JsSymbol::new(Some(js_string!("myFunc"))).unwrap();
+    /// assert_eq!(sym.fn_name(), js_string!("[myFunc]"));
+    ///
+    /// let empty = JsSymbol::new(None).unwrap();
+    /// assert_eq!(empty.fn_name(), js_string!(""));
+    /// ```
     #[inline]
     #[must_use]
     pub fn fn_name(&self) -> JsString {
@@ -225,6 +261,16 @@ impl JsSymbol {
     /// Returns the `Symbol`s hash.
     ///
     /// The hash is guaranteed to be unique.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::JsSymbol;
+    ///
+    /// let sym1 = JsSymbol::new(None).unwrap();
+    /// let sym2 = JsSymbol::new(None).unwrap();
+    /// assert_ne!(sym1.hash(), sym2.hash());
+    /// ```
     #[inline]
     #[must_use]
     pub fn hash(&self) -> u64 {
@@ -248,6 +294,18 @@ impl JsSymbol {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_engine::{js_string, JsSymbol};
+    ///
+    /// let sym = JsSymbol::new(Some(js_string!("test"))).unwrap();
+    /// assert_eq!(sym.descriptive_string(), js_string!("Symbol(test)"));
+    ///
+    /// let empty = JsSymbol::new(None).unwrap();
+    /// assert_eq!(empty.descriptive_string(), js_string!("Symbol()"));
+    /// ```
     #[must_use]
     pub fn descriptive_string(&self) -> JsString {
         self.description().as_ref().map_or_else(
@@ -287,34 +345,169 @@ impl JsSymbol {
 
     well_known_symbols! {
         /// Gets the static `JsSymbol` for `"Symbol.asyncIterator"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::async_iterator();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.asyncIterator")));
+        /// ```
         (async_iterator, WellKnown::AsyncIterator),
         /// Gets the static `JsSymbol` for `"Symbol.hasInstance"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::has_instance();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.hasInstance")));
+        /// ```
         (has_instance, WellKnown::HasInstance),
         /// Gets the static `JsSymbol` for `"Symbol.isConcatSpreadable"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::is_concat_spreadable();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.isConcatSpreadable")));
+        /// ```
         (is_concat_spreadable, WellKnown::IsConcatSpreadable),
         /// Gets the static `JsSymbol` for `"Symbol.iterator"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::iterator();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.iterator")));
+        /// ```
         (iterator, WellKnown::Iterator),
         /// Gets the static `JsSymbol` for `"Symbol.match"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::r#match();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.match")));
+        /// ```
         (r#match, WellKnown::Match),
         /// Gets the static `JsSymbol` for `"Symbol.matchAll"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::match_all();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.matchAll")));
+        /// ```
         (match_all, WellKnown::MatchAll),
         /// Gets the static `JsSymbol` for `"Symbol.replace"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::replace();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.replace")));
+        /// ```
         (replace, WellKnown::Replace),
         /// Gets the static `JsSymbol` for `"Symbol.search"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::search();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.search")));
+        /// ```
         (search, WellKnown::Search),
         /// Gets the static `JsSymbol` for `"Symbol.species"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::species();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.species")));
+        /// ```
         (species, WellKnown::Species),
         /// Gets the static `JsSymbol` for `"Symbol.split"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::split();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.split")));
+        /// ```
         (split, WellKnown::Split),
         /// Gets the static `JsSymbol` for `"Symbol.toPrimitive"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::to_primitive();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.toPrimitive")));
+        /// ```
         (to_primitive, WellKnown::ToPrimitive),
         /// Gets the static `JsSymbol` for `"Symbol.toStringTag"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::to_string_tag();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.toStringTag")));
+        /// ```
         (to_string_tag, WellKnown::ToStringTag),
         /// Gets the static `JsSymbol` for `"Symbol.unscopables"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::unscopables();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.unscopables")));
+        /// ```
         (unscopables, WellKnown::Unscopables),
         /// Gets the static `JsSymbol` for `"Symbol.dispose"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::dispose();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.dispose")));
+        /// ```
         (dispose, WellKnown::Dispose),
         /// Gets the static `JsSymbol` for `"Symbol.asyncDispose"`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use boa_engine::{js_string, JsSymbol};
+        ///
+        /// let sym = JsSymbol::async_dispose();
+        /// assert_eq!(sym.description(), Some(js_string!("Symbol.asyncDispose")));
+        /// ```
         (async_dispose, WellKnown::AsyncDispose),
     }
 }
