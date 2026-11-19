@@ -18,6 +18,17 @@ pub(super) enum SemicolonResult<'s> {
     NotFound(&'s Token),
 }
 
+/// Fails a peek once the native stack is nearly used up. Every grammar production peeks a token,
+/// so this bounds the recursion of all of them (see [`crate::stack`]).
+fn stack_guard(token: Option<&Token>) -> ParseResult<Option<&Token>> {
+    match token {
+        Some(token) if crate::stack::stack_low() => {
+            Err(Error::general("too much recursion", token.span().start()))
+        }
+        token => Ok(token),
+    }
+}
+
 /// Token cursor.
 ///
 /// This internal structure gives basic testable operations to the parser.
@@ -112,7 +123,7 @@ where
         skip_n: usize,
         interner: &mut Interner,
     ) -> ParseResult<Option<&Token>> {
-        self.buffered_lexer.peek(skip_n, true, interner)
+        stack_guard(self.buffered_lexer.peek(skip_n, true, interner)?)
     }
 
     /// Peeks a future token, without consuming it or advancing the cursor.
@@ -124,7 +135,7 @@ where
         skip_n: usize,
         interner: &mut Interner,
     ) -> ParseResult<Option<&Token>> {
-        self.buffered_lexer.peek(skip_n, false, interner)
+        stack_guard(self.buffered_lexer.peek(skip_n, false, interner)?)
     }
 
     /// Gets the current strict mode for the cursor.

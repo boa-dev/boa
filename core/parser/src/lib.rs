@@ -29,6 +29,7 @@ pub mod error;
 pub mod lexer;
 pub mod parser;
 pub mod source;
+mod stack;
 
 pub use error::Error;
 pub use lexer::Lexer;
