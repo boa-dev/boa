@@ -17,8 +17,8 @@
 pub mod ffi {
     use boa_engine::{
         Context, JsError as BoaJsError, JsNativeError as BoaJsNativeError,
-        JsNativeErrorKind as BoaJsNativeErrorKind, JsValue as BoaJsValue, context::ContextBuilder,
-        value::Type,
+        JsNativeErrorKind as BoaJsNativeErrorKind, JsValue as BoaJsValue, Source,
+        context::ContextBuilder, value::Type,
     };
     use diplomat_runtime::{DiplomatOption, DiplomatStr, DiplomatUtf8StrSlice};
 
@@ -30,7 +30,7 @@ pub mod ffi {
     #[derive(Debug)]
     #[diplomat::opaque_mut]
     pub struct BoaContext {
-        _context: Context,
+        context: Context,
     }
 
     impl BoaContext {
@@ -48,7 +48,32 @@ pub mod ffi {
             builder
                 .build()
                 .ok()
-                .map(|context| Box::new(Self { _context: context }))
+                .map(|context| Box::new(Self { context }))
+        }
+
+        /// Evaluates UTF-8 source text as a script and returns its completion value.
+        ///
+        /// Empty source evaluates to undefined. The source is borrowed only for
+        /// this call. Promise jobs are not run, and there is no time limit: a
+        /// script that never finishes never returns.
+        ///
+        /// In C, check `is_ok`, then destroy the handle that was returned with
+        /// `boa_JsValue_destroy` or `boa_JsError_destroy`. It is never null.
+        ///
+        /// # Errors
+        ///
+        /// Returns the engine's error unchanged if the source does not parse or
+        /// the script throws. Source that is not valid UTF-8 returns a native
+        /// type error, and nothing is evaluated.
+        pub fn eval(&mut self, source: &DiplomatStr) -> Result<Box<JsValue>, Box<JsError>> {
+            let Ok(source) = std::str::from_utf8(source) else {
+                let error = BoaJsNativeError::typ().with_message("source text is not valid UTF-8");
+                return Err(Box::new(JsError(error.into())));
+            };
+            match self.context.eval(Source::from_bytes(source)) {
+                Ok(value) => Ok(Box::new(JsValue(value))),
+                Err(error) => Err(Box::new(JsError(error))),
+            }
         }
     }
 
