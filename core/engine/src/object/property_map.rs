@@ -647,8 +647,8 @@ impl PropertyMap {
                     self.storage[index] = value;
                 }
                 CompletePropertyDescriptor::Accessor { get, set, .. } => {
-                    self.storage[index + 1] = set.map(JsValue::new).unwrap_or_default();
-                    self.storage[index] = get.map(JsValue::new).unwrap_or_default();
+                    self.storage[index + 1] = set.map_or_default(JsValue::new);
+                    self.storage[index] = get.map_or_default(JsValue::new);
                 }
             }
             out_slot.index = slot.index;
@@ -681,8 +681,8 @@ impl PropertyMap {
                 self.storage.push(value);
             }
             CompletePropertyDescriptor::Accessor { get, set, .. } => {
-                self.storage.push(get.map(JsValue::new).unwrap_or_default());
-                self.storage.push(set.map(JsValue::new).unwrap_or_default());
+                self.storage.push(get.map_or_default(JsValue::new));
+                self.storage.push(set.map_or_default(JsValue::new));
             }
         }
 

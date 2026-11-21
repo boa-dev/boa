@@ -445,8 +445,7 @@ impl BuiltinTypedArray {
             .viewed_array_buffer()
             .as_buffer()
             .bytes(Ordering::SeqCst)
-            .map(|s| s.len())
-            .unwrap_or_default();
+            .map_or_default(|s| s.len());
 
         // 5. Let size be TypedArrayByteLength(taRecord).
         // 6. Return 𝔽(size).
