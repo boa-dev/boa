@@ -77,13 +77,12 @@ pub(crate) fn log_value_to(
                     .get_property(&js_string!("message").into())
                     .as_ref()
                     .and_then(CompletePropertyDescriptor::value)
-                    .map(|v| {
+                    .map_or_default(|v| {
                         v.as_string().as_ref().map_or_else(
                             || v.display().to_string(),
                             JsString::to_std_string_escaped,
                         )
-                    })
-                    .unwrap_or_default();
+                    });
                 if name.is_empty() {
                     f.write_str(&message)?;
                 } else if message.is_empty() {

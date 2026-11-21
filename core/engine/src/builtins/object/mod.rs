@@ -379,7 +379,7 @@ impl OrdinaryObject {
             if let Some(current_desc) = desc {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Get]].
                 return if let CompletePropertyDescriptor::Accessor { get, .. } = current_desc {
-                    Ok(get.map(JsValue::new).unwrap_or_default())
+                    Ok(get.map_or_default(JsValue::new))
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
@@ -425,7 +425,7 @@ impl OrdinaryObject {
             if let Some(current_desc) = desc {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Set]].
                 return if let CompletePropertyDescriptor::Accessor { set, .. } = current_desc {
-                    Ok(set.map(JsValue::new).unwrap_or_default())
+                    Ok(set.map_or_default(JsValue::new))
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())

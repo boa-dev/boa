@@ -67,8 +67,7 @@ impl WorkerHandles {
                     Err(e) => {
                         let msg = e
                             .downcast_ref::<&str>()
-                            .map(|&s| String::from(s))
-                            .unwrap_or_default();
+                            .map_or_default(|&s| String::from(s));
                         eprintln!("Detected panic on worker thread: {msg}");
                         WorkerResult::Panic(msg)
                     }

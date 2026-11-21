@@ -8,11 +8,11 @@ edition = "2021"
 boa_engine = { path = "../../core/engine" }
 boa_gc = { path = "../../core/gc" }
 boa_runtime = { path = "../../core/runtime", features = ["all"] }
-rstest = "0.25.0"
+rstest = "0.28.0"
 rustls = { version = "0.23", default-features = false, features = ["ring"] }
-url = { version = "2.5.4", features = [] }
+url = { version = "2.5.9", features = [] }
 
 [build-dependencies]
-git2 = "0.20.2"
-toml = "0.8.23"
-serde = { version = "1.0.219", features = ["derive"] }
+git2 = "0.21.0"
+toml = "1.2.1"
+serde = { version = "1.0.229", features = ["derive"] }

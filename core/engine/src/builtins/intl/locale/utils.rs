@@ -21,8 +21,6 @@ use icu_provider::{
 };
 use indexmap::IndexSet;
 
-use tap::TapOptional;
-
 /// Abstract operation `DefaultLocale ( )`
 ///
 /// Returns a String value representing the structurally valid and canonicalized
@@ -33,12 +31,12 @@ use tap::TapOptional;
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultlocale
 pub(crate) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
-    sys_locale::get_locale()
-        .and_then(|loc| loc.parse::<Locale>().ok())
-        .tap_some_mut(|loc| {
-            canonicalizer.canonicalize(loc);
-        })
-        .unwrap_or(Locale::UNKNOWN)
+    let Some(mut loc) = sys_locale::get_locale().and_then(|loc| loc.parse::<Locale>().ok()) else {
+        return Locale::UNKNOWN;
+    };
+    canonicalizer.canonicalize(&mut loc);
+
+    loc
 }
 
 /// Gets the `Locale` struct from a `JsValue`.
