@@ -1213,7 +1213,7 @@ fn function_construct(
     let context = context.context();
     context.vm.stack.set_this(
         context.vm.frames.last().js_expect("frame must exist")?,
-        this.map(JsValue::new).unwrap_or_default(),
+        this.map_or_default(JsValue::new),
     );
 
     Ok(CallValue::Ready)

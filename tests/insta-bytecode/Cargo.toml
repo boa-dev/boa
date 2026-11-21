@@ -4,8 +4,9 @@ publish = false
 version.workspace = true
 edition.workspace = true
 
-[dependencies]
-boa_engine = { workspace = true }
-
 [dev-dependencies]
-insta = { version = "1.47.2", features = ["filters", "glob"] }
+boa_engine = { workspace = true }
+insta = { workspace = true, features = ["filters", "glob"] }
+
+[lints]
+workspace = true

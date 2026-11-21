@@ -38,12 +38,11 @@ impl SourceMapBuilder {
             .entries
             .last()
             .copied()
-            .map(|entry| EntryRange {
+            .map_or_default(|entry| EntryRange {
                 start: entry.end,
                 end: final_pc,
                 position: None,
-            })
-            .unwrap_or_default();
+            });
 
         self.entries
             .into_iter()
