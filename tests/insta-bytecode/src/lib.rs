@@ -1,4 +1,5 @@
 #![allow(missing_docs)]
+#![allow(rustdoc::missing_crate_level_docs)]
 
 #[test]
 fn compile_bytecode() {
