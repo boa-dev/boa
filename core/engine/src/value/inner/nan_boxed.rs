@@ -1,6 +1,6 @@
 //! A NaN-boxed inner value for JavaScript values.
 //!
-//! This [`JsValue`] is a float using `NaN` values to represent inner
+//! This [`JsValue`] is a float using `NaN` values to represent an inner
 //! JavaScript value.
 //!
 //! # Assumptions
@@ -28,7 +28,7 @@
 //! ALL 32 bits architectures are compatible, of course, as their pointers
 //! are 32 bits.
 //!
-//! WASM with MEMORY64 (which is very rare) follows the pointer structure
+//! Wasm with MEMORY64 (which is very rare) follows the pointer structure
 //! of its host architecture.
 //! For more info, see
 //! <https://spidermonkey.dev/blog/2025/01/15/is-memory64-actually-worth-using.html>
@@ -106,12 +106,14 @@
 //! with regular NAN should happen.
 #![allow(clippy::inline_always)]
 
+#[cfg(feature = "annex-b")]
+use crate::builtins::is_html_dda::IsHTMLDDA;
 use crate::{
     JsBigInt, JsObject, JsSymbol, JsVariant, bigint::RawBigInt, object::ErasedVTableObject,
-    symbol::RawJsSymbol,
+    symbol::RawJsSymbol, value::Type,
 };
 use boa_gc::{Finalize, GcBox, Trace, custom_trace};
-use boa_string::{JsString, RawJsString};
+use boa_string::JsString;
 use core::fmt;
 use static_assertions::const_assert;
 use std::{
@@ -184,6 +186,9 @@ mod bits {
     /// The constant true value.
     pub(super) const VALUE_TRUE: u64 = MASK_BOOLEAN | 1;
 
+    // The constant `-0` value.
+    pub(super) const VALUE_NEGATIVE_ZERO: u64 = (-0f64).to_bits();
+
     /// Checks that a value is a valid boolean (either true or false).
     #[inline(always)]
     pub(super) const fn is_bool(value: u64) -> bool {
@@ -196,6 +201,12 @@ mod bits {
         (value & MASK_NAN != MASK_NAN)
             || (value & MASK_KIND) == (MASK_NAN | TAG_INF)
             || (value & MASK_KIND) == (MASK_NAN | TAG_NAN)
+    }
+
+    /// Checks that a value is a negative zero (`-0`).
+    #[inline(always)]
+    pub(super) const fn is_negative_zero(value: u64) -> bool {
+        value == VALUE_NEGATIVE_ZERO
     }
 
     /// Checks that a value is a valid integer32.
@@ -505,6 +516,13 @@ impl NanBoxedValue {
         self.value() == bits::VALUE_NULL
     }
 
+    /// Returns true if a value is null or undefined.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn is_null_or_undefined(&self) -> bool {
+        self.value() & bits::MASK_KIND == bits::MASK_OTHER
+    }
+
     /// Returns true if a value is a boolean.
     #[must_use]
     #[inline(always)]
@@ -517,6 +535,13 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) fn is_float64(&self) -> bool {
         bits::is_float(self.value())
+    }
+
+    /// Returns true if a value is negative zero (`-0.0`).
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn is_negative_zero(&self) -> bool {
+        bits::is_negative_zero(self.value())
     }
 
     /// Returns true if a value is a 32-bits integer.
@@ -552,6 +577,27 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) fn is_string(&self) -> bool {
         bits::is_string(self.value())
+    }
+
+    /// Returns the [`Type`] of this value using only the tag bits,
+    /// without extracting or cloning the inner value.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn get_type(&self) -> Type {
+        match self.value() & bits::MASK_KIND {
+            bits::MASK_OBJECT => Type::Object,
+            bits::MASK_STRING => Type::String,
+            bits::MASK_SYMBOL => Type::Symbol,
+            bits::MASK_BIGINT => Type::BigInt,
+            bits::MASK_BOOLEAN => Type::Boolean,
+            bits::MASK_OTHER => match self.value() {
+                bits::VALUE_NULL => Type::Null,
+                _ => Type::Undefined,
+            },
+            // Same arm as below.
+            // bits::MASK_INT32 => Type::Number,
+            _ => Type::Number, // Float64
+        }
     }
 
     /// Returns the value as a f64 if it is a float.
@@ -698,8 +744,50 @@ impl NanBoxedValue {
         // SAFETY: the inner address must hold a valid, non-null JsString.
         unsafe {
             ManuallyDrop::new(JsString::from_raw(NonNull::new_unchecked(
-                self.ptr.with_addr(addr).cast::<RawJsString>(),
+                self.ptr.with_addr(addr).cast(),
             )))
+        }
+    }
+
+    /// Converts the value to a boolean without cloning pointer types.
+    ///
+    /// Objects and Symbols are always truthy. For `String` and `BigInt`,
+    /// the pointer is temporarily reconstructed via [`ManuallyDrop`] to
+    /// call `is_empty()` / `is_zero()` without touching the refcount.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) fn to_boolean(&self) -> bool {
+        match self.value() & bits::MASK_KIND {
+            // Symbols are always truthy.
+            bits::MASK_SYMBOL => true,
+            // Objects are truthy, unless they have [[IsHTMLDDA]] (Annex B §B.3.6.1).
+            bits::MASK_OBJECT => {
+                #[cfg(feature = "annex-b")]
+                {
+                    // SAFETY: tag confirmed this is an Object.
+                    if unsafe { self.as_object_unchecked().is::<IsHTMLDDA>() } {
+                        return false;
+                    }
+                }
+                true
+            }
+            // Null and Undefined are always falsy.
+            bits::MASK_OTHER => false,
+            bits::MASK_INT32 => bits::untag_i32(self.value()) != 0,
+            bits::MASK_BOOLEAN => bits::untag_bool(self.value()),
+            bits::MASK_STRING => {
+                // SAFETY: tag confirmed this is a String.
+                unsafe { !self.as_string_unchecked().is_empty() }
+            }
+            bits::MASK_BIGINT => {
+                // SAFETY: tag confirmed this is a BigInt.
+                unsafe { !self.as_bigint_unchecked().is_zero() }
+            }
+            // Float64: falsy if 0.0, -0.0, or NaN.
+            _ => {
+                let f = f64::from_bits(self.value());
+                f != 0.0 && !f.is_nan()
+            }
         }
     }
 

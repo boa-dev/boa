@@ -8,13 +8,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
 
 use crate::{
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         map::add_entries_from_iterable,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
+    js_error, js_string,
     object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
@@ -23,7 +23,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
-type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
+pub(crate) type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakMap;
@@ -87,9 +87,7 @@ impl BuiltInConstructor for WeakMap {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
-            return Err(JsNativeError::typ()
-                .with_message("WeakMap: cannot call constructor without `new`")
-                .into());
+            return Err(js_error!(TypeError: "WeakMap: cannot call constructor without `new`"));
         }
 
         // 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, "%WeakMap.prototype%", « [[WeakMapData]] »).
@@ -114,7 +112,7 @@ impl BuiltInConstructor for WeakMap {
         let adder = map
             .get(js_string!("set"), context)?
             .as_function()
-            .ok_or_else(|| JsNativeError::typ().with_message("WeakMap: 'add' is not a function"))?;
+            .ok_or_else(|| js_error!(TypeError: "WeakMap: 'add' is not a function"))?;
 
         // 7. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)
@@ -142,7 +140,9 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.delete: called with non-object value")
+                js_error!(TypeError:
+                    "WeakMap.prototype.delete: expected 'this' to be a WeakMap object",
+                )
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
@@ -157,7 +157,7 @@ impl WeakMap {
         // ii. Set p.[[Value]] to empty.
         // iii. Return true.
         // 6. Return false.
-        Ok(map.remove(key.inner()).is_some().into())
+        Ok(map.remove(key.inner()).into())
     }
 
     /// `WeakMap.prototype.get ( key )`
@@ -180,7 +180,8 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.get: called with non-object value")
+                js_error!(TypeError:
+                    "WeakMap.prototype.get: expected 'this' to be a WeakMap object")
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
@@ -192,7 +193,13 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
-        Ok(map.get(key.inner()).unwrap_or_default())
+        if let Some(entry) = map.get(key.inner())
+            && let Some(val) = entry.value()
+        {
+            Ok(val.clone())
+        } else {
+            Ok(JsValue::undefined())
+        }
     }
 
     /// `WeakMap.prototype.has ( key )`
@@ -215,7 +222,8 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.has: called with non-object value")
+                js_error!(TypeError:
+                    "WeakMap.prototype.has: expected 'this' to be a WeakMap object")
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
@@ -250,18 +258,18 @@ impl WeakMap {
             .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakMap>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("WeakMap.set: called with non-object value")
+                js_error!(TypeError:
+                    "WeakMap.prototype.set: expected 'this' to be a WeakMap object")
             })?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, throw a TypeError exception.
         let key = args.get_or_undefined(0);
         let Some(key) = key.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakMap.set: expected target argument of type `object`, got target of type `{}`",
-                    key.type_of()
-                )).into());
+            return Err(js_error!(TypeError:
+                "WeakMap.set: expected target argument of type `object`, got target of type `{}`",
+                key.type_of()
+            ));
         };
 
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
@@ -298,8 +306,9 @@ impl WeakMap {
         let map = object
             .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("WeakMap.getOrInsert: called with non-object value")
+                js_error!(TypeError:
+                    "WeakMap.prototype.getOrInsert: expected 'this' to be a WeakMap object",
+                )
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
@@ -308,18 +317,18 @@ impl WeakMap {
         //       future according to the proposal.
         let key_val = args.get_or_undefined(0);
         let Some(key) = key_val.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `{}`",
-                    key_val.type_of()
-                ))
-                .into());
+            return Err(js_error!(TypeError:
+                "WeakMap.getOrInsert: expected target argument of type `object`, got target of type `{}`",
+                key_val.type_of()
+            ));
         };
 
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key.inner()) {
+        if let Some(existing) = map.borrow().data().get(key.inner())
+            && let Some(value) = existing.value()
+        {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(existing);
+            return Ok(value.clone());
         }
 
         // 5-6. Insert the new record with provided value and return it.
@@ -352,8 +361,9 @@ impl WeakMap {
         let map = object
             .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("WeakMap.getOrInsertComputed: called with non-object value")
+                js_error!(TypeError:
+                    "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
+                )
             })?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
@@ -362,25 +372,25 @@ impl WeakMap {
         //       future according to the proposal.
         let key_value = args.get_or_undefined(0).clone();
         let Some(key_obj) = key_value.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `{}`",
-                    key_value.type_of()
-                ))
-                .into());
+            return Err(js_error!(TypeError:
+                "WeakMap.getOrInsertComputed: expected target argument of type `object`, got target of type `{}`",
+                key_value.type_of()
+            ));
         };
 
         // 4. If IsCallable(callback) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
-            return Err(JsNativeError::typ()
-                .with_message("Method WeakMap.prototype.getOrInsertComputed called with non-callable callback function")
-                .into());
+            return Err(js_error!(TypeError:
+                "Method WeakMap.prototype.getOrInsertComputed called with non-callable callback function"
+            ));
         };
 
         // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key_obj.inner()) {
+        if let Some(existing) = map.borrow().data().get(key_obj.inner())
+            && let Some(value) = existing.value()
+        {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
-            return Ok(existing);
+            return Ok(value.clone());
         }
 
         // 6. Let value be ? Call(callback, undefined, « key »).

@@ -11,7 +11,7 @@ fn main() -> JsResult<()> {
     let context = &mut Context::default();
 
     // Create an empty array.
-    let array = JsArray::new(context);
+    let array = JsArray::new(context)?;
 
     assert!(array.is_empty(context)?);
 

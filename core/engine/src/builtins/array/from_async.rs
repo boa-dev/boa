@@ -4,10 +4,13 @@ use super::Array;
 use crate::builtins::AsyncFromSyncIterator;
 use crate::builtins::iterable::IteratorRecord;
 use crate::builtins::promise::ResolvingFunctions;
-use crate::native_function::{CoroutineState, NativeCoroutine};
+use crate::error::PanicError;
+use crate::native_function::{CoroutineBranch, CoroutineState, NativeCoroutine};
 use crate::object::{JsFunction, JsPromise};
+use crate::vm::CompletionRecord;
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsSymbol, JsValue, js_string,
+    Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    js_string,
 };
 use std::cell::Cell;
 
@@ -112,20 +115,25 @@ impl Array {
                 // Try to run the coroutine once to see if it finishes early.
                 // This avoids allocating a new coroutine that will immediately finish.
                 // Spec continues on `from_array_like`...
-                if let CoroutineState::Yielded(value) =
-                    from_array_like(Ok(JsValue::undefined()), &coroutine_state, context)?
-                {
-                    // Coroutine yielded. We need to allocate it for a future execution.
-                    JsPromise::resolve(value, context).await_native(
-                        NativeCoroutine::from_copy_closure_with_captures(
-                            from_array_like,
-                            coroutine_state,
-                        ),
-                        context,
-                    );
-                }
-
-                return Ok(());
+                return match from_array_like(
+                    CompletionRecord::Normal(JsValue::undefined()),
+                    &coroutine_state,
+                    context,
+                ) {
+                    CoroutineState::Continue(value) => {
+                        // Coroutine yielded. We need to allocate it for a future execution.
+                        JsPromise::resolve(value, context)?.await_native(
+                            NativeCoroutine::from_copy_closure_with_captures(
+                                from_array_like,
+                                coroutine_state,
+                            ),
+                            context,
+                        );
+                        Ok(())
+                    }
+                    CoroutineState::Break(Err(err)) => Err(err),
+                    CoroutineState::Break(Ok(())) => Ok(()),
+                };
             };
 
             // h. If iteratorRecord is not undefined, then
@@ -158,19 +166,24 @@ impl Array {
             // Try to run the coroutine once to see if it finishes early.
             // This avoids allocating a new coroutine that will immediately finish.
             // Spec continues on `from_async_iterator`...
-            if let CoroutineState::Yielded(value) =
-                from_async_iterator(Ok(JsValue::undefined()), &coroutine_state, context)?
-            {
-                JsPromise::resolve(value, context).await_native(
-                    NativeCoroutine::from_copy_closure_with_captures(
-                        from_async_iterator,
-                        coroutine_state,
-                    ),
-                    context,
-                );
+            match from_async_iterator(
+                CompletionRecord::Normal(JsValue::undefined()),
+                &coroutine_state,
+                context,
+            ) {
+                CoroutineState::Continue(value) => {
+                    JsPromise::resolve(value, context)?.await_native(
+                        NativeCoroutine::from_copy_closure_with_captures(
+                            from_async_iterator,
+                            coroutine_state,
+                        ),
+                        context,
+                    );
+                    Ok(())
+                }
+                CoroutineState::Break(Err(err)) => Err(err),
+                CoroutineState::Break(Ok(())) => Ok(()),
             }
-
-            Ok(())
         })();
 
         // AsyncFunctionStart ( promiseCapability, asyncFunctionBody )
@@ -185,7 +198,7 @@ impl Array {
             resolvers
                 .reject
                 .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
+                .js_expect("resolving functions cannot fail")?;
         }
 
         // 5. Return promiseCapability.[[Promise]].
@@ -230,13 +243,13 @@ enum AsyncIteratorStateMachine {
 
 /// Part of [`Array.fromAsync ( asyncItems [ , mapfn [ , thisArg ] ] )`](https://tc39.es/proposal-array-from-async/#sec-array.fromAsync).
 fn from_async_iterator(
-    mut result: JsResult<JsValue>,
+    mut result: CompletionRecord,
     (global_state, state_machine): &(GlobalState, Cell<Option<AsyncIteratorStateMachine>>),
     context: &mut Context,
-) -> JsResult<CoroutineState> {
+) -> CoroutineState {
     let result = (|| {
         let Some(mut sm) = state_machine.take() else {
-            return Ok(CoroutineState::Done);
+            return CoroutineState::Break(Ok(()));
         };
 
         // iv. Repeat,
@@ -251,11 +264,10 @@ fn from_async_iterator(
                     if k < 2u64.pow(53) - 1 {
                         // 2. Let Pk be ! ToString(𝔽(k)).
                         // 3. Let nextResult be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
-                        let next_result = iterator_record.next_method().call(
-                            &iterator_record.iterator().clone().into(),
-                            &[],
-                            context,
-                        )?;
+                        let next_result = iterator_record
+                            .next_method()
+                            .call(&iterator_record.iterator().clone().into(), &[], context)
+                            .branch()?;
 
                         state_machine.set(Some(AsyncIteratorStateMachine::LoopContinue {
                             a,
@@ -264,7 +276,7 @@ fn from_async_iterator(
                         }));
 
                         // 4. Set nextResult to ? Await(nextResult).
-                        return Ok(CoroutineState::Yielded(next_result));
+                        return CoroutineState::Continue(next_result);
                     }
 
                     // 1. If k ≥ 2**53 - 1, then
@@ -288,17 +300,22 @@ fn from_async_iterator(
                     mut iterator_record,
                 } => {
                     // `result` is `Await(nextResult)`.
-                    let result = std::mem::replace(&mut result, Ok(JsValue::undefined()));
+                    let result = std::mem::replace(
+                        &mut result,
+                        CompletionRecord::Normal(JsValue::undefined()),
+                    );
 
                     // 5. If nextResult is not an Object, throw a TypeError exception.
                     // Implicit on the call to `update_result`.
-                    iterator_record.update_result(result?, context)?;
+                    iterator_record
+                        .update_result(result.branch()?, context)
+                        .branch()?;
 
                     // 6. Let done be ? IteratorComplete(nextResult).
                     // 7. If done is true,
                     if iterator_record.done() {
                         // a. Perform ? Set(A, "length", 𝔽(k), true).
-                        a.set(js_string!("length"), k, true, context)?;
+                        a.set(js_string!("length"), k, true, context).branch()?;
 
                         // b. Return Completion Record { [[Type]]: return, [[Value]]: A, [[Target]]: empty }.
                         // AsyncFunctionStart ( promiseCapability, asyncFunctionBody )
@@ -313,13 +330,14 @@ fn from_async_iterator(
                             .resolvers
                             .resolve
                             .call(&JsValue::undefined(), &[a.into()], context)
-                            .expect("resolving functions cannot fail");
+                            .js_expect("resolving functions cannot fail")
+                            .branch()?;
 
-                        return Ok(CoroutineState::Done);
+                        return CoroutineState::Break(Ok(()));
                     }
 
                     // 8. Let nextValue be ? IteratorValue(nextResult).
-                    let next_value = iterator_record.value(context)?;
+                    let next_value = iterator_record.value(context).branch()?;
                     // 9. If mapping is true, then
                     if let Some(mapfn) = &global_state.mapfn {
                         // a. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
@@ -350,7 +368,7 @@ fn from_async_iterator(
                             mapped_value: None,
                         }));
                         // c. Set mappedValue to Await(mappedValue).
-                        return Ok(CoroutineState::Yielded(mapped_value));
+                        return CoroutineState::Continue(mapped_value);
                     }
 
                     sm = AsyncIteratorStateMachine::LoopEnd {
@@ -368,7 +386,21 @@ fn from_async_iterator(
                     mapped_value,
                 } => {
                     // Either awaited `mappedValue` or directly set `mappedValue` to `nextValue`.
-                    let result = std::mem::replace(&mut result, Ok(JsValue::undefined()));
+                    let result = match std::mem::replace(
+                        &mut result,
+                        CompletionRecord::Normal(JsValue::undefined()),
+                    ) {
+                        CompletionRecord::Normal(val) => Ok(val),
+                        CompletionRecord::Throw(err) => Err(err),
+                        CompletionRecord::Return(_) => {
+                            // TODO: this seems to be correct, but maybe we can
+                            // cleanup this code to also handle return completions
+                            return CoroutineState::Break(Err(PanicError::new(
+                                "from_async_iterator cannot resume with a return completion",
+                            )
+                            .into()));
+                        }
+                    };
 
                     // d. IfAbruptCloseAsyncIterator(mappedValue, iteratorRecord).
                     // https://tc39.es/proposal-array-from-async/#sec-ifabruptcloseasynciterator
@@ -418,22 +450,22 @@ fn from_async_iterator(
                     //     d. If innerResult is a normal completion, set innerResult to Completion(Await(innerResult.[[Value]])).
                     // 5. If completion is a throw completion, return ? completion.
                     let Ok(Some(ret)) = iterator.get_method(js_string!("return"), context) else {
-                        return Err(err);
+                        return CoroutineState::Break(Err(err));
                     };
 
                     let Ok(value) = ret.call(&iterator.into(), &[], context) else {
-                        return Err(err);
+                        return CoroutineState::Break(Err(err));
                     };
 
                     state_machine.set(Some(AsyncIteratorStateMachine::AsyncIteratorCloseEnd {
                         err,
                     }));
-                    return Ok(CoroutineState::Yielded(value));
+                    return CoroutineState::Continue(value);
                 }
                 AsyncIteratorStateMachine::AsyncIteratorCloseEnd { err } => {
                     // Awaited `innerResult.[[Value]]`.
                     // Only need to return the original error.
-                    return Err(err);
+                    return CoroutineState::Break(Err(err));
                 }
             }
         }
@@ -445,18 +477,22 @@ fn from_async_iterator(
     // AsyncBlockStart ( promiseCapability, asyncBody, asyncContext )
     // https://tc39.es/ecma262/#sec-asyncblockstart
     match result {
-        Ok(cont) => Ok(cont),
-
         // i. Assert: result is a throw completion.
-        Err(err) => {
-            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
+        CoroutineState::Break(Err(err)) => {
+            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             global_state
                 .resolvers
                 .reject
-                .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
-            Ok(CoroutineState::Done)
+                .call(
+                    &JsValue::undefined(),
+                    &[err.into_opaque(context).branch()?],
+                    context,
+                )
+                .js_expect("resolving functions cannot fail")
+                .branch()?;
+            CoroutineState::Break(Ok(()))
         }
+        result => result,
     }
 }
 
@@ -487,13 +523,13 @@ enum ArrayLikeStateMachine {
 
 /// Part of [`Array.fromAsync ( asyncItems [ , mapfn [ , thisArg ] ] )`](https://tc39.es/proposal-array-from-async/#sec-array.fromAsync).
 fn from_array_like(
-    mut result: JsResult<JsValue>,
+    mut result: CompletionRecord,
     (global_state, state_machine): &(GlobalState, Cell<Option<ArrayLikeStateMachine>>),
     context: &mut Context,
-) -> JsResult<CoroutineState> {
-    let result: JsResult<_> = (|| {
+) -> CoroutineState {
+    let result = (|| {
         let Some(mut sm) = state_machine.take() else {
-            return Ok(CoroutineState::Done);
+            return CoroutineState::Break(Ok(()));
         };
 
         loop {
@@ -507,7 +543,7 @@ fn from_array_like(
                     // vii. Repeat, while k < len,
                     if k >= len {
                         // viii. Perform ? Set(A, "length", 𝔽(len), true).
-                        a.set(js_string!("length"), len, true, context)?;
+                        a.set(js_string!("length"), len, true, context).branch()?;
 
                         // ix. Return Completion Record { [[Type]]: return, [[Value]]: A, [[Target]]: empty }.
 
@@ -523,14 +559,15 @@ fn from_array_like(
                             .resolvers
                             .resolve
                             .call(&JsValue::undefined(), &[a.into()], context)
-                            .expect("resolving functions cannot fail");
+                            .js_expect("resolving functions cannot fail")
+                            .branch()?;
 
-                        return Ok(CoroutineState::Done);
+                        return CoroutineState::Break(Ok(()));
                     }
 
                     // 1. Let Pk be ! ToString(𝔽(k)).
                     // 2. Let kValue be ? Get(arrayLike, Pk).
-                    let k_value = array_like.get(k, context)?;
+                    let k_value = array_like.get(k, context).branch()?;
                     state_machine.set(Some(ArrayLikeStateMachine::LoopContinue {
                         array_like,
                         a,
@@ -539,7 +576,7 @@ fn from_array_like(
                     }));
 
                     // 3. Set kValue to ? Await(kValue).
-                    return Ok(CoroutineState::Yielded(k_value));
+                    return CoroutineState::Continue(k_value);
                 }
                 ArrayLikeStateMachine::LoopContinue {
                     array_like,
@@ -548,13 +585,18 @@ fn from_array_like(
                     k,
                 } => {
                     // Awaited kValue
-                    let k_value = std::mem::replace(&mut result, Ok(JsValue::undefined()))?;
+                    let k_value = std::mem::replace(
+                        &mut result,
+                        CompletionRecord::Normal(JsValue::undefined()),
+                    )
+                    .branch()?;
 
                     // 4. If mapping is true, then
                     if let Some(mapfn) = &global_state.mapfn {
                         // a. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
-                        let mapped_value =
-                            mapfn.call(&global_state.this_arg, &[k_value, k.into()], context)?;
+                        let mapped_value = mapfn
+                            .call(&global_state.this_arg, &[k_value, k.into()], context)
+                            .branch()?;
                         state_machine.set(Some(ArrayLikeStateMachine::LoopEnd {
                             array_like,
                             a,
@@ -564,7 +606,7 @@ fn from_array_like(
                         }));
 
                         // b. Set mappedValue to ? Await(mappedValue).
-                        return Ok(CoroutineState::Yielded(mapped_value));
+                        return CoroutineState::Continue(mapped_value);
                     }
                     // 5. Else, let mappedValue be kValue.
                     sm = ArrayLikeStateMachine::LoopEnd {
@@ -583,11 +625,16 @@ fn from_array_like(
                     mapped_value,
                 } => {
                     // Either awaited `mappedValue` or directly set this from `kValue`.
-                    let result = std::mem::replace(&mut result, Ok(JsValue::undefined()))?;
+                    let result = std::mem::replace(
+                        &mut result,
+                        CompletionRecord::Normal(JsValue::undefined()),
+                    )
+                    .branch()?;
                     let mapped_value = mapped_value.unwrap_or(result);
 
                     // 6. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
-                    a.create_data_property_or_throw(k, mapped_value, context)?;
+                    a.create_data_property_or_throw(k, mapped_value, context)
+                        .branch()?;
 
                     // 7. Set k to k + 1.
                     sm = ArrayLikeStateMachine::LoopStart {
@@ -607,16 +654,21 @@ fn from_array_like(
     // AsyncBlockStart ( promiseCapability, asyncBody, asyncContext )
     // https://tc39.es/ecma262/#sec-asyncblockstart
     match result {
-        Ok(cont) => Ok(cont),
         // i. Assert: result is a throw completion.
-        Err(err) => {
-            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
+        CoroutineState::Break(Err(err)) => {
+            // ii. Perform ! Call(promiseCapability.[[Reject]], undefined, « result.[[Value]] »).
             global_state
                 .resolvers
                 .reject
-                .call(&JsValue::undefined(), &[err.into_opaque(context)?], context)
-                .expect("resolving functions cannot fail");
-            Ok(CoroutineState::Done)
+                .call(
+                    &JsValue::undefined(),
+                    &[err.into_opaque(context).branch()?],
+                    context,
+                )
+                .js_expect("resolving functions cannot fail")
+                .branch()?;
+            CoroutineState::Break(Ok(()))
         }
+        result => result,
     }
 }

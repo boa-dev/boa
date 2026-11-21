@@ -1,25 +1,18 @@
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, GcRefCell, Trace};
 
 use crate::JsValue;
 
-use super::PoisonableEnvironment;
-
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct LexicalEnvironment {
-    inner: PoisonableEnvironment,
+    bindings: GcRefCell<Vec<Option<JsValue>>>,
 }
 
 impl LexicalEnvironment {
     /// Creates a new `LexicalEnvironment`.
-    pub(crate) fn new(bindings: u32, poisoned: bool, with: bool) -> Self {
+    pub(crate) fn new(bindings: u32) -> Self {
         Self {
-            inner: PoisonableEnvironment::new(bindings, poisoned, with),
+            bindings: GcRefCell::new(vec![None; bindings as usize]),
         }
-    }
-
-    /// Gets the `poisonable_environment` of this lexical environment.
-    pub(crate) const fn poisonable_environment(&self) -> &PoisonableEnvironment {
-        &self.inner
     }
 
     /// Gets the binding value from the environment by it's index.
@@ -29,7 +22,7 @@ impl LexicalEnvironment {
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
     pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
-        self.inner.get(index)
+        self.bindings.borrow()[index as usize].clone()
     }
 
     /// Sets the binding value from the environment by index.
@@ -39,6 +32,12 @@ impl LexicalEnvironment {
     /// Panics if the binding value is out of range.
     #[track_caller]
     pub(crate) fn set(&self, index: u32, value: JsValue) {
-        self.inner.set(index, value);
+        self.bindings.borrow_mut()[index as usize] = Some(value);
+    }
+
+    /// Gets the bindings of this poisonable environment.
+    #[expect(dead_code)]
+    pub(crate) const fn bindings(&self) -> &GcRefCell<Vec<Option<JsValue>>> {
+        &self.bindings
     }
 }

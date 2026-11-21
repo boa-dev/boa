@@ -41,6 +41,20 @@ impl Error {
     {
         Self::Syntax(err.into(), pos.into())
     }
+
+    /// Creates an "unexpected" syntax error (found X, with message).
+    #[inline]
+    pub(crate) fn unexpected<F, M, P>(found: F, message: M, pos: P) -> Self
+    where
+        F: fmt::Display,
+        M: Into<Box<str>>,
+        P: Into<Position>,
+    {
+        Self::Syntax(
+            format!("unexpected {found}, {}", message.into().as_ref()).into(),
+            pos.into(),
+        )
+    }
 }
 
 impl fmt::Display for Error {

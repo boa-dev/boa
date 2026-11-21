@@ -1,0 +1,8 @@
+# Fallback to all maintainers for common directories.
+
+* @boa-dev/maintainers
+
+# Owned components
+
+core/engine/src/builtins/intl @jedel1043 @nekevss
+core/engine/src/builtins/temporal @jasonwilliams @jedel1043 @nekevss

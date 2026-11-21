@@ -456,7 +456,9 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             ClassElement::PrivateFieldDefinition(field)
             | ClassElement::PrivateStaticFieldDefinition(field) => {
                 if let Some(e) = &mut field.initializer {
+                    std::mem::swap(&mut self.scope, &mut field.scope);
                     self.visit_expression_mut(e)?;
+                    std::mem::swap(&mut self.scope, &mut field.scope);
                 }
                 ControlFlow::Continue(())
             }
@@ -490,7 +492,9 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         node: &'ast mut ExportDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
-            ExportDeclaration::ReExport { specifier, kind } => {
+            ExportDeclaration::ReExport {
+                specifier, kind, ..
+            } => {
                 self.visit_module_specifier_mut(specifier)?;
                 self.visit_re_export_kind_mut(kind)
             }
@@ -1228,6 +1232,30 @@ where
     let _ = visitor.visit(node.into());
 }
 
+/// Like [`optimize_scope_indices`] but for a [`FunctionExpression`] compiled
+/// by the `Function` constructor with `force_function_scope = true`.
+///
+/// The `Function` constructor always pushes a function scope at runtime, so
+/// the optimizer must account for that even when the function scope would
+/// otherwise be elided.
+pub(crate) fn optimize_scope_indices_function_constructor(
+    node: &mut FunctionExpression,
+    scope: &Scope,
+) {
+    let mut visitor = ScopeIndexVisitor {
+        index: scope.scope_index(),
+    };
+    let _ = visitor.visit_function_like(
+        &mut node.body,
+        &mut node.parameters,
+        &mut node.scopes,
+        &mut node.name_scope,
+        false,
+        // Always force the function scope for the Function constructor.
+        true,
+    );
+}
+
 struct ScopeIndexVisitor {
     index: u32,
 }
@@ -1430,7 +1458,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            self.visit_function_expression_mut(constructor)?;
+            self.visit_function_like(
+                &mut constructor.body,
+                &mut constructor.parameters,
+                &mut constructor.scopes,
+                &mut constructor.name_scope,
+                false,
+                true,
+            )?;
         }
         for element in &mut *node.elements {
             self.visit_class_element_mut(element)?;
@@ -1477,17 +1512,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 self.index = index;
                 ControlFlow::Continue(())
             }
-            ClassElement::StaticBlock(node) => {
-                let contains_direct_eval = contains(node.statements(), ContainsSymbol::DirectEval);
-                self.visit_function_like(
-                    &mut node.body,
-                    &mut FormalParameterList::default(),
-                    &mut node.scopes,
-                    &mut None,
-                    false,
-                    contains_direct_eval,
-                )
-            }
+            ClassElement::StaticBlock(node) => self.visit_function_like(
+                &mut node.body,
+                &mut FormalParameterList::default(),
+                &mut node.scopes,
+                &mut None,
+                false,
+                true,
+            ),
         }
     }
 
@@ -2223,6 +2255,18 @@ fn module_instantiation(module: &Module, env: &Scope, interner: &Interner) {
                     drop(env.create_mutable_binding(name, false));
                 }
             }
+            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Using(u)) => {
+                for name in bound_names(u) {
+                    let name = name.to_js_string(interner);
+                    drop(env.create_mutable_binding(name, false));
+                }
+            }
+            LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::AwaitUsing(au)) => {
+                for name in bound_names(au) {
+                    let name = name.to_js_string(interner);
+                    drop(env.create_mutable_binding(name, false));
+                }
+            }
             LexicallyScopedDeclaration::AssignmentExpression(expr) => {
                 for name in bound_names(expr) {
                     let name = name.to_js_string(interner);
@@ -2240,10 +2284,10 @@ pub struct EvalDeclarationBindings {
     pub new_annex_b_function_names: Vec<IdentifierReference>,
 
     /// New function names created during the declaration of an eval ast node.
-    pub new_function_names: FxHashMap<Identifier, (IdentifierReference, bool)>,
+    pub new_function_names: FxHashMap<Identifier, IdentifierReference>,
 
-    /// New variable names created during the declaration of an eval ast node.
-    pub new_var_names: Vec<IdentifierReference>,
+    /// Variable names declared during the declaration of an eval ast node.
+    pub declared_var_names: Vec<IdentifierReference>,
 }
 
 /// `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
@@ -2294,7 +2338,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
         }
 
         // b. Let thisEnv be lexEnv.
-        let mut this_env = lex_env.clone();
+        let mut this_env = lex_env;
 
         // c. Assert: The following loop will terminate.
         // d. Repeat, while thisEnv is not varEnv,
@@ -2488,10 +2532,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 let binding = var_env.set_mutable_binding(n).expect("must not fail");
                 result.new_function_names.insert(
                     name,
-                    (
-                        IdentifierReference::new(binding.locator(), !var_env.is_function(), true),
-                        true,
-                    ),
+                    IdentifierReference::new(binding.locator(), !var_env.is_function(), true),
                 );
             } else {
                 // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
@@ -2500,10 +2541,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 let binding = var_env.create_mutable_binding(n, !strict);
                 result.new_function_names.insert(
                     name,
-                    (
-                        IdentifierReference::new(binding, !var_env.is_function(), true),
-                        false,
-                    ),
+                    IdentifierReference::new(binding, !var_env.is_function(), true),
                 );
             }
         }
@@ -2524,13 +2562,17 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                 // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
                 // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
-                let binding = var_env.create_mutable_binding(name, true);
-                result.new_var_names.push(IdentifierReference::new(
-                    binding,
-                    !var_env.is_function(),
-                    true,
-                ));
+                drop(var_env.create_mutable_binding(name.clone(), true));
             }
+
+            let binding = var_env
+                .get_binding_reference(&name)
+                .expect("binding must exist");
+            result.declared_var_names.push(IdentifierReference::new(
+                binding.locator(),
+                !var_env.is_function(),
+                true,
+            ));
         }
     }
 

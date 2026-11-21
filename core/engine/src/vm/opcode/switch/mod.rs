@@ -1,5 +1,8 @@
-use super::VaryingOperand;
-use crate::{Context, vm::opcode::Operation};
+use super::RegisterOperand;
+use crate::{
+    Context,
+    vm::opcode::{Address, Operation},
+};
 
 /// `Case` implements the Opcode Operation for `Opcode::Case`
 ///
@@ -12,13 +15,13 @@ pub(crate) struct Case;
 impl Case {
     #[inline(always)]
     pub(super) fn operation(
-        (address, value, condition): (u32, VaryingOperand, VaryingOperand),
+        (address, value, condition): (Address, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) {
         let value = context.vm.get_register(value.into());
         let condition = context.vm.get_register(condition.into());
         if value.strict_equals(condition) {
-            context.vm.frame_mut().pc = address;
+            context.vm.frame_mut().pc = u32::from(address);
         }
     }
 }

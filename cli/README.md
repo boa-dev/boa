@@ -32,6 +32,14 @@ Or if you'd like to use Boa's REPL, simply type:
     boa
 ```
 
+You can also pipe JavaScript into Boa:
+
+```shell
+    echo 'console.log(1 + 2)' | boa
+    cat script.js | boa
+    boa < script.js
+```
+
 ## CLI Options
 
 ```txt
@@ -45,16 +53,33 @@ Options:
   -a, --dump-ast [<FORMAT>]           Dump the AST to stdout with the given format [possible values: debug, json, json-pretty]
   -t, --trace                         Dump the AST to stdout with the given format
       --vi                            Use vi mode in the REPL
-  -O, --optimize
-      --optimizer-statistics
+  -O, --optimize                      Enable bytecode compiler optimizations
+      --optimizer-statistics           Print optimizer statistics (requires -O)
       --flowgraph [<FORMAT>]          Generate instruction flowgraph. Default is Graphviz [possible values: graphviz, mermaid]
       --flowgraph-direction <FORMAT>  Specifies the direction of the flowgraph. Default is top-top-bottom [possible values: top-to-bottom, bottom-to-top, left-to-right, right-to-left]
       --debug-object                  Inject debugging object `$boa`
+      --test262-object                Inject the test262 host object `$262`
   -m, --module                        Treats the input files as modules
   -r, --root <ROOT>                   Root path from where the module resolver will try to load the modules [default: .]
+  -e, --expression <EXPR>             Execute a JavaScript expression then exit
+  -q, --quiet                         Suppress the welcome banner when starting the REPL
   -h, --help                          Print help (see more with '--help')
   -V, --version                       Print version
 ```
+
+## REPL Commands
+
+When running the interactive REPL (`boa` with no file arguments), the following
+dot-commands are available:
+
+| Command        | Description                         |
+| -------------- | ----------------------------------- |
+| `.help`        | Show available REPL commands        |
+| `.exit`        | Exit the REPL                       |
+| `.clear`       | Clear the terminal screen           |
+| `.load <file>` | Load and evaluate a JavaScript file |
+
+You can also press `Ctrl+C` to abort the current expression, or `Ctrl+D` to exit.
 
 ## Features
 

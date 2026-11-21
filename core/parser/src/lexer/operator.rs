@@ -162,7 +162,13 @@ impl<R> Tokenizer<R> for Operator {
             b'~' => {
                 Token::new_by_position_group(Punctuator::Neg.into(), start_pos, cursor.pos_group())
             }
-            op => unimplemented!("operator {}", op),
+            op => {
+                return Err(Error::unexpected(
+                    char::from(op),
+                    "expected valid operator",
+                    start_pos.position(),
+                ));
+            }
         })
     }
 }

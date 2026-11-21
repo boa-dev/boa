@@ -1,31 +1,32 @@
-use crate::{DATA_OFFSET, JsStr, JsStrVariant, JsString, RawJsString, TaggedLen, alloc_overflow};
-
+use crate::r#type::{InternalStringType, Latin1, Utf16};
+use crate::{JsStr, JsStrVariant, JsString, SequenceString, alloc_overflow};
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
-    cell::Cell,
     marker::PhantomData,
     ops::{Add, AddAssign},
     ptr::{self, NonNull},
     str::{self},
 };
 
-/// A mutable builder to create instance of `JsString`.
+/// A mutable builder to create instances of `JsString`.
 #[derive(Debug)]
-pub struct JsStringBuilder<D: Copy> {
+#[allow(private_bounds)]
+pub struct JsStringBuilder<D: InternalStringType> {
     cap: usize,
     len: usize,
-    inner: NonNull<RawJsString>,
+    inner: NonNull<SequenceString<D>>,
     phantom_data: PhantomData<D>,
 }
 
-impl<D: Copy> Default for JsStringBuilder<D> {
+impl<D: InternalStringType> Default for JsStringBuilder<D> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<D: Copy> JsStringBuilder<D> {
-    const DATA_SIZE: usize = size_of::<D>();
+#[allow(private_bounds)]
+impl<D: InternalStringType> JsStringBuilder<D> {
+    const DATA_SIZE: usize = size_of::<D::Byte>();
     const MIN_NON_ZERO_CAP: usize = 8 / Self::DATA_SIZE;
 
     /// Create a new `JsStringBuilder` with capacity of zero.
@@ -67,16 +68,10 @@ impl<D: Copy> JsStringBuilder<D> {
         self.cap
     }
 
-    /// Returns the allocated byte of inner `RawJsString`'s data.
-    #[must_use]
-    const fn allocated_data_byte_len(&self) -> usize {
-        self.len() * Self::DATA_SIZE
-    }
-
     /// Returns the capacity calculated from given layout.
     #[must_use]
     const fn capacity_from_layout(layout: Layout) -> usize {
-        (layout.size() - DATA_OFFSET) / Self::DATA_SIZE
+        (layout.size() - D::DATA_OFFSET) / Self::DATA_SIZE
     }
 
     /// Create a new `JsStringBuilder` with specific capacity
@@ -110,7 +105,7 @@ impl<D: Copy> JsStringBuilder<D> {
         self.inner != NonNull::dangling()
     }
 
-    /// Returns the inner `RawJsString`'s layout.
+    /// Returns the inner sequence string's layout.
     ///
     /// # Safety
     ///
@@ -118,10 +113,12 @@ impl<D: Copy> JsStringBuilder<D> {
     #[must_use]
     unsafe fn current_layout(&self) -> Layout {
         // SAFETY:
-        // Caller should ensure that the inner is allocated.
+        // 1. Caller should ensure that the inner is allocated.
+        // 2. `unwrap_unchecked` is safe because this layout was successfully
+        //    allocated previously with the same capacity, so it cannot overflow.
         unsafe {
             Layout::for_value(self.inner.as_ref())
-                .extend(Layout::array::<D>(self.capacity()).unwrap_unchecked())
+                .extend(Layout::array::<D::Byte>(self.capacity()).unwrap_unchecked())
                 .unwrap_unchecked()
                 .0
                 .pad_to_align()
@@ -134,10 +131,10 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure that the inner is allocated.
     #[must_use]
-    const unsafe fn data(&self) -> *mut D {
-        // SAFETY:
-        // Caller should ensure that the inner is allocated.
-        unsafe { (&raw mut (*self.inner.as_ptr()).data).cast() }
+    const unsafe fn data(&self) -> *mut D::Byte {
+        let seq_ptr: *mut D::Byte = self.inner.as_ptr().cast();
+        // SAFETY: Caller should ensure that the inner is allocated.
+        unsafe { seq_ptr.byte_add(D::DATA_OFFSET) }
     }
 
     /// Allocates when there is not sufficient capacity.
@@ -161,16 +158,17 @@ impl<D: Copy> JsStringBuilder<D> {
             let old_layout = unsafe { self.current_layout() };
             // SAFETY:
             // Valid pointer is required by `realloc` and pointer is checked above to be valid.
-            // The layout size of `RawJsString` is never zero, since it has to store
+            // The layout size of the sequence string is never zero, since it has to store
             // the length of the string and the reference count.
             unsafe { realloc(old_ptr.cast(), old_layout, new_layout.size()) }
         } else {
             // SAFETY:
-            // The layout size of `RawJsString` is never zero, since it has to store
+            // The layout size of the sequence string is never zero, since it has to store
             // the length of the string and the reference count.
             unsafe { alloc(new_layout) }
         };
-        let Some(new_ptr) = NonNull::new(new_ptr.cast::<RawJsString>()) else {
+
+        let Some(new_ptr) = NonNull::new(new_ptr.cast::<SequenceString<D>>()) else {
             std::alloc::handle_alloc_error(new_layout)
         };
         self.inner = new_ptr;
@@ -179,7 +177,7 @@ impl<D: Copy> JsStringBuilder<D> {
 
     /// Appends an element to the inner `RawJsString` of `JsStringBuilder`.
     #[inline]
-    pub fn push(&mut self, v: D) {
+    pub fn push(&mut self, v: D::Byte) {
         let required_cap = self.len() + 1;
         self.allocate_if_needed(required_cap);
         // SAFETY:
@@ -199,8 +197,11 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
-    pub const unsafe fn extend_from_slice_unchecked(&mut self, v: &[D]) {
-        // SAFETY: Caller should ensure the capacity is large enough to hold elements.
+    pub const unsafe fn extend_from_slice_unchecked(&mut self, v: &[D::Byte]) {
+        // SAFETY:
+        // 1. Caller must ensure `self.len() + v.len() <= self.capacity()` so the destination pointer is in-bounds.
+        // 2. Pointers are aligned: `v` is aligned by Rust's slice guarantee; `self.data()` is aligned because the allocation layout was padded to `D::Byte`'s alignment.
+        // 3. Regions do not overlap because `v` is an immutable reference and `self` is an exclusive mutable reference.
         unsafe {
             ptr::copy_nonoverlapping(v.as_ptr(), self.data().add(self.len()), v.len());
         }
@@ -209,7 +210,7 @@ impl<D: Copy> JsStringBuilder<D> {
 
     /// Pushes elements from slice to `JsStringBuilder`.
     #[inline]
-    pub fn extend_from_slice(&mut self, v: &[D]) {
+    pub fn extend_from_slice(&mut self, v: &[D::Byte]) {
         let required_cap = self.len() + v.len();
         self.allocate_if_needed(required_cap);
         // SAFETY:
@@ -220,13 +221,13 @@ impl<D: Copy> JsStringBuilder<D> {
     }
 
     fn new_layout(cap: usize) -> Layout {
-        let new_layout = Layout::array::<D>(cap)
-            .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
+        let new_layout = Layout::array::<D::Byte>(cap)
+            .and_then(|arr| Layout::new::<SequenceString<D>>().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
             .map_err(|_| None);
         match new_layout {
             Ok((new_layout, offset)) => {
-                debug_assert_eq!(offset, DATA_OFFSET);
+                debug_assert_eq!(offset, D::DATA_OFFSET);
                 new_layout
             }
             Err(None) => alloc_overflow(),
@@ -276,7 +277,7 @@ impl<D: Copy> JsStringBuilder<D> {
     }
 
     /// Allocates memory to the inner `RawJsString` by the given capacity.
-    /// Capacity calculation is from [`std::vec::Vec::reserve`].
+    /// Capacity calculation is from [`Vec::reserve`].
     fn allocate(&mut self, cap: usize) {
         let cap = std::cmp::max(self.capacity() * 2, cap);
         let cap = std::cmp::max(Self::MIN_NON_ZERO_CAP, cap);
@@ -288,7 +289,7 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
-    pub const unsafe fn push_unchecked(&mut self, v: D) {
+    pub const unsafe fn push_unchecked(&mut self, v: D::Byte) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
             self.data().add(self.len()).write(v);
@@ -303,23 +304,10 @@ impl<D: Copy> JsStringBuilder<D> {
         self.len() == 0
     }
 
-    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
-    #[inline]
-    #[must_use]
-    pub fn is_ascii(&self) -> bool {
-        // SAFETY:
-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
-        // meaning we can read to its pointed memory.
-        let data = unsafe {
-            std::slice::from_raw_parts(self.data().cast::<u8>(), self.allocated_data_byte_len())
-        };
-        data.is_ascii()
-    }
-
     /// Extracts a slice containing the elements in the inner `RawJsString`.
     #[inline]
     #[must_use]
-    pub fn as_slice(&self) -> &[D] {
+    pub fn as_slice(&self) -> &[D::Byte] {
         if self.is_allocated() {
             // SAFETY:
             // The inner `RawJsString` is allocated which means it is not null.
@@ -336,7 +324,7 @@ impl<D: Copy> JsStringBuilder<D> {
     /// Use of a builder whose contents are not valid encoding is undefined behavior.
     #[inline]
     #[must_use]
-    pub unsafe fn as_mut_slice(&mut self) -> &mut [D] {
+    pub unsafe fn as_mut_slice(&mut self) -> &mut [D::Byte] {
         if self.is_allocated() {
             // SAFETY:
             // The inner `RawJsString` is allocated which means it is not null.
@@ -349,7 +337,7 @@ impl<D: Copy> JsStringBuilder<D> {
     /// Builds `JsString` from `JsStringBuilder`
     #[inline]
     #[must_use]
-    fn build_inner(mut self, latin1: bool) -> JsString {
+    fn build_inner(mut self) -> JsString {
         if self.is_empty() {
             return JsString::default();
         }
@@ -367,22 +355,18 @@ impl<D: Copy> JsStringBuilder<D> {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            inner.as_ptr().write(RawJsString {
-                tagged_len: TaggedLen::new(len, latin1),
-                refcount: Cell::new(1),
-                data: [0; 0],
-            });
+            inner.as_ptr().write(SequenceString::<D>::new(len));
         }
 
         // Tell the compiler not to call the destructor of `JsStringBuilder`,
-        // because we move inner `RawJsString` to `JsString`.
+        // because we move inner sequence string to `JsString`.
         std::mem::forget(self);
 
-        JsString { ptr: inner }
+        JsString { ptr: inner.cast() }
     }
 }
 
-impl<D: Copy> Drop for JsStringBuilder<D> {
+impl<D: InternalStringType> Drop for JsStringBuilder<D> {
     /// Set cold since [`JsStringBuilder`] should be created to build `JsString`
     #[cold]
     #[inline]
@@ -402,21 +386,21 @@ impl<D: Copy> Drop for JsStringBuilder<D> {
     }
 }
 
-impl<D: Copy> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
+impl<D: InternalStringType> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
     #[inline]
     fn add_assign(&mut self, rhs: &JsStringBuilder<D>) {
         self.extend_from_slice(rhs.as_slice());
     }
 }
 
-impl<D: Copy> AddAssign<&[D]> for JsStringBuilder<D> {
+impl<D: InternalStringType> AddAssign<&[D::Byte]> for JsStringBuilder<D> {
     #[inline]
-    fn add_assign(&mut self, rhs: &[D]) {
+    fn add_assign(&mut self, rhs: &[D::Byte]) {
         self.extend_from_slice(rhs);
     }
 }
 
-impl<D: Copy> Add<&JsStringBuilder<D>> for JsStringBuilder<D> {
+impl<D: InternalStringType> Add<&JsStringBuilder<D>> for JsStringBuilder<D> {
     type Output = Self;
 
     #[inline]
@@ -426,19 +410,19 @@ impl<D: Copy> Add<&JsStringBuilder<D>> for JsStringBuilder<D> {
     }
 }
 
-impl<D: Copy> Add<&[D]> for JsStringBuilder<D> {
+impl<D: InternalStringType> Add<&[D::Byte]> for JsStringBuilder<D> {
     type Output = Self;
 
     #[inline]
-    fn add(mut self, rhs: &[D]) -> Self::Output {
+    fn add(mut self, rhs: &[D::Byte]) -> Self::Output {
         self.extend_from_slice(rhs);
         self
     }
 }
 
-impl<D: Copy> Extend<D> for JsStringBuilder<D> {
+impl<D: InternalStringType> Extend<D::Byte> for JsStringBuilder<D> {
     #[inline]
-    fn extend<I: IntoIterator<Item = D>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = D::Byte>>(&mut self, iter: I) {
         let iterator = iter.into_iter();
         let (lower_bound, _) = iterator.size_hint();
         let require_cap = self.len() + lower_bound;
@@ -447,18 +431,18 @@ impl<D: Copy> Extend<D> for JsStringBuilder<D> {
     }
 }
 
-impl<D: Copy> FromIterator<D> for JsStringBuilder<D> {
+impl<D: InternalStringType> FromIterator<D::Byte> for JsStringBuilder<D> {
     #[inline]
-    fn from_iter<T: IntoIterator<Item = D>>(iter: T) -> Self {
+    fn from_iter<T: IntoIterator<Item = D::Byte>>(iter: T) -> Self {
         let mut builder = Self::new();
         builder.extend(iter);
         builder
     }
 }
 
-impl<D: Copy> From<&[D]> for JsStringBuilder<D> {
+impl<D: InternalStringType> From<&[D::Byte]> for JsStringBuilder<D> {
     #[inline]
-    fn from(value: &[D]) -> Self {
+    fn from(value: &[D::Byte]) -> Self {
         let mut builder = Self::with_capacity(value.len());
         // SAFETY: The capacity is large enough to hold elements.
         unsafe { builder.extend_from_slice_unchecked(value) };
@@ -466,14 +450,19 @@ impl<D: Copy> From<&[D]> for JsStringBuilder<D> {
     }
 }
 
-impl<D: Copy + Eq + PartialEq> PartialEq for JsStringBuilder<D> {
+impl<D: InternalStringType> PartialEq for JsStringBuilder<D>
+where
+    D::Byte: Eq + PartialEq,
+{
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.as_slice().eq(other.as_slice())
+        let slice: &[D::Byte] = self.as_slice();
+        let other_slice: &[D::Byte] = other.as_slice();
+        slice.eq(other_slice)
     }
 }
 
-impl<D: Copy> Clone for JsStringBuilder<D> {
+impl<D: InternalStringType> Clone for JsStringBuilder<D> {
     #[inline]
     fn clone(&self) -> Self {
         if self.is_allocated() {
@@ -496,7 +485,7 @@ impl<D: Copy> Clone for JsStringBuilder<D> {
         if source_len > self.capacity() {
             self.allocate(source_len);
         } else {
-            // At this point, inner `RawJsString` of self or source can be not allocated,
+            // At this point, inner sequence string of self or source can be not allocated,
             // returns earlier to avoid copying from/to `null`.
             if source_len == 0 {
                 // SAFETY: 0 is always less or equal to self's capacity.
@@ -519,6 +508,24 @@ impl<D: Copy> Clone for JsStringBuilder<D> {
     }
 }
 
+impl JsStringBuilder<Latin1> {
+    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
+    #[inline]
+    #[must_use]
+    pub fn is_ascii(&self) -> bool {
+        self.as_slice().is_ascii()
+    }
+}
+
+impl JsStringBuilder<Utf16> {
+    /// Checks if all u16 in inner `RawJsString`'s data are ascii (<= 0x7F).
+    #[inline]
+    #[must_use]
+    pub fn is_ascii(&self) -> bool {
+        self.as_slice().iter().all(|&c| c <= 0x7F)
+    }
+}
+
 /// **`Latin1`** encoded `JsStringBuilder`
 /// # Warning
 /// If you are not sure the characters that will be added and don't want to preprocess them,
@@ -533,7 +540,7 @@ impl<D: Copy> Clone for JsStringBuilder<D> {
 /// s.extend([b'1', b'2', b'3']);
 /// let js_string = s.build();
 /// ```
-pub type Latin1JsStringBuilder = JsStringBuilder<u8>;
+pub type Latin1JsStringBuilder = JsStringBuilder<Latin1>;
 
 impl Latin1JsStringBuilder {
     /// Builds a `JsString` if the current instance is strictly `ASCII`.
@@ -549,7 +556,7 @@ impl Latin1JsStringBuilder {
     #[must_use]
     pub fn build(self) -> Option<JsString> {
         if self.is_ascii() {
-            Some(self.build_inner(true))
+            Some(self.build_inner())
         } else {
             None
         }
@@ -567,7 +574,7 @@ impl Latin1JsStringBuilder {
     #[inline]
     #[must_use]
     pub unsafe fn build_as_latin1(self) -> JsString {
-        self.build_inner(true)
+        self.build_inner()
     }
 }
 
@@ -582,14 +589,14 @@ impl Latin1JsStringBuilder {
 /// s.extend([0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]); // 🎹🎶🎵
 /// let js_string = s.build();
 /// ```
-pub type Utf16JsStringBuilder = JsStringBuilder<u16>;
+pub type Utf16JsStringBuilder = JsStringBuilder<Utf16>;
 
 impl Utf16JsStringBuilder {
     /// Builds `JsString` from `Utf16JsStringBuilder`
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
-        self.build_inner(false)
+        self.build_inner()
     }
 }
 
@@ -610,15 +617,15 @@ pub enum Segment<'a> {
 }
 
 impl Segment<'_> {
-    /// Checks if the segment consists solely of `ASCII` characters.
+    /// Checks if the segment can be represented as `Latin1` characters.
     #[inline]
     #[must_use]
-    fn is_ascii(&self) -> bool {
+    fn can_be_latin1(&self) -> bool {
         match self {
             Segment::String(s) => s.as_str().is_latin1(),
             Segment::Str(s) => s.is_latin1(),
-            Segment::Latin1(b) => *b <= 0x7f,
-            Segment::CodePoint(ch) => *ch as u32 <= 0x7F,
+            Segment::Latin1(_) => true,
+            Segment::CodePoint(ch) => *ch as u32 <= 0xFF,
         }
     }
 }
@@ -723,11 +730,11 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.segments.push(seg.into());
     }
 
-    /// Checks if all string segments contains only `ASCII` bytes.
+    /// Checks if all string segments can be represented as `Latin1` characters.
     #[inline]
     #[must_use]
-    pub fn is_ascii(&self) -> bool {
-        self.segments.iter().all(Segment::is_ascii)
+    pub fn can_be_latin1(&self) -> bool {
+        self.segments.iter().all(Segment::can_be_latin1)
     }
 
     /// Returns the number of string segment in inner vector.
@@ -765,18 +772,11 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         for seg in &self.segments {
             match seg {
                 Segment::String(s) => {
-                    if let Some(data) = s.as_str().as_latin1() {
-                        builder.extend_from_slice(data);
-                    } else {
-                        return None;
-                    }
+                    builder.extend_from_slice(s.as_str().as_latin1()?);
                 }
                 Segment::Str(s) => {
-                    if let Some(data) = s.as_latin1() {
-                        builder.extend_from_slice(data);
-                    } else {
-                        return None;
-                    }
+                    let data = s.as_latin1()?;
+                    builder.extend_from_slice(data);
                 }
                 Segment::Latin1(b) => {
                     if *b <= 0x7f {
@@ -829,16 +829,16 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     ///
     /// This function first checks if the instance is empty:
     /// - If it is empty, it returns the default `JsString`.
-    /// - If it contains only ASCII characters, it safely encodes it as `Latin1`.
-    /// - If it contains non-ASCII characters, it falls back to encoding using `UTF-16`.
+    /// - If it can be represented as Latin1 characters, it safely encodes it as `Latin1`.
+    /// - Otherwise, it falls back to encoding using `UTF-16`.
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
         if self.is_empty() {
             JsString::default()
-        } else if self.is_ascii() {
+        } else if self.can_be_latin1() {
             // SAFETY:
-            // All string segment contains only ascii byte, so this can be encoded as `Latin1`.
+            // All string segments can be represented as Latin1, so this can be encoded as `Latin1`.
             unsafe { self.build_as_latin1() }
         } else {
             self.build_from_utf16()

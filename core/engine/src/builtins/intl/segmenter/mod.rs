@@ -1,17 +1,10 @@
 use std::ops::Range;
 
-use boa_gc::{Finalize, Trace};
-use icu_collator::provider::CollationDiacriticsV1;
-use icu_locale::Locale;
-use icu_segmenter::{
-    GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter,
-    options::{SentenceBreakOptions, WordBreakOptions},
-};
-
 use crate::{
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsStr, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        intl::options::EmptyPreferences,
         options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -20,6 +13,14 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+};
+use boa_gc::{Finalize, Trace};
+use boa_string::JsStrVariant;
+use icu_collator::provider::CollationDiacriticsV1;
+use icu_locale::Locale;
+use icu_segmenter::{
+    GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter,
+    options::{SentenceBreakOptions, WordBreakOptions},
 };
 
 mod iterator;
@@ -62,9 +63,12 @@ impl NativeSegmenter {
 
     /// Segment the passed string, returning an iterator with the index boundaries
     /// of the segments.
-    pub(crate) fn segment<'l, 's>(&'l self, input: JsStr<'s>) -> NativeSegmentIterator<'l, 's> {
-        match input.variant() {
-            crate::string::JsStrVariant::Latin1(input) => match self {
+    pub(crate) fn segment<'l, 's>(
+        &'l self,
+        input: JsStrVariant<'s>,
+    ) -> NativeSegmentIterator<'l, 's> {
+        match input {
+            JsStrVariant::Latin1(input) => match self {
                 Self::Grapheme(g) => {
                     NativeSegmentIterator::GraphemeLatin1(g.as_borrowed().segment_latin1(input))
                 }
@@ -75,7 +79,7 @@ impl NativeSegmenter {
                     NativeSegmentIterator::SentenceLatin1(s.as_borrowed().segment_latin1(input))
                 }
             },
-            crate::string::JsStrVariant::Utf16(input) => match self {
+            JsStrVariant::Utf16(input) => match self {
                 Self::Grapheme(g) => {
                     NativeSegmentIterator::GraphemeUtf16(g.as_borrowed().segment_utf16(input))
                 }
@@ -95,7 +99,7 @@ impl Service for Segmenter {
     // and replace when segmenters are locale-aware.
     type LangMarker = CollationDiacriticsV1;
 
-    type LocaleOptions = ();
+    type Preferences = EmptyPreferences;
 }
 
 impl IntrinsicObject for Segmenter {

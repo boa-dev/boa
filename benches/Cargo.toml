@@ -1,0 +1,24 @@
+[package]
+name = "boa_benches"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+boa_engine = { workspace = true, features = ["intl_bundled"] }
+boa_runtime.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+walkdir = "2"
+regex.workspace = true
+
+[target.x86_64-unknown-linux-gnu.dev-dependencies]
+tikv-jemallocator.workspace = true
+
+[target.'cfg(target_os = "macos")'.dev-dependencies]
+mimalloc-safe = { workspace = true, features = ["skip_collect_on_exit"] }
+
+[[bench]]
+name = "scripts"
+harness = false

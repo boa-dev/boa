@@ -1,18 +1,14 @@
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use boa_engine::{
-    Context, JsNativeError, JsResult, JsString, JsValue, Module,
+    Context, JsNativeError, JsResult, JsValue, Module,
     builtins::promise::PromiseState,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
-    js_string,
-    module::ModuleLoader,
+    js_error, js_string,
+    module::{ModuleLoader, ModuleRequest},
 };
 use boa_parser::Source;
 use futures_concurrency::future::FutureGroup;
-use isahc::{
-    AsyncReadResponseExt, Request, RequestExt,
-    config::{Configurable, RedirectPolicy},
-};
 use smol::{future, stream::StreamExt};
 
 #[derive(Debug, Default)]
@@ -22,10 +18,10 @@ impl ModuleLoader for HttpModuleLoader {
     async fn load_imported_module(
         self: Rc<Self>,
         _referrer: boa_engine::module::Referrer,
-        specifier: JsString,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> JsResult<Module> {
-        let url = specifier.to_std_string_escaped();
+        let url = request.specifier().to_std_string_escaped();
 
         // Adding some prints to show the non-deterministic nature of the async fetches.
         // Try to run the example several times to see how sometimes the fetches start in order
@@ -33,15 +29,10 @@ impl ModuleLoader for HttpModuleLoader {
         println!("Fetching `{url}`...");
 
         // This could also retry fetching in case there's an error while requesting the module.
-        let response = async {
-            let request = Request::get(&url)
-                .redirect_policy(RedirectPolicy::Limit(5))
-                .body(())?;
-            let response = request.send_async().await?.text().await?;
-            Ok(response)
-        }
-        .await
-        .map_err(|err: isahc::Error| JsNativeError::typ().with_message(err.to_string()))?;
+        // async, a poor man's `try` block lmao
+        let response = async { reqwest::get(&url).await?.text().await }
+            .await
+            .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 
         println!("Finished fetching `{url}`");
 
@@ -74,6 +65,12 @@ fn main() -> JsResult<()> {
 
         export default result;
     "#;
+
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .map_err(
+            |_| js_error!(TypeError: "could not install ring as the default crypto provider"),
+        )?;
 
     let context = &mut Context::builder()
         .job_executor(Rc::new(Queue::new()))
@@ -170,7 +167,9 @@ impl JobExecutor for Queue {
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
-        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))))
+        let runtime =
+            tokio::runtime::Runtime::new().map_err(|err| js_error!(TypeError: "{}", err))?;
+        runtime.block_on(self.run_jobs_async(&RefCell::new(context)))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.

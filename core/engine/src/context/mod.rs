@@ -1,5 +1,6 @@
 //! The ECMAScript context.
 
+use std::any::Any;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -9,16 +10,18 @@ pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
-#[cfg(feature = "temporal")]
+#[cfg(any(feature = "temporal", feature = "intl"))]
 use temporal_rs::provider::TimeZoneProvider;
-#[cfg(feature = "temporal")]
-use timezone_provider::tzif::CompiledTzdbProvider;
+#[cfg(any(feature = "temporal", feature = "intl"))]
+use timezone_provider::experimental_tzif::ZeroCompiledTzdbProvider;
 
 use crate::job::Job;
+use crate::js_error;
 use crate::module::DynModuleLoader;
-use crate::vm::RuntimeLimits;
+use crate::property::CompletePropertyDescriptor;
+use crate::vm::{CodeBlock, RuntimeLimits, create_function_object_fast};
 use crate::{
-    HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
+    HostDefined, JsNativeError, JsResult, JsString, JsValue, Source, builtins,
     class::{Class, ClassBuilder},
     job::{JobExecutor, SimpleJobExecutor},
     js_string,
@@ -107,7 +110,7 @@ pub struct Context {
 
     can_block: bool,
 
-    #[cfg(feature = "temporal")]
+    #[cfg(any(feature = "temporal", feature = "intl"))]
     timezone_provider: Box<dyn TimeZoneProvider>,
 
     /// Intl data provider.
@@ -128,7 +131,7 @@ pub struct Context {
     /// Unique identifier for each parser instance used during the context lifetime.
     parser_identifier: u32,
 
-    data: HostDefined,
+    data: HostDefined<dyn Any>,
 }
 
 impl std::fmt::Debug for Context {
@@ -136,7 +139,7 @@ impl std::fmt::Debug for Context {
         let mut debug = f.debug_struct("Context");
 
         debug
-            .field("realm", &self.vm.frame.realm)
+            .field("realm", &self.vm.frame().realm)
             .field("interner", &self.interner)
             .field("vm", &self.vm)
             .field("strict", &self.strict)
@@ -436,21 +439,29 @@ impl Context {
     #[inline]
     #[must_use]
     pub fn global_object(&self) -> JsObject {
-        self.vm.frame.realm.global_object().clone()
+        self.vm.frame().realm.global_object().clone()
     }
 
     /// Returns the currently active intrinsic constructors and objects.
     #[inline]
     #[must_use]
     pub fn intrinsics(&self) -> &Intrinsics {
-        self.vm.frame.realm.intrinsics()
+        self.vm.frame().realm.intrinsics()
+    }
+
+    /// Returns the amount of remaining instructions to be executed
+    #[cfg(feature = "fuzz")]
+    #[inline]
+    #[must_use]
+    pub fn instructions_remaining(&self) -> usize {
+        self.instructions_remaining
     }
 
     /// Returns the currently active realm.
     #[inline]
     #[must_use]
-    pub const fn realm(&self) -> &Realm {
-        &self.vm.frame.realm
+    pub fn realm(&self) -> &Realm {
+        &self.vm.frame().realm
     }
 
     /// Set the value of trace on the context
@@ -508,27 +519,22 @@ impl Context {
     /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
-        // Create a list containing the previous frames plus the current frame.
-        let frames: Vec<_> = self
-            .vm
+        use crate::vm::CallFrameFlags;
+        // The first frame is always a dummy frame (see `Vm` implementation for more details),
+        // so skip the dummy frame, filter out lightweight native frames, and return the reversed
+        // list so that the most recent frames are first.
+        self.vm
             .frames
             .iter()
-            .chain(std::iter::once(&self.vm.frame))
-            .collect();
-
-        // The first frame is always a dummy frame (see `Vm` implementation for more details),
-        // so skip the dummy frame and return the reversed list so that the most recent frames are first.
-        frames.into_iter().skip(1).rev()
+            .skip(1)
+            .filter(|f| !f.flags.contains(CallFrameFlags::NATIVE_FRAME))
+            .rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
     #[inline]
     pub fn enter_realm(&mut self, realm: Realm) -> Realm {
-        self.vm
-            .frame
-            .environments
-            .replace_global(realm.environment().clone());
-        std::mem::replace(&mut self.vm.frame.realm, realm)
+        std::mem::replace(&mut self.vm.frame_mut().realm, realm)
     }
 
     /// Create a new Realm with the default global bindings.
@@ -604,29 +610,35 @@ impl Context {
         self.can_block
     }
 
+    /// Gets a mutable reference to the inner [`HostDefined`] field.
+    #[inline]
+    pub fn host_defined_mut(&mut self) -> &mut HostDefined<dyn Any> {
+        &mut self.data
+    }
+
     /// Insert a type into the context-specific [`HostDefined`] field.
     #[inline]
-    pub fn insert_data<T: NativeObject>(&mut self, value: T) -> Option<Box<T>> {
+    pub fn insert_data<T: Any>(&mut self, value: T) -> Option<Box<T>> {
         self.data.insert(value)
     }
 
     /// Check if the context-specific [`HostDefined`] has type T.
     #[inline]
     #[must_use]
-    pub fn has_data<T: NativeObject>(&self) -> bool {
+    pub fn has_data<T: Any>(&self) -> bool {
         self.data.has::<T>()
     }
 
     /// Remove type T from the context-specific [`HostDefined`], if it exists.
     #[inline]
-    pub fn remove_data<T: NativeObject>(&mut self) -> Option<Box<T>> {
+    pub fn remove_data<T: Any>(&mut self) -> Option<Box<T>> {
         self.data.remove::<T>()
     }
 
     /// Get type T from the context-specific [`HostDefined`], if it exists.
     #[inline]
     #[must_use]
-    pub fn get_data<T: NativeObject>(&self) -> Option<&T> {
+    pub fn get_data<T: Any>(&self) -> Option<&T> {
         self.data.get::<T>()
     }
 }
@@ -642,11 +654,6 @@ impl Context {
     /// Gets the current module loader.
     pub(crate) fn module_loader(&self) -> Rc<dyn DynModuleLoader> {
         self.module_loader.clone()
-    }
-
-    /// Swaps the currently active realm with `realm`.
-    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm.frame.realm, realm);
     }
 
     /// Increment and get the parser identifier.
@@ -676,14 +683,16 @@ impl Context {
         };
 
         // 5. If existingProp.[[Configurable]] is true, return true.
-        if existing_prop.configurable() == Some(true) {
+        if existing_prop.configurable() {
             return Ok(true);
         }
 
         // 6. If IsDataDescriptor(existingProp) is true and existingProp has attribute values { [[Writable]]: true, [[Enumerable]]: true }, return true.
-        if existing_prop.is_data_descriptor()
-            && existing_prop.writable() == Some(true)
-            && existing_prop.enumerable() == Some(true)
+        if let CompletePropertyDescriptor::Data {
+            writable: true,
+            enumerable: true,
+            ..
+        } = existing_prop
         {
             return Ok(true);
         }
@@ -779,9 +788,7 @@ impl Context {
             global_object.__get_own_property__(&name.clone().into(), &mut self.into())?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
-        let desc = if existing_prop.is_none()
-            || existing_prop.and_then(|p| p.configurable()) == Some(true)
-        {
+        let desc = if existing_prop.is_none_or(|p| p.configurable()) {
             // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
             PropertyDescriptor::builder()
                 .value(function.clone())
@@ -831,7 +838,7 @@ impl Context {
         };
 
         // 5. If existingProp.[[Configurable]] is true, return false.
-        if existing_prop.configurable() == Some(true) {
+        if existing_prop.configurable() {
             return Ok(false);
         }
 
@@ -850,11 +857,12 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getactivescriptormodule
-    pub(crate) fn get_active_script_or_module(&self) -> Option<ActiveRunnable> {
+    #[must_use]
+    pub fn get_active_script_or_module(&self) -> Option<ActiveRunnable> {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
         // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
-        if let Some(active_runnable) = &self.vm.frame.active_runnable {
+        if let Some(active_runnable) = &self.vm.frame().active_runnable {
             return Some(active_runnable.clone());
         }
 
@@ -877,6 +885,99 @@ impl Context {
         }
 
         self.vm.stack.get_function(self.vm.frame())
+    }
+
+    /// Creates all globals required to evaluate `codeblock`.
+    ///
+    /// This is the common path of the instantiations:
+    /// - `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
+    /// - `GlobalDeclarationInstantiation ( script, env )`
+    fn create_globals(
+        &mut self,
+        codeblock: &CodeBlock,
+        configurable_globals: bool,
+    ) -> JsResult<()> {
+        // 8. For each element d of varDeclarations, in reverse List order, do
+        //    a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+        //       i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+        //       ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+        //       iii. Let fn be the sole element of the BoundNames of d.
+        for fun in codeblock.global_fns.iter().rev() {
+            // ...
+            // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
+            // 2. If fnDefinable is false, throw a TypeError exception.
+            let name = codeblock.constant_string(fun.name_index as usize);
+            if !self.can_declare_global_function(&name)? {
+                return Err(js_error!(TypeError: "cannot declare global function"));
+            }
+        }
+
+        // 10. For each element d of varDeclarations, do
+        for global_var in &codeblock.global_vars {
+            // ...
+            // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
+            // b. If vnDefinable is false, throw a TypeError exception.
+            let name = codeblock.constant_string(*global_var as usize);
+            if !self.can_declare_global_var(&name)? {
+                return Err(js_error!(TypeError: "cannot declare global variable"));
+            }
+        }
+
+        // 16. For each Parse Node f of functionsToInitialize, do
+        for fun in &codeblock.global_fns {
+            // ...
+            // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
+            let function = create_function_object_fast(
+                codeblock.constant_function(fun.function_index as usize),
+                self,
+            );
+            let name = codeblock.constant_string(fun.name_index as usize);
+            self.create_global_function_binding(name, function, configurable_globals)?;
+        }
+
+        // 17. For each String vn of declaredVarNames, do
+        for global_declared_var in &codeblock.global_vars {
+            // a. Perform ? env.CreateGlobalVarBinding(vn, false).
+            let name = codeblock.constant_string(*global_declared_var as usize);
+            self.create_global_var_binding(name, configurable_globals)?;
+        }
+
+        Ok(())
+    }
+
+    /// `GlobalDeclarationInstantiation ( script, env )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
+    pub(crate) fn global_declaration_instantiation(
+        &mut self,
+        codeblock: &CodeBlock,
+    ) -> JsResult<()> {
+        // 3. For each element name of lexNames, do
+        for global_lex in &codeblock.global_lexs {
+            // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
+            // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
+            let name = codeblock.constant_string(*global_lex as usize);
+            if self.has_restricted_global_property(&name)? {
+                return Err(
+                    js_error!(SyntaxError: "cannot redefine non-configurable global property"),
+                );
+            }
+        }
+
+        self.create_globals(codeblock, false)
+    }
+
+    /// `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
+    pub(crate) fn eval_declaration_instantiation(&mut self, codeblock: &CodeBlock) -> JsResult<()> {
+        self.create_globals(codeblock, true)
     }
 }
 
@@ -1110,7 +1211,7 @@ impl ContextBuilder {
         let root_shape = RootShape::default();
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
-        let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock));
+        let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock::new()));
         let realm = Realm::create(host_hooks.as_ref(), &root_shape)?;
         let vm = Vm::new(realm);
 
@@ -1134,7 +1235,7 @@ impl ContextBuilder {
             timezone_provider: if let Some(provider) = self.timezone_provider {
                 provider
             } else {
-                Box::new(CompiledTzdbProvider::default())
+                Box::new(ZeroCompiledTzdbProvider::default())
             },
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {

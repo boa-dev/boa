@@ -3,7 +3,7 @@ use crate::{
     builtins::{
         Array,
         intl::{
-            Service,
+            Service, ServicePreferences,
             options::{IntlOptions, LocaleMatcher, coerce_options_to_object},
         },
         options::get_option,
@@ -13,6 +13,7 @@ use crate::{
     object::JsObject,
 };
 
+use icu_locale::extensions::unicode::value;
 use icu_locale::{LanguageIdentifier, Locale, LocaleCanonicalizer};
 use icu_provider::{
     DataIdentifierBorrowed, DataLocale, DataMarker, DataMarkerAttributes, DataRequest,
@@ -79,6 +80,29 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
         .locale_canonicalizer()?
         .canonicalize(&mut tag);
 
+    // TODO: Remove this workaround once ICU4X supports canonicalization of
+    // Unicode extension value aliases (unicode-org/icu4x#3483).
+    // Currently ICU4X does not canonicalize "yes" → "true" for certain keys.
+    let keys: Vec<_> = tag
+        .extensions
+        .unicode
+        .keywords
+        .iter()
+        .map(|(k, _)| *k)
+        .collect();
+
+    for k in keys {
+        match k.as_str() {
+            "kb" | "kc" | "kh" | "kk" | "kn" => {
+                if let Some(v) = tag.extensions.unicode.keywords.get_mut(&k)
+                    && *v == value!("yes")
+                {
+                    *v = value!("true");
+                }
+            }
+            _ => {}
+        }
+    }
     Ok(tag)
 }
 
@@ -311,7 +335,7 @@ where
 /// [spec]: https://tc39.es/ecma402/#sec-resolvelocale
 pub(in crate::builtins::intl) fn resolve_locale<S>(
     requested_locales: impl IntoIterator<Item = Locale>,
-    options: &mut IntlOptions<S::LocaleOptions>,
+    options: &mut IntlOptions<S::Preferences>,
     provider: &IntlProvider,
 ) -> JsResult<Locale>
 where
@@ -390,11 +414,29 @@ where
     //     a. Let foundLocale be InsertUnicodeExtensionAndCanonicalize(foundLocale, supportedExtension).
     // 11. Set result.[[locale]] to foundLocale.
 
-    // 12. Return result.
-    S::resolve(&mut found_locale, &mut options.service_options, provider);
+    // This is basically an adaptation of the process above, which
+    // ensures:
+    // - All options provided by the locale are valid.
+    // - All options provided by args are valid.
+    // - Options provided by args are extended (but not overridden) by
+    //   options provided in the locale.
+    // - Only the locale options that extended the args options are
+    //   added to the final locale.
     provider
         .locale_canonicalizer()?
         .canonicalize(&mut found_locale);
+    let mut locale_prefs = S::Preferences::from(&found_locale);
+
+    options.preferences.validate(&found_locale.id, provider);
+    locale_prefs.validate(&found_locale.id, provider);
+
+    // This should not touch the found locale.
+    let prefs = locale_prefs.extended(&options.preferences);
+
+    found_locale.extensions.unicode = prefs.intersection(&locale_prefs).as_unicode();
+    options.preferences = prefs;
+
+    // 12. Return result.
     Ok(found_locale)
 }
 
@@ -465,7 +507,7 @@ where
 ///
 /// Calling this function with a singleton `DataMarker` will always return `None`.
 pub(in crate::builtins::intl) fn validate_extension<M: DataMarker>(
-    language: LanguageIdentifier,
+    language: &LanguageIdentifier,
     attributes: &DataMarkerAttributes,
     provider: &impl DryDataProvider<M>,
 ) -> bool {
@@ -491,13 +533,14 @@ mod tests {
 
     impl Service for TestService {
         type LangMarker = PluralsCardinalV1;
-        type LocaleOptions = ();
+        type Preferences = EmptyPreferences;
     }
 
     use crate::{
         builtins::intl::{
             Service,
             locale::utils::{lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix},
+            options::EmptyPreferences,
         },
         context::icu::IntlProvider,
     };

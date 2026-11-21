@@ -8,7 +8,9 @@ mod class;
 mod control_flow;
 mod env;
 mod function;
+mod generators;
 mod iterators;
+mod job;
 mod operators;
 mod promise;
 mod spread;
@@ -475,6 +477,15 @@ fn strict_mode_reserved_name() {
             msg,
         )
     }));
+}
+
+#[test]
+fn issue5357() {
+    run_test_actions([TestAction::assert_native_error(
+        "foo(); @",
+        JsNativeErrorKind::Syntax,
+        "unexpected '@' at line 1, col 8",
+    )]);
 }
 
 #[test]

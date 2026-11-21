@@ -271,8 +271,8 @@ impl<R> Lexer<R> {
                     if self
                         .cursor
                         .peek_char()?
-                        .filter(|c| (0x30..=0x39/* 0..=9 */).contains(c))
-                        .is_some()
+                        .as_ref()
+                        .is_some_and(|c| (0x30..=0x39/* 0..=9 */).contains(c))
                     {
                         NumberLiteral::new(b'.').lex(&mut self.cursor, start, interner)
                     } else {
@@ -342,11 +342,7 @@ impl<R> Lexer<R> {
                     NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start, interner)
                 }
                 _ => {
-                    let details = format!(
-                        "unexpected '{c}' at line {}, column {}",
-                        start.line_number(),
-                        start.column_number()
-                    );
+                    let details = format!("unexpected '{c}'");
                     Err(Error::syntax(details, start.position()))
                 }
             }?;

@@ -124,7 +124,7 @@ pub(crate) struct Entry {
     /// Represents the start of a bytecode range that falls under the given position.
     ///
     /// The end of the range is the pc of the next entry.
-    /// If the entry is the last the the end of the range is [`u32::MAX`].
+    /// If the entry is the last, the end of the range is [`u32::MAX`].
     pub(crate) pc: u32,
 
     /// Source code [`Position`].
@@ -184,16 +184,6 @@ impl Display for SourcePath {
             SourcePath::Json => f.write_str("json at "),
             SourcePath::Path(path) => write!(f, "{}", path.display()),
         }
-    }
-}
-
-impl SourcePath {
-    pub(crate) fn is_none(&self) -> bool {
-        matches!(self, Self::None)
-    }
-
-    pub(crate) fn is_some(&self) -> bool {
-        !self.is_none()
     }
 }
 

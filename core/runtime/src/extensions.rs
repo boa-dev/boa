@@ -23,7 +23,7 @@ pub struct TimeoutExtension;
 
 impl RuntimeExtension for TimeoutExtension {
     fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::interval::register(context)
+        boa_wintertc::timers::register(context)
     }
 }
 
@@ -33,7 +33,7 @@ pub struct MicrotaskExtension;
 
 impl RuntimeExtension for MicrotaskExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::microtask::register(realm, context)
+        boa_wintertc::microtask::register(realm, context)
     }
 }
 
@@ -54,7 +54,17 @@ pub struct StructuredCloneExtension;
 
 impl RuntimeExtension for StructuredCloneExtension {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::clone::register(realm, context)
+        boa_wintertc::clone::register(realm, context)
+    }
+}
+
+/// Register the `atob` and `btoa` Base64 utility functions.
+#[derive(Copy, Clone, Debug)]
+pub struct Base64Extension;
+
+impl RuntimeExtension for Base64Extension {
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        boa_wintertc::base64::register(realm, context)
     }
 }
 
@@ -83,7 +93,19 @@ impl Default for ConsoleExtension<DefaultLogger> {
 
 impl<L: Logger + Debug + 'static> RuntimeExtension for ConsoleExtension<L> {
     fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
-        crate::console::Console::register_with_logger(self.0, context)
+        boa_wintertc::console::Console::register_with_logger(self.0, context)
+    }
+}
+
+/// Register the `Process` Javascript object.
+#[cfg(feature = "process")]
+#[derive(Copy, Clone, Debug)]
+pub struct ProcessExtension;
+
+#[cfg(feature = "process")]
+impl RuntimeExtension for ProcessExtension {
+    fn register(self, _realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::process::Process::register(context)
     }
 }
 
@@ -96,6 +118,18 @@ pub struct FetchExtension<F: crate::fetch::Fetcher>(pub F);
 impl<F: crate::fetch::Fetcher + Debug + 'static> RuntimeExtension for FetchExtension<F> {
     fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
         crate::fetch::register(self.0, realm, context)
+    }
+}
+
+/// `AbortController` and `AbortSignal` extension.
+#[cfg(feature = "fetch")]
+#[derive(Copy, Clone, Debug)]
+pub struct AbortControllerExtension;
+
+#[cfg(feature = "fetch")]
+impl RuntimeExtension for AbortControllerExtension {
+    fn register(self, realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
+        crate::abort::register(realm, context)
     }
 }
 

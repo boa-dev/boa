@@ -1,41 +1,36 @@
-use std::borrow::Cow;
+use std::{cell::Cell, fmt};
 
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
-    DecimalFormatter, FormattedDecimal,
+    CompactDecimalFormatter, DecimalFormatter, DecimalFormatterPreferences, FormattedDecimal,
     options::{DecimalFormatterOptions, GroupingStrategy},
     preferences::NumberingSystem,
-    provider::DecimalSymbolsV1,
+    provider::{DecimalDigitsV1, DecimalSymbolsV1},
 };
 
-mod options;
-use icu_locale::{
-    Locale,
-    extensions::unicode::{Value, key},
-};
-use icu_provider::DataMarkerAttributes;
+use icu_locale::{Locale, extensions::unicode::Value};
+use icu_provider::{DataMarker, DataMarkerAttributes, DynamicDataProvider, buf::BufferMarker};
 use num_bigint::BigInt;
 use num_traits::Num;
-pub(crate) use options::*;
+use writeable::{PartsWrite, Writeable, adapters::CoreWriteAsPartsWrite};
 
 use super::{
     Service,
-    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     options::{IntlOptions, coerce_options_to_object},
 };
-use crate::value::JsVariant;
 use crate::{
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    NativeFunction,
+    Context, JsArgs, JsData, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue, NativeFunction,
     builtins::{
-        BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltInBuilder,
-        options::get_option, string::is_trimmable_whitespace,
+        BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        builder::BuiltInBuilder, options::get_option,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
-        FunctionObjectBuilder, JsFunction, ObjectInitializer,
+        FunctionObjectBuilder, JsArray, JsFunction, ObjectInitializer,
         internal_methods::get_prototype_from_constructor,
     },
     property::{Attribute, PropertyDescriptor},
@@ -43,23 +38,99 @@ use crate::{
     string::StaticJsStrings,
     value::PreferredType,
 };
+use crate::{js_error, value::JsVariant};
+
+mod options;
+pub(crate) use options::*;
 
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Trace, Finalize, JsData)]
+pub(crate) enum FormattedNumber<'a, T> {
+    Decimal(FormattedDecimal<'a>),
+    Compact(T),
+}
+
+impl<T: Writeable> Writeable for FormattedNumber<'_, T> {
+    fn write_to<W: core::fmt::Write + ?Sized>(&self, sink: &mut W) -> core::fmt::Result {
+        match self {
+            FormattedNumber::Decimal(d) => d.write_to(sink),
+            FormattedNumber::Compact(c) => c.write_to(sink),
+        }
+    }
+
+    fn write_to_parts<S: PartsWrite + ?Sized>(&self, sink: &mut S) -> core::fmt::Result {
+        match self {
+            FormattedNumber::Decimal(d) => d.write_to_parts(sink),
+            FormattedNumber::Compact(c) => c.write_to_parts(sink),
+        }
+    }
+
+    fn writeable_length_hint(&self) -> writeable::LengthHint {
+        match self {
+            FormattedNumber::Decimal(d) => d.writeable_length_hint(),
+            FormattedNumber::Compact(c) => c.writeable_length_hint(),
+        }
+    }
+
+    fn writeable_borrow(&self) -> Option<&str> {
+        match self {
+            FormattedNumber::Decimal(d) => d.writeable_borrow(),
+            FormattedNumber::Compact(c) => c.writeable_borrow(),
+        }
+    }
+
+    fn write_to_string(&self) -> std::borrow::Cow<'_, str> {
+        match self {
+            FormattedNumber::Decimal(d) => d.write_to_string(),
+            FormattedNumber::Compact(c) => c.write_to_string(),
+        }
+    }
+}
+
+#[derive(Debug)]
+enum Formatter {
+    Standard(DecimalFormatter),
+    Scientific(DecimalFormatter),
+    Engineering(DecimalFormatter),
+    Compact {
+        inner: CompactDecimalFormatter,
+        display: CompactDisplay,
+    },
+}
+
+impl Formatter {
+    fn format<'l>(&'l self, decimal: &'l Decimal) -> FormattedNumber<'l, impl Writeable> {
+        match self {
+            Formatter::Standard(fmt) | Formatter::Scientific(fmt) | Formatter::Engineering(fmt) => {
+                FormattedNumber::Decimal(fmt.format(decimal))
+            }
+            Formatter::Compact { inner, .. } => FormattedNumber::Compact(inner.format(decimal)),
+        }
+    }
+}
+
+#[derive(Debug, Finalize, JsData)]
 // Safety: `NumberFormat` only contains non-traceable types.
-#[boa_gc(unsafe_empty_trace)]
 pub(crate) struct NumberFormat {
     locale: Locale,
-    formatter: DecimalFormatter,
-    numbering_system: Option<Value>,
+    formatter: Formatter,
+    numbering_system: NumberingSystem,
     unit_options: UnitFormatOptions,
     digit_options: DigitFormatOptions,
-    notation: Notation,
     use_grouping: GroupingStrategy,
     sign_display: SignDisplay,
     bound_format: Option<JsFunction>,
+}
+
+// SAFETY: the implementation correctly traces the only field
+// that needs tracing.
+unsafe impl Trace for NumberFormat {
+    custom_trace!(this, mark, {
+        if let Some(f) = &this.bound_format {
+            mark(f);
+        }
+    });
 }
 
 impl NumberFormat {
@@ -70,9 +141,12 @@ impl NumberFormat {
     ///
     /// [full]: https://tc39.es/ecma402/#sec-formatnumber
     /// [parts]: https://tc39.es/ecma402/#sec-formatnumbertoparts
-    pub(crate) fn format<'a>(&'a self, value: &'a mut Decimal) -> FormattedDecimal<'a> {
+    pub(crate) fn format<'l>(
+        &'l self,
+        value: &'l mut Decimal,
+    ) -> FormattedNumber<'l, impl Writeable> {
         // TODO: Missing support from ICU4X for Percent/Currency/Unit formatting.
-        // TODO: Missing support from ICU4X for Scientific/Engineering/Compact notation.
+        // TODO: Missing support from ICU4X for Scientific/Engineering notation.
 
         self.digit_options.format_fixed_decimal(value);
         value.apply_sign_display(self.sign_display);
@@ -81,57 +155,10 @@ impl NumberFormat {
     }
 }
 
-#[derive(Debug, Clone)]
-pub(super) struct NumberFormatLocaleOptions {
-    numbering_system: Option<Value>,
-}
-
 impl Service for NumberFormat {
     type LangMarker = DecimalSymbolsV1;
 
-    type LocaleOptions = NumberFormatLocaleOptions;
-
-    fn resolve(
-        locale: &mut Locale,
-        options: &mut Self::LocaleOptions,
-        provider: &crate::context::icu::IntlProvider,
-    ) {
-        let numbering_system = options
-            .numbering_system
-            .take()
-            .filter(|nu| {
-                NumberingSystem::try_from(nu.clone()).is_ok_and(|nu| {
-                    let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
-                    validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
-                })
-            })
-            .or_else(|| {
-                locale
-                    .extensions
-                    .unicode
-                    .keywords
-                    .get(&key!("nu"))
-                    .cloned()
-                    .filter(|nu| {
-                        NumberingSystem::try_from(nu.clone()).is_ok_and(|nu| {
-                            let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
-                            validate_extension::<Self::LangMarker>(
-                                locale.id.clone(),
-                                attr,
-                                provider,
-                            )
-                        })
-                    })
-            });
-
-        locale.extensions.unicode.clear();
-
-        if let Some(nu) = numbering_system.clone() {
-            locale.extensions.unicode.keywords.set(key!("nu"), nu);
-        }
-
-        options.numbering_system = numbering_system;
-    }
+    type Preferences = DecimalFormatterPreferences;
 }
 
 impl IntrinsicObject for NumberFormat {
@@ -158,6 +185,7 @@ impl IntrinsicObject for NumberFormat {
                 Attribute::CONFIGURABLE,
             )
             .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .method(Self::format_to_parts, js_string!("formatToParts"), 1)
             .build();
     }
 
@@ -172,7 +200,7 @@ impl BuiltInObject for NumberFormat {
 
 impl BuiltInConstructor for NumberFormat {
     const CONSTRUCTOR_ARGUMENTS: usize = 0;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 4;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 5;
     const CONSTRUCTOR_STORAGE_SLOTS: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
@@ -303,8 +331,10 @@ impl NumberFormat {
 
         let mut intl_options = IntlOptions {
             matcher,
-            service_options: NumberFormatLocaleOptions {
-                numbering_system: numbering_system.map(Value::from),
+            preferences: {
+                let mut prefs = DecimalFormatterPreferences::default();
+                prefs.numbering_system = numbering_system;
+                prefs
             },
         };
 
@@ -367,22 +397,13 @@ impl NumberFormat {
             get_option(&options, js_string!("compactDisplay"), context)?.unwrap_or_default();
 
         // 22. Let defaultUseGrouping be "auto".
-        let mut default_use_grouping = GroupingStrategy::Auto;
-
-        let notation = match notation {
-            NotationKind::Standard => Notation::Standard,
-            NotationKind::Scientific => Notation::Scientific,
-            NotationKind::Engineering => Notation::Engineering,
-            // 23. If notation is "compact", then
-            NotationKind::Compact => {
-                // b. Set defaultUseGrouping to "min2".
-                default_use_grouping = GroupingStrategy::Min2;
-
-                // a. Set numberFormat.[[CompactDisplay]] to compactDisplay.
-                Notation::Compact {
-                    display: compact_display,
-                }
-            }
+        // 23. If notation is "compact", then
+        //     b. Set defaultUseGrouping to "min2".
+        //     a. Set numberFormat.[[CompactDisplay]] to compactDisplay.
+        let default_use_grouping = if notation == NotationKind::Compact {
+            GroupingStrategy::Min2
+        } else {
+            GroupingStrategy::Auto
         };
 
         // 24. NOTE: For historical reasons, the strings "true" and "false" are accepted and replaced with the default value.
@@ -442,20 +463,96 @@ impl NumberFormat {
         let mut options = DecimalFormatterOptions::default();
         options.grouping_strategy = Some(use_grouping);
 
-        let formatter = DecimalFormatter::try_new_with_buffer_provider(
-            context.intl_provider().erased_provider(),
-            (&locale).into(),
-            options,
-        )
-        .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+        let (formatter, numbering_system) = {
+            struct RequestInspector<'a> {
+                inner: &'a dyn DynamicDataProvider<BufferMarker>,
+                nu: Cell<Option<Box<DataMarkerAttributes>>>,
+            }
+            impl DynamicDataProvider<BufferMarker> for RequestInspector<'_> {
+                fn load_data(
+                    &self,
+                    marker: icu_provider::DataMarkerInfo,
+                    req: icu_provider::DataRequest<'_>,
+                ) -> Result<icu_provider::DataResponse<BufferMarker>, icu_provider::DataError>
+                {
+                    if marker.id == DecimalDigitsV1::INFO.id {
+                        self.nu.set(Some(req.id.marker_attributes.to_owned()));
+                    }
+                    self.inner.load_data(marker, req)
+                }
+            }
+
+            let inspector = RequestInspector {
+                inner: context.intl_provider().erased_provider(),
+                nu: Cell::new(None),
+            };
+
+            let formatter = match (notation, compact_display) {
+                // TODO: change when scientific/engineering have their own formatters.
+                (NotationKind::Standard, _) => Formatter::Standard(
+                    DecimalFormatter::try_new_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options,
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                ),
+                (NotationKind::Scientific, _) => Formatter::Scientific(
+                    DecimalFormatter::try_new_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options,
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                ),
+                (NotationKind::Engineering, _) => Formatter::Engineering(
+                    DecimalFormatter::try_new_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options,
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                ),
+                (NotationKind::Compact, CompactDisplay::Long) => Formatter::Compact {
+                    inner: CompactDecimalFormatter::try_new_long_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options.into(),
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                    display: CompactDisplay::Long,
+                },
+                (NotationKind::Compact, CompactDisplay::Short) => Formatter::Compact {
+                    inner: CompactDecimalFormatter::try_new_short_with_buffer_provider(
+                        &inspector,
+                        (&locale).into(),
+                        options.into(),
+                    )
+                    .map_err(|err| js_error!(TypeError: "{}", err.to_string()))?,
+                    display: CompactDisplay::Short,
+                },
+            };
+
+            let nu = (|| {
+                let nu = inspector.nu.into_inner()?;
+                let nu = Value::try_from_str(&nu).ok()?;
+                NumberingSystem::try_from(nu).ok()
+            })()
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError: "could not obtain resolved numbering system from Intl provider"
+                )
+            })?;
+
+            (formatter, nu)
+        };
 
         Ok(NumberFormat {
             locale,
-            numbering_system: intl_options.service_options.numbering_system,
+            numbering_system,
             formatter,
             unit_options,
             digit_options,
-            notation,
             use_grouping,
             sign_display,
             bound_format: None,
@@ -523,7 +620,7 @@ impl NumberFormat {
                         let mut x = to_intl_mathematical_value(value, context)?;
 
                         // 5. Return FormatNumeric(nf, x).
-                        Ok(js_string!(nf.borrow().data().format(&mut x).to_string()).into())
+                        Ok(js_string!(nf.borrow().data().format(&mut x).write_to_string()).into())
                     },
                     nf_clone,
                 ),
@@ -537,6 +634,102 @@ impl NumberFormat {
 
         // 5. Return nf.[[BoundFormat]].
         Ok(bound_format.into())
+    }
+
+    /// [`Intl.NumberFormat.prototype.formatToParts ( value )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat.prototype.formattoparts
+    fn format_to_parts(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        #[derive(Debug, Clone)]
+        struct PartsCollector(Vec<(&'static str, String)>);
+
+        impl fmt::Write for PartsCollector {
+            // TODO: is this the correct way to catch literals?
+            fn write_str(&mut self, s: &str) -> fmt::Result {
+                self.0.push(("literal", String::from(s)));
+                Ok(())
+            }
+        }
+
+        impl PartsWrite for PartsCollector {
+            type SubPartsWrite = CoreWriteAsPartsWrite<String>;
+
+            fn with_part(
+                &mut self,
+                part: writeable::Part,
+                mut f: impl FnMut(&mut Self::SubPartsWrite) -> fmt::Result,
+            ) -> fmt::Result {
+                let mut string = CoreWriteAsPartsWrite(String::new());
+                f(&mut string)?;
+                if string.0.is_empty() || (part.category != "decimal") {
+                    return Ok(());
+                }
+
+                self.0.push((part.value, string.0));
+
+                Ok(())
+            }
+        }
+
+        // 1. Let nf be the this value.
+        // 2. Perform ? RequireInternalSlot(nf, [[InitializedNumberFormat]]).
+        let nf = this
+            .as_object()
+            .and_then(|o| o.downcast::<Self>().ok())
+            .ok_or_else(|| {
+                js_error!(
+                    TypeError:
+                    "value was not an initialized `Intl.NumberFormat` object"
+                )
+            })?;
+        // 3. Let x be ? ToIntlMathematicalValue(value).
+        let mut x = to_intl_mathematical_value(args.get_or_undefined(0), context)?;
+
+        // 4. Return FormatNumericToParts(nf, x).
+        //
+        // `FormatNumericToParts ( numberFormat, x )`
+        // <https://tc39.es/ecma402/#sec-formatnumbertoparts>
+        //
+        // 1. Let parts be PartitionNumberPattern(numberFormat, x).
+        let nf = nf.borrow();
+        let parts = nf.data().format(&mut x);
+        let mut collector = PartsCollector(Vec::new());
+        parts
+            .write_to_parts(&mut collector)
+            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+        // 2. Let result be ! ArrayCreate(0).
+        let result = JsArray::new(context)?;
+
+        // 3. Let n be 0.
+        // 4. For each Record { [[Type]], [[Value]] } part of parts, do
+        //     e. Set n to n + 1.
+        for (n, (typ, value)) in collector.0.into_iter().enumerate() {
+            // a. Let partObj be OrdinaryObjectCreate(%Object.prototype%).
+            let part_obj = context
+                .intrinsics()
+                .templates()
+                .ordinary_object()
+                .create(OrdinaryObject, vec![]);
+            // b. Perform ! CreateDataPropertyOrThrow(partObj, "type", part.[[Type]]).
+            part_obj
+                .create_data_property_or_throw(js_string!("type"), JsString::from(typ), context)
+                .js_expect("cannot fail to create property on new ordinary object")?;
+            // c. Perform ! CreateDataPropertyOrThrow(partObj, "value", part.[[Value]]).
+            part_obj
+                .create_data_property_or_throw(js_string!("value"), JsString::from(value), context)
+                .js_expect("cannot fail to create property on new ordinary object")?;
+            // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(𝔽(n)), partObj).
+            result
+                .create_data_property_or_throw(n, part_obj, context)
+                .js_expect("cannot fail to push element on array")?;
+        }
+        // 5. Return result.
+        Ok(result.into())
     }
 
     /// [`Intl.NumberFormat.prototype.resolvedOptions ( )`][spec].
@@ -575,13 +768,11 @@ impl NumberFormat {
             js_string!(nf.locale.to_string()),
             Attribute::all(),
         );
-        if let Some(nu) = &nf.numbering_system {
-            options.property(
-                js_string!("numberingSystem"),
-                js_string!(nu.to_string()),
-                Attribute::all(),
-            );
-        }
+        options.property(
+            js_string!("numberingSystem"),
+            js_string!(nf.numbering_system.as_str()),
+            Attribute::all(),
+        );
 
         options.property(
             js_string!("style"),
@@ -671,15 +862,22 @@ impl NumberFormat {
             }
         };
 
-        options
-            .property(js_string!("useGrouping"), use_grouping, Attribute::all())
-            .property(
-                js_string!("notation"),
-                nf.notation.kind().to_js_string(),
-                Attribute::all(),
-            );
+        options.property(js_string!("useGrouping"), use_grouping, Attribute::all());
 
-        if let Notation::Compact { display } = nf.notation {
+        let (notation, compact_display) = match &nf.formatter {
+            Formatter::Standard(_) => (NotationKind::Standard, None),
+            Formatter::Scientific(_) => (NotationKind::Scientific, None),
+            Formatter::Engineering(_) => (NotationKind::Engineering, None),
+            Formatter::Compact { display, .. } => (NotationKind::Compact, Some(*display)),
+        };
+
+        options.property(
+            js_string!("notation"),
+            notation.to_js_string(),
+            Attribute::all(),
+        );
+
+        if let Some(display) = compact_display {
             options.property(
                 js_string!("compactDisplay"),
                 display.to_js_string(),
@@ -774,7 +972,10 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
 /// Abstract operation [`ToIntlMathematicalValue ( value )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-tointlmathematicalvalue
-fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResult<Decimal> {
+pub(crate) fn to_intl_mathematical_value(
+    value: &JsValue,
+    context: &mut Context,
+) -> JsResult<Decimal> {
     // 1. Let primValue be ? ToPrimitive(value, number).
     let prim_value = value.to_primitive(context, PreferredType::Number)?;
 
@@ -825,13 +1026,12 @@ fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResul
 pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<Decimal> {
     // 1. Let text be ! StringToCodePoints(str).
     // 2. Let literal be ParseText(text, StringNumericLiteral).
-    let Ok(string) = string.to_std_string() else {
+    let Ok(string) = string.trim().to_std_string() else {
         // 3. If literal is a List of errors, return NaN.
         return None;
     };
     // 4. Return StringNumericValue of literal.
-    let string = string.trim_matches(is_trimmable_whitespace);
-    match string {
+    match string.as_str() {
         "" => return Some(Decimal::from(0)),
         "-Infinity" | "Infinity" | "+Infinity" => return None,
         _ => {}
@@ -856,11 +1056,10 @@ pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<Decimal> {
             return None;
         }
         let int = BigInt::from_str_radix(string, base).ok()?;
-        let int_str = int.to_string();
 
-        Cow::Owned(int_str)
+        int.to_string()
     } else {
-        Cow::Borrowed(string)
+        string
     };
 
     Decimal::try_from_str(&s).ok()

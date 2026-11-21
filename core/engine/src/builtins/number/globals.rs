@@ -1,6 +1,6 @@
 use crate::{
     Context, JsArgs, JsResult, JsStr, JsString, JsValue,
-    builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject, string::is_trimmable_whitespace},
+    builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     object::JsObject,
     realm::Realm,
@@ -8,7 +8,7 @@ use crate::{
 };
 
 use boa_macros::js_str;
-use cow_utils::CowUtils;
+use boa_string::JsStrVariant;
 
 /// Builtin javascript 'isFinite(number)' function.
 ///
@@ -154,17 +154,23 @@ fn from_js_str_radix(src: JsStr<'_>, radix: u8) -> Option<f64> {
 /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
 pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    let (Some(val), radix) = (args.first(), args.get_or_undefined(1)) else {
+    let (Some(string), radix) = (args.first(), args.get_or_undefined(1)) else {
         // Not enough arguments to parseInt.
         return Ok(JsValue::nan());
     };
 
+    // OPTIMIZATION: We can skip the round-trip when the value is already a number.
+    if let Some(int) = string.as_i32()
+        && radix.is_null_or_undefined()
+    {
+        return Ok(JsValue::new(int));
+    }
+
     // 1. Let inputString be ? ToString(string).
-    let input_string = val.to_string(context)?;
+    let input_string = string.to_string(context)?;
 
     // 2. Let S be ! TrimString(inputString, start).
     let mut s = input_string.trim_start();
-    // let mut
 
     // 3. Let sign be 1.
     // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
@@ -241,7 +247,7 @@ pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) ->
     //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
     //     mathInt may be an implementation-approximated value representing the integer value that is
     //     represented by Z in radix-R notation.)
-    let math_int = from_js_str_radix(z, r).expect("Already checked");
+    let math_int = from_js_str_radix(z.as_str(), r).expect("Already checked");
 
     // 15. If mathInt = 0, then
     //     a. If sign = -1, return -0𝔽.
@@ -297,40 +303,83 @@ pub(crate) fn parse_float(
     args: &[JsValue],
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    if let Some(val) = args.first() {
-        // TODO: parse float with optimal utf16 algorithm
-        let input_string = val.to_string(context)?.to_std_string_escaped();
-        let s = input_string.trim_start_matches(is_trimmable_whitespace);
-        let s_prefix = s.chars().take(4).collect::<String>();
-        let s_prefix_lower = s_prefix.cow_to_ascii_lowercase();
-        // TODO: write our own lexer to match syntax StrDecimalLiteral
-        if s.starts_with("Infinity") || s.starts_with("+Infinity") {
-            Ok(JsValue::new(f64::INFINITY))
-        } else if s.starts_with("-Infinity") {
-            Ok(JsValue::new(f64::NEG_INFINITY))
-        } else if s_prefix_lower.starts_with("inf")
-            || s_prefix_lower.starts_with("+inf")
-            || s_prefix_lower.starts_with("-inf")
-        {
-            // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
-            Ok(JsValue::nan())
-        } else {
-            Ok(fast_float2::parse_partial::<f64, _>(s).map_or_else(
-                |_| JsValue::nan(),
-                |(f, len)| {
-                    if len > 0 {
-                        JsValue::new(f)
-                    } else {
-                        JsValue::nan()
-                    }
-                },
-            ))
+    let Some(string) = args.first() else {
+        return Ok(JsValue::nan());
+    };
+
+    // OPTIMIZATION: We can skip the round-trip when the value is already a number.
+    if string.is_number() {
+        // Special case for negative zero - it should become positive zero
+        if string.is_negative_zero() {
+            return Ok(JsValue::new(0));
         }
-    } else {
-        // Not enough arguments to parseFloat.
-        Ok(JsValue::nan())
+
+        return Ok(string.clone());
     }
+
+    // 1. Let inputString be ? ToString(string).
+    let input_string = string.to_string(context)?;
+
+    // 2. Let trimmedString be ! TrimString(inputString, start).
+    let trimmed_string = input_string.trim_start();
+
+    // 3. Let trimmed be StringToCodePoints(trimmedString).
+    // 4. Let trimmedPrefix be the longest prefix of trimmed that satisfies the syntax of a StrDecimalLiteral, which might be trimmed itself. If there is no such prefix, return NaN.
+    // 5. Let parsedNumber be ParseText(trimmedPrefix, StrDecimalLiteral).
+    // 6. Assert: parsedNumber is a Parse Node.
+    // 7. Return the StringNumericValue of parsedNumber.
+    let (positive, prefix) = match trimmed_string
+        .code_unit_at(0)
+        .and_then(|c| char::from_u32(u32::from(c)))
+    {
+        Some('+') => (
+            true,
+            trimmed_string
+                .get(1..)
+                .unwrap_or(StaticJsStrings::EMPTY_STRING),
+        ),
+        Some('-') => (
+            false,
+            trimmed_string
+                .get(1..)
+                .unwrap_or(StaticJsStrings::EMPTY_STRING),
+        ),
+        _ => (true, trimmed_string.clone()),
+    };
+
+    if prefix.starts_with(js_str!("Infinity")) {
+        if positive {
+            return Ok(JsValue::positive_infinity());
+        }
+        return Ok(JsValue::negative_infinity());
+    } else if let Some('I' | 'i') = prefix
+        .code_unit_at(0)
+        .and_then(|c| char::from_u32(u32::from(c)))
+    {
+        return Ok(JsValue::nan());
+    }
+
+    let value = match trimmed_string.variant() {
+        JsStrVariant::Latin1(s) => fast_float2::parse_partial::<f64, _>(s),
+        JsStrVariant::Utf16(s) => {
+            // TODO: Explore adding direct UTF-16 parsing support to fast_float2.
+            let s = String::from_utf16_lossy(s);
+            fast_float2::parse_partial::<f64, _>(s.as_bytes())
+        }
+    };
+
+    Ok(value.map_or_else(
+        |_| JsValue::nan(),
+        |(f, len)| {
+            if len > 0 {
+                JsValue::new(f)
+            } else {
+                JsValue::nan()
+            }
+        },
+    ))
 }
+
 pub(crate) struct ParseFloat;
 
 impl IntrinsicObject for ParseFloat {

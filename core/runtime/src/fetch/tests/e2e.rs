@@ -43,15 +43,16 @@ impl E2eFetcher {
 }
 
 impl crate::fetch::Fetcher for E2eFetcher {
-    async fn fetch(
+    fn fetch(
         self: Rc<Self>,
         request: JsRequest,
+        _signal: Option<boa_engine::JsObject>,
         context: &RefCell<&mut Context>,
-    ) -> JsResult<JsResponse> {
-        match request.uri().path() {
+    ) -> impl Future<Output = JsResult<JsResponse>> {
+        std::future::ready(match request.uri().path() {
             "/headers" => Self::headers(&request, &mut context.borrow_mut()),
             _ => Err(js_error!("Invalid request.")),
-        }
+        })
     }
 }
 

@@ -1,9 +1,19 @@
-name: Update Test262 Results on Release
+name: Update Test262 Results
 
 on:
   release:
     types:
       - published
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   update_test262_results:
@@ -13,32 +23,26 @@ jobs:
     steps:
       # Checkout the main repository
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: boa
 
       # Install Rust toolchain
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
       # Cache cargo dependencies
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       # Checkout the `data` repository
       - name: Checkout the data repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: boa-dev/data
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DATA_PAT }}
           path: data
 
       # Run the Test262 test suite
@@ -48,13 +52,18 @@ jobs:
           cargo run --release --bin boa_tester -- run -v -o ../data/test262
 
       # Commit and push results back to the `data` repo
-      - name: Commit and push results
+      - name: Commit results
         run: |
           cd data
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add test262/refs/tags/${{ github.ref_name }}
-          git commit -m "Update Test262 results for release ${{ github.ref_name }}"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git add test262
+          git commit -m "Update Test262 results ( ${{ github.ref_name }} )"
+      - name: Push changes
+        uses: ad-m/github-push-action@881a6320fdb16eb5318c5054f31c218aec2b324c # master
+        with:
+            # cannot use secrets.GITHUB_TOKEN since it only gives you
+            # write permissions to the current repository.
+            github_token: ${{ secrets.DATA_PAT }}
+            repository: boa-dev/data
+            directory: data

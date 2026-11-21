@@ -101,7 +101,7 @@ fn get_or_insert_this_not_weakmap() {
     run_test_actions([TestAction::assert_native_error(
         "WeakMap.prototype.getOrInsert.call({}, {}, 1)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsert: called with non-object value",
+        "WeakMap.prototype.getOrInsert: expected 'this' to be a WeakMap object",
     )]);
 }
 
@@ -110,6 +110,192 @@ fn get_or_insert_computed_this_not_weakmap() {
     run_test_actions([TestAction::assert_native_error(
         "WeakMap.prototype.getOrInsertComputed.call({}, {}, x => x)",
         JsNativeErrorKind::Type,
-        "WeakMap.getOrInsertComputed: called with non-object value",
+        "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
     )]);
+}
+
+#[test]
+fn weakmap_set_and_get() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 42);
+        "#,
+        ),
+        TestAction::assert_eq("wm.get(obj)", 42),
+    ]);
+}
+
+#[test]
+fn weakmap_overwrite_value() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 1);
+            wm.set(obj, 2);
+        "#,
+        ),
+        TestAction::assert_eq("wm.get(obj)", 2),
+    ]);
+}
+
+#[test]
+fn weakmap_has() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 10);
+        "#,
+        ),
+        TestAction::assert("wm.has(obj)"),
+    ]);
+}
+
+#[test]
+fn weakmap_delete() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 1);
+        "#,
+        ),
+        TestAction::assert("wm.delete(obj)"),
+    ]);
+}
+
+#[test]
+fn weakmap_delete_twice() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+            wm.set(obj, 1);
+            wm.delete(obj);
+        "#,
+        ),
+        TestAction::assert("!wm.delete(obj)"),
+    ]);
+}
+
+#[test]
+fn weakmap_get_missing_key() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const result = wm.get({});
+        "#,
+        ),
+        TestAction::assert("result === undefined"),
+    ]);
+}
+
+#[test]
+fn weakmap_multiple_keys() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const a = {};
+            const b = {};
+            wm.set(a, 1);
+            wm.set(b, 2);
+        "#,
+        ),
+        TestAction::assert_eq("wm.get(a) + wm.get(b)", 3),
+    ]);
+}
+
+#[test]
+fn weakmap_set_returns_this() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const wm = new WeakMap();
+            const obj = {};
+        "#,
+        ),
+        TestAction::assert("wm.set(obj, 1) === wm"),
+    ]);
+}
+
+#[test]
+fn weakmap_set_rejects_number() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap();"),
+        TestAction::assert_native_error(
+            "wm.set(42, 'value')",
+            JsNativeErrorKind::Type,
+            "WeakMap.set: expected target argument of type `object`, got target of type `number`",
+        ),
+    ]);
+}
+
+#[test]
+fn weakmap_set_rejects_string() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap();"),
+        TestAction::assert_native_error(
+            "wm.set('string', 'value')",
+            JsNativeErrorKind::Type,
+            "WeakMap.set: expected target argument of type `object`, got target of type `string`",
+        ),
+    ]);
+}
+
+#[test]
+fn weakmap_set_rejects_boolean() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap();"),
+        TestAction::assert_native_error(
+            "wm.set(true, 'value')",
+            JsNativeErrorKind::Type,
+            "WeakMap.set: expected target argument of type `object`, got target of type `boolean`",
+        ),
+    ]);
+}
+
+#[test]
+fn weakmap_set_rejects_null() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap();"),
+        TestAction::assert_native_error(
+            "wm.set(null, 'value')",
+            JsNativeErrorKind::Type,
+            "WeakMap.set: expected target argument of type `object`, got target of type `object`",
+        ),
+    ]);
+}
+
+#[test]
+fn weakmap_set_rejects_undefined() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap();"),
+        TestAction::assert_native_error(
+            "wm.set(undefined, 'value')",
+            JsNativeErrorKind::Type,
+            "WeakMap.set: expected target argument of type `object`, got target of type `undefined`",
+        ),
+    ]);
+}
+
+#[test]
+fn weakmap_set_rejects_symbol() {
+    run_test_actions([
+        TestAction::run("const wm = new WeakMap();"),
+        TestAction::assert_native_error(
+            "wm.set(Symbol('sim'), 'value')",
+            JsNativeErrorKind::Type,
+            "WeakMap.set: expected target argument of type `object`, got target of type `symbol`",
+        ),
+    ]);
 }

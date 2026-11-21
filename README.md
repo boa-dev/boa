@@ -29,9 +29,9 @@ Boa is an experimental JavaScript lexer, parser and interpreter written in Rust 
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
 [build_link]: https://github.com/boa-dev/boa/actions/workflows/rust.yml?query=event%3Apush+branch%3Amain
 
-## ⚡️ Live Demo (WASM)
+## ⚡️ Live Demo (Wasm)
 
-Try out the engine now at the live WASM playground [here](https://boajs.dev/playground)!
+Try out the engine now at the live Wasm playground [here](https://boajs.dev/playground)!
 
 Prefer a CLI? Feel free to try out `boa_cli`!
 
@@ -164,6 +164,7 @@ Options:
       --flowgraph [<FORMAT>]          Generate instruction flowgraph. Default is Graphviz [possible values: graphviz, mermaid]
       --flowgraph-direction <FORMAT>  Specifies the direction of the flowgraph. Default is top-top-bottom [possible values: top-to-bottom, bottom-to-top, left-to-right, right-to-left]
       --debug-object                  Inject debugging object `$boa`
+      --test262-object                Inject the test262 host object `$262`
   -m, --module                        Treats the input files as modules
   -r, --root <ROOT>                   Root path from where the module resolver will try to load the modules [default: .]
   -h, --help                          Print help (see more with '--help')

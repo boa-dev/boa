@@ -90,6 +90,22 @@
 //!     }
 //! };
 //! ```
+//!
+//! # `WinterTC` (TC55) re-exports
+//!
+//! Several platform APIs are part of the `WinterTC` (TC55) Minimum Common Web API and live in the
+//! [`boa_wintertc`] crate. They are re-exported from `boa_runtime` so existing users keep a single,
+//! unchanged import path:
+//!
+//! - [`base64`] — `atob` and `btoa`
+//! - [`clone`] — `structuredClone`
+//! - [`console`] — the `console` object
+//! - [`microtask`] — `queueMicrotask`
+//! - [`interval`] — the timer APIs (`setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`),
+//!   kept under their historical `interval` name
+//!
+//! The [`store`] module holds the serialization core backing `structuredClone`. See each
+//! re-exported module for its full API documentation.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
@@ -105,26 +121,46 @@
     clippy::let_unit_value
 )]
 
-pub mod console;
+#[doc(inline)]
+pub use boa_wintertc::console;
+
+#[doc(inline)]
+pub use boa_wintertc::base64;
 
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
-pub mod clone;
+#[cfg(feature = "fetch")]
+pub mod abort;
+
+#[doc(inline)]
+pub use boa_wintertc::clone;
+
+pub mod extensions;
 #[cfg(feature = "fetch")]
 pub mod fetch;
-pub mod interval;
+#[doc(inline)]
+pub use boa_wintertc::timers as interval;
 pub mod message;
-pub mod microtask;
-pub mod store;
+
+#[doc(inline)]
+pub use boa_wintertc::microtask;
+#[cfg(feature = "process")]
+pub mod process;
+#[doc(inline)]
+pub use boa_wintertc::store;
+/// Support for the `$262` test262 harness object.
+#[cfg(feature = "test262")]
+pub mod test262;
 pub mod text;
 #[cfg(feature = "url")]
 pub mod url;
 
-pub mod extensions;
-
+#[cfg(feature = "process")]
+use crate::extensions::ProcessExtension;
 use crate::extensions::{
-    EncodingExtension, MicrotaskExtension, StructuredCloneExtension, TimeoutExtension,
+    Base64Extension, EncodingExtension, MicrotaskExtension, StructuredCloneExtension,
+    TimeoutExtension,
 };
 pub use extensions::RuntimeExtension;
 
@@ -139,12 +175,17 @@ pub fn register(
     ctx: &mut boa_engine::Context,
 ) -> boa_engine::JsResult<()> {
     (
+        Base64Extension,
         TimeoutExtension,
         EncodingExtension,
         MicrotaskExtension,
         StructuredCloneExtension,
         #[cfg(feature = "url")]
         extensions::UrlExtension,
+        #[cfg(feature = "process")]
+        ProcessExtension,
+        #[cfg(feature = "fetch")]
+        extensions::AbortControllerExtension,
         extensions,
     )
         .register(realm, ctx)?;
@@ -243,6 +284,7 @@ pub(crate) mod test {
         }
 
         /// Executes `op` with the currently active context in an async environment.
+        #[allow(unused)]
         pub(crate) fn inspect_context_async(op: impl AsyncFnOnce(&mut Context) + 'static) -> Self {
             Self(Inner::InspectContextAsync {
                 op: Box::new(move |ctx| Box::pin(op(ctx))),
@@ -251,7 +293,11 @@ pub(crate) mod test {
     }
 
     /// Executes a list of test actions on a new, default context.
+    ///
+    /// Only used by feature-gated tests (`fetch`, `url`, `abort`), so it is dead code under
+    /// `--no-default-features`.
     #[track_caller]
+    #[allow(unused)]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
         register(ConsoleExtension::default(), None, context)
@@ -304,7 +350,6 @@ pub(crate) mod test {
                     if let Err(e) = forward_file(context, &path) {
                         panic!("Uncaught {e} in file {path:?}");
                     }
-                    forward_file(context, &path).expect("failed to run file");
                 }
                 Inner::RunJobs => {
                     if let Err(e) = context.run_jobs() {
@@ -387,7 +432,7 @@ pub(crate) mod test {
                         ),
                     };
 
-                    assert_eq!(&native.kind, &kind, "{}", fmt_test(&source, i));
+                    assert_eq!(native.kind(), &kind, "{}", fmt_test(&source, i));
                     assert_eq!(native.message(), message, "{}", fmt_test(&source, i));
                     i += 1;
                 }

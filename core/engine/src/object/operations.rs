@@ -1,7 +1,9 @@
 use super::internal_methods::InternalMethodPropertyContext;
+use crate::js_error;
+use crate::property::CompletePropertyDescriptor;
 use crate::value::JsVariant;
 use crate::{
-    Context, JsResult, JsSymbol, JsValue,
+    Context, JsExpect, JsResult, JsSymbol, JsValue,
     builtins::{
         Array, Proxy,
         function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
@@ -176,7 +178,41 @@ impl JsObject {
         self.__define_own_property__(&key.into(), new_desc.into(), context)
     }
 
-    // todo: CreateMethodProperty
+    /// `10.2.8 DefineMethodProperty ( homeObject, key, closure, enumerable )`
+    ///
+    /// Defines a method property on an object with the specified attributes.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-definemethodproperty
+    pub(crate) fn define_method_property<K, V>(
+        &self,
+        key: K,
+        value: V,
+        context: &mut InternalMethodPropertyContext<'_>,
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
+    {
+        // 1. Assert: homeObject is an ordinary, extensible object with no non-configurable properties.
+        // 2. If key is a Private Name, then
+        //    a. Return PrivateElement { [[Key]]: key, [[Kind]]: method, [[Value]]: closure }.
+        // 3. Else,
+        //    a. Let desc be the PropertyDescriptor { [[Value]]: closure, [[Writable]]: true, [[Enumerable]]: enumerable, [[Configurable]]: true }.
+        let new_desc = PropertyDescriptor::builder()
+            .value(value)
+            .writable(true)
+            .enumerable(false)
+            .configurable(true);
+
+        //    b. Perform ! DefinePropertyOrThrow(homeObject, key, desc).
+        self.__define_own_property__(&key.into(), new_desc.into(), context)?;
+
+        //    c. Return unused.
+        Ok(())
+    }
 
     /// Create data property or throw
     ///
@@ -414,14 +450,16 @@ impl JsObject {
         }
 
         if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame.set_exit_early(true);
+            context.vm.frame_mut().set_exit_early(true);
         } else {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }
 
+        context.vm.host_call_depth += 1;
         let result = context.run().consume();
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
-        context.vm.pop_frame().expect("frame must exist");
+        context.vm.pop_frame().js_expect("frame must exist")?;
 
         result
     }
@@ -463,21 +501,26 @@ impl JsObject {
             let result = context.vm.stack.pop();
             return Ok(result
                 .as_object()
-                .expect("construct value should be an object")
+                .js_expect("construct value should be an object")?
                 .clone());
         }
 
         if frame_index + 1 == context.vm.frames.len() {
-            context.vm.frame.set_exit_early(true);
+            context.vm.frame_mut().set_exit_early(true);
         } else {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }
 
+        context.vm.host_call_depth += 1;
         let result = context.run().consume();
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
-        context.vm.pop_frame().expect("frame must exist");
+        context.vm.pop_frame().js_expect("frame must exist")?;
 
-        Ok(result?.as_object().expect("should be an object").clone())
+        Ok(result?
+            .as_object()
+            .js_expect("should be an object")?
+            .clone())
     }
 
     /// Make the object [`sealed`][IntegrityLevel::Sealed] or [`frozen`][IntegrityLevel::Frozen].
@@ -587,13 +630,15 @@ impl JsObject {
             // b. If currentDesc is not undefined, then
             if let Some(current_desc) = current_desc {
                 // i. If currentDesc.[[Configurable]] is true, return false.
-                if current_desc.expect_configurable() {
+                if current_desc.configurable() {
                     return Ok(false);
                 }
                 // ii. If level is frozen and IsDataDescriptor(currentDesc) is true, then
-                if level.is_frozen() && current_desc.is_data_descriptor() {
+                if level.is_frozen()
+                    && let CompletePropertyDescriptor::Data { writable, .. } = current_desc
+                {
                     // 1. If currentDesc.[[Writable]] is true, return false.
-                    if current_desc.expect_writable() {
+                    if writable {
                         return Ok(false);
                     }
                 }
@@ -696,7 +741,7 @@ impl JsObject {
         let own_keys =
             self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
         // 3. Let properties be a new empty List.
-        let mut properties = vec![];
+        let mut properties = Vec::with_capacity(own_keys.len());
 
         // 4. For each element key of ownKeys, do
         for key in own_keys {
@@ -713,7 +758,7 @@ impl JsObject {
                     .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc
-                    && desc.expect_enumerable()
+                    && desc.enumerable()
                 {
                     match kind {
                         // 1. If kind is key, append key to properties.
@@ -752,7 +797,7 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
+    pub fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
     where
         K: Into<PropertyKey>,
     {
@@ -837,7 +882,73 @@ impl JsObject {
         Ok(context.realm().clone())
     }
 
-    // todo: CopyDataProperties
+    /// `7.3.26 CopyDataProperties ( target, source, excludedItems )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-copydataproperties
+    pub fn copy_data_properties<K>(
+        &self,
+        source: &JsValue,
+        excluded_keys: Vec<K>,
+        context: &mut Context,
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+    {
+        let context = &mut InternalMethodPropertyContext::new(context);
+
+        // 1. Assert: Type(target) is Object.
+        // 2. Assert: excludedItems is a List of property keys.
+        // 3. If source is undefined or null, return target.
+        if source.is_null_or_undefined() {
+            return Ok(());
+        }
+
+        // 4. Let from be ! ToObject(source).
+        let from = source
+            .to_object(context)
+            .expect("function ToObject should never complete abruptly here");
+
+        // 5. Let keys be ? from.[[OwnPropertyKeys]]().
+        // 6. For each element nextKey of keys, do
+        let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(Into::into).collect();
+        for key in from.__own_property_keys__(context)? {
+            // a. Let excluded be false.
+            let mut excluded = false;
+
+            // b. For each element e of excludedItems, do
+            for e in &excluded_keys {
+                // i. If SameValue(e, nextKey) is true, then
+                if *e == key {
+                    // 1. Set excluded to true.
+                    excluded = true;
+                    break;
+                }
+            }
+            // c. If excluded is false, then
+            if !excluded {
+                // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
+                let desc = from.__get_own_property__(&key, context)?;
+
+                // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+                if let Some(desc) = desc
+                    && desc.enumerable()
+                {
+                    // 1. Let propValue be ? Get(from, nextKey).
+                    let prop_value = from.__get__(&key, from.clone().into(), context)?;
+
+                    // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                    self.create_data_property_or_throw(key, prop_value, context)
+                        .expect("CreateDataPropertyOrThrow should never complete abruptly here");
+                }
+            }
+        }
+
+        // 7. Return target.
+        Ok(())
+    }
 
     /// Abstract operation `PrivateElementFind ( O, P )`
     ///
@@ -888,22 +999,28 @@ impl JsObject {
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. If the host is a web browser, then
-        // a. Perform ? HostEnsureCanAddPrivateElement(O).
+        //    a. Perform ? HostEnsureCanAddPrivateElement(O).
         context
             .host_hooks()
             .ensure_can_add_private_element(self, context)?;
 
-        // 2. Let entry be PrivateElementFind(O, P).
-        let entry = self.private_element_find(name, false, false);
-
-        // 3. If entry is not empty, throw a TypeError exception.
-        if entry.is_some() {
-            return Err(JsNativeError::typ()
-                .with_message("Private field already exists on prototype")
-                .into());
+        // 2. If ? IsExtensible(O) is false, throw a TypeError exception.
+        // NOTE: From <https://tc39.es/proposal-nonextensible-applies-to-private/#sec-privatefieldadd>
+        if !self.is_extensible(context)? {
+            return Err(js_error!(
+                TypeError: "cannot add private field to non-extensible class instance"
+            ));
         }
 
-        // 4. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
+        // 3. Let entry be PrivateElementFind(O, P).
+        let entry = self.private_element_find(name, false, false);
+
+        // 4. If entry is not empty, throw a TypeError exception.
+        if entry.is_some() {
+            return Err(js_error!(TypeError: "private field already exists on prototype"));
+        }
+
+        // 5. Append PrivateElement { [[Key]]: P, [[Kind]]: field, [[Value]]: value } to O.[[PrivateElements]].
         self.borrow_mut()
             .private_elements
             .push((name.clone(), PrivateElement::Field(value)));
@@ -931,6 +1048,7 @@ impl JsObject {
             method,
             PrivateElement::Method(_) | PrivateElement::Accessor { .. }
         ));
+
         let (getter, setter) = if let PrivateElement::Accessor { getter, setter } = method {
             (getter.is_some(), setter.is_some())
         } else {
@@ -938,19 +1056,39 @@ impl JsObject {
         };
 
         // 2. If the host is a web browser, then
-        // a. Perform ? HostEnsureCanAddPrivateElement(O).
+        // a. Perform ? HostEnsureCanAddPrivateElement(O).
         context
             .host_hooks()
             .ensure_can_add_private_element(self, context)?;
+
+        // 3. If ? IsExtensible(O) is false, throw a TypeError exception.
+        // NOTE: From <https://tc39.es/proposal-nonextensible-applies-to-private/#sec-privatemethodoraccessoradd>
+        if !self.is_extensible(context)? {
+            return if getter || setter {
+                Err(js_error!(
+                    TypeError: "cannot add private accessor to non-extensible class instance"
+                ))
+            } else {
+                Err(js_error!(
+                    TypeError: "cannot add private method to non-extensible class instance"
+                ))
+            };
+        }
 
         // 3. Let entry be PrivateElementFind(O, method.[[Key]]).
         let entry = self.private_element_find(name, getter, setter);
 
         // 4. If entry is not empty, throw a TypeError exception.
         if entry.is_some() {
-            return Err(JsNativeError::typ()
-                .with_message("Private method already exists on prototype")
-                .into());
+            return if getter || setter {
+                Err(js_error!(
+                    TypeError: "private accessor already exists on class instance"
+                ))
+            } else {
+                Err(js_error!(
+                    TypeError: "private method already exists on class instance"
+                ))
+            };
         }
 
         // 5. Append method to O.[[PrivateElements]].
@@ -1105,11 +1243,11 @@ impl JsObject {
                     set_function_name(
                         &init_value
                             .as_object()
-                            .expect("init value must be a function object"),
+                            .js_expect("init value must be a function object")?,
                         function_name,
                         None,
                         context,
-                    );
+                    )?;
                 }
 
                 // a. Assert: IsPropertyKey(fieldName) is true.
@@ -1137,7 +1275,7 @@ impl JsObject {
     ) -> JsResult<()> {
         let constructor_function = constructor
             .downcast_ref::<OrdinaryFunction>()
-            .expect("class constructor must be function object");
+            .js_expect("class constructor must be function object")?;
 
         // 1. Let methods be the value of constructor.[[PrivateMethods]].
         // 2. For each PrivateElement method of methods, do
@@ -1232,7 +1370,17 @@ impl JsValue {
     {
         // Note: The spec specifies this function for JsValue.
         // The main part of the function is implemented for JsObject.
-        self.to_object(context)?.get_method(key, context)
+        // 1. Let func be ? GetV(V, P).
+        match self.get_v(key, context)?.variant() {
+            // 3. If func is either undefined or null, return undefined.
+            JsVariant::Undefined | JsVariant::Null => Ok(None),
+            // 5. Return func.
+            JsVariant::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
+            // 4. If IsCallable(func) is false, throw a TypeError exception.
+            _ => Err(JsNativeError::typ()
+                .with_message("value returned for property of object is not a function")
+                .into()),
+        }
     }
 
     /// It is used to create List value whose elements are provided by the indexed properties of

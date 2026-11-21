@@ -12,7 +12,7 @@
 use super::Register;
 use crate::{
     bytecompiler::{ByteCompiler, Label},
-    vm::Handler,
+    vm::{CallFrame, Handler, opcode::Address},
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
@@ -36,7 +36,7 @@ pub(crate) enum JumpRecordAction {
     /// Handles finally, this needs to be done if we are in the try or catch section of a try statement that
     /// has a finally block.
     ///
-    /// It places push integer value [`crate::vm::opcode::Opcode`] as well as [`crate::vm::opcode::Opcode::PushFalse`], which means don't [`ReThrow`](crate::vm::opcode::Opcode::ReThrow).
+    /// It places push integer value [`crate::vm::opcode::Opcode`] as well as [`crate::vm::opcode::Opcode::StoreFalse`], which means don't [`ReThrow`](crate::vm::opcode::Opcode::ReThrow).
     ///
     /// The integer is an index used to jump. See [`crate::vm::opcode::Opcode::JumpTable`]. This is needed because the following code:
     ///
@@ -67,12 +67,34 @@ pub(crate) enum JumpRecordAction {
     },
 }
 
+/// Where an explicit `return` value is stored while `finally` blocks execute.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ReturnValueLocation {
+    /// On the value stack.
+    ///
+    /// Used when the `return` doesn't pass through any `finally` block, so no
+    /// abrupt completion can interleave and leave stale values behind.
+    OnStack,
+    /// In the function-level pending-return register (see
+    /// [`ByteCompiler::pending_return_slot`]).
+    ///
+    /// Used when the `return` passes through a `finally` block, since abrupt
+    /// completions inside `finally` (e.g. `break`) skip the jump-table handler
+    /// that would pop a stack slot.
+    InSlot(u32),
+    /// In the accumulator.
+    ///
+    /// Used for implicit function returns, where the completion value is
+    /// already in the accumulator.
+    InAccumulator,
+}
+
 /// Local Control flow type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum JumpRecordKind {
     Break,
     Continue,
-    Return { return_value_on_stack: bool },
+    Return { value_location: ReturnValueLocation },
 }
 
 /// This represents a local control flow handling. See [`JumpRecordKind`] for types.
@@ -93,7 +115,11 @@ impl JumpRecord {
     }
 
     /// Performs the [`JumpRecordAction`]s.
-    pub(crate) fn perform_actions(mut self, start_address: u32, compiler: &mut ByteCompiler<'_>) {
+    pub(crate) fn perform_actions(
+        mut self,
+        start_address: Address,
+        compiler: &mut ByteCompiler<'_>,
+    ) {
         while let Some(action) = self.actions.pop() {
             match action {
                 JumpRecordAction::Transfer { index } => {
@@ -113,10 +139,13 @@ impl JumpRecord {
                     finally_throw_flag,
                     finally_throw_index,
                 } => {
-                    // Note: +1 because 0 is reserved for default entry in jump table (for fallthrough).
+                    // Note: +1 because 0 is reserved for the fallthrough entry of the
+                    // jump table emitted in `pop_try_with_finally_control_info`.
                     let index = value as i32 + 1;
-                    compiler.bytecode.emit_push_false(finally_throw_flag.into());
-                    compiler.emit_push_integer_with_index(index, finally_throw_index.into());
+                    compiler
+                        .bytecode
+                        .emit_store_false(finally_throw_flag.into());
+                    compiler.emit_store_integer_with_index(index, finally_throw_index.into());
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
                     compiler.iterator_close(r#async);
@@ -128,14 +157,18 @@ impl JumpRecord {
         match self.kind {
             JumpRecordKind::Break => compiler.patch_jump(self.label),
             JumpRecordKind::Continue => compiler.patch_jump_with_target(self.label, start_address),
-            JumpRecordKind::Return {
-                return_value_on_stack,
-            } => {
-                if return_value_on_stack {
-                    let value = compiler.register_allocator.alloc();
-                    compiler.pop_into_register(&value);
-                    compiler.bytecode.emit_set_accumulator(value.variable());
-                    compiler.register_allocator.dealloc(value);
+            JumpRecordKind::Return { value_location } => {
+                match value_location {
+                    ReturnValueLocation::OnStack => {
+                        let value = compiler.register_allocator.alloc();
+                        compiler.pop_into_register(&value);
+                        compiler.bytecode.emit_set_accumulator(value.variable());
+                        compiler.register_allocator.dealloc(value);
+                    }
+                    ReturnValueLocation::InSlot(slot) => {
+                        compiler.bytecode.emit_set_accumulator(slot.into());
+                    }
+                    ReturnValueLocation::InAccumulator => {}
                 }
 
                 match (compiler.is_async(), compiler.is_generator()) {
@@ -149,7 +182,56 @@ impl JumpRecord {
                     //  - 27.7.5.2 AsyncBlockStart ( promiseCapability, asyncBody, asyncContext ): <https://tc39.es/ecma262/#sec-asyncblockstart>
                     //
                     // Note: If there is promise capability resolve or reject it based on pending exception.
-                    (true, false) => compiler.bytecode.emit_complete_promise_capability(),
+                    (true, false) => {
+                        let has_exception = compiler.register_allocator.alloc();
+                        let exception = compiler.register_allocator.alloc();
+
+                        compiler
+                            .bytecode
+                            .emit_maybe_exception(has_exception.variable(), exception.variable());
+
+                        // Pushes `undefined` to the stack, which acts as the
+                        // `this` value of the call.
+                        compiler.push_from_register(&CallFrame::undefined_register());
+
+                        compiler.if_else_with_dealloc(
+                            has_exception,
+                            |compiler| {
+                                // has_exception == true, so we need to call `reject`
+                                // with the current exception.
+
+                                compiler.push_from_register(
+                                    &CallFrame::promise_capability_reject_register(),
+                                );
+                                compiler.push_from_register(&exception);
+                                compiler.register_allocator.dealloc(exception);
+                                compiler.bytecode.emit_call(1u8.into());
+                            },
+                            |compiler| {
+                                // has_exception == false, call `resolve` normally.
+
+                                compiler.push_from_register(
+                                    &CallFrame::promise_capability_resolve_register(),
+                                );
+
+                                {
+                                    let value = compiler.register_allocator.alloc();
+                                    compiler
+                                        .bytecode
+                                        .emit_set_register_from_accumulator(value.variable());
+                                    compiler.push_from_register(&value);
+                                    compiler.register_allocator.dealloc(value);
+                                }
+                                compiler.bytecode.emit_call(1u8.into());
+                            },
+                        );
+
+                        // Finally, set the accumulator value to the promise from the
+                        // promise capability
+                        compiler.bytecode.emit_set_accumulator(
+                            (CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32).into(),
+                        );
+                    }
                     (false, false) => {
                         // TODO: We can omit checking for return, when constructing for functions,
                         // that cannot be constructed, like arrow functions.
@@ -168,7 +250,7 @@ impl JumpRecord {
 #[derive(Debug)]
 pub(crate) struct JumpControlInfo {
     label: Option<Sym>,
-    start_address: u32,
+    start_address: Address,
     pub(crate) flags: JumpControlInfoFlags,
     pub(crate) jumps: Vec<JumpRecord>,
     current_open_environments_count: u32,
@@ -219,7 +301,7 @@ impl JumpControlInfo {
         self
     }
 
-    pub(crate) const fn with_start_address(mut self, address: u32) -> Self {
+    pub(crate) const fn with_start_address(mut self, address: Address) -> Self {
         self.start_address = address;
         self
     }
@@ -262,7 +344,7 @@ impl JumpControlInfo {
         self.label
     }
 
-    pub(crate) const fn start_address(&self) -> u32 {
+    pub(crate) const fn start_address(&self) -> Address {
         self.start_address
     }
 
@@ -308,7 +390,7 @@ impl JumpControlInfo {
     }
 
     /// Sets the `start_address` field of `JumpControlInfo`.
-    pub(crate) fn set_start_address(&mut self, start_address: u32) {
+    pub(crate) fn set_start_address(&mut self, start_address: Address) {
         self.start_address = start_address;
     }
 }
@@ -347,7 +429,6 @@ impl ByteCompiler<'_> {
         let handler_index = self.handlers.len() as u32;
         let start_address = self.next_opcode_location();
 
-        // FIXME(HalidOdat): figure out value stack fp value.
         let environment_count = self.current_open_environments_count;
         self.handlers.push(Handler {
             start: start_address,
@@ -392,7 +473,7 @@ impl ByteCompiler<'_> {
     pub(crate) fn push_labelled_control_info(
         &mut self,
         label: Sym,
-        start_address: u32,
+        start_address: Address,
         use_expr: bool,
     ) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
@@ -426,7 +507,7 @@ impl ByteCompiler<'_> {
     pub(crate) fn push_loop_control_info(
         &mut self,
         label: Option<Sym>,
-        start_address: u32,
+        start_address: Address,
         use_expr: bool,
     ) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
@@ -441,7 +522,7 @@ impl ByteCompiler<'_> {
     pub(crate) fn push_loop_control_info_for_of_in_loop(
         &mut self,
         label: Option<Sym>,
-        start_address: u32,
+        start_address: Address,
         use_expr: bool,
     ) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
@@ -456,7 +537,7 @@ impl ByteCompiler<'_> {
     pub(crate) fn push_loop_control_info_for_await_of_loop(
         &mut self,
         label: Option<Sym>,
-        start_address: u32,
+        start_address: Address,
         use_expr: bool,
     ) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
@@ -492,7 +573,7 @@ impl ByteCompiler<'_> {
     pub(crate) fn push_switch_control_info(
         &mut self,
         label: Option<Sym>,
-        start_address: u32,
+        start_address: Address,
         use_expr: bool,
     ) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
@@ -539,7 +620,7 @@ impl ByteCompiler<'_> {
     ///
     /// # Panic
     ///  - Will panic if popped `JumpControlInfo` is not for a try block.
-    pub(crate) fn pop_try_with_finally_control_info(&mut self, finally_start: u32) {
+    pub(crate) fn pop_try_with_finally_control_info(&mut self, finally_start: Address) {
         assert!(!self.jump_info.is_empty());
         let info = self.jump_info.pop().expect("no jump information found");
 
@@ -555,27 +636,35 @@ impl ByteCompiler<'_> {
             self.patch_jump_with_target(*label, finally_start);
         }
 
+        // The jump table holds `info.jumps.len() + 1` entries. Entry 0 is the
+        // fallthrough target, taken when no `break`, `continue`, or `return`
+        // inside the protected region selected a jump record (the index
+        // register keeps its initial value of `0`). Entries `1..=N` correspond
+        // to the registered jump records and are selected by `HandleFinally`.
         // NOTE: +4 to jump past the index operand.
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
         self.bytecode.emit_jump_table(
             finally_throw_index,
-            Self::DUMMY_ADDRESS,
-            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
+            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len() + 1],
         );
 
-        let mut patch_jumps = Vec::with_capacity(info.jumps.len());
+        // Skip the jump-record handlers when falling through.
+        let fallthrough = self.jump();
+
+        let mut patch_jumps = vec![Self::DUMMY_ADDRESS; info.jumps.len() + 1];
         // Handle breaks/continue/returns in a finally block
         for i in 0..info.jumps.len() {
-            patch_jumps.push(self.next_opcode_location());
+            patch_jumps[i + 1] = self.next_opcode_location();
 
             let jump_record = info.jumps[i].clone();
             jump_record.perform_actions(Self::DUMMY_ADDRESS, self);
         }
 
-        let default = self.bytecode.next_opcode_location();
+        self.patch_jump(fallthrough);
+        patch_jumps[0] = self.next_opcode_location();
 
         self.bytecode
-            .patch_jump_table(jump_table_index, (default, &patch_jumps));
+            .patch_jump_table(jump_table_index, &patch_jumps);
     }
 
     pub(crate) fn jump_info_open_environment_count(&self, index: usize) -> u32 {

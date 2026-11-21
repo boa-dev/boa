@@ -1,8 +1,8 @@
 use crate::{
-    Context, JsResult, JsValue,
+    Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,
     object::PROTOTYPE,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 pub(crate) mod field;
@@ -11,17 +11,17 @@ pub(crate) mod private;
 pub(crate) use field::*;
 pub(crate) use private::*;
 
-/// `PushClassPrototype` implements the Opcode Operation for `Opcode::PushClassPrototype`
+/// `StoreClassPrototype` implements the Opcode Operation for `Opcode::StoreClassPrototype`
 ///
 /// Operation:
-///  - Get the prototype of a superclass and push it on the stack.
+///  - Get the prototype of a superclass and store it in dst.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct PushClassPrototype;
+pub(crate) struct StoreClassPrototype;
 
-impl PushClassPrototype {
+impl StoreClassPrototype {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, class, superclass): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, class, superclass): (RegisterOperand, RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let class = context.vm.get_register(class.into()).clone();
@@ -62,7 +62,7 @@ impl PushClassPrototype {
                 .into());
         };
 
-        let class_object = class.as_object().expect("class must be object");
+        let class_object = class.as_object().js_expect("class must be object")?;
 
         if let Some(constructor_parent) = constructor_parent {
             class_object.set_prototype(Some(constructor_parent));
@@ -73,8 +73,8 @@ impl PushClassPrototype {
     }
 }
 
-impl Operation for PushClassPrototype {
-    const NAME: &'static str = "PushClassPrototype";
-    const INSTRUCTION: &'static str = "INST - PushClassPrototype";
+impl Operation for StoreClassPrototype {
+    const NAME: &'static str = "StoreClassPrototype";
+    const INSTRUCTION: &'static str = "INST - StoreClassPrototype";
     const COST: u8 = 6;
 }

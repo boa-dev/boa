@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{Context, JsResult, vm::opcode::Operation};
 
 /// `ToPropertyKey` implements the Opcode Operation for `Opcode::ToPropertyKey`
@@ -11,7 +11,7 @@ pub(crate) struct ToPropertyKey;
 impl ToPropertyKey {
     #[inline(always)]
     pub(super) fn operation(
-        (value, dst): (VaryingOperand, VaryingOperand),
+        (value, dst): (RegisterOperand, RegisterOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let value = context.vm.get_register(value.into()).clone();

@@ -15,8 +15,7 @@ impl ByteCompiler<'_> {
     pub(super) fn iterator_close(&mut self, async_: bool) {
         let value = self.register_allocator.alloc();
         let called = self.register_allocator.alloc();
-        self.bytecode
-            .emit_iterator_return(value.variable(), called.variable());
+        self.iterator_return(&value, &called);
 
         // `iterator` didn't have a `return` method, is already done or is not on the iterator stack.
         let early_exit = self.jump_if_false(&called);
@@ -27,8 +26,7 @@ impl ByteCompiler<'_> {
             let resume_kind = self.register_allocator.alloc();
             self.pop_into_register(&resume_kind);
             self.pop_into_register(&value);
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            self.generator_next(&value, &resume_kind);
             self.register_allocator.dealloc(resume_kind);
         }
 
@@ -77,8 +75,7 @@ impl ByteCompiler<'_> {
             self.bytecode.emit_await(value.variable());
             self.pop_into_register(&resume_kind);
             self.pop_into_register(value);
-            self.bytecode
-                .emit_generator_next(resume_kind.variable(), value.variable());
+            self.generator_next(value, &resume_kind);
             self.async_generator_yield(value, &resume_kind);
         } else {
             // 3. Otherwise, return ? GeneratorYield(CreateIterResultObject(value, false)).
@@ -89,8 +86,7 @@ impl ByteCompiler<'_> {
             self.pop_into_register(value);
         }
 
-        self.bytecode
-            .emit_generator_next(resume_kind.variable(), value.variable());
+        self.generator_next(value, &resume_kind);
         self.register_allocator.dealloc(resume_kind);
     }
 

@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
 use std::rc::Rc;
 
-use dynify::{Fn, from_fn};
+use dynify::dynify;
 use rustc_hash::FxHashMap;
 
 use boa_gc::GcRefCell;
@@ -16,6 +16,7 @@ use crate::{
 };
 
 use super::Module;
+use crate::module::{ImportAttribute, ModuleRequest};
 
 pub mod embedded;
 
@@ -61,9 +62,9 @@ pub fn resolve_module_specifier(
 
     // On Windows, also replace `/` with `\`. JavaScript imports use `/` as path separator.
     #[cfg(target_family = "windows")]
-    let specifier = specifier.replace('/', "\\");
+    let specifier = cow_utils::CowUtils::cow_replace(&*specifier, '/', "\\");
 
-    let short_path = Path::new(&specifier);
+    let short_path = Path::new(&*specifier);
 
     // In ECMAScript, a path is considered relative if it starts with
     // `./` or `../`. In Rust it's any path that start with `/`.
@@ -73,18 +74,14 @@ pub fn resolve_module_specifier(
         if let Some(r_path) = referrer_dir {
             base_path.join(r_path).join(short_path)
         } else {
-            return Err(JsError::from_opaque(
-                js_string!("relative path without referrer").into(),
-            ));
+            return Err(js_error!(TypeError: "relative path without referrer"));
         }
     } else {
-        base_path.join(&specifier)
+        base_path.join(&*specifier)
     };
 
     if long_path.is_relative() && base.is_some() {
-        return Err(JsError::from_opaque(
-            js_string!("resolved path is relative").into(),
-        ));
+        return Err(js_error!(TypeError: "resolved path is relative"));
     }
 
     // Normalize the path. We cannot use `canonicalize` here because it will fail
@@ -95,9 +92,7 @@ pub fn resolve_module_specifier(
         .try_fold(PathBuf::new(), |mut acc, c| {
             if c == Component::ParentDir {
                 if acc.as_os_str().is_empty() {
-                    return Err(JsError::from_opaque(
-                        js_string!("path is outside the module root").into(),
-                    ));
+                    return Err(js_error!(TypeError: "path is outside the module root"));
                 }
                 acc.pop();
             } else {
@@ -109,9 +104,7 @@ pub fn resolve_module_specifier(
     if path.starts_with(&base_path) {
         Ok(path)
     } else {
-        Err(JsError::from_opaque(
-            js_string!("path is outside the module root").into(),
-        ))
+        Err(js_error!(TypeError: "path is outside the module root"))
     }
 }
 
@@ -151,6 +144,7 @@ impl From<ActiveRunnable> for Referrer {
 ///
 /// This trait allows to customize the behaviour of the engine on module load requests and
 /// `import.meta` requests.
+#[dynify]
 pub trait ModuleLoader: Any {
     /// Host hook [`HostLoadImportedModule ( referrer, specifier, hostDefined, payload )`][spec].
     ///
@@ -174,11 +168,11 @@ pub trait ModuleLoader: Any {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-HostLoadImportedModule
     /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
-    #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
+    #[allow(async_fn_in_trait, reason = "all our APIs are single-threaded")]
     async fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
-        specifier: JsString,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> JsResult<Module>;
 
@@ -194,58 +188,13 @@ pub trait ModuleLoader: Any {
     ///
     /// [meta]: https://tc39.es/ecma262/#sec-hostgetimportmetaproperties
     /// [final]: https://tc39.es/ecma262/#sec-hostfinalizeimportmeta
-    fn init_import_meta(
-        self: Rc<Self>,
-        _import_meta: &JsObject,
-        _module: &Module,
-        _context: &mut Context,
-    ) {
-    }
-}
-
-/// A dyn-compatible version of [`ModuleLoader`].
-pub(crate) trait DynModuleLoader: Any {
-    /// See [`ModuleLoader::load_imported_module`].
-    fn load_imported_module<'a, 'b, 'fut>(
-        self: Rc<Self>,
-        referrer: Referrer,
-        specifier: JsString,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, JsString, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
-    where
-        'a: 'fut,
-        'b: 'fut;
-
-    /// See [`ModuleLoader::init_import_meta`].
-    fn init_import_meta(
-        self: Rc<Self>,
-        import_meta: &JsObject,
-        module: &Module,
-        context: &mut Context,
-    );
-}
-
-impl<T: ModuleLoader> DynModuleLoader for T {
-    fn load_imported_module<'a, 'b, 'fut>(
-        self: Rc<Self>,
-        referrer: Referrer,
-        specifier: JsString,
-        context: &'a RefCell<&'b mut Context>,
-    ) -> Fn!(Rc<Self>, Referrer, JsString, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
-    where
-        'a: 'fut,
-        'b: 'fut,
-    {
-        from_fn!(T::load_imported_module, self, referrer, specifier, context)
-    }
-
+    #[allow(unused_variables, reason = "this should be overridden by implementors")]
     fn init_import_meta(
         self: Rc<Self>,
         import_meta: &JsObject,
         module: &Module,
         context: &mut Context,
     ) {
-        T::init_import_meta(self, import_meta, module, context);
     }
 }
 
@@ -256,15 +205,15 @@ impl<T: ModuleLoader> DynModuleLoader for T {
 pub struct IdleModuleLoader;
 
 impl ModuleLoader for IdleModuleLoader {
-    async fn load_imported_module(
+    fn load_imported_module(
         self: Rc<Self>,
         _referrer: Referrer,
-        _specifier: JsString,
+        _request: ModuleRequest,
         _context: &RefCell<&mut Context>,
-    ) -> JsResult<Module> {
-        Err(JsNativeError::typ()
+    ) -> impl Future<Output = JsResult<Module>> {
+        std::future::ready(Err(JsNativeError::typ()
             .with_message("module resolution is disabled for this context")
-            .into())
+            .into()))
     }
 }
 
@@ -317,13 +266,13 @@ impl ModuleLoader for MapModuleLoader {
     fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
-        specifier: JsString,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
             let path = resolve_module_specifier(
                 None,
-                &specifier,
+                request.specifier(),
                 referrer.path(),
                 &mut context.borrow_mut(),
             )?;
@@ -338,6 +287,23 @@ impl ModuleLoader for MapModuleLoader {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct ModuleCacheKey {
+    path: PathBuf,
+    attributes: Box<[ImportAttribute]>,
+}
+
+impl ModuleCacheKey {
+    fn new(path: PathBuf, attributes: &[ImportAttribute]) -> Self {
+        let mut attributes = attributes.to_vec();
+        attributes.sort_unstable_by(|left, right| left.key().cmp(right.key()));
+        Self {
+            path,
+            attributes: attributes.into_boxed_slice(),
+        }
+    }
+}
+
 /// A simple module loader that loads modules relative to a root path.
 ///
 /// # Note
@@ -348,7 +314,7 @@ impl ModuleLoader for MapModuleLoader {
 #[derive(Debug)]
 pub struct SimpleModuleLoader {
     root: PathBuf,
-    module_map: GcRefCell<FxHashMap<PathBuf, Module>>,
+    module_map: GcRefCell<FxHashMap<ModuleCacheKey, Module>>,
 }
 
 impl SimpleModuleLoader {
@@ -356,14 +322,14 @@ impl SimpleModuleLoader {
     pub fn new<P: AsRef<Path>>(root: P) -> JsResult<Self> {
         if cfg!(target_family = "wasm") {
             return Err(JsNativeError::typ()
-                .with_message("cannot resolve a relative path in WASM targets")
+                .with_message("cannot resolve a relative path in Wasm targets")
                 .into());
         }
         let root = root.as_ref();
         let absolute = root.canonicalize().map_err(|e| {
             JsNativeError::typ()
                 .with_message(format!("could not set module root `{}`", root.display()))
-                .with_cause(JsError::from_opaque(js_string!(e.to_string()).into()))
+                .with_cause(JsError::from_rust(e))
         })?;
         Ok(Self {
             root: absolute,
@@ -374,13 +340,39 @@ impl SimpleModuleLoader {
     /// Inserts a new module onto the module map.
     #[inline]
     pub fn insert(&self, path: PathBuf, module: Module) {
-        self.module_map.borrow_mut().insert(path, module);
+        self.insert_with_attributes(path, &[], module);
+    }
+
+    /// Inserts a new module onto the module map with the given attributes.
+    #[inline]
+    pub fn insert_with_attributes(
+        &self,
+        path: PathBuf,
+        attributes: &[ImportAttribute],
+        module: Module,
+    ) {
+        self.module_map
+            .borrow_mut()
+            .insert(ModuleCacheKey::new(path, attributes), module);
     }
 
     /// Gets a module from its original path.
     #[inline]
     pub fn get(&self, path: &Path) -> Option<Module> {
-        self.module_map.borrow().get(path).cloned()
+        self.get_with_attributes(path, &[])
+    }
+
+    /// Gets a module from its original path and attributes.
+    #[inline]
+    pub fn get_with_attributes(
+        &self,
+        path: &Path,
+        attributes: &[ImportAttribute],
+    ) -> Option<Module> {
+        self.module_map
+            .borrow()
+            .get(&ModuleCacheKey::new(path.to_path_buf(), attributes))
+            .cloned()
     }
 }
 
@@ -388,32 +380,89 @@ impl ModuleLoader for SimpleModuleLoader {
     fn load_imported_module(
         self: Rc<Self>,
         referrer: Referrer,
-        specifier: JsString,
+        request: ModuleRequest,
         context: &RefCell<&mut Context>,
     ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
-            let short_path = specifier.to_std_string_escaped();
+            let short_path = request.specifier().to_std_string_escaped();
             let path = resolve_module_specifier(
                 Some(&self.root),
-                &specifier,
+                request.specifier(),
                 referrer.path(),
                 &mut context.borrow_mut(),
             )?;
-            if let Some(module) = self.get(&path) {
+
+            if let Some(module) = self.get_with_attributes(&path, request.attributes()) {
                 return Ok(module);
             }
 
-            let source = Source::from_filepath(&path).map_err(|err| {
-                JsNativeError::typ()
-                    .with_message(format!("could not open file `{short_path}`"))
-                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
-            })?;
-            let module = Module::parse(source, None, &mut context.borrow_mut()).map_err(|err| {
-                JsNativeError::syntax()
-                    .with_message(format!("could not parse module `{short_path}`"))
-                    .with_cause(err)
-            })?;
-            self.insert(path, module.clone());
+            // Check for import attribute type
+            let mut module_type = None;
+            let type_key = js_string!("type");
+            for attr in request.attributes() {
+                if attr.key() == &type_key {
+                    module_type = Some(attr.value());
+                }
+            }
+
+            if path
+                .extension()
+                .is_some_and(|ext| ext.to_string_lossy() == "json")
+            {
+                let is_json_type = module_type.is_some_and(|t| t == &js_string!("json"));
+                if !is_json_type {
+                    return Err(JsNativeError::typ()
+                        .with_message(format!(
+                            "module `{short_path}` needs an import attribute of type \"json\""
+                        ))
+                        .into());
+                }
+            }
+            let module = if let Some(ty) = module_type {
+                // Handle different module types based on the type attribute
+                match ty.to_std_string_escaped().as_str() {
+                    "json" => {
+                        // Load and parse as JSON module
+                        let json_content = std::fs::read_to_string(&path).map_err(|err| {
+                            JsNativeError::typ()
+                                .with_message(format!("could not open file `{short_path}`"))
+                                .with_cause(JsError::from_rust(err))
+                        })?;
+                        let json_string = js_string!(json_content.as_str());
+                        Module::parse_json(json_string, &mut context.borrow_mut()).map_err(
+                            |err| {
+                                JsNativeError::syntax()
+                                    .with_message(format!(
+                                        "could not parse JSON module `{short_path}`"
+                                    ))
+                                    .with_cause(err)
+                            },
+                        )?
+                    }
+                    other => {
+                        // Unknown module type
+                        return Err(JsNativeError::typ()
+                            .with_message(format!(
+                                "unsupported module type `{other}` for module `{short_path}`"
+                            ))
+                            .into());
+                    }
+                }
+            } else {
+                // No type attribute, load as regular JavaScript module
+                let source = Source::from_filepath(&path).map_err(|err| {
+                    JsNativeError::typ()
+                        .with_message(format!("could not open file `{short_path}`"))
+                        .with_cause(JsError::from_rust(err))
+                })?;
+                Module::parse(source, None, &mut context.borrow_mut()).map_err(|err| {
+                    JsNativeError::syntax()
+                        .with_message(format!("could not parse module `{short_path}`"))
+                        .with_cause(err)
+                })?
+            };
+
+            self.insert_with_attributes(path, request.attributes(), module.clone());
             Ok(module)
         })();
 

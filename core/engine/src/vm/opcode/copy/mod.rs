@@ -1,5 +1,5 @@
-use super::VaryingOperand;
-use crate::{Context, JsResult, vm::opcode::Operation};
+use super::RegisterOperand;
+use crate::{Context, JsExpect, JsResult, vm::opcode::Operation};
 use thin_vec::ThinVec;
 
 /// `CopyDataProperties` implements the Opcode Operation for `Opcode::CopyDataProperties`
@@ -12,7 +12,7 @@ pub(crate) struct CopyDataProperties;
 impl CopyDataProperties {
     #[inline(always)]
     pub(super) fn operation(
-        (object, source, keys): (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>),
+        (object, source, keys): (RegisterOperand, RegisterOperand, ThinVec<RegisterOperand>),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -22,10 +22,10 @@ impl CopyDataProperties {
             let key = context.vm.get_register(key.into()).clone();
             excluded_keys.push(
                 key.to_property_key(context)
-                    .expect("key must be property key"),
+                    .js_expect("key must be property key")?,
             );
         }
-        let object = object.as_object().expect("not an object");
+        let object = object.as_object().js_expect("not an object")?;
         object.copy_data_properties(&source, excluded_keys, context)?;
         Ok(())
     }

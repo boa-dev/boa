@@ -2,7 +2,7 @@ use super::{BindingAccessOpcode, ToJsString};
 use crate::{
     Context, JsNativeError, JsResult, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    vm::opcode::BindingOpcode,
+    vm::{CallFrame, GlobalFunctionBinding, opcode::BindingOpcode},
 };
 use boa_ast::{
     Script,
@@ -18,6 +18,7 @@ use boa_ast::{
     visitor::NodeRef,
 };
 use boa_interner::{JStrRef, Sym};
+use rustc_hash::FxHashSet;
 
 #[cfg(feature = "annex-b")]
 use boa_ast::operations::annex_b_function_declarations_names;
@@ -71,7 +72,7 @@ pub(crate) fn global_declaration_instantiation_context(
     // SKIP: 6. Let functionsToInitialize be a new empty List.
 
     // 7. Let declaredFunctionNames be a new empty List.
-    let mut declared_function_names = Vec::new();
+    let mut declared_function_names = FxHashSet::default();
 
     // 8. For each element d of varDeclarations, in reverse List order, do
     for declaration in var_declarations.iter().rev() {
@@ -88,18 +89,15 @@ pub(crate) fn global_declaration_instantiation_context(
         };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
-        if !declared_function_names.contains(&name.sym()) {
-            // SKIP: 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
-            // SKIP: 2. If fnDefinable is false, throw a TypeError exception.
-            // 3. Append fn to declaredFunctionNames.
-            declared_function_names.push(name.sym());
-
-            // SKIP: 4. Insert d as the first element of functionsToInitialize.
-        }
+        // SKIP:     1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
+        // SKIP:     2. If fnDefinable is false, throw a TypeError exception.
+        // 3. Append fn to declaredFunctionNames.
+        // SKIP:     4. Insert d as the first element of functionsToInitialize.
+        declared_function_names.insert(name.sym());
     }
 
     // // 9. Let declaredVarNames be a new empty List.
-    let mut declared_var_names = Vec::new();
+    let mut declared_var_names = FxHashSet::default();
 
     // 10. For each element d of varDeclarations, do
     //     a. If d is either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
@@ -115,10 +113,8 @@ pub(crate) fn global_declaration_instantiation_context(
                 // SKIP: a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
                 // SKIP: b. If vnDefinable is false, throw a TypeError exception.
                 // c. If declaredVarNames does not contain vn, then
-                if !declared_var_names.contains(&name) {
-                    // i. Append vn to declaredVarNames.
-                    declared_var_names.push(name);
-                }
+                // i. Append vn to declaredVarNames.
+                declared_var_names.insert(name);
             }
         }
     }
@@ -160,7 +156,7 @@ pub(crate) fn global_declaration_instantiation_context(
                             context.create_global_var_binding(f_string, false)?;
 
                             // ii. Append F to declaredFunctionOrVarNames.
-                            declared_function_names.push(f);
+                            declared_function_names.insert(f);
                         }
                         // iii. When the FunctionDeclaration f is evaluated, perform the following
                         //      steps in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
@@ -195,7 +191,7 @@ pub(crate) fn global_declaration_instantiation_context(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
-pub(crate) fn eval_declaration_instantiation_context(
+pub(crate) fn prepare_eval_declaration_instantiation(
     #[allow(unused, clippy::ptr_arg)] annex_b_function_names: &mut Vec<Sym>,
     body: &Script,
     #[allow(unused)] strict: bool,
@@ -212,7 +208,7 @@ pub(crate) fn eval_declaration_instantiation_context(
     //         i. If privateIdentifiers does not contain binding.[[Description]],
     //            append binding.[[Description]] to privateIdentifiers.
     //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-    let private_identifiers = context.vm.frame.environments.private_name_descriptions();
+    let private_identifiers = context.vm.frame().environments.private_name_descriptions();
     let private_identifiers = private_identifiers
         .into_iter()
         .map(|ident| {
@@ -240,7 +236,7 @@ pub(crate) fn eval_declaration_instantiation_context(
 
     // 9. Let declaredFunctionNames be a new empty List.
     #[cfg(feature = "annex-b")]
-    let mut declared_function_names = Vec::new();
+    let mut declared_function_names = FxHashSet::default();
 
     // 10. For each element d of varDeclarations, in reverse List order, do
     #[cfg(feature = "annex-b")]
@@ -258,21 +254,18 @@ pub(crate) fn eval_declaration_instantiation_context(
         };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
-        if !declared_function_names.contains(&name.sym()) {
-            // SKIP: 1. If varEnv is a Global Environment Record, then
-
-            // 2. Append fn to declaredFunctionNames.
-            declared_function_names.push(name.sym());
-
-            // SKIP: 3. Insert d as the first element of functionsToInitialize.
-        }
+        // SKIP:     1. If varEnv is a Global Environment Record, then
+        // 2. Append fn to declaredFunctionNames.
+        // SKIP:     3. Insert d as the first element of functionsToInitialize.
+        declared_function_names.insert(name.sym());
     }
 
     // 11. NOTE: Annex B.3.2.3 adds additional steps at this point.
     // 11. If strict is false, then
     #[cfg(feature = "annex-b")]
     if !strict {
-        let lexically_declared_names = lexically_declared_names(body);
+        let lexically_declared_names: FxHashSet<Sym> =
+            lexically_declared_names(body).into_iter().collect();
 
         // a. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
         // b. For each FunctionDeclaration f that is directly contained in the StatementList
@@ -286,7 +279,7 @@ pub(crate) fn eval_declaration_instantiation_context(
                 let mut binding_exists = false;
 
                 // 2. Let thisEnv be lexEnv.
-                let mut this_env = lex_env.clone();
+                let mut this_env = lex_env;
 
                 // 3. Assert: The following loop will terminate.
                 // 4. Repeat, while thisEnv is not varEnv,
@@ -388,18 +381,14 @@ impl ByteCompiler<'_> {
             let name = name.to_js_string(self.interner());
 
             // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
-            let value = self.register_allocator.alloc();
-            let index = self.get_or_insert_string(name);
-            self.bytecode
-                .emit_has_restricted_global_property(value.variable(), index.into());
-
             // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
-            let exit = self.jump_if_false(&value);
-            self.register_allocator.dealloc(value);
-
-            self.emit_syntax_error("cannot redefine non-configurable global property");
-            self.patch_jump(exit);
+            // Done in `Context::global_declaration_instantiation`
+            let index = self.get_or_insert_string(name);
+            self.global_lexs.push(index);
         }
+        // 4. For each element name of varNames, do
+        //    a. If HasLexicalDeclaration(env, name) is true, throw a SyntaxError exception.
+        // The scope analyzer already does this check for us.
 
         // 5. Let varDeclarations be the VarScopedDeclarations of script.
         // Note: VarScopedDeclarations for a Script node is TopLevelVarScopedDeclarations.
@@ -409,7 +398,7 @@ impl ByteCompiler<'_> {
         let mut functions_to_initialize = Vec::new();
 
         // 7. Let declaredFunctionNames be a new empty List.
-        let mut declared_function_names = Vec::new();
+        let mut declared_function_names = FxHashSet::default();
 
         // 8. For each element d of varDeclarations, in reverse List order, do
         for declaration in var_declarations.iter().rev() {
@@ -426,21 +415,13 @@ impl ByteCompiler<'_> {
             };
 
             // a.iv. If declaredFunctionNames does not contain fn, then
-            if !declared_function_names.contains(&name.sym()) {
+            if declared_function_names.insert(name.sym()) {
                 // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
-                let value = self.register_allocator.alloc();
-                let index = self.get_or_insert_name(name.sym());
-                self.bytecode
-                    .emit_can_declare_global_function(value.variable(), index.into());
-
                 // 2. If fnDefinable is false, throw a TypeError exception.
-                let exit = self.jump_if_true(&value);
-                self.register_allocator.dealloc(value);
-                self.emit_type_error("cannot declare global function");
-                self.patch_jump(exit);
-
-                // 3. Append fn to declaredFunctionNames.
-                declared_function_names.push(name.sym());
+                // Done in `Context::global_declaration_instantiation`.
+                // The names checked here are the same names from the functions
+                // in `functions_to_initialize`, but in reverse order, so we can
+                // reuse `global_fns` for this check.
 
                 // 4. Insert d as the first element of functionsToInitialize.
                 functions_to_initialize.push(declaration.clone());
@@ -450,7 +431,7 @@ impl ByteCompiler<'_> {
         functions_to_initialize.reverse();
 
         // 9. Let declaredVarNames be a new empty List.
-        let mut declared_var_names = Vec::new();
+        let mut declared_var_names = FxHashSet::default();
 
         // 10. For each element d of varDeclarations, do
         //     a. If d is either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
@@ -464,25 +445,25 @@ impl ByteCompiler<'_> {
                 // 1. If declaredFunctionNames does not contain vn, then
                 if !declared_function_names.contains(&name) {
                     // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
-                    let value = self.register_allocator.alloc();
-                    let index = self.get_or_insert_name(name);
-                    self.bytecode
-                        .emit_can_declare_global_var(value.variable(), index.into());
-
                     // b. If vnDefinable is false, throw a TypeError exception.
-                    let exit = self.jump_if_true(&value);
-                    self.register_allocator.dealloc(value);
-                    self.emit_type_error("cannot declare global variable");
-                    self.patch_jump(exit);
+                    // Done in `Context::global_declaration_instantiation`
+                    // The names checked here are the same names from the functions
+                    // in `declared_var_names`, so we can reuse `global_vars`
+                    // for this check.
 
                     // c. If declaredVarNames does not contain vn, then
-                    if !declared_var_names.contains(&name) {
-                        // i. Append vn to declaredVarNames.
-                        declared_var_names.push(name);
-                    }
+                    // i. Append vn to declaredVarNames.
+                    declared_var_names.insert(name);
                 }
             }
         }
+
+        // 11. NOTE: No abnormal terminations occur after this algorithm step if the
+        //     global object is an ordinary object. However, if the global object is
+        //     a Proxy exotic object it may exhibit behaviours that cause abnormal
+        //     terminations in some of the following steps.
+
+        // Steps 13-15 are covered by the scope analyzer.
 
         // 16. For each Parse Node f of functionsToInitialize, do
         for function in functions_to_initialize {
@@ -549,28 +530,27 @@ impl ByteCompiler<'_> {
                 );
 
             // Ensures global functions are printed when generating the global flowgraph.
+            let name_index = self.get_or_insert_name(name.sym());
             let function_index = self.push_function_to_constants(code);
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
-            let dst = self.register_allocator.alloc();
-            self.emit_get_function(&dst, function_index);
-
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-            let name_index = self.get_or_insert_name(name.sym());
-            self.bytecode.emit_create_global_function_binding(
-                dst.variable(),
-                false.into(),
-                name_index.into(),
-            );
-            self.register_allocator.dealloc(dst);
+            // Done in `Context::global_declaration_instantiation`
+            self.global_fns.push(GlobalFunctionBinding {
+                name_index,
+                function_index,
+            });
         }
+
+        // 17 is done in `Context::global_declaration_instantiation
 
         // 17. For each String vn of declaredVarNames, do
         for var in declared_var_names {
-            // a. Perform ? env.CreateGlobalVarBinding(vn, false).
             let index = self.get_or_insert_name(var);
-            self.bytecode
-                .emit_create_global_var_binding(false.into(), index.into());
+            self.global_vars.push(index);
+
+            // a. Perform ? env.CreateGlobalVarBinding(vn, false).
+            // Done in `Context::global_declaration_instantiation`
         }
 
         // 18. Return unused.
@@ -635,7 +615,11 @@ impl ByteCompiler<'_> {
     pub(crate) fn eval_declaration_instantiation(
         &mut self,
         body: &Script,
-        #[allow(unused_variables)] strict: bool,
+        #[allow(
+            unused_variables,
+            reason = "only used when the `annex-b` feature is enabled"
+        )]
+        strict: bool,
         var_env: &Scope,
         bindings: EvalDeclarationBindings,
     ) {
@@ -643,6 +627,7 @@ impl ByteCompiler<'_> {
         let var_declarations = var_scoped_declarations(body);
 
         // SKIP: 3. If strict is false, then
+        // covered by the scope analyzer.
 
         // NOTE: These steps depend on the current environment state are done before bytecode compilation,
         //       in `eval_declaration_instantiation_context`.
@@ -660,7 +645,7 @@ impl ByteCompiler<'_> {
         let mut functions_to_initialize = Vec::new();
 
         // 9. Let declaredFunctionNames be a new empty List.
-        let mut declared_function_names = Vec::new();
+        let mut declared_function_names = FxHashSet::default();
 
         // 10. For each element d of varDeclarations, in reverse List order, do
         for declaration in var_declarations.iter().rev() {
@@ -676,24 +661,14 @@ impl ByteCompiler<'_> {
                 VarScopedDeclaration::VariableDeclaration(_) => continue,
             };
             // a.iv. If declaredFunctionNames does not contain fn, then
-            if !declared_function_names.contains(&name.sym()) {
+            if declared_function_names.insert(name.sym()) {
                 // 1. If varEnv is a Global Environment Record, then
-                if var_env.is_global() {
-                    // a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
-                    let value = self.register_allocator.alloc();
-                    let index = self.get_or_insert_name(name.sym());
-                    self.bytecode
-                        .emit_can_declare_global_function(value.variable(), index.into());
-
-                    // b. If fnDefinable is false, throw a TypeError exception.
-                    let exit = self.jump_if_true(&value);
-                    self.register_allocator.dealloc(value);
-                    self.emit_type_error("cannot declare global function");
-                    self.patch_jump(exit);
-                }
-
-                // 2. Append fn to declaredFunctionNames.
-                declared_function_names.push(name.sym());
+                //    a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
+                //    b. If fnDefinable is false, throw a TypeError exception.
+                //    Done in `Context::eval_declaration_instantiation`
+                //    The names checked here are the same names from the functions
+                //    in `functions_to_initialize`, but in reverse order, so we can
+                //    reuse `global_fns` for this check.
 
                 // 3. Insert d as the first element of functionsToInitialize.
                 functions_to_initialize.push(declaration.clone());
@@ -714,17 +689,20 @@ impl ByteCompiler<'_> {
                     // ii. If bindingExists is false, then
                     // i. Perform ! varEnv.CreateMutableBinding(F, true).
                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
+
+                    use crate::vm::CallFrame;
                     let index = self.insert_binding(binding);
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-                    self.register_allocator.dealloc(value);
+                    self.emit_binding_access(
+                        BindingAccessOpcode::DefInitVar,
+                        &index,
+                        &CallFrame::undefined_register(),
+                    );
                 }
             }
         }
 
         // 12. Let declaredVarNames be a new empty List.
-        let mut declared_var_names = Vec::new();
+        let mut declared_var_names = FxHashSet::default();
 
         // 13. For each element d of varDeclarations, do
         for declaration in var_declarations {
@@ -738,25 +716,16 @@ impl ByteCompiler<'_> {
                 // 1. If declaredFunctionNames does not contain vn, then
                 if !declared_function_names.contains(&name) {
                     // a. If varEnv is a Global Environment Record, then
-                    if var_env.is_global() {
-                        // i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
-                        let value = self.register_allocator.alloc();
-                        let index = self.get_or_insert_name(name);
-                        self.bytecode
-                            .emit_can_declare_global_var(value.variable(), index.into());
-
-                        // ii. If vnDefinable is false, throw a TypeError exception.
-                        let exit = self.jump_if_true(&value);
-                        self.register_allocator.dealloc(value);
-                        self.emit_type_error("cannot declare global function");
-                        self.patch_jump(exit);
-                    }
+                    //    i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
+                    //    ii. If vnDefinable is false, throw a TypeError exception.
+                    //    Done in `Context::eval_declaration_instantiation`
+                    //    The names checked here are the same names from the functions
+                    //    in `declared_var_names`, so we can reuse `global_vars`
+                    //    for this check.
 
                     // b. If declaredVarNames does not contain vn, then
-                    if !declared_var_names.contains(&name) {
-                        // i. Append vn to declaredVarNames.
-                        declared_var_names.push(name);
-                    }
+                    // i. Append vn to declaredVarNames.
+                    declared_var_names.insert(name);
                 }
             }
         }
@@ -833,50 +802,38 @@ impl ByteCompiler<'_> {
                     self.interner,
                 );
 
+            // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
+            let index = self.push_function_to_constants(code);
+
             // c. If varEnv is a Global Environment Record, then
             if var_env.is_global() {
-                // Ensures global functions are printed when generating the global flowgraph.
-                let index = self.push_function_to_constants(code.clone());
-
-                // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                let dst = self.register_allocator.alloc();
-                self.emit_get_function(&dst, index);
-
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
+                // Done in `Context::eval_declaration_instantiation`
                 let name_index = self.get_or_insert_name(name.sym());
-                self.bytecode.emit_create_global_function_binding(
-                    dst.variable(),
-                    true.into(),
-                    name_index.into(),
-                );
-                self.register_allocator.dealloc(dst);
+                self.global_fns.push(GlobalFunctionBinding {
+                    name_index,
+                    function_index: index,
+                });
             }
             // d. Else,
             else {
-                // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                let index = self.push_function_to_constants(code);
                 let dst = self.register_allocator.alloc();
                 self.emit_get_function(&dst, index);
 
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
-                let (binding, binding_exists) = bindings
+                let binding = bindings
                     .new_function_names
                     .get(&name)
                     .expect("binding must exist");
 
                 // ii. If bindingExists is false, then
+                // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
+                // 2. Perform ! varEnv.CreateMutableBinding(fn, true).
+                // 3. Perform ! varEnv.InitializeBinding(fn, fo).
                 // iii. Else,
-                if *binding_exists {
-                    // 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-                    let index = self.insert_binding(binding.clone());
-                    self.emit_binding_access(BindingAccessOpcode::SetName, &index, &dst);
-                } else {
-                    // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
-                    // 2. Perform ! varEnv.CreateMutableBinding(fn, true).
-                    // 3. Perform ! varEnv.InitializeBinding(fn, fo).
-                    let index = self.insert_binding(binding.clone());
-                    self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &dst);
-                }
+                // 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
+                let index = self.insert_binding(binding.clone());
+                self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &dst);
                 self.register_allocator.dealloc(dst);
             }
         }
@@ -888,22 +845,23 @@ impl ByteCompiler<'_> {
                 let index = self.get_or_insert_name(name);
 
                 // i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
-                self.bytecode
-                    .emit_create_global_var_binding(true.into(), index.into());
+                // Done in `Context::eval_declaration_instantiation`
+                self.global_vars.push(index);
             }
         }
         // 18.b
-        for binding in bindings.new_var_names {
+        for binding in bindings.declared_var_names {
             // i. Let bindingExists be ! varEnv.HasBinding(vn).
             // ii. If bindingExists is false, then
             // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
             // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
             // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
             let index = self.insert_binding(binding);
-            let value = self.register_allocator.alloc();
-            self.bytecode.emit_push_undefined(value.variable());
-            self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-            self.register_allocator.dealloc(value);
+            self.emit_binding_access(
+                BindingAccessOpcode::DefEvalVar,
+                &index,
+                &CallFrame::undefined_register(),
+            );
         }
 
         // 19. Return unused.
@@ -951,7 +909,7 @@ impl ByteCompiler<'_> {
         let lexical_names = lexically_declared_names(body);
 
         // 12. Let functionNames be a new empty List.
-        let mut function_names = Vec::new();
+        let mut function_names = FxHashSet::default();
 
         // 13. Let functionsToInitialize be a new empty List.
         let mut functions_to_initialize = Vec::new();
@@ -974,9 +932,8 @@ impl ByteCompiler<'_> {
             };
 
             // a.iii. If functionNames does not contain fn, then
-            if !function_names.contains(&name.sym()) {
+            if function_names.insert(name.sym()) {
                 // 1. Insert fn as the first element of functionNames.
-                function_names.push(name.sym());
 
                 // 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
                 // 3. Insert d as the first element of functionsToInitialize.
@@ -984,7 +941,6 @@ impl ByteCompiler<'_> {
             }
         }
 
-        function_names.reverse();
         functions_to_initialize.reverse();
 
         // 15. Let argumentsObjectNeeded be true.
@@ -1060,7 +1016,7 @@ impl ByteCompiler<'_> {
 
         // 23. Else,
         //     a. Let parameterBindings be parameterNames.
-        let parameter_bindings = parameter_names.clone();
+        let parameter_bindings: FxHashSet<Sym> = parameter_names.iter().copied().collect();
 
         // 24. Let iteratorRecord be CreateListIteratorRecord(argumentsList).
         // 25. If hasDuplicates is true, then
@@ -1080,7 +1036,7 @@ impl ByteCompiler<'_> {
                 Binding::Identifier(ident) => {
                     let ident = ident.to_js_string(self.interner());
                     if let Some(init) = parameter.variable().init() {
-                        let skip = self.emit_jump_if_not_undefined(&value);
+                        let skip = self.jump_if_not_undefined(&value);
                         self.compile_expr(init, &value);
                         self.patch_jump(skip);
                     }
@@ -1088,7 +1044,7 @@ impl ByteCompiler<'_> {
                 }
                 Binding::Pattern(pattern) => {
                     if let Some(init) = parameter.variable().init() {
-                        let skip = self.emit_jump_if_not_undefined(&value);
+                        let skip = self.jump_if_not_undefined(&value);
                         self.compile_expr(init, &value);
                         self.patch_jump(skip);
                     }
@@ -1099,7 +1055,11 @@ impl ByteCompiler<'_> {
         }
 
         if generator {
-            self.bytecode.emit_generator(self.is_async().into());
+            if self.is_async() {
+                self.bytecode.emit_async_generator();
+            } else {
+                self.bytecode.emit_generator();
+            }
             self.bytecode.emit_pop();
         }
 
@@ -1118,15 +1078,12 @@ impl ByteCompiler<'_> {
                 let mut variable_scope = self.lexical_scope.clone();
 
                 // d. Let instantiatedVarNames be a new empty List.
-                let mut instantiated_var_names = Vec::new();
+                let mut instantiated_var_names = FxHashSet::default();
 
                 // e. For each element n of varNames, do
                 for n in var_names {
                     // i. If instantiatedVarNames does not contain n, then
-                    if !instantiated_var_names.contains(&n) {
-                        // 1. Append n to instantiatedVarNames.
-                        instantiated_var_names.push(n);
-
+                    if instantiated_var_names.insert(n) {
                         let n_string = n.to_js_string(self.interner());
 
                         // 2. Perform ! varEnv.CreateMutableBinding(n, false).
@@ -1138,23 +1095,24 @@ impl ByteCompiler<'_> {
                         // 3. If parameterBindings does not contain n, or if functionNames contains n, then
                         if !parameter_bindings.contains(&n) || function_names.contains(&n) {
                             // a. Let initialValue be undefined.
-                            self.bytecode.emit_push_undefined(value.variable());
+                            self.bytecode.emit_store_undefined(value.variable());
                         }
                         // 4. Else,
                         else {
                             // a. Let initialValue be ! env.GetBindingValue(n, false).
-                            let binding = scope
+                            //
+                            // `scope` here is varEnv. The parameter binding lives on `env`
+                            // (`parameter_scope`), which does not contain the shadowed `var`.
+                            let param_binding = scopes
+                                .parameter_scope()
                                 .get_binding_reference(&n_string)
-                                .expect("must have binding");
-                            let index = self.get_binding(&binding);
+                                .expect("parameter binding must exist");
+                            let index = self.get_binding(&param_binding);
                             self.emit_binding_access(BindingAccessOpcode::GetName, &index, &value);
                         }
 
                         // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                         let index = self.insert_binding(binding);
-
-                        // TODO: What?
-                        self.bytecode.emit_push_undefined(value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                         self.register_allocator.dealloc(value);
 
@@ -1167,25 +1125,23 @@ impl ByteCompiler<'_> {
             } else {
                 // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
                 // b. Let instantiatedVarNames be a copy of the List parameterBindings.
-                let mut instantiated_var_names = parameter_bindings;
+                let mut instantiated_var_names = parameter_bindings.clone();
 
                 // c. For each element n of varNames, do
                 for n in var_names {
                     // i. If instantiatedVarNames does not contain n, then
-                    if !instantiated_var_names.contains(&n) {
-                        // 1. Append n to instantiatedVarNames.
-                        instantiated_var_names.push(n);
-
+                    if instantiated_var_names.insert(n) {
                         let n = n.to_js_string(self.interner());
 
                         // 2. Perform ! env.CreateMutableBinding(n, false).
                         // 3. Perform ! env.InitializeBinding(n, undefined).
                         let binding = scope.get_binding_reference(&n).expect("binding must exist");
                         let index = self.insert_binding(binding);
-                        let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
-                        self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-                        self.register_allocator.dealloc(value);
+                        self.emit_binding_access(
+                            BindingAccessOpcode::DefInitVar,
+                            &index,
+                            &CallFrame::undefined_register(),
+                        );
                     }
                 }
 
@@ -1218,13 +1174,14 @@ impl ByteCompiler<'_> {
                             .get_binding_reference(&f_string)
                             .expect("binding must exist");
                         let index = self.insert_binding(binding);
-                        let value = self.register_allocator.alloc();
-                        self.bytecode.emit_push_undefined(value.variable());
-                        self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
-                        self.register_allocator.dealloc(value);
+                        self.emit_binding_access(
+                            BindingAccessOpcode::DefInitVar,
+                            &index,
+                            &CallFrame::undefined_register(),
+                        );
 
                         // c. Append F to instantiatedVarNames.
-                        instantiated_var_names.push(f);
+                        instantiated_var_names.insert(f);
                     }
 
                     // 3. When the FunctionDeclaration f is evaluated, perform the following steps

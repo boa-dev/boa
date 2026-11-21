@@ -17,7 +17,7 @@ fn object_create_with_undefined() {
     run_test_actions([TestAction::assert_native_error(
         "Object.create()",
         JsNativeErrorKind::Type,
-        "Object prototype may only be an Object or null: undefined",
+        "Object.create: expected 'proto' to be an Object or null, got `undefined`",
     )]);
 }
 
@@ -26,7 +26,7 @@ fn object_create_with_number() {
     run_test_actions([TestAction::assert_native_error(
         "Object.create(5)",
         JsNativeErrorKind::Type,
-        "Object prototype may only be an Object or null: 5",
+        "Object.create: expected 'proto' to be an Object or null, got `number`",
     )]);
 }
 
@@ -424,5 +424,18 @@ fn object_from_entries() {
         TestAction::assert_eq("map.short", 2),
         TestAction::assert_eq("map[sym]", 3),
         TestAction::assert_eq("map[5]", 4),
+    ]);
+}
+
+#[test]
+fn object_prototype_proto_accessor_properties() {
+    run_test_actions([
+        TestAction::run(
+            "let desc = Object.getOwnPropertyDescriptor(Object.prototype, '__proto__');",
+        ),
+        TestAction::assert_eq("desc.get.length", 0),
+        TestAction::assert_eq("desc.set.length", 1),
+        TestAction::assert_eq("desc.get.name", js_str!("get __proto__")),
+        TestAction::assert_eq("desc.set.name", js_str!("set __proto__")),
     ]);
 }

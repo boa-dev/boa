@@ -1,10 +1,11 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{
-    Context, JsArgs, JsValue,
+    Context, JsArgs, JsExpect, JsResult, JsValue,
     builtins::{
         Promise, async_generator::AsyncGenerator, generator::GeneratorContext,
         promise::PromiseCapability,
     },
+    error::PanicError,
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
@@ -23,7 +24,7 @@ pub(crate) struct Await;
 impl Await {
     #[inline(always)]
     pub(super) fn operation(
-        value: VaryingOperand,
+        value: RegisterOperand,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         let value = context.vm.get_register(value.into());
@@ -34,20 +35,23 @@ impl Await {
             value.clone(),
             context,
         ) {
-            Ok(promise) => promise
-                .downcast::<Promise>()
-                .expect("%Promise% constructor must return a `Promise` object"),
+            Ok(promise) => match promise.downcast::<Promise>().ok() {
+                Some(v) => v,
+                None => {
+                    return context.handle_error(
+                        PanicError::new("%Promise% constructor must return a `Promise` object")
+                            .into(),
+                    );
+                }
+            },
             Err(err) => return context.handle_error(err),
         };
 
         let return_value = context
             .vm
-            .stack
-            .get_promise_capability(&context.vm.frame)
-            .as_ref()
-            .map(PromiseCapability::promise)
-            .cloned()
-            .map(JsValue::from)
+            .get_promise_capability()
+            .ok()
+            .map(|cap| JsValue::from(cap.promise))
             .unwrap_or_default();
 
         let r#gen = GeneratorContext::from_current(context, None);
@@ -64,10 +68,10 @@ impl Await {
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
-                    let mut r#gen = captures.take().expect("should only run once");
+                    let mut r#gen = captures.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     r#gen.resume(
                         Some(args.get_or_undefined(0).clone()),
@@ -78,7 +82,7 @@ impl Await {
                     if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
-                            .expect("must be async generator")
+                            .js_expect("must be async generator")?
                             .context = Some(r#gen);
                     }
 
@@ -105,10 +109,10 @@ impl Await {
                     // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
-                    let mut r#gen = captures.take().expect("should only run once");
+                    let mut r#gen = captures.take().js_expect("should only run once")?;
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = r#gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object()?;
 
                     r#gen.resume(
                         Some(args.get_or_undefined(0).clone()),
@@ -119,7 +123,7 @@ impl Await {
                     if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
-                            .expect("must be async generator")
+                            .js_expect("must be async generator")?
                             .context = Some(r#gen);
                     }
 
@@ -155,89 +159,25 @@ impl Operation for Await {
 /// `CreatePromiseCapability` implements the Opcode Operation for `Opcode::CreatePromiseCapability`
 ///
 /// Operation:
-///  - Create a promise capacity for an async function, if not already set.
+///  - Create a promise capacity for an async function.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
     #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) {
-        if context
-            .vm
-            .stack
-            .get_promise_capability(&context.vm.frame)
-            .is_some()
-        {
-            return;
-        }
-
+    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let promise_capability = PromiseCapability::new(
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect("cannot fail per spec");
+        .js_expect("cannot fail per spec")?;
 
-        context
-            .vm
-            .stack
-            .set_promise_capability(&context.vm.frame, Some(&promise_capability));
+        context.vm.set_promise_capability(promise_capability)
     }
 }
 
 impl Operation for CreatePromiseCapability {
     const NAME: &'static str = "CreatePromiseCapability";
     const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
-    const COST: u8 = 8;
-}
-
-/// `CompletePromiseCapability` implements the Opcode Operation for `Opcode::CompletePromiseCapability`
-///
-/// Operation:
-///  - Resolves or rejects the promise capability, depending if the pending exception is set.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct CompletePromiseCapability;
-
-impl CompletePromiseCapability {
-    #[inline(always)]
-    pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
-        // If the current executing function is an async function we have to resolve/reject it's promise at the end.
-        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) = context.vm.stack.get_promise_capability(&context.vm.frame)
-        else {
-            return if context.vm.pending_exception.is_some() {
-                context.handle_throw()
-            } else {
-                ControlFlow::Continue(())
-            };
-        };
-
-        if let Some(error) = context.vm.pending_exception.take() {
-            let value = match error.into_opaque(context) {
-                Ok(value) => value,
-                Err(err) => return context.handle_error(err),
-            };
-            promise_capability
-                .reject()
-                .call(&JsValue::undefined(), &[value], context)
-                .expect("cannot fail per spec");
-        } else {
-            let return_value = context.vm.get_return_value();
-            promise_capability
-                .resolve()
-                .call(&JsValue::undefined(), &[return_value], context)
-                .expect("cannot fail per spec");
-        }
-
-        context
-            .vm
-            .set_return_value(promise_capability.promise().clone().into());
-
-        ControlFlow::Continue(())
-    }
-}
-
-impl Operation for CompletePromiseCapability {
-    const NAME: &'static str = "CompletePromiseCapability";
-    const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
     const COST: u8 = 8;
 }

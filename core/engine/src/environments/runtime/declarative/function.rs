@@ -1,13 +1,16 @@
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace, custom_trace};
+use std::cell::RefCell;
 
 use crate::{JsNativeError, JsObject, JsResult, JsValue, builtins::function::OrdinaryFunction};
 
-use super::PoisonableEnvironment;
-
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct FunctionEnvironment {
-    inner: PoisonableEnvironment,
+    bindings: GcRefCell<Vec<Option<JsValue>>>,
+    #[unsafe_ignore_trace]
+    deletable_bindings: RefCell<Vec<bool>>,
+    #[unsafe_ignore_trace]
+    deleted_bindings: RefCell<Vec<bool>>,
     slots: Box<FunctionSlots>,
 
     // Safety: Nothing in `Scope` needs tracing.
@@ -17,15 +20,11 @@ pub(crate) struct FunctionEnvironment {
 
 impl FunctionEnvironment {
     /// Creates a new `FunctionEnvironment`.
-    pub(crate) fn new(
-        bindings: u32,
-        poisoned: bool,
-        with: bool,
-        slots: FunctionSlots,
-        scope: Scope,
-    ) -> Self {
+    pub(crate) fn new(bindings_count: u32, slots: FunctionSlots, scope: Scope) -> Self {
         Self {
-            inner: PoisonableEnvironment::new(bindings, poisoned, with),
+            bindings: GcRefCell::new(vec![None; bindings_count as usize]),
+            deletable_bindings: RefCell::new(vec![false; bindings_count as usize]),
+            deleted_bindings: RefCell::new(vec![false; bindings_count as usize]),
             slots: Box::new(slots),
             scope,
         }
@@ -41,11 +40,6 @@ impl FunctionEnvironment {
         &self.scope
     }
 
-    /// Gets the `poisonable_environment` of this function environment.
-    pub(crate) const fn poisonable_environment(&self) -> &PoisonableEnvironment {
-        &self.inner
-    }
-
     /// Gets the binding value from the environment by it's index.
     ///
     /// # Panics
@@ -53,7 +47,7 @@ impl FunctionEnvironment {
     /// Panics if the binding value is out of range or not initialized.
     #[track_caller]
     pub(crate) fn get(&self, index: u32) -> Option<JsValue> {
-        self.inner.get(index)
+        self.bindings.borrow()[index as usize].clone()
     }
 
     /// Sets the binding value from the environment by index.
@@ -63,7 +57,72 @@ impl FunctionEnvironment {
     /// Panics if the binding value is out of range.
     #[track_caller]
     pub(crate) fn set(&self, index: u32, value: JsValue) {
-        self.inner.set(index, value);
+        self.bindings.borrow_mut()[index as usize] = Some(value);
+    }
+
+    pub(crate) fn extend_from_compile(&self) {
+        let compile_bindings_len = self.scope.num_bindings() as usize;
+        let mut bindings = self.bindings.borrow_mut();
+        let bindings_len = bindings.len();
+
+        if compile_bindings_len <= bindings_len {
+            return;
+        }
+
+        bindings.resize(compile_bindings_len, None);
+
+        let mut deletable_bindings = self.deletable_bindings.borrow_mut();
+        deletable_bindings.resize(compile_bindings_len, false);
+        deletable_bindings[bindings_len..].fill(true);
+
+        self.deleted_bindings
+            .borrow_mut()
+            .resize(compile_bindings_len, false);
+    }
+
+    pub(crate) fn is_deleted_binding(&self, index: u32) -> bool {
+        self.deleted_bindings
+            .borrow()
+            .get(index as usize)
+            .copied()
+            .unwrap_or_default()
+    }
+
+    #[track_caller]
+    pub(crate) fn restore_deleted_binding(&self, index: u32) {
+        let index = index as usize;
+        if let Some(deleted) = self.deleted_bindings.borrow_mut().get_mut(index) {
+            *deleted = false;
+        }
+    }
+
+    #[track_caller]
+    pub(crate) fn delete_binding(&self, index: u32) -> bool {
+        let index = index as usize;
+
+        if self
+            .deleted_bindings
+            .borrow()
+            .get(index)
+            .copied()
+            .unwrap_or_default()
+        {
+            return true;
+        }
+
+        if !self
+            .deletable_bindings
+            .borrow()
+            .get(index)
+            .copied()
+            .unwrap_or_default()
+        {
+            return false;
+        }
+
+        self.bindings.borrow_mut()[index] = None;
+        self.deleted_bindings.borrow_mut()[index] = true;
+        true
     }
 
     /// `BindThisValue`
@@ -157,7 +216,7 @@ impl FunctionEnvironment {
             ThisBindingStatus::Uninitialized => Err(JsNativeError::reference()
                 .with_message(
                     "Must call super constructor in derived \
-                class before accessing 'this' or returning from derived constructor",
+                    class before accessing 'this' or returning from derived constructor",
                 )
                 .into()),
             // 3. Return envRec.[[ThisValue]].

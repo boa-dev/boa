@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .to_js_function(context.realm()),
             ),
             context,
-        )
+        )?
         .finally(
             NativeFunction::from_fn_ptr(|_, _, _| {
                 println!("Promise settled!");
@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             })
             .to_js_function(context.realm()),
             context,
-        );
+        )?;
 
     // Run the event loop to process promises
     drop(context.run_jobs());
@@ -70,12 +70,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n2. Promise.all Example");
     // Create multiple promises
     let promises = vec![
-        JsPromise::resolve(1, context),
-        JsPromise::resolve(2, context),
-        JsPromise::resolve(3, context),
+        JsPromise::resolve(1, context)?,
+        JsPromise::resolve(2, context)?,
+        JsPromise::resolve(3, context)?,
     ];
 
-    let all_promise = JsPromise::all(promises, context);
+    let all_promise = JsPromise::all(promises, context)?;
     drop(context.run_jobs());
 
     match all_promise.state() {
@@ -95,7 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (fast_promise, fast_resolvers) = JsPromise::new_pending(context);
     let (slow_promise, slow_resolvers) = JsPromise::new_pending(context);
 
-    let race_promise = JsPromise::race([fast_promise, slow_promise], context);
+    let race_promise = JsPromise::race([fast_promise, slow_promise], context)?;
 
     // Resolve promises in different order
     slow_resolvers
@@ -131,12 +131,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n5. Promise.any Example");
     let promises = vec![
-        JsPromise::reject(JsNativeError::error().with_message("Error 1"), context),
-        JsPromise::resolve(js_string!("Success!"), context),
-        JsPromise::reject(JsNativeError::error().with_message("Error 2"), context),
+        JsPromise::reject(JsNativeError::error().with_message("Error 1"), context)?,
+        JsPromise::resolve(js_string!("Success!"), context)?,
+        JsPromise::reject(JsNativeError::error().with_message("Error 2"), context)?,
     ];
 
-    let any_promise = JsPromise::any(promises, context);
+    let any_promise = JsPromise::any(promises, context)?;
     drop(context.run_jobs());
 
     match any_promise.state() {

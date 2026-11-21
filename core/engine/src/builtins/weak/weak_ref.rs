@@ -143,7 +143,7 @@ impl WeakRef {
 mod tests {
     use indoc::indoc;
 
-    use crate::{JsValue, TestAction, run_test_actions};
+    use crate::{JsNativeErrorKind, JsValue, TestAction, run_test_actions};
 
     #[test]
     fn weak_ref_collected() {
@@ -164,6 +164,80 @@ mod tests {
                 boa_gc::force_collect();
             }),
             TestAction::assert_eq("ptr.deref()", JsValue::undefined()),
+        ]);
+    }
+
+    #[test]
+    fn weak_ref_no_new() {
+        run_test_actions([TestAction::assert_native_error(
+            "WeakRef({})",
+            JsNativeErrorKind::Type,
+            "WeakRef: cannot call constructor without `new`",
+        )]);
+    }
+
+    #[test]
+    fn weak_ref_primitive_target_rejection() {
+        run_test_actions([
+            TestAction::assert_native_error(
+                "new WeakRef(42)",
+                JsNativeErrorKind::Type,
+                "WeakRef: expected target argument of type `object`, got target of type `number`",
+            ),
+            TestAction::assert_native_error(
+                "new WeakRef('str')",
+                JsNativeErrorKind::Type,
+                "WeakRef: expected target argument of type `object`, got target of type `string`",
+            ),
+            TestAction::assert_native_error(
+                "new WeakRef(true)",
+                JsNativeErrorKind::Type,
+                "WeakRef: expected target argument of type `object`, got target of type `boolean`",
+            ),
+            TestAction::assert_native_error(
+                "new WeakRef(null)",
+                JsNativeErrorKind::Type,
+                "WeakRef: expected target argument of type `object`, got target of type `object`",
+            ),
+            TestAction::assert_native_error(
+                "new WeakRef(undefined)",
+                JsNativeErrorKind::Type,
+                "WeakRef: expected target argument of type `object`, got target of type `undefined`",
+            ),
+            TestAction::assert_native_error(
+                "new WeakRef(Symbol())",
+                JsNativeErrorKind::Type,
+                "WeakRef: expected target argument of type `object`, got target of type `symbol`",
+            ),
+        ]);
+    }
+
+    #[test]
+    fn weak_ref_deref_behavior() {
+        run_test_actions([
+            TestAction::run(indoc! {r#"
+                var obj = { x: 1 };
+                var ref = new WeakRef(obj);
+            "#}),
+            TestAction::assert("ref.deref() === obj"),
+            TestAction::assert("ref.deref() === ref.deref()"),
+        ]);
+    }
+
+    #[test]
+    fn weak_ref_deref_invalid_this() {
+        run_test_actions([TestAction::assert_native_error(
+            "WeakRef.prototype.deref.call({})",
+            JsNativeErrorKind::Type,
+            "WeakRef.prototype.deref: expected `this` to be a `WeakRef` object",
+        )]);
+    }
+
+    #[test]
+    fn weak_ref_length() {
+        run_test_actions([
+            TestAction::assert_eq("WeakRef.length", 1),
+            TestAction::assert_eq("WeakRef.prototype.deref.length", 0),
         ]);
     }
 }

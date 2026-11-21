@@ -40,7 +40,7 @@ fn main() -> JsResult<()> {
     let _first_value = entries.next(context)?;
 
     // Create a multidimensional array with key value pairs -> [[first-key, first-value], [second-key, second-value]]
-    let js_array = JsArray::new(context);
+    let js_array = JsArray::new(context)?;
 
     let vec_one = vec![
         JsValue::new(js_string!("first-key")),

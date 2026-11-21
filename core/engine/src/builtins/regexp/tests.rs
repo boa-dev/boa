@@ -20,6 +20,22 @@ fn constructors() {
 }
 
 #[test]
+fn unicode_sets_word_boundaries_ignore_case() {
+    run_test_actions([
+        TestAction::assert(r"/^(?:\D\b)$/iv.test('\u212a')"),
+        TestAction::assert(r"/^(?:\D\b)$/iv.test('\u017f')"),
+        TestAction::assert(r"/^(?:\D\b)$/iu.test('\u212a')"),
+        TestAction::assert(r"!/^(?:\D\b)$/v.test('\u212a')"),
+        TestAction::assert(r"!/^(?:\D\b)$/i.test('\u212a')"),
+        TestAction::assert(r"/\w/iv.test('\u212a')"),
+        TestAction::assert(r"!/\W/iv.test('\u212a')"),
+        TestAction::assert(r"!/\W/iv.test('\u017f')"),
+        TestAction::assert("!/a/v.unicode"),
+        TestAction::assert("/a/v.unicodeSets"),
+    ]);
+}
+
+#[test]
 fn species() {
     run_test_actions([
         TestAction::run(indoc! {r#"
@@ -253,4 +269,12 @@ fn regular_expression_construction_independent_of_global_reg_exp() {
         TestAction::run("RegExp = null"),
         TestAction::run(regex),
     ]);
+}
+
+#[test]
+fn regexp_no_panic_on_empty_class_quantifier() {
+    // Regression test for https://github.com/boa-dev/boa/issues/2718
+    // `/[]*1/u.exec()` previously caused a panic in the regress crate.
+    // It should return null without panicking.
+    run_test_actions([TestAction::assert_eq("/[]*1/u.exec()", JsValue::null())]);
 }

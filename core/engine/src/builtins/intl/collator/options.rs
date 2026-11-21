@@ -1,13 +1,24 @@
 use std::str::FromStr;
 
 use icu_collator::{
+    CollatorPreferences,
     options::{CaseLevel, Strength},
-    preferences::CollationCaseFirst,
+    preferences::{CollationCaseFirst, CollationType},
+    provider::CollationMetadataV1,
+};
+use icu_locale::LanguageIdentifier;
+use icu_provider::{
+    DataMarkerAttributes,
+    prelude::icu_locale_core::{extensions::unicode, preferences::LocalePreferences},
 };
 
 use crate::{
     Context, JsNativeError, JsResult, JsValue,
-    builtins::options::{OptionType, ParsableOptionType},
+    builtins::{
+        intl::{ServicePreferences, locale::validate_extension},
+        options::{OptionType, ParsableOptionType},
+    },
+    context::icu::IntlProvider,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -96,4 +107,16 @@ impl OptionType for CollationCaseFirst {
                 .into()),
         }
     }
+}
+
+impl ServicePreferences for CollatorPreferences {
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+        self.collation_type = self.collation_type.take().filter(|co| {
+            let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
+            co != &CollationType::Search
+                && validate_extension::<CollationMetadataV1>(id, attr, provider)
+        });
+    }
+
+    impl_service_preferences!(collation_type, numeric_ordering, case_first);
 }

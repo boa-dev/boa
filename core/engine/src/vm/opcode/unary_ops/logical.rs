@@ -1,6 +1,6 @@
 use crate::{
     Context,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{Operation, RegisterOperand},
 };
 
 /// `LogicalNot` implements the Opcode Operation for `Opcode::LogicalNot`
@@ -12,7 +12,7 @@ pub(crate) struct LogicalNot;
 
 impl LogicalNot {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) {
+    pub(crate) fn operation(value: RegisterOperand, context: &mut Context) {
         context.vm.set_register(
             value.into(),
             (!context.vm.get_register(value.into()).to_boolean()).into(),

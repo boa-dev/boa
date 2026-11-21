@@ -1,4 +1,4 @@
-use super::VaryingOperand;
+use super::RegisterOperand;
 use crate::{Context, JsResult, error::JsNativeError, vm::opcode::Operation};
 
 /// `ValueNotNullOrUndefined` implements the Opcode Operation for `Opcode::ValueNotNullOrUndefined`
@@ -10,7 +10,7 @@ pub(crate) struct ValueNotNullOrUndefined;
 
 impl ValueNotNullOrUndefined {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) -> JsResult<()> {
         let value = context.vm.get_register(value.into());
         if value.is_null() {
             return Err(JsNativeError::typ()
@@ -35,13 +35,13 @@ impl Operation for ValueNotNullOrUndefined {
 /// `IsObject` implements the Opcode Operation for `Opcode::IsObject`
 ///
 /// Operation:
-///  - Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
+///  - Store `true` in the register if the value is an object, or `false` otherwise.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct IsObject;
 
 impl IsObject {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
+    pub(super) fn operation(value: RegisterOperand, context: &mut Context) {
         let is_object = context.vm.get_register(value.into()).is_object();
         context.vm.set_register(value.into(), is_object.into());
     }

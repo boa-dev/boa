@@ -45,7 +45,7 @@ use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 pub use r#await::Await;
-pub use call::{Call, ImportCall, SuperCall};
+pub use call::{Call, ImportCall, ImportPhase, SuperCall};
 pub use identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
 pub use import_meta::ImportMeta;
 pub use new::New;

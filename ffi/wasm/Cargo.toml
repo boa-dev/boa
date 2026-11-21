@@ -1,6 +1,6 @@
 [package]
 name = "boa_wasm"
-description = "WASM compatibility layer for the Boa JavaScript engine."
+description = "Wasm compatibility layer for the Boa JavaScript engine."
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["parser-implementations", "wasm", "compilers"]
 publish = false
@@ -22,8 +22,11 @@ wasm-bindgen-test.workspace = true
 [features]
 default = [
     "boa_engine/annex-b",
-    "boa_engine/intl_bundled",
     "boa_engine/experimental",
+    "boa_engine/float16",
+    "boa_engine/intl_bundled",
+    "boa_engine/temporal",
+    "boa_engine/xsum",
 ]
 
 [lib]

@@ -7,14 +7,18 @@ changelog:
   categories:
     - title: Feature Enhancements
       labels:
-        - enhancement
+        - A-Enhancement
     - title: Bug Fixes
       labels:
-        - bug
+        - A-Bug
+    - title: Performance Improvements
+      labels:
+        - A-Performance
+        - A-Memory
     - title: Internal Improvements
       labels:
-        - Internal
-        - memory
+        - A-Internal
+        - A-Technical Debt
     - title: Other Changes
       labels:
         - "*"

@@ -12,10 +12,10 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace"] }
+boa_engine = { workspace = true, features = ["deser", "float16", "flowgraph", "temporal", "trace", "xsum"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
-boa_runtime.workspace = true
+boa_runtime = { workspace = true, features = ["test262"] }
 rustyline = { workspace = true, features = ["derive", "with-file-history"] }
 clap = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
@@ -26,11 +26,15 @@ dhat = { workspace = true, optional = true }
 color-eyre.workspace = true
 cow-utils.workspace = true
 futures-concurrency.workspace = true
-futures-lite.workspace = true
+smol.workspace = true
+unsend = { workspace = true, features = ["alloc"] }
+async-channel.workspace = true
+rustls.workspace = true
 
 [features]
 default = [
     "boa_engine/annex-b",
+    "boa_runtime/annex-b",
     "boa_engine/experimental",
     "boa_engine/intl_bundled",
     "boa_engine/native-backtrace",
@@ -38,13 +42,13 @@ default = [
     "fetch",
 ]
 dhat = ["dep:dhat"]
-fast-allocator = ["dep:mimalloc-safe", "dep:jemallocator"]
+fast-allocator = ["dep:mimalloc-safe", "dep:tikv-jemallocator"]
 fetch = ["boa_runtime/fetch", "boa_runtime/reqwest-blocking"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
-jemallocator = { workspace = true, optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
-[target.'cfg(target_os = "windows")'.dependencies]
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 mimalloc-safe = { workspace = true, optional = true, features = [
     "skip_collect_on_exit",
 ] }

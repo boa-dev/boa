@@ -5,15 +5,26 @@ use crate::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
+    js_error, js_string,
+    native_function::{CoroutineBranch, CoroutineState},
     object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
+    vm::CompletionRecord,
 };
 use boa_gc::{Finalize, Trace};
 
 mod async_from_sync_iterator;
+pub(crate) mod iterator_constructor;
+pub(crate) mod iterator_helper;
+mod iterator_prototype;
+pub(crate) mod wrap_for_valid_iterator;
+
+#[cfg(test)]
+mod tests;
+
 pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
+pub(crate) use iterator_prototype::Iterator;
 
 /// `IfAbruptCloseIterator ( value, iteratorRecord )`
 ///
@@ -67,12 +78,15 @@ pub struct IteratorPrototypes {
     /// The `MapIteratorPrototype` prototype object.
     map: JsObject,
 
-    /// The `ForInIteratorPrototype` prototype object.
-    for_in: JsObject,
-
     /// The `%SegmentIteratorPrototype%` prototype object.
     #[cfg(feature = "intl")]
     segment: JsObject,
+
+    /// The `%IteratorHelperPrototype%` prototype object.
+    iterator_helper: JsObject,
+
+    /// The `%WrapForValidIteratorPrototype%` prototype object.
+    wrap_for_valid_iterator: JsObject,
 }
 
 impl Default for IteratorPrototypes {
@@ -86,9 +100,10 @@ impl Default for IteratorPrototypes {
             string: JsObject::with_null_proto(),
             regexp_string: JsObject::with_null_proto(),
             map: JsObject::with_null_proto(),
-            for_in: JsObject::with_null_proto(),
             #[cfg(feature = "intl")]
             segment: JsObject::with_null_proto(),
+            iterator_helper: JsObject::with_null_proto(),
+            wrap_for_valid_iterator: JsObject::with_null_proto(),
         }
     }
 }
@@ -99,13 +114,6 @@ impl IteratorPrototypes {
     #[must_use]
     pub fn array(&self) -> JsObject {
         self.array.clone()
-    }
-
-    /// Returns the `IteratorPrototype` object.
-    #[inline]
-    #[must_use]
-    pub fn iterator(&self) -> JsObject {
-        self.iterator.clone()
     }
 
     /// Returns the `AsyncIteratorPrototype` object.
@@ -150,13 +158,6 @@ impl IteratorPrototypes {
         self.map.clone()
     }
 
-    /// Returns the `ForInIteratorPrototype` object.
-    #[inline]
-    #[must_use]
-    pub fn for_in(&self) -> JsObject {
-        self.for_in.clone()
-    }
-
     /// Returns the `%SegmentIteratorPrototype%` object.
     #[inline]
     #[must_use]
@@ -164,25 +165,19 @@ impl IteratorPrototypes {
     pub fn segment(&self) -> JsObject {
         self.segment.clone()
     }
-}
 
-/// `%IteratorPrototype%` object
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-pub(crate) struct Iterator;
-
-impl IntrinsicObject for Iterator {
-    fn init(realm: &Realm) {
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
-            .build();
+    /// Returns the `%IteratorHelperPrototype%` object.
+    #[inline]
+    #[must_use]
+    pub fn iterator_helper(&self) -> JsObject {
+        self.iterator_helper.clone()
     }
 
-    fn get(intrinsics: &Intrinsics) -> JsObject {
-        intrinsics.objects().iterator_prototypes().iterator()
+    /// Returns the `%WrapForValidIteratorPrototype%` object.
+    #[inline]
+    #[must_use]
+    pub fn wrap_for_valid_iterator(&self) -> JsObject {
+        self.wrap_for_valid_iterator.clone()
     }
 }
 
@@ -308,6 +303,71 @@ impl JsValue {
                 "value with type `{}` is not iterable",
                 self.type_of()
             ))
+        })?;
+
+        // 4. Return ? GetIteratorFromMethod(obj, method).
+        self.get_iterator_from_method(&method, context)
+    }
+}
+
+impl JsObject {
+    /// `JsValue::get_iterator_from_method`, but specialized for `JsObject`.
+    pub fn get_iterator_from_method(
+        &self,
+        method: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<IteratorRecord> {
+        // 1. Let iterator be ? Call(method, obj).
+        let iterator = method.call(&JsValue::from(self.clone()), &[], context)?;
+        // 2. If iterator is not an Object, throw a TypeError exception.
+        let iterator_obj = iterator
+            .as_object()
+            .ok_or_else(|| js_error!(TypeError: "returned iterator is not an object"))?;
+        // 3. Let nextMethod be ? Get(iterator, "next").
+        let next_method = iterator_obj.get(js_string!("next"), context)?;
+        // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
+        // 5. Return iteratorRecord.
+        Ok(IteratorRecord::new(iterator_obj.clone(), next_method))
+    }
+
+    /// `JsValue::get_iterator`, but specialized for `JsObject`.
+    pub fn get_iterator(
+        &self,
+        hint: IteratorHint,
+        context: &mut Context,
+    ) -> JsResult<IteratorRecord> {
+        let method = match hint {
+            // 1. If kind is async, then
+            IteratorHint::Async => {
+                // a. Let method be ? GetMethod(obj, %Symbol.asyncIterator%).
+                let Some(method) = self.get_method(JsSymbol::async_iterator(), context)? else {
+                    // b. If method is undefined, then
+                    //     i. Let syncMethod be ? GetMethod(obj, %Symbol.iterator%).
+                    let sync_method =
+                        self.get_method(JsSymbol::iterator(), context)?
+                            .ok_or_else(|| {
+                                // ii. If syncMethod is undefined, throw a TypeError exception.
+                                js_error!(TypeError: "object is not iterable")
+                            })?;
+                    // iii. Let syncIteratorRecord be ? GetIteratorFromMethod(obj, syncMethod).
+                    let sync_iterator_record =
+                        self.get_iterator_from_method(&sync_method, context)?;
+                    // iv. Return CreateAsyncFromSyncIterator(syncIteratorRecord).
+                    return Ok(AsyncFromSyncIterator::create(sync_iterator_record, context));
+                };
+
+                Some(method)
+            }
+            // 2. Else,
+            IteratorHint::Sync => {
+                // a. Let method be ? GetMethod(obj, %Symbol.iterator%).
+                self.get_method(JsSymbol::iterator(), context)?
+            }
+        };
+
+        let method = method.ok_or_else(|| {
+            // 3. If method is undefined, throw a TypeError exception.
+            js_error!(TypeError: "object is not iterable")
         })?;
 
         // 4. Return ? GetIteratorFromMethod(obj, method).
@@ -557,7 +617,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstepvalue
-    pub(crate) fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
+    pub fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
         // 1. Let result be ? IteratorStep(iteratorRecord).
         if self.step(context)? {
             // 2. If result is done, then
@@ -572,6 +632,28 @@ impl IteratorRecord {
         }
     }
 
+    /// [`IfAbruptCloseIterator( value, iteratorRecord )`][spec], but
+    /// adapted to be used inside `NativeCoroutine`.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator
+    pub(crate) fn if_abrupt_close_iterator(
+        &self,
+        completion: CompletionRecord,
+        context: &mut Context,
+    ) -> CoroutineState {
+        // 1. Assert: value is a Completion Record.
+        // 2. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
+        // 3. Set value to ! value.
+        match completion {
+            CompletionRecord::Return(value) => {
+                self.close(Ok(value), context).branch()?;
+                CoroutineState::Break(Ok(()))
+            }
+            CompletionRecord::Throw(err) => self.close(Err(err), context).branch(),
+            CompletionRecord::Normal(value) => CoroutineState::Continue(value),
+        }
+    }
+
     /// `IteratorClose ( iteratorRecord, completion )`
     ///
     /// The abstract operation `IteratorClose` takes arguments `iteratorRecord` (an
@@ -583,11 +665,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
-    pub(crate) fn close(
-        &self,
-        completion: JsResult<JsValue>,
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn close(&self, completion: JsResult<JsValue>, context: &mut Context) -> JsResult<JsValue> {
         // 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
 
         // 2. Let iterator be iteratorRecord.[[Iterator]].
@@ -657,4 +735,97 @@ impl IteratorRecord {
         //         i. Return values.
         Ok(values)
     }
+}
+
+/// `GetIteratorDirect ( obj )`
+///
+/// The abstract operation `GetIteratorDirect` takes argument `obj` (an Object)
+/// and returns either a normal completion containing an Iterator Record or a
+/// throw completion.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getiteratordirect
+pub(crate) fn get_iterator_direct(
+    obj: &JsObject,
+    context: &mut Context,
+) -> JsResult<IteratorRecord> {
+    // 1. Let nextMethod be ? Get(obj, "next").
+    let next_method = obj.get(js_string!("next"), context)?;
+    // 2. Let iteratorRecord be the Iterator Record { [[Iterator]]: obj, [[NextMethod]]: nextMethod, [[Done]]: false }.
+    // 3. Return iteratorRecord.
+    Ok(IteratorRecord::new(obj.clone(), next_method))
+}
+
+/// `GetIteratorFlattenable ( obj, stringHandling )`
+///
+/// The abstract operation `GetIteratorFlattenable` takes arguments `obj` (an ECMAScript
+/// language value) and `stringHandling` (iterate-strings or reject-strings) and returns
+/// either a normal completion containing an Iterator Record or a throw completion.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getiteratorflattenable
+pub(crate) fn get_iterator_flattenable(
+    obj: &JsValue,
+    iterate_strings: bool,
+    context: &mut Context,
+) -> JsResult<IteratorRecord> {
+    // 1. If obj is not an Object, then
+    if !obj.is_object() {
+        // a. If stringHandling is reject-strings or obj is not a String, throw a TypeError exception.
+        if !iterate_strings || !obj.is_string() {
+            return Err(JsNativeError::typ()
+                .with_message("GetIteratorFlattenable: value is not an object")
+                .into());
+        }
+    }
+
+    // 2. Let method be ? GetMethod(obj, @@iterator).
+    let method = obj.get_method(JsSymbol::iterator(), context)?;
+
+    match method {
+        // 3. If method is undefined, then
+        None => {
+            // a. Let iterator be obj.
+            let iterator = obj.as_object().ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("GetIteratorFlattenable: value is not iterable and not an object")
+            })?;
+
+            // b. Return ? GetIteratorDirect(iterator).
+            get_iterator_direct(&iterator, context)
+        }
+        // 4. Else,
+        Some(method) => {
+            // a. Let iterator be ? Call(method, obj).
+            let iterator = method.call(obj, &[], context)?;
+
+            // b. If iterator is not an Object, throw a TypeError exception.
+            let iterator_obj = iterator.as_object().ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("GetIteratorFlattenable: iterator result is not an object")
+            })?;
+
+            // c. Return ? GetIteratorDirect(iterator).
+            get_iterator_direct(&iterator_obj, context)
+        }
+    }
+}
+
+/// <https://tc39.es/ecma262/#sec-iteratorcloseall>
+pub(crate) fn iterator_close_all(
+    iters: impl IntoIterator<Item = IteratorRecord, IntoIter: DoubleEndedIterator>,
+    mut completion: JsResult<JsValue>,
+    context: &mut Context,
+) -> JsResult<()> {
+    // 1. For each element iterator of iterators, in reverse List order, do
+    for iterator in iters.into_iter().rev() {
+        // 1.a. Set completion to Completion(IteratorClose(iterator, completion)).
+        completion = iterator.close(completion, context);
+    }
+    // 2. Return ? completion.
+    completion.map(|_| ())
 }

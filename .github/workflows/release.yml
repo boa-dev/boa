@@ -3,6 +3,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  id-token: write # Required for OIDC auth
+  contents: read
+
 jobs:
   publish:
     name: Publish crates
@@ -19,15 +23,17 @@ jobs:
           target=$(rustc -vV | awk '/^host/ { print $2 }' | tr [:lower:] [:upper:] | tr '-' '_')
           echo "CARGO_TARGET_${target}_RUSTFLAGS=$W_FLAGS" >> $GITHUB_ENV
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
 
       - name: Install cargo-workspaces
-        run: cargo install cargo-workspaces
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
+        with:
+          crate: cargo-workspaces
 
       - name: Release
         env:
@@ -49,35 +55,46 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        uses: jetli/wasm-pack-action@v0.4.0
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
-          version: 'latest'
+          crate: wasm-pack
 
       - name: Build boa_wasm
         run: wasm-pack build --scope boa-dev ./ffi/wasm
 
       - name: Set-up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: "20"
+          node-version: "24"
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
 
-      - name: Set-up npm config for publishing
-        run: npm config set -- '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
+      - name: Check if the npm version already exists
+        run: |
+          VERSION=$(jq -r '.version' ./ffi/wasm/pkg/package.json)
+
+          if npm view @boa-dev/boa_wasm@$VERSION version > dev/null 2>&1; then
+            echo "Version $VERSION already published. Skipping"
+            echo "SKIP_PUBLISH=true" >> $GITHUB_ENV
+          fi
 
       - name: Publish to npm
+        if: env.SKIP_PUBLISH != 'true'
         run: npm publish ./ffi/wasm/pkg --access=public
 
   release-binaries:
     name: Publish binaries
+    permissions:
+      contents: write
     needs: publish
     strategy:
       fail-fast: false
@@ -89,7 +106,7 @@ jobs:
           target: x86_64-unknown-linux-gnu
           binary_extension: ""
         - build: macos-arm64
-          os: macos-14
+          os: macos-latest
           target: aarch64-apple-darwin
           binary_extension: ""
         - build: win-msvc
@@ -97,30 +114,25 @@ jobs:
           target: x86_64-pc-windows-msvc
           binary_extension: ".exe"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
           toolchain: stable
           targets: ${{ matrix.target }}
 
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ matrix.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Build
         run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
 
       - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: target/${{ matrix.target }}/release/boa${{ matrix.binary_extension }}

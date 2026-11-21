@@ -1,5 +1,7 @@
-use super::jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind};
-use crate::bytecompiler::ByteCompiler;
+use super::jump_control::{
+    JumpControlInfo, JumpRecord, JumpRecordAction, JumpRecordKind, ReturnValueLocation,
+};
+use crate::{bytecompiler::ByteCompiler, vm::CallFrame};
 use boa_ast::Statement;
 
 mod block;
@@ -41,19 +43,15 @@ impl ByteCompiler<'_> {
             }
             Statement::Continue(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.bytecode.emit_set_accumulator(value.variable());
-                    self.register_allocator.dealloc(value);
+                    self.bytecode
+                        .emit_set_accumulator(CallFrame::undefined_register().variable());
                 }
                 self.compile_continue(*node, use_expr);
             }
             Statement::Break(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.bytecode.emit_set_accumulator(value.variable());
-                    self.register_allocator.dealloc(value);
+                    self.bytecode
+                        .emit_set_accumulator(CallFrame::undefined_register().variable());
                 }
                 self.compile_break(*node, use_expr);
             }
@@ -69,51 +67,77 @@ impl ByteCompiler<'_> {
                 self.compile_switch(switch, use_expr);
             }
             Statement::Return(ret) => {
-                let value = self.register_allocator.alloc();
+                // If the `return` passes through a `finally` block, keep the value in
+                // a dedicated register instead of the value stack, so that abrupt
+                // completions inside `finally` (e.g. `break`) cannot leave a stale
+                // value behind for an outer pending `return` to read.
+                let slot = if self
+                    .jump_info
+                    .iter()
+                    .any(JumpControlInfo::is_try_with_finally_block)
+                {
+                    Some(self.pending_return_slot())
+                } else {
+                    None
+                };
                 if let Some(expr) = ret.target() {
-                    self.compile_expr(expr, &value);
-
                     if self.is_async_generator() {
+                        let value = self.register_allocator.alloc();
+                        self.compile_expr(expr, &value);
                         self.bytecode.emit_await(value.variable());
                         let resume_kind = self.register_allocator.alloc();
                         self.pop_into_register(&resume_kind);
                         self.pop_into_register(&value);
-                        self.bytecode
-                            .emit_generator_next(resume_kind.variable(), value.variable());
+                        self.generator_next(&value, &resume_kind);
                         self.register_allocator.dealloc(resume_kind);
+                        if let Some(slot) = slot {
+                            self.bytecode.emit_move(slot.into(), value.variable());
+                        } else {
+                            self.push_from_register(&value);
+                        }
+                        self.register_allocator.dealloc(value);
+                    } else if let Some(slot) = slot {
+                        let value = self.register_allocator.alloc();
+                        self.compile_expr(expr, &value);
+                        self.bytecode.emit_move(slot.into(), value.variable());
+                        self.register_allocator.dealloc(value);
+                    } else {
+                        self.compile_expr_to_stack(expr);
                     }
+                } else if let Some(slot) = slot {
+                    self.bytecode
+                        .emit_move(slot.into(), CallFrame::undefined_register().variable());
                 } else {
-                    self.bytecode.emit_push_undefined(value.variable());
+                    self.push_from_register(&CallFrame::undefined_register());
                 }
 
-                self.push_from_register(&value);
-                self.register_allocator.dealloc(value);
-                self.r#return(true);
+                if let Some(slot) = slot {
+                    self.r#return(ReturnValueLocation::InSlot(slot));
+                } else {
+                    self.r#return(ReturnValueLocation::OnStack);
+                }
             }
             Statement::Try(t) => self.compile_try(t, use_expr),
             Statement::Expression(expr) => {
-                let value = self.register_allocator.alloc();
-                self.compile_expr(expr, &value);
                 if use_expr {
+                    let value = self.register_allocator.alloc();
+                    self.compile_expr(expr, &value);
                     self.bytecode.emit_set_accumulator(value.variable());
+                    self.register_allocator.dealloc(value);
+                } else {
+                    self.compile_expr_for_side_effects(expr);
                 }
-                self.register_allocator.dealloc(value);
             }
             Statement::With(with) => self.compile_with(with, use_expr),
             Statement::Empty | Statement::Debugger => {}
         }
     }
 
-    pub(crate) fn r#return(&mut self, return_value_on_stack: bool) {
+    pub(crate) fn r#return(&mut self, value_location: ReturnValueLocation) {
         let actions = self.return_jump_record_actions();
 
-        JumpRecord::new(
-            JumpRecordKind::Return {
-                return_value_on_stack,
-            },
-            actions,
-        )
-        .perform_actions(Self::DUMMY_ADDRESS, self);
+        JumpRecord::new(JumpRecordKind::Return { value_location }, actions)
+            .perform_actions(Self::DUMMY_ADDRESS, self);
     }
 
     fn return_jump_record_actions(&self) -> Vec<JumpRecordAction> {

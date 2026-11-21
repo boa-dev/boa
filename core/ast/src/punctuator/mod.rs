@@ -21,7 +21,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Punctuator
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, strum::EnumIter)]
 pub enum Punctuator {
     /// `+`
     Add,

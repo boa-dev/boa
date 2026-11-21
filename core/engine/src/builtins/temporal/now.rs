@@ -10,12 +10,15 @@ use crate::{
     string::StaticJsStrings,
 };
 use temporal_rs::{
-    TemporalError, TemporalResult, TimeZone,
+    TemporalResult, TimeZone,
     host::{HostClock, HostHooks, HostTimeZone},
     now::Now as InnerNow,
     provider::TimeZoneProvider,
     unix_time::EpochNanoseconds,
 };
+
+#[cfg(feature = "system-time-zone")]
+use temporal_rs::TemporalError;
 
 use super::{
     create_temporal_date, create_temporal_datetime, create_temporal_instant, create_temporal_time,
@@ -201,7 +204,7 @@ impl Now {
 
         let now: InnerNow<&Context> = InnerNow::new(context);
 
-        let pt = now.plain_time_with_provider(time_zone, context.timezone_provider())?;
+        let pt = now.plain_time_iso_with_provider(time_zone, context.timezone_provider())?;
         create_temporal_time(pt, None, context).map(Into::into)
     }
 }
@@ -210,9 +213,10 @@ impl HostHooks for &Context {}
 
 impl HostClock for &Context {
     fn get_host_epoch_nanoseconds(&self) -> TemporalResult<EpochNanoseconds> {
-        Ok(EpochNanoseconds::from(
-            self.clock().now().nanos_since_epoch() as i128,
-        ))
+        // Temporal needs actual Unix epoch time, not monotonic time
+        let millis = self.clock().system_time_millis();
+        let nanos = i128::from(millis) * 1_000_000;
+        Ok(EpochNanoseconds::from(nanos))
     }
 }
 
@@ -221,8 +225,17 @@ impl HostTimeZone for &Context {
         &self,
         provider: &(impl TimeZoneProvider + ?Sized),
     ) -> TemporalResult<TimeZone> {
-        iana_time_zone::get_timezone()
-            .map_err(|_| TemporalError::range().with_message("Unable to fetch system time zone"))
-            .and_then(|id| TimeZone::try_from_str_with_provider(&id, provider))
+        #[cfg(not(feature = "system-time-zone"))]
+        {
+            Ok(TimeZone::utc_with_provider(provider))
+        }
+        #[cfg(feature = "system-time-zone")]
+        {
+            iana_time_zone::get_timezone()
+                .map_err(|_| {
+                    TemporalError::range().with_message("Unable to fetch system time zone")
+                })
+                .and_then(|id| TimeZone::try_from_str_with_provider(&id, provider))
+        }
     }
 }

@@ -82,7 +82,7 @@ pub trait HostHooks {
     #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn call_job_callback(
         &self,
-        job: JobCallback,
+        job: &JobCallback,
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,

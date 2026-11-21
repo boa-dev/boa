@@ -13,7 +13,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsArgs, JsBigInt, JsExpect, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -122,7 +122,12 @@ impl BigInt {
         }
 
         // 2. Return the BigInt value that represents ℝ(number).
-        Ok(JsBigInt::from(number.to_bigint().expect("This conversion must be safe")).into())
+        Ok(JsBigInt::from(
+            number
+                .to_bigint()
+                .js_expect("This conversion must be safe")?,
+        )
+        .into())
     }
 
     /// The abstract operation `thisBigIntValue` takes argument value.
@@ -219,11 +224,11 @@ impl BigInt {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            // 1. Let x be ? ThisBigIntValue(this value).
-
-            use fixed_decimal::Decimal;
-
             use crate::builtins::intl::NumberFormat;
+            use fixed_decimal::Decimal;
+            use writeable::Writeable;
+
+            // 1. Let x be ? ThisBigIntValue(this value).
             let x = Self::this_bigint_value(this)?;
             let locales = args.get_or_undefined(0).clone();
             let options = args.get_or_undefined(1).clone();
@@ -234,7 +239,7 @@ impl BigInt {
                 .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
             // 3. Return FormatNumeric(numberFormat, ℝ(x)).
-            Ok(js_string!(number_format.format(x).to_string()).into())
+            Ok(js_string!(number_format.format(x).write_to_string()).into())
         }
 
         #[cfg(not(feature = "intl"))]

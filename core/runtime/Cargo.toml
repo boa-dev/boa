@@ -13,9 +13,11 @@ rust-version.workspace = true
 [dependencies]
 boa_engine.workspace = true
 boa_gc.workspace = true
+boa_wintertc.workspace = true
+bus = { workspace = true, optional = true }
 bytemuck.workspace = true
 either = { workspace = true, optional = true }
-futures = "0.3.31"
+futures = "0.3.32"
 futures-lite.workspace = true
 http = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
@@ -28,6 +30,7 @@ indoc.workspace = true
 rstest.workspace = true
 test-case.workspace = true
 textwrap.workspace = true
+temp-env.workspace = true
 
 [lints]
 workspace = true
@@ -37,13 +40,24 @@ all-features = true
 
 [features]
 # Default should not add `reqwest` as it is not available on all platforms.
-default = ["fetch", "url"]
+default = [
+    "boa_engine/float16",
+    "boa_engine/temporal",
+    "boa_engine/xsum",
+    "fetch",
+    "url",
+]
+
 all = ["default", "reqwest-blocking"]
 url = ["dep:url"]
 fetch = [
+    "dep:url",
     "dep:either",
     "dep:http",
     "dep:serde_json",
     "boa_engine/either",
 ]
 reqwest-blocking = ["dep:reqwest", "reqwest/blocking"]
+process = []
+annex-b = ["boa_engine/annex-b"]
+test262 = ["dep:bus"]

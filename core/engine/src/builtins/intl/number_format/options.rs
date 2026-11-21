@@ -6,16 +6,29 @@ use fixed_decimal::{
 };
 
 use boa_macros::js_str;
-use icu_decimal::preferences::NumberingSystem;
+use icu_decimal::{
+    DecimalFormatterPreferences, preferences::NumberingSystem, provider::DecimalSymbolsV1,
+};
 use icu_locale::extensions::unicode::Value;
+use icu_provider::{
+    DataMarkerAttributes,
+    prelude::icu_locale_core::{
+        LanguageIdentifier, extensions::unicode, preferences::LocalePreferences,
+    },
+};
 use tinystr::TinyAsciiStr;
 
 use crate::{
-    Context, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
+    Context, JsExpect, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
     builtins::{
-        intl::options::{default_number_option, get_number_option},
+        intl::{
+            ServicePreferences,
+            locale::validate_extension,
+            options::{default_number_option, get_number_option},
+        },
         options::{OptionType, ParsableOptionType, get_option},
     },
+    context::icu::IntlProvider,
     js_string,
 };
 
@@ -487,7 +500,7 @@ impl UnitFormatOptions {
             Style::Currency => {
                 UnitFormatOptions::Currency {
                     // a. Set intlObj.[[Currency]] to the ASCII-uppercase of currency.
-                    currency: currency.expect("asserted above that `currency` is not None"),
+                    currency: currency.js_expect("asserted above that `currency` is not None")?,
                     // b. Set intlObj.[[CurrencyDisplay]] to currencyDisplay.
                     display: currency_display,
                     // c. Set intlObj.[[CurrencySign]] to currencySign.
@@ -498,7 +511,7 @@ impl UnitFormatOptions {
             Style::Unit => {
                 UnitFormatOptions::Unit {
                     //     a. Set intlObj.[[Unit]] to unit.
-                    unit: unit.expect("asserted above that `unit` is not None"),
+                    unit: unit.js_expect("asserted above that `unit` is not None")?,
                     // b. Set intlObj.[[UnitDisplay]] to unitDisplay.
                     display: unit_display,
                 }
@@ -1087,25 +1100,6 @@ impl std::str::FromStr for NotationKind {
 
 impl ParsableOptionType for NotationKind {}
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub(crate) enum Notation {
-    Standard,
-    Scientific,
-    Engineering,
-    Compact { display: CompactDisplay },
-}
-
-impl Notation {
-    pub(crate) fn kind(self) -> NotationKind {
-        match self {
-            Notation::Standard => NotationKind::Standard,
-            Notation::Scientific => NotationKind::Scientific,
-            Notation::Engineering => NotationKind::Engineering,
-            Notation::Compact { .. } => NotationKind::Compact,
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq)]
 pub(crate) enum RoundingPriority {
     #[default]
@@ -1252,4 +1246,15 @@ impl RoundingType {
             Self::SignificantDigits(_) => None,
         }
     }
+}
+
+impl ServicePreferences for DecimalFormatterPreferences {
+    fn validate(&mut self, id: &LanguageIdentifier, provider: &IntlProvider) {
+        self.numbering_system = self.numbering_system.take().filter(|nu| {
+            let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
+            validate_extension::<DecimalSymbolsV1>(id, attr, provider)
+        });
+    }
+
+    impl_service_preferences!(numbering_system);
 }

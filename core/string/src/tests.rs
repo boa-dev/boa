@@ -3,8 +3,8 @@
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
 use crate::{
-    CommonJsStringBuilder, JsStr, JsString, Latin1JsStringBuilder, StaticJsStrings,
-    Utf16JsStringBuilder,
+    CodePoint, CommonJsStringBuilder, JsStr, JsString, JsStringKind, Latin1JsStringBuilder,
+    StaticJsStrings, StaticString, Utf16JsStringBuilder,
 };
 
 use rustc_hash::FxHasher;
@@ -145,7 +145,7 @@ fn trim_start_non_ascii_to_ascii() {
     let s = "\u{2029}abc";
     let x = JsString::from(s);
 
-    let y = JsString::from(x.trim_start());
+    let y = x.trim_start();
 
     assert_eq!(&y, s.trim_start());
 }
@@ -199,12 +199,14 @@ fn to_std_string_escaped() {
 
 #[test]
 fn from_static_js_string() {
-    static STATIC_HELLO_WORLD: JsStr<'static> = JsStr::latin1("hello world".as_bytes());
-    static STATIC_EMOJIS: JsStr<'static> =
-        JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]); // 🎹🎶🎵
+    static STATIC_HELLO_WORLD: StaticString =
+        StaticString::new(JsStr::latin1("hello world".as_bytes()));
+    static STATIC_EMOJIS: StaticString = StaticString::new(JsStr::utf16(&[
+        0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
+    ])); // 🎹🎶🎵
 
-    let latin1 = JsString::from_static_js_str(&STATIC_HELLO_WORLD);
-    let utf16 = JsString::from_static_js_str(&STATIC_EMOJIS);
+    let latin1 = JsString::from_static(&STATIC_HELLO_WORLD);
+    let utf16 = JsString::from_static(&STATIC_EMOJIS);
 
     // content compare
     assert_eq!(latin1, "hello world");
@@ -229,12 +231,14 @@ fn from_static_js_string() {
 
 #[test]
 fn compare_static_and_dynamic_js_string() {
-    static STATIC_HELLO_WORLD: JsStr<'static> = JsStr::latin1("hello world".as_bytes());
-    static STATIC_EMOJIS: JsStr<'static> =
-        JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]); // 🎹🎶🎵
+    static STATIC_HELLO_WORLD: StaticString =
+        StaticString::new(JsStr::latin1("hello world".as_bytes()));
+    static STATIC_EMOJIS: StaticString = StaticString::new(JsStr::utf16(&[
+        0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
+    ])); // 🎹🎶🎵
 
-    let static_latin1 = JsString::from_static_js_str(&STATIC_HELLO_WORLD);
-    let static_utf16 = JsString::from_static_js_str(&STATIC_EMOJIS);
+    let static_latin1 = JsString::from_static(&STATIC_HELLO_WORLD);
+    let static_utf16 = JsString::from_static(&STATIC_EMOJIS);
 
     let dynamic_latin1 = JsString::from(JsStr::latin1("hello world".as_bytes()));
     let dynamic_utf16 = JsString::from(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]);
@@ -398,7 +402,7 @@ fn clone_builder() {
     // clone_from(empty) == origin(empty)
     let mut cloned_from = Latin1JsStringBuilder::new();
     cloned_from.clone_from(&empty_origin);
-    assert!(cloned_from.capacity() == 0);
+    assert_eq!(cloned_from.capacity(), 0);
     assert_eq!(empty_origin, cloned_from);
 
     // utf16 builder -- test
@@ -428,7 +432,7 @@ fn clone_builder() {
     // clone_from(empty) == origin(empty)
     let mut cloned_from = Utf16JsStringBuilder::new();
     cloned_from.clone_from(&empty_origin);
-    assert!(cloned_from.capacity() == 0);
+    assert_eq!(cloned_from.capacity(), 0);
     assert_eq!(empty_origin, cloned_from);
 }
 
@@ -468,4 +472,162 @@ fn common_js_string_builder() {
         js_string.to_std_string().unwrap_or_default(),
         "Déjà vu2024年5月21日🎹"
     );
+}
+
+#[test]
+fn code_points_optimization() {
+    // Test Latin1 optimization with extended Latin1 characters
+    let latin1_str = JsStr::latin1(b"Caf\xe9 na\xefve"); // "Café naïve" in Latin1 encoding
+    let latin1_points: Vec<CodePoint> = latin1_str.code_points().collect();
+    let expected_latin1: Vec<CodePoint> = "Café naïve".chars().map(CodePoint::Unicode).collect();
+    assert_eq!(latin1_points, expected_latin1);
+
+    // Test UTF-16 behavior unchanged (including non-ASCII)
+    let utf16_str = JsStr::utf16(&[
+        0x0043, 0x0061, 0x0066, 0x00E9, // "Café"
+        0x0020, // space
+        0x006E, 0x0061, 0x00EF, 0x0076, 0x0065, // "naïve"
+    ]);
+    let utf16_points: Vec<CodePoint> = utf16_str.code_points().collect();
+    assert_eq!(latin1_points, utf16_points); // Same result for same content
+}
+
+#[test]
+fn slice() {
+    let sliced = {
+        let base_str = JsString::from("Hello World");
+        assert_eq!(base_str.kind(), JsStringKind::Latin1Sequence);
+
+        base_str.slice(1, 5)
+    };
+    assert_eq!(sliced, JsString::from("ello"));
+    assert_eq!(sliced.kind(), JsStringKind::Slice);
+
+    let sliced2 = sliced.slice(1, 3);
+    drop(sliced);
+    assert_eq!(sliced2, JsString::from("ll"));
+    assert_eq!(sliced2.kind(), JsStringKind::Slice);
+
+    let sliced3 = sliced2.slice(0, 2);
+    drop(sliced2);
+    assert_eq!(sliced3, JsString::from("ll"));
+    assert_eq!(sliced3.kind(), JsStringKind::Slice);
+
+    let sliced4 = sliced3.slice(0, 2);
+    drop(sliced3);
+    assert_eq!(sliced4, JsString::from("ll"));
+    assert_eq!(sliced4.kind(), JsStringKind::Slice);
+
+    let sliced4 = sliced4.slice(0, 2);
+    assert_eq!(sliced4, JsString::from("ll"));
+    assert_eq!(sliced4.kind(), JsStringKind::Slice);
+
+    let sliced5 = sliced4.slice(1, 1);
+    assert_eq!(sliced5, JsString::from(""));
+    assert_eq!(sliced5.kind(), JsStringKind::Static);
+
+    assert_eq!(sliced5.slice(4, 4), StaticJsStrings::EMPTY_STRING);
+}
+
+#[test]
+fn split() {
+    let base_str = JsString::from("Hello World");
+    assert_eq!(base_str.kind(), JsStringKind::Latin1Sequence);
+
+    let str1 = base_str.slice(0, 5);
+    let str2 = base_str.slice(6, base_str.len());
+
+    assert_eq!(str1, JsString::from("Hello"));
+    assert_eq!(str2, JsString::from("World"));
+
+    let str3 = str1.clone();
+    drop(str1);
+    assert_eq!(str3, JsString::from("Hello"));
+    drop(base_str);
+    assert_eq!(str3, JsString::from("Hello"));
+}
+
+#[test]
+fn trim() {
+    // Very basic test for trimming. The extensive testing is done by `boa_engine`.
+    let base_str = JsString::from(" \u{000B} Hello World \t ");
+    assert_eq!(base_str.trim(), JsString::from("Hello World"));
+}
+
+#[test]
+fn starts_with_and_ends_with_basic() {
+    let basic = JsString::from("abcdef");
+    let start_needle = JsStr::latin1("abc".as_bytes());
+    assert!(basic.starts_with(start_needle));
+    assert!(!basic.ends_with(start_needle));
+
+    let end_needle = JsStr::latin1("def".as_bytes());
+    assert!(!basic.starts_with(end_needle));
+    assert!(basic.ends_with(end_needle));
+}
+
+#[test]
+#[allow(clippy::float_cmp)]
+fn to_number() {
+    // `Infinity`, `+Infinity` and `-Infinity` are the only spellings of the infinite
+    // `StrUnsignedDecimalLiteral`. Every other casing, abbreviation or sign combination is not a
+    // `StringNumericLiteral` and must be `NaN`.
+    assert_eq!(JsString::from("Infinity").to_number(), f64::INFINITY);
+    assert_eq!(JsString::from("+Infinity").to_number(), f64::INFINITY);
+    assert_eq!(JsString::from("-Infinity").to_number(), f64::NEG_INFINITY);
+    for invalid in [
+        "inf",
+        "INF",
+        "Inf",
+        "infinity",
+        "+inf",
+        "-inf",
+        "+Inf",
+        "-Inf",
+        "+INF",
+        "-INF",
+        "+infinity",
+        "-infinity",
+        "+INFINITY",
+        "-INFINITY",
+        "+iNfInItY",
+    ] {
+        assert!(
+            JsString::from(invalid).to_number().is_nan(),
+            "`{invalid}` is not a `StringNumericLiteral`"
+        );
+    }
+
+    // A `NonDecimalIntegerLiteral` is a bare sequence of digits, so a sign after the prefix is
+    // invalid.
+    assert_eq!(JsString::from("0x10").to_number(), 16.0);
+    assert_eq!(JsString::from("0X10").to_number(), 16.0);
+    assert_eq!(JsString::from("0b101").to_number(), 5.0);
+    assert_eq!(JsString::from("0o17").to_number(), 15.0);
+    // Wider than `u32`, so this takes the slow path.
+    assert_eq!(JsString::from("0x1FFFFFFFF").to_number(), 8_589_934_591.0);
+    for invalid in [
+        "0x", "0b", "0o", "0x+1", "0x-1", "0x+0", "0b+1", "0b-1", "0o+7", "0o-7",
+    ] {
+        assert!(
+            JsString::from(invalid).to_number().is_nan(),
+            "`{invalid}` is not a `StringNumericLiteral`"
+        );
+    }
+
+    // `StrWhiteSpace` around the literal is stripped before it is parsed.
+    assert_eq!(JsString::from("").to_number(), 0.0);
+    assert_eq!(JsString::from(" \t\n").to_number(), 0.0);
+    assert_eq!(
+        JsString::from(" \t-Infinity\n ").to_number(),
+        f64::NEG_INFINITY
+    );
+    assert!(JsString::from(" -inf ").to_number().is_nan());
+    assert!(JsString::from(" 0x+1 ").to_number().is_nan());
+
+    // A decimal literal too large for `f64` is still a `StringNumericLiteral`; its
+    // `StringNumericValue` rounds to an infinity and must not be rejected.
+    assert_eq!(JsString::from("1e400").to_number(), f64::INFINITY);
+    assert_eq!(JsString::from("-1e400").to_number(), f64::NEG_INFINITY);
+    assert_eq!(JsString::from("1e999").to_number(), f64::INFINITY);
 }

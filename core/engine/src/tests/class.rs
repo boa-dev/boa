@@ -91,6 +91,20 @@ fn class_in_constructor() {
     ]);
 }
 
+// https://github.com/boa-dev/boa/issues/4555
+#[test]
+fn nested_class_in_class_expression_constructor() {
+    run_test_actions([TestAction::run(
+        "new (class { constructor() { class D {} } })();",
+    )]);
+}
+
+// https://github.com/boa-dev/boa/issues/4555
+#[test]
+fn nested_class_in_static_block() {
+    run_test_actions([TestAction::run("(class { static { class D {} } });")]);
+}
+
 #[test]
 fn property_initializer_reference_escaped_variable() {
     run_test_actions([
@@ -115,5 +129,75 @@ fn property_initializer_reference_escaped_variable() {
         TestAction::assert_eq("Z.b", js_str!("D")),
         TestAction::assert_eq("z.getC()", js_str!("D")),
         TestAction::assert_eq("Z.getD()", js_str!("D")),
+    ]);
+}
+
+#[test]
+fn private_field_initializer_reference_non_escaped_variable() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            function outer() {
+                let x = 1;
+                class C {
+                    #p = x;
+                    m() { return this.#p; }
+                }
+                return new C().m();
+            }
+        "#}),
+        TestAction::assert_eq("outer()", 1),
+    ]);
+}
+
+// https://github.com/boa-dev/boa/issues/4605
+#[test]
+fn class_boolean_literal_method_names() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class A {
+                true() { return 1; }
+                false() { return 2; }
+                null() { return 3; }
+            }
+            var a = new A();
+        "#}),
+        TestAction::assert_eq("a.true()", 1),
+        TestAction::assert_eq("a.false()", 2),
+        TestAction::assert_eq("a.null()", 3),
+    ]);
+}
+
+// https://github.com/boa-dev/boa/issues/4605
+#[test]
+fn class_boolean_literal_static_method_names() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class B {
+                static true() { return 10; }
+                static false() { return 20; }
+            }
+        "#}),
+        TestAction::assert_eq("B.true()", 10),
+        TestAction::assert_eq("B.false()", 20),
+    ]);
+}
+
+// https://github.com/boa-dev/boa/issues/4605
+#[test]
+fn class_boolean_literal_getter_setter_names() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class C {
+                get true() { return this._true; }
+                set true(v) { this._true = v; }
+                get false() { return this._false; }
+                set false(v) { this._false = v; }
+            }
+            var c = new C();
+            c.true = 42;
+            c.false = 84;
+        "#}),
+        TestAction::assert_eq("c.true", 42),
+        TestAction::assert_eq("c.false", 84),
     ]);
 }

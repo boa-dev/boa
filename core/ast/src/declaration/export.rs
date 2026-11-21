@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-exports
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 
-use super::{ModuleSpecifier, VarDeclaration};
+use super::{ImportAttribute, ModuleSpecifier, VarDeclaration};
 use crate::{
     Declaration, Expression,
     function::{
@@ -87,6 +87,8 @@ pub enum ExportDeclaration {
         kind: ReExportKind,
         /// Reexported module specifier.
         specifier: ModuleSpecifier,
+        /// Re-export attributes.
+        attributes: Box<[ImportAttribute]>,
     },
     /// List of exports.
     List(Box<[ExportSpecifier]>),
@@ -114,9 +116,17 @@ impl VisitWith for ExportDeclaration {
         V: Visitor<'a>,
     {
         match self {
-            Self::ReExport { specifier, kind } => {
+            Self::ReExport {
+                specifier,
+                kind,
+                attributes,
+            } => {
                 visitor.visit_module_specifier(specifier)?;
-                visitor.visit_re_export_kind(kind)
+                visitor.visit_re_export_kind(kind)?;
+                for attribute in &**attributes {
+                    visitor.visit_import_attribute(attribute)?;
+                }
+                ControlFlow::Continue(())
             }
             Self::List(list) => {
                 for item in &**list {
@@ -144,9 +154,17 @@ impl VisitWith for ExportDeclaration {
         V: VisitorMut<'a>,
     {
         match self {
-            Self::ReExport { specifier, kind } => {
+            Self::ReExport {
+                specifier,
+                kind,
+                attributes,
+            } => {
                 visitor.visit_module_specifier_mut(specifier)?;
-                visitor.visit_re_export_kind_mut(kind)
+                visitor.visit_re_export_kind_mut(kind)?;
+                for attribute in &mut **attributes {
+                    visitor.visit_import_attribute_mut(attribute)?;
+                }
+                ControlFlow::Continue(())
             }
             Self::List(list) => {
                 for item in &mut **list {
@@ -253,7 +271,7 @@ pub enum ReExportImportName {
 /// [`ExportEntry`][spec] record.
 ///
 /// [spec]: https://tc39.es/ecma262/#table-exportentry-records
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum ExportEntry {
     /// An ordinary export entry
     Ordinary(LocalExportEntry),
@@ -261,6 +279,8 @@ pub enum ExportEntry {
     StarReExport {
         /// The module from where this reexport will import.
         module_request: Sym,
+        /// The import attributes for this reexport.
+        attributes: Box<[ImportAttribute]>,
     },
     /// A reexport entry with an export name.
     ReExport(IndirectExportEntry),
@@ -309,25 +329,28 @@ impl LocalExportEntry {
 }
 
 /// A reexported export entry.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct IndirectExportEntry {
     module_request: Sym,
     import_name: ReExportImportName,
     export_name: Sym,
+    attributes: Box<[ImportAttribute]>,
 }
 
 impl IndirectExportEntry {
     /// Creates a new `IndirectExportEntry`.
     #[must_use]
-    pub const fn new(
+    pub fn new(
         module_request: Sym,
         import_name: ReExportImportName,
         export_name: Sym,
+        attributes: Box<[ImportAttribute]>,
     ) -> Self {
         Self {
             module_request,
             import_name,
             export_name,
+            attributes,
         }
     }
 
@@ -347,5 +370,11 @@ impl IndirectExportEntry {
     #[must_use]
     pub const fn export_name(&self) -> Sym {
         self.export_name
+    }
+
+    /// Gets the import attributes.
+    #[must_use]
+    pub fn attributes(&self) -> &[ImportAttribute] {
+        &self.attributes
     }
 }

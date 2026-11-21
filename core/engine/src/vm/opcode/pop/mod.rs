@@ -30,7 +30,7 @@ pub(crate) struct PopEnvironment;
 impl PopEnvironment {
     #[inline(always)]
     pub(super) fn operation((): (), context: &mut Context) {
-        context.vm.frame.environments.pop();
+        context.vm.frame_mut().environments.pop();
     }
 }
 

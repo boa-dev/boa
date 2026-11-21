@@ -18,7 +18,9 @@
 #![allow(
     clippy::redundant_pub_crate,
     // TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
-    clippy::trait_duplication_in_bounds
+    clippy::trait_duplication_in_bounds,
+    // Field names intentionally mirror the encoding type they store.
+    clippy::struct_field_names
 )]
 #![cfg_attr(not(feature = "arbitrary"), no_std)]
 
@@ -32,7 +34,7 @@ mod sym;
 #[cfg(test)]
 mod tests;
 
-use alloc::{borrow::Cow, format, string::String};
+use alloc::{borrow::Cow, format, string::String, vec::Vec};
 use raw::RawInterner;
 
 pub use sym::*;
@@ -83,6 +85,17 @@ pub struct JSInternedStrRef<'a, 'b> {
 impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     /// Returns the inner reference to the interned string in `UTF-8` encoding.
     /// if the string is not representable in `UTF-8`, returns [`None`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// let interned = interner.resolve_expect(sym);
+    /// assert_eq!(interned.utf8(), Some("hello"));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn utf8(&self) -> Option<&'a str> {
@@ -90,6 +103,18 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     }
 
     /// Returns the inner reference to the interned string in `UTF-16` encoding.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// let interned = interner.resolve_expect(sym);
+    /// let utf16: Vec<u16> = "hello".encode_utf16().collect();
+    /// assert_eq!(interned.utf16(), utf16.as_slice());
+    /// ```
     #[inline]
     #[must_use]
     pub const fn utf16(&self) -> &'b [u16] {
@@ -101,6 +126,22 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     /// If `self` is representable by a `UTF-8` string and the `prioritize_utf8` argument is set,
     /// it will prioritize calling `f`, and will only call `g` if `self` is only representable by a
     /// `UTF-16` string. Otherwise, it will directly call `g`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// let interned = interner.resolve_expect(sym);
+    /// let result = interned.join(
+    ///     |utf8| utf8.to_uppercase(),
+    ///     |utf16| String::from_utf16_lossy(utf16).to_uppercase(),
+    ///     true,
+    /// );
+    /// assert_eq!(result, "HELLO");
+    /// ```
     pub fn join<F, G, T>(self, f: F, g: G, prioritize_utf8: bool) -> T
     where
         F: FnOnce(&'a str) -> T,
@@ -116,6 +157,24 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     ///
     /// Useful when you have a `&mut Context` context that cannot be borrowed by both closures at
     /// the same time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// let interned = interner.resolve_expect(sym);
+    /// let mut output = String::new();
+    /// interned.join_with_context(
+    ///     |utf8, buf: &mut String| buf.push_str(&utf8.to_uppercase()),
+    ///     |utf16, buf: &mut String| buf.push_str(&String::from_utf16_lossy(utf16).to_uppercase()),
+    ///     &mut output,
+    ///     true,
+    /// );
+    /// assert_eq!(output, "HELLO");
+    /// ```
     pub fn join_with_context<C, F, G, T>(self, f: F, g: G, ctx: C, prioritize_utf8: bool) -> T
     where
         F: FnOnce(&'a str, C) -> T,
@@ -133,6 +192,35 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
     /// will prioritize converting its `UTF-8` representation first, and will only convert its
     /// `UTF-16` representation if it is only representable by a `UTF-16` string. Otherwise, it will
     /// directly convert its `UTF-16` representation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// enum JsString<'a> {
+    ///     Utf8(&'a str),
+    ///     Utf16(&'a [u16]),
+    /// }
+    ///
+    /// impl<'a> From<&'a str> for JsString<'a> {
+    ///     fn from(s: &'a str) -> Self {
+    ///         JsString::Utf8(s)
+    ///     }
+    /// }
+    ///
+    /// impl<'a> From<&'a [u16]> for JsString<'a> {
+    ///     fn from(s: &'a [u16]) -> Self {
+    ///         JsString::Utf16(s)
+    ///     }
+    /// }
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// let interned = interner.resolve_expect(sym);
+    /// let result: JsString<'_> = interned.into_common(true);
+    /// assert!(matches!(result, JsString::Utf8("hello")));
+    /// ```
     pub fn into_common<C>(self, prioritize_utf8: bool) -> C
     where
         C: From<&'a str> + From<&'b [u16]>,
@@ -165,10 +253,22 @@ impl core::fmt::Display for JSInternedStrRef<'_, '_> {
 pub struct Interner {
     utf8_interner: RawInterner<u8>,
     utf16_interner: RawInterner<u16>,
+    /// Latin1-encodability cache for dynamically-interned strings (all code units ≤ 0xFF).
+    latin1_flags: Vec<bool>,
 }
 
 impl Interner {
     /// Creates a new [`Interner`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// assert!(interner.resolve(sym).is_some());
+    /// ```
     #[inline]
     #[must_use]
     pub fn new() -> Self {
@@ -176,16 +276,38 @@ impl Interner {
     }
 
     /// Creates a new [`Interner`] with the specified capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::with_capacity(10);
+    /// let sym = interner.get_or_intern("hello");
+    /// assert!(interner.resolve(sym).is_some());
+    /// ```
     #[inline]
     #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             utf8_interner: RawInterner::with_capacity(capacity),
             utf16_interner: RawInterner::with_capacity(capacity),
+            latin1_flags: Vec::with_capacity(capacity),
         }
     }
 
     /// Returns the number of strings interned by the interner.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let initial_len = interner.len();
+    /// interner.get_or_intern("hello");
+    /// assert_eq!(interner.len(), initial_len + 1);
+    /// ```
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
@@ -195,6 +317,15 @@ impl Interner {
     }
 
     /// Returns `true` if the [`Interner`] contains no interned strings.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let interner = Interner::new();
+    /// assert!(!interner.is_empty());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
@@ -204,6 +335,17 @@ impl Interner {
     /// Returns the symbol for the given string if any.
     ///
     /// Can be used to query if a string has already been interned without interning.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// assert!(interner.get("hello").is_none());
+    /// interner.get_or_intern("hello");
+    /// assert!(interner.get("hello").is_some());
+    /// ```
     pub fn get<'a, T>(&self, string: T) -> Option<Sym>
     where
         T: Into<JStrRef<'a>>,
@@ -229,6 +371,19 @@ impl Interner {
     /// # Panics
     ///
     /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym1 = interner.get_or_intern("hello");
+    /// let sym2 = interner.get_or_intern("hello");
+    /// assert_eq!(sym1, sym2);
+    /// let sym3 = interner.get_or_intern("world");
+    /// assert_ne!(sym1, sym3);
+    /// ```
     pub fn get_or_intern<'a, T>(&mut self, string: T) -> Sym
     where
         T: Into<JStrRef<'a>>,
@@ -258,8 +413,9 @@ impl Interner {
 
             let utf16_index = self.utf16_interner.intern(&utf16);
 
-            // Just to check everything is okay
             assert_eq!(index, utf16_index);
+
+            self.latin1_flags.push(utf16.iter().all(|&c| c <= 0xFF));
 
             index
                 .checked_add(1 + COMMON_STRINGS_UTF8.len())
@@ -281,6 +437,19 @@ impl Interner {
     /// # Panics
     ///
     /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// static HELLO_UTF16: &[u16] = &[0x68, 0x65, 0x6C, 0x6C, 0x6F];
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym1 = interner.get_or_intern_static("hello", HELLO_UTF16);
+    /// let sym2 = interner.get_or_intern("hello");
+    /// assert_eq!(sym1, sym2);
+    /// ```
     pub fn get_or_intern_static(&mut self, utf8: &'static str, utf16: &'static [u16]) -> Sym {
         // Uses the utf8 because it's quicker to check inside `COMMON_STRINGS_UTF8`
         // (which is a perfect hash set) than to check inside `COMMON_STRINGS_UTF16`
@@ -289,8 +458,9 @@ impl Interner {
             let index = self.utf8_interner.intern(utf8.as_bytes());
             let utf16_index = self.utf16_interner.intern(utf16);
 
-            // Just to check everything is okay
             debug_assert_eq!(index, utf16_index);
+
+            self.latin1_flags.push(utf16.iter().all(|&c| c <= 0xFF));
 
             index
                 .checked_add(1 + COMMON_STRINGS_UTF8.len())
@@ -305,6 +475,18 @@ impl Interner {
     ///
     /// Panics if the size of both statics is not equal or the interners do
     /// not have the same size
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// let resolved = interner.resolve(sym);
+    /// assert!(resolved.is_some());
+    /// assert_eq!(resolved.unwrap().utf8(), Some("hello"));
+    /// ```
     #[must_use]
     pub fn resolve(&self, symbol: Sym) -> Option<JSInternedStrRef<'_, '_>> {
         let index = symbol.get() - 1;
@@ -348,13 +530,56 @@ impl Interner {
     /// # Panics
     ///
     /// If the interner cannot resolve the given symbol.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let sym = interner.get_or_intern("hello");
+    /// let resolved = interner.resolve_expect(sym);
+    /// assert_eq!(resolved.utf8(), Some("hello"));
+    /// ```
     #[inline]
     #[must_use]
     pub fn resolve_expect(&self, symbol: Sym) -> JSInternedStrRef<'_, '_> {
         self.resolve(symbol).expect("string disappeared")
     }
 
-    /// Gets the symbol of the common string if one of them
+    /// Returns `true` if the string identified by `symbol` can be encoded as Latin1
+    /// (i.e. all code units are in the range `0x00..=0xFF`).
+    ///
+    /// This information is computed **once** when the string is first interned, so callers pay no
+    /// O(n) scanning cost beyond the initial intern call.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_interner::Interner;
+    ///
+    /// let mut interner = Interner::new();
+    /// let ascii = interner.get_or_intern("hello");
+    /// assert!(interner.is_latin1(ascii));
+    ///
+    /// let non_latin1: Vec<u16> = vec![0x4e2d, 0x6587]; // "中文"
+    /// let sym = interner.get_or_intern(non_latin1.as_slice());
+    /// assert!(!interner.is_latin1(sym));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn is_latin1(&self, symbol: Sym) -> bool {
+        let index = symbol.get() - 1;
+        if index < COMMON_STRINGS_UTF8.len() {
+            return true;
+        }
+        let dynamic_index = index - COMMON_STRINGS_UTF8.len();
+        self.latin1_flags
+            .get(dynamic_index)
+            .copied()
+            .unwrap_or(false)
+    }
+
     fn get_common(string: JStrRef<'_>) -> Option<Sym> {
         match string {
             JStrRef::Utf8(s) => COMMON_STRINGS_UTF8.get_index(s).map(|idx| {

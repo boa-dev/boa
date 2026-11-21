@@ -8,9 +8,9 @@ use std::ops::ControlFlow;
 use crate::{
     Module, ModuleItem, ModuleItemList, Script, StatementList, StatementListItem,
     declaration::{
-        Binding, Declaration, ExportDeclaration, ExportSpecifier, ImportDeclaration, ImportKind,
-        ImportSpecifier, LexicalDeclaration, ModuleSpecifier, ReExportKind, VarDeclaration,
-        Variable, VariableList,
+        Binding, Declaration, ExportDeclaration, ExportSpecifier, ImportAttribute,
+        ImportDeclaration, ImportKind, ImportSpecifier, LexicalDeclaration, ModuleSpecifier,
+        ReExportKind, VarDeclaration, Variable, VariableList,
     },
     expression::{
         Await, Call, Expression, Identifier, ImportCall, ImportMeta, New, NewTarget, Optional,
@@ -209,12 +209,13 @@ node_ref! {
     ModuleItemList,
     ModuleItem,
     ModuleSpecifier,
+    ImportAttribute,
     ImportKind,
     ImportDeclaration,
     ImportSpecifier,
     ReExportKind,
     ExportDeclaration,
-    ExportSpecifier
+    ExportSpecifier,
 }
 
 /// Represents an AST visitor.
@@ -321,6 +322,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_module_item_list, ModuleItemList);
     define_visit!(visit_module_item, ModuleItem);
     define_visit!(visit_module_specifier, ModuleSpecifier);
+    define_visit!(visit_import_attribute, ImportAttribute);
     define_visit!(visit_import_kind, ImportKind);
     define_visit!(visit_import_declaration, ImportDeclaration);
     define_visit!(visit_import_specifier, ImportSpecifier);
@@ -430,6 +432,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::ModuleItemList(n) => self.visit_module_item_list(n),
             NodeRef::ModuleItem(n) => self.visit_module_item(n),
             NodeRef::ModuleSpecifier(n) => self.visit_module_specifier(n),
+            NodeRef::ImportAttribute(n) => self.visit_import_attribute(n),
             NodeRef::ImportKind(n) => self.visit_import_kind(n),
             NodeRef::ImportDeclaration(n) => self.visit_import_declaration(n),
             NodeRef::ImportSpecifier(n) => self.visit_import_specifier(n),
@@ -553,6 +556,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_module_item_list_mut, ModuleItemList);
     define_visit_mut!(visit_module_item_mut, ModuleItem);
     define_visit_mut!(visit_module_specifier_mut, ModuleSpecifier);
+    define_visit_mut!(visit_import_attribute_mut, ImportAttribute);
     define_visit_mut!(visit_import_kind_mut, ImportKind);
     define_visit_mut!(visit_import_declaration_mut, ImportDeclaration);
     define_visit_mut!(visit_import_specifier_mut, ImportSpecifier);
@@ -664,6 +668,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::ModuleItemList(n) => self.visit_module_item_list_mut(n),
             NodeRefMut::ModuleItem(n) => self.visit_module_item_mut(n),
             NodeRefMut::ModuleSpecifier(n) => self.visit_module_specifier_mut(n),
+            NodeRefMut::ImportAttribute(n) => self.visit_import_attribute_mut(n),
             NodeRefMut::ImportKind(n) => self.visit_import_kind_mut(n),
             NodeRefMut::ImportDeclaration(n) => self.visit_import_declaration_mut(n),
             NodeRefMut::ImportSpecifier(n) => self.visit_import_specifier_mut(n),

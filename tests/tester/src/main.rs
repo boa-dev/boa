@@ -15,8 +15,6 @@ use std::{
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
     process::Command,
-    sync::OnceLock,
-    time::Instant,
 };
 
 use bitflags::bitflags;
@@ -45,8 +43,6 @@ mod edition;
 mod exec;
 mod read;
 mod results;
-
-static START: OnceLock<Instant> = OnceLock::new();
 
 /// Structure that contains the configuration of the tester.
 #[derive(Debug, Deserialize)]
@@ -187,11 +183,6 @@ const DEFAULT_TEST262_DIRECTORY: &str = "test262";
 /// Program entry point.
 fn main() -> Result<()> {
     color_eyre::install()?;
-
-    // initializes the monotonic clock.
-    START
-        .set(Instant::now())
-        .map_err(|_| eyre!("could not initialize the monotonic clock"))?;
 
     match Cli::parse() {
         Cli::Run {
@@ -461,7 +452,7 @@ fn run_test_suite(
 
         if versioned {
             let mut table = comfy_table::Table::new();
-            table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
+            table.load_style(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
             table.set_header(vec![
                 "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
             ]);
@@ -600,6 +591,8 @@ struct VersionedStats {
     es13: Statistics,
     es14: Statistics,
     es15: Statistics,
+    es16: Statistics,
+    es17: Statistics,
 }
 
 impl<'de> Deserialize<'de> for VersionedStats {
@@ -622,6 +615,10 @@ impl<'de> Deserialize<'de> for VersionedStats {
             es14: Option<Statistics>,
             #[serde(default)]
             es15: Option<Statistics>,
+            #[serde(default)]
+            es16: Option<Statistics>,
+            #[serde(default)]
+            es17: Option<Statistics>,
         }
 
         let inner = Inner::deserialize(deserializer)?;
@@ -638,9 +635,13 @@ impl<'de> Deserialize<'de> for VersionedStats {
             es13,
             es14,
             es15,
+            es16,
+            es17,
         } = inner;
         let es14 = es14.unwrap_or(es13);
         let es15 = es15.unwrap_or(es14);
+        let es16 = es16.unwrap_or(es15);
+        let es17 = es17.unwrap_or(es16);
 
         Ok(Self {
             es5,
@@ -654,6 +655,8 @@ impl<'de> Deserialize<'de> for VersionedStats {
             es13,
             es14,
             es15,
+            es16,
+            es17,
         })
     }
 }
@@ -684,6 +687,8 @@ impl VersionedStats {
             SpecEdition::ES13 => self.es13,
             SpecEdition::ES14 => self.es14,
             SpecEdition::ES15 => self.es15,
+            SpecEdition::ES16 => self.es16,
+            SpecEdition::ES17 => self.es17,
             SpecEdition::ESNext => return None,
         };
         Some(stats)
@@ -704,6 +709,8 @@ impl VersionedStats {
             SpecEdition::ES13 => &mut self.es13,
             SpecEdition::ES14 => &mut self.es14,
             SpecEdition::ES15 => &mut self.es15,
+            SpecEdition::ES16 => &mut self.es16,
+            SpecEdition::ES17 => &mut self.es17,
             SpecEdition::ESNext => return None,
         };
         Some(stats)
@@ -726,6 +733,8 @@ impl Add for VersionedStats {
             es13: self.es13 + rhs.es13,
             es14: self.es14 + rhs.es14,
             es15: self.es15 + rhs.es15,
+            es16: self.es16 + rhs.es16,
+            es17: self.es17 + rhs.es17,
         }
     }
 }
@@ -743,6 +752,8 @@ impl AddAssign for VersionedStats {
         self.es13 += rhs.es13;
         self.es14 += rhs.es14;
         self.es15 += rhs.es15;
+        self.es16 += rhs.es16;
+        self.es17 += rhs.es17;
     }
 }
 

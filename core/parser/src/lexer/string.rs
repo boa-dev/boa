@@ -45,10 +45,6 @@ pub(crate) enum StringTerminator {
 pub(crate) trait UTF16CodeUnitsBuffer {
     /// Encodes the code point to UTF-16 code units and push to the buffer.
     fn push_code_point(&mut self, code_point: u32);
-
-    /// Decodes the buffer into a String and replace the invalid data with the replacement character (U+FFFD).
-    #[allow(dead_code)]
-    fn to_string_lossy(&self) -> String;
 }
 
 impl UTF16CodeUnitsBuffer for Vec<u16> {
@@ -67,10 +63,6 @@ impl UTF16CodeUnitsBuffer for Vec<u16> {
             .expect("decoded an u32 into two u16.");
         self.push(cu1);
         self.push(cu2);
-    }
-
-    fn to_string_lossy(&self) -> String {
-        String::from_utf16_lossy(self.as_slice())
     }
 }
 
@@ -190,9 +182,7 @@ impl StringLiteral {
             0x0027 /* ' */ => (Some(0x0027 /* ' */), EscapeSequence::OTHER),
             0x005C /* \ */ => (Some(0x005C /* \ */), EscapeSequence::OTHER),
             0x0030 /* 0 */ if cursor
-                .peek_char()?
-                .filter(|c| (0x30..=0x39 /* 0..=9 */).contains(c))
-                .is_none() =>
+                .peek_char()?.as_ref().is_none_or(|c| !(0x30..=0x39 /* 0..=9 */).contains(c)) =>
                 (Some(0x0000 /* NULL */), EscapeSequence::OTHER),
             0x0078 /* x */ => {
                 (Some(Self::take_hex_escape_sequence(cursor, start_pos)?), EscapeSequence::OTHER)

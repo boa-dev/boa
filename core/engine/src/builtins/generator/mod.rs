@@ -10,10 +10,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
 
 use crate::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
+    Context, JsArgs, JsData, JsError, JsExpect, JsResult, JsString,
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    error::PanicError,
     js_string,
     object::{CONSTRUCTOR, JsObject},
     property::Attribute,
@@ -66,18 +67,25 @@ impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
         let mut frame = context.vm.frame().clone();
-        frame.environments = context.vm.frame.environments.clone();
+        frame.environments = context.vm.frame().environments.clone();
         frame.realm = context.realm().clone();
-        let mut stack = context.vm.stack.split_off_frame(&frame);
 
-        frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+        // Split the stack at fp. The split-off portion starts at what was fp,
+        // so adjust rp and fp to be relative to the new base.
+        let mut stack = context.vm.stack.split_off_frame(&frame);
+        frame.rp -= frame.fp;
+        frame.fp = 0;
 
         // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
         //       So we don't need to push the registers in subsequent calls.
         frame.flags |= CallFrameFlags::REGISTERS_ALREADY_PUSHED;
 
         if let Some(async_generator) = async_generator {
-            stack.set_async_generator_object(&frame, async_generator);
+            stack.set_register(
+                &frame,
+                CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX,
+                async_generator.into(),
+            );
         }
 
         Self {
@@ -94,11 +102,15 @@ impl GeneratorContext {
         context: &mut Context,
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        let frame = self.call_frame.take().expect("should have a call frame");
+        let Some(frame) = self.call_frame.take() else {
+            return CompletionRecord::Throw(PanicError::new("should have a call frame").into());
+        };
+        let fp = frame.fp;
         let rp = frame.rp;
         context.vm.push_frame(frame);
 
         let frame = context.vm.frame_mut();
+        frame.fp = fp;
         frame.rp = rp;
         frame.set_exit_early(true);
 
@@ -116,11 +128,21 @@ impl GeneratorContext {
     }
 
     /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
-    pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        if let Some(frame) = &self.call_frame {
-            return self.stack.async_generator_object(frame);
+    pub(crate) fn async_generator_object(&self) -> JsResult<Option<JsObject>> {
+        let Some(frame) = self.call_frame.as_ref() else {
+            return Ok(None);
+        };
+
+        if !frame.code_block().is_async_generator() {
+            return Ok(None);
         }
-        None
+
+        let val = self
+            .stack
+            .get_register(frame, CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
+            .js_expect("registers must have an async generator object")?;
+
+        Ok(val.as_object())
     }
 }
 
@@ -134,13 +156,7 @@ pub struct Generator {
 impl IntrinsicObject for Generator {
     fn init(realm: &Realm) {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .prototype(
-                realm
-                    .intrinsics()
-                    .objects()
-                    .iterator_prototypes()
-                    .iterator(),
-            )
+            .prototype(realm.intrinsics().constructors().iterator().prototype())
             .static_method(Self::next, js_string!("next"), 1)
             .static_method(Self::r#return, js_string!("return"), 1)
             .static_method(Self::throw, js_string!("throw"), 1)
@@ -292,20 +308,20 @@ impl Generator {
 
         let mut r#gen = generator_obj
             .downcast_mut::<Self>()
-            .expect("already checked this object type");
+            .js_expect("already checked this object type")?;
 
         // 8. Push genContext onto the execution context stack; genContext is now the running execution context.
         // 9. Resume the suspended evaluation of genContext using NormalCompletion(value) as the result of the operation that suspended it. Let result be the value returned by the resumed computation.
         // 10. Assert: When we return here, genContext has already been removed from the execution context stack and methodContext is the currently running execution context.
         // 11. Return Completion(result).
         match record {
-            CompletionRecord::Return(value) => {
+            CompletionRecord::Normal(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {
                     context: generator_context,
                 };
                 Ok(value)
             }
-            CompletionRecord::Normal(value) => {
+            CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }
@@ -390,13 +406,13 @@ impl Generator {
         })?;
 
         match record {
-            CompletionRecord::Return(value) => {
+            CompletionRecord::Normal(value) => {
                 r#gen.state = GeneratorState::SuspendedYield {
                     context: generator_context,
                 };
                 Ok(value)
             }
-            CompletionRecord::Normal(value) => {
+            CompletionRecord::Return(value) => {
                 r#gen.state = GeneratorState::Completed;
                 Ok(create_iter_result_object(value, true, context))
             }

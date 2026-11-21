@@ -1,6 +1,6 @@
 use std::iter::FusedIterator;
 
-use crate::JsStr;
+use crate::{CodePoint, JsStr};
 
 use super::JsStrVariant;
 
@@ -17,6 +17,7 @@ pub struct Iter<'a> {
 }
 
 impl<'a> Iter<'a> {
+    #[inline]
     pub(crate) fn new(s: JsStr<'a>) -> Self {
         let inner = match s.variant() {
             JsStrVariant::Latin1(s) => IterInner::U8(s.iter().copied()),
@@ -65,6 +66,7 @@ pub struct Windows<'a> {
 }
 
 impl<'a> Windows<'a> {
+    #[inline]
     pub(crate) fn new(string: JsStr<'a>, size: usize) -> Self {
         let inner = match string.variant() {
             JsStrVariant::Latin1(v) => WindowsInner::U8(v.windows(size)),
@@ -97,3 +99,46 @@ impl ExactSizeIterator for Windows<'_> {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+enum CodePointsIterInner<'a> {
+    Latin1(std::iter::Copied<std::slice::Iter<'a, u8>>),
+    Utf16(std::char::DecodeUtf16<std::iter::Copied<std::slice::Iter<'a, u16>>>),
+}
+
+#[derive(Debug, Clone)]
+pub struct CodePointsIter<'a> {
+    inner: CodePointsIterInner<'a>,
+}
+
+impl<'a> CodePointsIter<'a> {
+    #[inline]
+    pub(crate) fn new(s: JsStr<'a>) -> Self {
+        let inner = match s.variant() {
+            JsStrVariant::Latin1(s) => CodePointsIterInner::Latin1(s.iter().copied()),
+            JsStrVariant::Utf16(s) => {
+                CodePointsIterInner::Utf16(char::decode_utf16(s.iter().copied()))
+            }
+        };
+        CodePointsIter { inner }
+    }
+}
+
+impl Iterator for CodePointsIter<'_> {
+    type Item = CodePoint;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        match &mut self.inner {
+            CodePointsIterInner::Latin1(iter) => {
+                iter.next().map(|b| CodePoint::Unicode(char::from(b)))
+            }
+            CodePointsIterInner::Utf16(iter) => iter.next().map(|res| match res {
+                Ok(c) => CodePoint::Unicode(c),
+                Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
+            }),
+        }
+    }
+}
+
+impl FusedIterator for CodePointsIter<'_> {}

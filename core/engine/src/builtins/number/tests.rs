@@ -167,13 +167,30 @@ fn issue_2609() {
 
 #[test]
 fn to_locale_string() {
-    // TODO: We don't actually do any locale checking here
-    // To honor the spec we should print numbers according to user locale.
     run_test_actions([
         TestAction::assert_eq("Number().toLocaleString()", js_str!("0")),
         TestAction::assert_eq("Number(5).toLocaleString()", js_str!("5")),
-        TestAction::assert_eq("Number('345600').toLocaleString()", js_str!("345600")),
         TestAction::assert_eq("Number(-25).toLocaleString()", js_str!("-25")),
+        TestAction::assert_eq("NaN.toLocaleString()", js_str!("NaN")),
+        TestAction::assert_eq("Infinity.toLocaleString()", js_str!("Infinity")),
+        TestAction::assert_eq("(-Infinity).toLocaleString()", js_str!("-Infinity")),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "intl")]
+fn to_locale_string_intl() {
+    run_test_actions([
+        TestAction::assert_eq("(345600).toLocaleString('en-US')", js_str!("345,600")),
+        TestAction::assert_eq("(1234.5).toLocaleString('de-DE')", js_str!("1.234,5")),
+        TestAction::assert_eq(
+            "(1000).toLocaleString('en-US', { useGrouping: false })",
+            js_str!("1000"),
+        ),
+        TestAction::assert_eq(
+            "(12.3).toLocaleString('en-US', { minimumFractionDigits: 2 })",
+            js_str!("12.30"),
+        ),
     ]);
 }
 
@@ -640,5 +657,31 @@ fn issue_2717() {
             "(0.23046743672210102).toString(36)",
             js_str!("0.8aoosla2phj"),
         ),
+    ]);
+}
+
+#[test]
+fn to_precision_edge_cases() {
+    run_test_actions([
+        TestAction::assert_eq("(NaN).toPrecision(3)", js_str!("NaN")),
+        TestAction::assert_eq("(Infinity).toPrecision(3)", js_str!("Infinity")),
+        TestAction::assert_eq("(-Infinity).toPrecision(3)", js_str!("-Infinity")),
+        TestAction::assert_eq("(-0).toPrecision(5)", js_str!("0.0000")),
+        // Carry-over rounding tests
+        TestAction::assert_eq("(9.95).toPrecision(2)", js_str!("9.9")),
+        TestAction::assert_eq("(99.95).toPrecision(3)", js_str!("100")),
+        TestAction::assert_eq("(999.95).toPrecision(4)", js_str!("1000")),
+        TestAction::assert_eq("(9.5).toPrecision(1)", js_str!("1e+1")),
+        TestAction::assert_eq("(123.456).toPrecision(5)", js_str!("123.46")),
+        TestAction::assert_eq("(0.00456).toPrecision(3)", js_str!("0.00456")),
+        TestAction::assert_eq("(0.0000001).toPrecision(2)", js_str!("1.0e-7")),
+        TestAction::assert_eq("(0.000000123).toPrecision(3)", js_str!("1.23e-7")),
+        TestAction::assert_eq("(123456789).toPrecision(3)", js_str!("1.23e+8")),
+        TestAction::assert_eq("(0.1 + 0.2).toPrecision(1)", js_str!("0.3")),
+        TestAction::assert_eq("(123).toPrecision(3)", js_str!("123")),
+        TestAction::assert_eq("(123).toPrecision(4)", js_str!("123.0")),
+        TestAction::assert_eq("(0).toPrecision(1)", js_str!("0")),
+        TestAction::assert_eq("(1).toPrecision(1)", js_str!("1")),
+        TestAction::assert_eq("(9).toPrecision(1)", js_str!("9")),
     ]);
 }

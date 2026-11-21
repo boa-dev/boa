@@ -1,4 +1,4 @@
-//! An ECMAScript WASM implementation based on `boa_engine`.
+//! An ECMAScript Wasm implementation based on `boa_engine`.
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(unused_crate_dependencies)]
 

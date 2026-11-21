@@ -445,6 +445,16 @@ pub enum Keyword {
     /// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
     Yield,
+
+    /// The `using` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-explicit-resource-management/
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/using
+    Using,
 }
 
 impl Keyword {
@@ -501,6 +511,7 @@ impl Keyword {
             Self::While => ("while", utf16!("while")),
             Self::With => ("with", utf16!("with")),
             Self::Yield => ("yield", utf16!("yield")),
+            Self::Using => ("using", utf16!("using")),
         }
     }
 
@@ -546,20 +557,30 @@ impl Keyword {
             Self::While => Sym::WHILE,
             Self::With => Sym::WITH,
             Self::Yield => Sym::YIELD,
+            Self::Using => Sym::USING,
         }
     }
 }
 
-// TODO: Should use a proper Error
 impl TryFrom<Keyword> for BinaryOp {
-    type Error = String;
+    type Error = KeywordToBinaryOpError;
 
     fn try_from(value: Keyword) -> Result<Self, Self::Error> {
-        value
-            .as_binary_op()
-            .ok_or_else(|| format!("No binary operation for {value}"))
+        value.as_binary_op().ok_or(KeywordToBinaryOpError)
     }
 }
+
+/// Error returned when a [`Keyword`] cannot be converted into a [`BinaryOp`].
+#[derive(Debug, Clone, Copy)]
+pub struct KeywordToBinaryOpError;
+
+impl fmt::Display for KeywordToBinaryOpError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "keyword is not a binary operator")
+    }
+}
+
+impl error::Error for KeywordToBinaryOpError {}
 
 /// The error type which is returned from parsing a [`str`] into a [`Keyword`].
 #[derive(Debug, Clone, Copy)]
@@ -615,6 +636,7 @@ impl FromStr for Keyword {
             "while" => Ok(Self::While),
             "with" => Ok(Self::With),
             "yield" => Ok(Self::Yield),
+            "using" => Ok(Self::Using),
             _ => Err(KeywordError),
         }
     }

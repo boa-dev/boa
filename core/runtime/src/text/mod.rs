@@ -2,12 +2,12 @@
 //!
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Encoding_API> for more information.
 
-use boa_engine::object::builtins::{JsArrayBuffer, JsTypedArray, JsUint8Array};
+use boa_engine::object::builtins::{JsArrayBuffer, JsDataView, JsTypedArray, JsUint8Array};
 use boa_engine::realm::Realm;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, boa_module,
-    js_error, js_string,
+    Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, boa_class, boa_module, js_error,
+    js_string,
 };
 
 #[cfg(test)]
@@ -15,19 +15,64 @@ mod tests;
 
 mod encodings;
 
+/// Options for the [`TextDecoder`] constructor.
+#[derive(Debug, Default, Clone, Copy, TryFromJs)]
+pub struct TextDecoderOptions {
+    #[boa(rename = "ignoreBOM")]
+    ignore_bom: Option<bool>,
+}
+
+/// The character encoding used by [`TextDecoder`].
+#[derive(Debug, Default, Clone, Copy)]
+pub enum Encoding {
+    /// UTF-8 encoding.
+    #[default]
+    Utf8,
+    /// UTF-16 little endian encoding.
+    Utf16Le,
+    /// UTF-16 big endian encoding.
+    Utf16Be,
+}
+
+const TEXT_DECODER_LABELS: &[(&str, Encoding)] = &[
+    ("unicode-1-1-utf-8", Encoding::Utf8),
+    ("unicode11utf8", Encoding::Utf8),
+    ("unicode20utf8", Encoding::Utf8),
+    ("utf-8", Encoding::Utf8),
+    ("utf8", Encoding::Utf8),
+    ("x-unicode20utf8", Encoding::Utf8),
+    ("unicodefffe", Encoding::Utf16Be),
+    ("utf-16be", Encoding::Utf16Be),
+    ("csunicode", Encoding::Utf16Le),
+    ("iso-10646-ucs-2", Encoding::Utf16Le),
+    ("ucs-2", Encoding::Utf16Le),
+    ("unicode", Encoding::Utf16Le),
+    ("unicodefeff", Encoding::Utf16Le),
+    ("utf-16", Encoding::Utf16Le),
+    ("utf-16le", Encoding::Utf16Le),
+];
+
+#[inline]
+fn resolve_text_decoder_label(label: &str) -> Option<Encoding> {
+    let label = label.trim_matches(['\u{0009}', '\u{000A}', '\u{000C}', '\u{000D}', '\u{0020}']);
+
+    TEXT_DECODER_LABELS
+        .iter()
+        .find_map(|(supported, encoding)| {
+            label.eq_ignore_ascii_case(supported).then_some(*encoding)
+        })
+}
+
 /// The [`TextDecoder`][mdn] class represents an encoder for a specific method, that is
 /// a specific character encoding, like `utf-8`.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder
 #[derive(Debug, Default, Clone, JsData, Trace, Finalize)]
-pub enum TextDecoder {
-    /// Decode bytes encoded as UTF-8 into strings.
-    #[default]
-    Utf8,
-    /// Decode bytes encoded as UTF-16 (little endian) into strings.
-    Utf16Le,
-    /// Decode bytes encoded as UTF-16 (big endian) into strings.
-    Utf16Be,
+pub struct TextDecoder {
+    #[unsafe_ignore_trace]
+    encoding: Encoding,
+    #[unsafe_ignore_trace]
+    ignore_bom: bool,
 }
 
 #[boa_class]
@@ -39,18 +84,26 @@ impl TextDecoder {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/TextDecoder
     #[boa(constructor)]
-    pub fn constructor(encoding: Option<JsString>, _options: Option<JsObject>) -> JsResult<Self> {
-        let Some(encoding) = encoding else {
-            return Ok(Self::default());
+    pub fn constructor(
+        encoding: Option<JsString>,
+        options: Option<TextDecoderOptions>,
+    ) -> JsResult<Self> {
+        let ignore_bom = options.and_then(|o| o.ignore_bom).unwrap_or(false);
+
+        let encoding = match encoding {
+            Some(enc) => {
+                let label = enc.to_std_string_lossy();
+                resolve_text_decoder_label(&label).ok_or_else(
+                    || js_error!(RangeError: "The given encoding '{}' is not supported.", label),
+                )?
+            }
+            None => Encoding::default(),
         };
 
-        match encoding.to_std_string_lossy().as_str() {
-            "utf-8" => Ok(Self::Utf8),
-            // Default encoding is Little Endian.
-            "utf-16" | "utf-16le" => Ok(Self::Utf16Le),
-            "utf-16be" => Ok(Self::Utf16Be),
-            e => Err(js_error!(RangeError: "The given encoding '{}' is not supported.", e)),
-        }
+        Ok(Self {
+            encoding,
+            ignore_bom,
+        })
     }
 
     /// The [`TextDecoder.encoding`][mdn] read-only property returns a string containing
@@ -60,80 +113,116 @@ impl TextDecoder {
     #[boa(getter)]
     #[must_use]
     pub fn encoding(&self) -> JsString {
-        match self {
-            Self::Utf8 => js_string!("utf-8"),
-            Self::Utf16Le => js_string!("utf-16le"),
-            Self::Utf16Be => js_string!("utf-16be"),
+        match self.encoding {
+            Encoding::Utf8 => js_string!("utf-8"),
+            Encoding::Utf16Le => js_string!("utf-16le"),
+            Encoding::Utf16Be => js_string!("utf-16be"),
         }
+    }
+
+    /// The [`TextDecoder.ignoreBOM`][mdn] read-only property returns a `bool` indicating
+    /// whether the BOM (byte order mark) is ignored.
+    ///
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/ignoreBOM
+    #[boa(getter)]
+    #[boa(rename = "ignoreBOM")]
+    #[must_use]
+    pub fn ignore_bom(&self) -> bool {
+        self.ignore_bom
     }
 
     /// The [`TextDecoder.decode()`][mdn] method returns a string containing text decoded from the
     /// buffer passed as a parameter.
+    ///
+    /// If `buffer` is omitted or `undefined`, this returns an empty string.
+    ///
+    /// `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
     ///
     /// # Errors
     /// Any error that arises during decoding the specific encoding.
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder/decode
     pub fn decode(&self, buffer: JsValue, context: &mut Context) -> JsResult<JsString> {
-        // `buffer` can be an `ArrayBuffer`, a `TypedArray` or a `DataView`.
-        let bytes = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
-            JsUint8Array::from_array_buffer(array_buffer, context)?
+        if buffer.is_undefined() {
+            return Ok(js_string!(""));
+        }
+
+        let mut range = None;
+        let array_buffer = if let Ok(array_buffer) = JsArrayBuffer::try_from_js(&buffer, context) {
+            array_buffer
         } else if let Ok(typed_array) = JsTypedArray::try_from_js(&buffer, context) {
-            let Some(buffer) = typed_array.buffer(context)?.as_object() else {
+            let Some(obj) = typed_array.buffer(context)?.as_object() else {
                 return Err(js_error!(TypeError: "Invalid buffer backing TypedArray."));
             };
-            JsUint8Array::from_array_buffer(JsArrayBuffer::from_object(buffer)?, context)?
+
+            let offset = typed_array.byte_offset(context)?;
+            let length = typed_array.byte_length(context)?;
+
+            range = Some(offset..offset + length);
+
+            JsArrayBuffer::from_object(obj)?
+        } else if let Ok(data_view) = JsDataView::try_from_js(&buffer, context) {
+            let Some(obj) = data_view.buffer(context)?.as_object() else {
+                return Err(js_error!(TypeError: "Invalid buffer backing DataView."));
+            };
+
+            let offset = usize::try_from(data_view.byte_offset(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView offset exceeds addressable size."))?;
+            let length = usize::try_from(data_view.byte_length(context)?)
+                .map_err(|_| js_error!(RangeError: "DataView length exceeds addressable size."))?;
+
+            range = Some(offset..offset + length);
+
+            JsArrayBuffer::from_object(obj)?
         } else {
-            return Err(
-                js_error!(TypeError: "Argument 1 must be an ArrayBuffer, TypedArray or DataView."),
-            );
+            return Err(js_error!(
+                TypeError: "Argument 1 must be an ArrayBuffer, TypedArray or DataView."
+            ));
         };
 
-        let buffer = bytes.iter(context).collect::<Vec<u8>>();
-        Ok(match self {
-            Self::Utf8 => encodings::utf8::decode(&buffer),
-            Self::Utf16Le => encodings::utf16le::decode(&buffer),
-            Self::Utf16Be => encodings::utf16be::decode(buffer),
+        let strip_bom = !self.ignore_bom;
+
+        let Some(full_data) = array_buffer.data() else {
+            return Err(js_error!(TypeError: "cannot decode a detached ArrayBuffer"));
+        };
+
+        let data: &[u8] = if let Some(range) = range {
+            full_data.get(range).ok_or_else(
+                // We do not say invalid range here, as both subarray(10, 5) and subarray("a", "b")
+                // are valid JS, it would just an empty array. If this error occurs, it most likely means something else
+                // is wrong
+                || js_error!(RangeError: "The range for the underlying ArrayBuffer can not be accessed."),
+            )?
+        } else {
+            &full_data
+        };
+
+        Ok(match self.encoding {
+            Encoding::Utf8 => encodings::utf8::decode(data, strip_bom),
+            Encoding::Utf16Le => encodings::utf16le::decode(data, strip_bom),
+            Encoding::Utf16Be => {
+                let owned = data.to_vec();
+                encodings::utf16be::decode(owned, strip_bom)
+            }
         })
     }
 }
 
-/// The `TextEncoder`[mdn] class represents an encoder for a specific method, that is
-/// a specific character encoding, like `utf-8`.
+/// The `TextEncoder`[mdn] class represents a UTF-8 encoder.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder
 #[derive(Debug, Default, Clone, JsData, Trace, Finalize)]
-pub enum TextEncoder {
-    /// Encode UTF-8 strings into buffers.
-    #[default]
-    Utf8,
-    /// Encode UTF-16 strings (little endian) into buffers.
-    Utf16Le,
-    /// Encode UTF-16 strings (big endian) into buffers.
-    Utf16Be,
-}
+pub struct TextEncoder;
 
 #[boa_class]
 impl TextEncoder {
     /// The [`TextEncoder()`][mdn] constructor returns a newly created `TextEncoder` object.
     ///
-    /// # Errors
-    /// This will return an error if the encoding or options are invalid or unsupported.
-    ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
     #[boa(constructor)]
-    pub fn constructor(encoding: Option<JsString>, _options: Option<JsObject>) -> JsResult<Self> {
-        let Some(encoding) = encoding else {
-            return Ok(Self::default());
-        };
-
-        match encoding.to_std_string_lossy().as_str() {
-            "utf-8" => Ok(Self::Utf8),
-            // Default encoding is Little Endian.
-            "utf-16" | "utf-16le" => Ok(Self::Utf16Le),
-            "utf-16be" => Ok(Self::Utf16Be),
-            e => Err(js_error!(RangeError: "The given encoding '{}' is not supported.", e)),
-        }
+    #[must_use]
+    pub fn constructor() -> Self {
+        Self
     }
 
     /// The [`TextEncoder.encoding`][mdn] read-only property returns a string containing
@@ -142,12 +231,8 @@ impl TextEncoder {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/encoding
     #[boa(getter)]
     #[must_use]
-    fn encoding(&self) -> JsString {
-        match self {
-            Self::Utf8 => js_string!("utf-8"),
-            Self::Utf16Le => js_string!("utf-16le"),
-            Self::Utf16Be => js_string!("utf-16be"),
-        }
+    fn encoding() -> JsString {
+        js_string!("utf-8")
     }
 
     /// The [`TextEncoder.encode()`][mdn] method takes a string as input, and returns
@@ -163,12 +248,7 @@ impl TextEncoder {
             return JsUint8Array::from_iter([], context);
         };
 
-        let vec = match self {
-            Self::Utf8 => encodings::utf8::encode(&text),
-            Self::Utf16Le => encodings::utf16le::encode(&text),
-            Self::Utf16Be => encodings::utf16be::encode(&text),
-        };
-        JsUint8Array::from_iter(vec, context)
+        JsUint8Array::from_iter(encodings::utf8::encode(&text), context)
     }
 }
 

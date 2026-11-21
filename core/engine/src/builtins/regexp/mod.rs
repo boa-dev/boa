@@ -47,6 +47,18 @@ pub struct RegExp {
     original_flags: JsString,
 }
 
+impl RegExp {
+    /// Returns the original source string of the regex (e.g. `"regex-test"`).
+    pub(crate) fn original_source(&self) -> &JsString {
+        &self.original_source
+    }
+
+    /// Returns the original flags string of the regex (e.g. `"gi"`).
+    pub(crate) fn original_flags(&self) -> &JsString {
+        &self.original_flags
+    }
+}
+
 impl IntrinsicObject for RegExp {
     fn init(realm: &Realm) {
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
@@ -328,7 +340,7 @@ impl RegExp {
             flags.to_string(context)?
         };
 
-        // 5. If F contains any code unit other than "g", "i", "m", "s", "u", or "y"
+        // 5. If F contains any code unit other than "g", "i", "m", "s", "u", "v", or "y"
         //    or if it contains the same code unit more than once, throw a SyntaxError exception.
         // TODO: Should directly parse the JsString instead of converting to String
         let flags = match RegExpFlags::from_str(&f.to_std_string_escaped()) {
@@ -338,18 +350,47 @@ impl RegExp {
 
         // 13. Let parseResult be ParsePattern(patternText, u, v).
         // 14. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
-        let matcher =
+
+        // If u or v flag is set, fullUnicode is true — compile as full codepoints.
+        let full_unicode =
+            flags.contains(RegExpFlags::UNICODE) || flags.contains(RegExpFlags::UNICODE_SETS);
+
+        let matcher = if full_unicode {
+            // Unicode mode (u/v flag) OR pattern has named groups:
+            // compile as full Unicode codepoints.
             Regex::from_unicode(p.code_points().map(CodePoint::as_u32), Flags::from(flags))
                 .map_err(|error| {
                     JsNativeError::syntax()
                         .with_message(format!("failed to create matcher: {}", error.text))
-                })?;
+                })?
+        } else {
+            // Non-Unicode mode with no named groups:
+            // compile as raw UTF-16 code units so that surrogate pairs
+            // (e.g. 𠮷 = [0xD842, 0xDFB7]) are matched correctly by find_from_ucs2.
+            let utf16_units = p.code_points().flat_map(|cp| {
+                let mut buf = [0u16; 2];
+                match cp {
+                    CodePoint::Unicode(c) => c
+                        .encode_utf16(&mut buf)
+                        .iter()
+                        .map(|&u| u32::from(u))
+                        .collect::<Vec<_>>(),
+                    CodePoint::UnpairedSurrogate(s) => vec![u32::from(s)],
+                }
+            });
+            Regex::from_unicode(utf16_units, Flags::from(flags)).map_err(|error| {
+                JsNativeError::syntax()
+                    .with_message(format!("failed to create matcher: {}", error.text))
+            })?
+        };
 
         // 15. Assert: parseResult is a Pattern Parse Node.
         // 16. Set obj.[[OriginalSource]] to P.
         // 17. Set obj.[[OriginalFlags]] to F.
         // 18. Let capturingGroupsCount be CountLeftCapturingParensWithin(parseResult).
-        // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m, [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v, [[CapturingGroupsCount]]: capturingGroupsCount }.
+        // 19. Let rer be the RegExp Record { [[IgnoreCase]]: i, [[Multiline]]: m,
+        //     [[DotAll]]: s, [[Unicode]]: u, [[UnicodeSets]]: v,
+        //     [[CapturingGroupsCount]]: capturingGroupsCount }.
         // 20. Set obj.[[RegExpRecord]] to rer.
         // 21. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult with argument rer.
         Ok(RegExp {
@@ -1191,12 +1232,10 @@ impl RegExp {
         let a = Array::array_create(n + 1, None, context)?;
 
         // 22. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
-        a.create_data_property_or_throw(js_string!("index"), last_index, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(js_string!("index"), last_index, context)?;
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "input", S).
-        a.create_data_property_or_throw(js_string!("input"), input.clone(), context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(js_string!("input"), input.clone(), context)?;
 
         // 24. Let match be the Match Record { [[StartIndex]]: lastIndex, [[EndIndex]]: e }.
         // Immediately convert it to an array according to 22.2.7.7 GetMatchIndexPair(S, match)
@@ -1211,22 +1250,17 @@ impl RegExp {
         let indices = Array::array_create(n + 1, None, context)?;
 
         // 27. Append match to indices.
-        indices
-            .create_data_property_or_throw(0, match_record, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        indices.create_data_property_or_throw(0, match_record, context)?;
 
         // 28. Let matchedSubstr be GetMatchString(S, match).
         let matched_substr = input.get_expect((last_index as usize)..(e));
 
         // 29. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
-        a.create_data_property_or_throw(0, matched_substr, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(0, matched_substr, context)?;
 
-        let mut named_groups = match_value
+        let named_groups = match_value
             .named_groups()
             .collect::<Vec<(&str, Option<Range>)>>();
-        // Strict mode requires groups to be created in a sorted order
-        named_groups.sort_by(|(name_x, _), (name_y, _)| name_x.cmp(name_y));
 
         // Combines:
         // 26. Let groupNames be a new empty List.
@@ -1248,37 +1282,37 @@ impl RegExp {
                 if let Some(range) = range {
                     let value = input.get_expect(range.clone());
 
-                    groups
-                        .create_data_property_or_throw(name.clone(), value, context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    groups.create_data_property_or_throw(name.clone(), value, context)?;
 
                     // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
                     // a. Let matchIndices be indices[i].
                     // b. If matchIndices is not undefined, then
                     // i. Let matchIndexPair be GetMatchIndexPair(S, matchIndices).
                     // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
-                    group_names
-                        .create_data_property_or_throw(
-                            name.clone(),
-                            Array::create_array_from_list(
-                                [range.start.into(), range.end.into()],
-                                context,
-                            ),
+                    group_names.create_data_property_or_throw(
+                        name.clone(),
+                        Array::create_array_from_list(
+                            [range.start.into(), range.end.into()],
                             context,
-                        )
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                        ),
+                        context,
+                    )?;
                 } else {
-                    groups
-                        .create_data_property_or_throw(name.clone(), JsValue::undefined(), context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    groups.create_data_property_or_throw(
+                        name.clone(),
+                        JsValue::undefined(),
+                        context,
+                    )?;
 
                     // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
                     // c. Else,
                     // i. Let matchIndexPair be undefined.
                     // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
-                    group_names
-                        .create_data_property_or_throw(name, JsValue::undefined(), context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    group_names.create_data_property_or_throw(
+                        name,
+                        JsValue::undefined(),
+                        context,
+                    )?;
                 }
             }
 
@@ -1290,13 +1324,10 @@ impl RegExp {
 
         // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
         // 8. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
-        indices
-            .create_data_property_or_throw(js_string!("groups"), group_names, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        indices.create_data_property_or_throw(js_string!("groups"), group_names, context)?;
 
         // 32. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
-        a.create_data_property_or_throw(js_string!("groups"), groups, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(js_string!("groups"), groups, context)?;
 
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
         for i in 1..=n {
@@ -1311,8 +1342,7 @@ impl RegExp {
             });
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
-            a.create_data_property_or_throw(i, captured_value.clone(), context)
-                .expect("this CreateDataPropertyOrThrow call must not fail");
+            a.create_data_property_or_throw(i, captured_value.clone(), context)?;
 
             // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
             if has_indices {
@@ -1326,9 +1356,7 @@ impl RegExp {
                 });
 
                 // d. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), matchIndexPair).
-                indices
-                    .create_data_property_or_throw(i, indices_range, context)
-                    .expect("this CreateDataPropertyOrThrow call must not fail");
+                indices.create_data_property_or_throw(i, indices_range, context)?;
             }
         }
 
@@ -1336,8 +1364,7 @@ impl RegExp {
         // a. Let indicesArray be MakeMatchIndicesIndexPairArray(S, indices, groupNames, hasGroups).
         // b. Perform ! CreateDataPropertyOrThrow(A, "indices", indicesArray).
         if has_indices {
-            a.create_data_property_or_throw(js_string!("indices"), indices, context)
-                .expect("this CreateDataPropertyOrThrow call must not fail");
+            a.create_data_property_or_throw(js_string!("indices"), indices, context)?;
         }
 
         // 35. Return A.
@@ -1389,7 +1416,7 @@ impl RegExp {
         rx.set(js_string!("lastIndex"), 0, true, context)?;
 
         // c. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
+        let a = Array::array_create(0, None, context)?;
 
         // d. Let n be 0.
         let mut n = 0;
@@ -1406,8 +1433,7 @@ impl RegExp {
                 let match_str = result.get(0, context)?.to_string(context)?;
 
                 // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
-                a.create_data_property_or_throw(n, match_str.clone(), context)
-                    .expect("this CreateDataPropertyOrThrow call must not fail");
+                a.create_data_property_or_throw(n, match_str.clone(), context)?;
 
                 // 3. If matchStr is the empty String, then
                 if match_str.is_empty() {
@@ -1529,7 +1555,7 @@ impl RegExp {
 
         // 11. If flags contains "u", let fullUnicode be true.
         // 12. Else, let fullUnicode be false.
-        let unicode = flags.contains(b'u');
+        let unicode = flags.contains(b'u') || flags.contains(b'v');
 
         // 13. Return ! CreateRegExpStringIterator(matcher, S, global, fullUnicode).
         Ok(RegExpStringIterator::create_regexp_string_iterator(
@@ -1788,7 +1814,7 @@ impl RegExp {
         // 17. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.
         Ok(js_string!(
             &JsString::from(&accumulated_result[..]),
-            s.get_expect(next_source_position..)
+            &s.get_expect(next_source_position..)
         )
         .into())
     }
@@ -1898,7 +1924,7 @@ impl RegExp {
         )?;
 
         // 11. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
+        let a = Array::array_create(0, None, context)?;
 
         // 12. Let lengthA be 0.
         let mut length_a = 0;
@@ -1930,8 +1956,7 @@ impl RegExp {
             }
 
             // c. Perform ! CreateDataPropertyOrThrow(A, "0", S).
-            a.create_data_property_or_throw(0, arg_str, context)
-                .expect("this CreateDataPropertyOrThrow call must not fail");
+            a.create_data_property_or_throw(0, arg_str, context)?;
 
             // d. Return A.
             return Ok(a.into());
@@ -1970,8 +1995,7 @@ impl RegExp {
                     let arg_str_substring = arg_str.get_expect(p as usize..q as usize);
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-                    a.create_data_property_or_throw(length_a, arg_str_substring, context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                    a.create_data_property_or_throw(length_a, arg_str_substring, context)?;
 
                     // 3. Set lengthA to lengthA + 1.
                     length_a += 1;
@@ -1997,8 +2021,7 @@ impl RegExp {
                         let next_capture = result.get(i, context)?;
 
                         // b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).
-                        a.create_data_property_or_throw(length_a, next_capture, context)
-                            .expect("this CreateDataPropertyOrThrow call must not fail");
+                        a.create_data_property_or_throw(length_a, next_capture, context)?;
 
                         // d. Set lengthA to lengthA + 1.
                         length_a += 1;
@@ -2021,8 +2044,7 @@ impl RegExp {
         let arg_str_substring = arg_str.get_expect(p as usize..size as usize);
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-        a.create_data_property_or_throw(length_a, arg_str_substring, context)
-            .expect("this CreateDataPropertyOrThrow call must not fail");
+        a.create_data_property_or_throw(length_a, arg_str_substring, context)?;
 
         // 22. Return A.
         Ok(a.into())

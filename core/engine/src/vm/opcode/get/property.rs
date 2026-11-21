@@ -1,14 +1,14 @@
 use boa_string::StaticJsStrings;
 
 use crate::{
-    Context, JsResult, JsValue, js_string,
+    Context, JsExpect, JsResult, JsValue, js_string,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::opcode::{Operation, VaryingOperand},
+    vm::opcode::{IndexOperand, Operation, RegisterOperand},
 };
 
 fn get_by_name<const LENGTH: bool>(
-    (dst, object, receiver, index): (VaryingOperand, &JsValue, &JsValue, VaryingOperand),
+    (dst, object, receiver, index): (RegisterOperand, &JsValue, &JsValue, IndexOperand),
     context: &mut Context,
 ) -> JsResult<()> {
     if LENGTH {
@@ -39,9 +39,9 @@ fn get_by_name<const LENGTH: bool>(
 
     let ic = &context.vm.frame().code_block().ic[usize::from(index)];
     let object_borrowed = object.borrow();
-    if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+    if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
         let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-            let prototype = shape.prototype().expect("prototype should have value");
+            let prototype = shape.prototype().js_expect("prototype should have value")?;
             let prototype = prototype.borrow();
             prototype.properties().storage[slot.index as usize].clone()
         } else {
@@ -50,11 +50,10 @@ fn get_by_name<const LENGTH: bool>(
 
         drop(object_borrowed);
         if slot.attributes.has_get() && result.is_object() {
-            result =
-                result
-                    .as_object()
-                    .expect("should contain getter")
-                    .call(receiver, &[], context)?;
+            result = result
+                .as_object()
+                .js_expect("should contain getter")?
+                .call(receiver, &[], context)?;
         }
         context.vm.set_register(dst.into(), result);
         return Ok(());
@@ -82,10 +81,10 @@ fn get_by_name<const LENGTH: bool>(
 
 fn get_by_value<const PUSH_KEY: bool>(
     (dst, key, receiver, object): (
-        VaryingOperand,
-        VaryingOperand,
-        VaryingOperand,
-        VaryingOperand,
+        RegisterOperand,
+        RegisterOperand,
+        RegisterOperand,
+        RegisterOperand,
     ),
     context: &mut Context,
 ) -> JsResult<()> {
@@ -114,7 +113,7 @@ fn get_by_value<const PUSH_KEY: bool>(
                 }
             } else if let Some(string) = base.as_string() {
                 let value = string
-                    .get(index.get() as usize)
+                    .code_unit_at(index.get() as usize)
                     .map_or_else(JsValue::undefined, |char| {
                         js_string!([char].as_slice()).into()
                     });
@@ -162,7 +161,7 @@ pub(crate) struct GetLengthProperty;
 impl GetLengthProperty {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, object, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -186,7 +185,7 @@ pub(crate) struct GetPropertyByName;
 impl GetPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
-        (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (dst, object, index): (RegisterOperand, RegisterOperand, IndexOperand),
         context: &mut Context,
     ) -> JsResult<()> {
         let object = context.vm.get_register(object.into()).clone();
@@ -211,10 +210,10 @@ impl GetPropertyByNameWithThis {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, receiver, value, index): (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            IndexOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -233,7 +232,7 @@ impl Operation for GetPropertyByNameWithThis {
 /// `GetPropertyByValue` implements the Opcode Operation for `Opcode::GetPropertyByValue`
 ///
 /// Operation:
-///  - Get a property by value from an object an push it on the stack.
+///  - Get a property by value from an object and store it in dst.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValue;
 
@@ -241,10 +240,10 @@ impl GetPropertyByValue {
     #[inline(always)]
     pub(crate) fn operation(
         args: (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {
@@ -261,7 +260,7 @@ impl Operation for GetPropertyByValue {
 /// `GetPropertyByValuePush` implements the Opcode Operation for `Opcode::GetPropertyByValuePush`
 ///
 /// Operation:
-///  - Get a property by value from an object an push the key and value on the stack.
+///  - Get a property by value from an object and store the key and value in registers.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValuePush;
 
@@ -269,10 +268,10 @@ impl GetPropertyByValuePush {
     #[inline(always)]
     pub(crate) fn operation(
         args: (
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
-            VaryingOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
+            RegisterOperand,
         ),
         context: &mut Context,
     ) -> JsResult<()> {

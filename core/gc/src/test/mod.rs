@@ -3,6 +3,7 @@ use crate::BOA_GC;
 mod allocation;
 mod cell;
 mod erased;
+mod std_types;
 mod weak;
 mod weak_map;
 
@@ -11,36 +12,42 @@ struct Harness;
 impl Harness {
     #[track_caller]
     fn assert_collections(o: usize) {
-        BOA_GC.with(|current| {
+        let collections = BOA_GC.with(|current| {
             let gc = current.borrow();
-            assert_eq!(gc.runtime.collections, o);
+            gc.runtime.collections
         });
+
+        assert_eq!(collections, o);
     }
 
     #[track_caller]
     fn assert_empty_gc() {
-        BOA_GC.with(|current| {
+        let (is_empty, bytes_allocated) = BOA_GC.with(|current| {
             let gc = current.borrow();
-
-            assert!(gc.strongs.is_empty());
-            assert!(gc.runtime.bytes_allocated == 0);
+            (gc.strongs.is_empty(), gc.runtime.bytes_allocated)
         });
+
+        assert!(is_empty);
+        assert_eq!(bytes_allocated, 0);
     }
 
     #[track_caller]
     fn assert_bytes_allocated() {
-        BOA_GC.with(|current| {
+        let bytes_allocated = BOA_GC.with(|current| {
             let gc = current.borrow();
-            assert!(gc.runtime.bytes_allocated > 0);
+            gc.runtime.bytes_allocated
         });
+
+        assert!(bytes_allocated > 0);
     }
 
     #[track_caller]
     fn assert_exact_bytes_allocated(bytes: usize) {
-        BOA_GC.with(|current| {
+        let bytes_allocated = BOA_GC.with(|current| {
             let gc = current.borrow();
-            assert_eq!(gc.runtime.bytes_allocated, bytes);
+            gc.runtime.bytes_allocated
         });
+        assert_eq!(bytes_allocated, bytes);
     }
 }
 

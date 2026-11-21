@@ -12,6 +12,7 @@ use std::{
     path::{Path, PathBuf},
     rc::Rc,
     sync::atomic,
+    time::{Instant, SystemTime},
 };
 
 use crate::GcErasedPointer;
@@ -199,6 +200,8 @@ simple_empty_finalize_trace![
     Rc<str>,
     Path,
     PathBuf,
+    Instant,
+    SystemTime,
     NonZeroIsize,
     NonZeroUsize,
     NonZeroI8,
@@ -211,6 +214,14 @@ simple_empty_finalize_trace![
     NonZeroU64,
     NonZeroI128,
     NonZeroU128
+];
+
+#[cfg(not(target_family = "wasm"))]
+simple_empty_finalize_trace![
+    std::fs::File,
+    std::fs::FileType,
+    std::net::TcpStream,
+    std::net::UdpSocket
 ];
 
 #[cfg(target_has_atomic = "8")]
@@ -365,6 +376,19 @@ unsafe impl<T: Trace> Trace for thin_vec::ThinVec<T> {
     });
 }
 
+#[cfg(feature = "arrayvec")]
+impl<T: Trace, const N: usize> Finalize for arrayvec::ArrayVec<T, N> {}
+
+#[cfg(feature = "arrayvec")]
+// SAFETY: All the inner elements of the `ArrayVec` are correctly marked.
+unsafe impl<T: Trace, const N: usize> Trace for arrayvec::ArrayVec<T, N> {
+    custom_trace!(this, mark, {
+        for e in this {
+            mark(e);
+        }
+    });
+}
+
 impl<T: Trace> Finalize for Option<T> {}
 // SAFETY: The inner value of the `Option` is correctly marked.
 unsafe impl<T: Trace> Trace for Option<T> {
@@ -495,15 +519,14 @@ where
     });
 }
 
-impl<T: Trace> Finalize for Cell<Option<T>> {}
-// SAFETY: Taking and setting is done in a single action, and recursive traces should find a `None`
+impl<T: Trace + Default> Finalize for Cell<T> {}
+// SAFETY: Taking and setting is done in a single action, and recursive traces should find a default
 // value instead of the original `T`, making this safe.
-unsafe impl<T: Trace> Trace for Cell<Option<T>> {
+unsafe impl<T: Trace + Default> Trace for Cell<T> {
     custom_trace!(this, mark, {
-        if let Some(v) = this.take() {
-            mark(&v);
-            this.set(Some(v));
-        }
+        let v = this.take();
+        mark(&v);
+        this.set(v);
     });
 }
 
@@ -549,7 +572,6 @@ mod boa_string_trace {
 
     impl Finalize for boa_string::JsString {}
 }
-
 #[cfg(feature = "either")]
 mod either_trace {
     use crate::{Finalize, Trace};

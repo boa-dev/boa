@@ -247,18 +247,6 @@ pub(crate) struct WeakUniqueShape {
 }
 
 impl WeakUniqueShape {
-    /// Return location in memory of the [`WeakUniqueShape`].
-    ///
-    /// Returns `0` if the inner [`UniqueShape`] has been freed.
-    #[inline]
-    #[must_use]
-    pub(crate) fn to_addr_usize(&self) -> usize {
-        self.inner.upgrade().map_or(0, |inner| {
-            let ptr: *const _ = inner.as_ref();
-            ptr as usize
-        })
-    }
-
     /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
     /// or [`None`] if the value was already garbage collected.
     #[inline]

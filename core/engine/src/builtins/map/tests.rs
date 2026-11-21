@@ -396,3 +396,21 @@ fn get_or_insert_computed_this_is_undefined_and_key_canonicalized() {
         TestAction::assert_eq("m.get(0)", js_str!("ok")),
     ]);
 }
+
+#[test]
+fn iterator_after_clear_and_set() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            const map = new Map([[1, "first"]]);
+            const iterator = map.keys();
+            const first = iterator.next();
+            map.clear();
+            map.set(2, "second");
+            const second = iterator.next();
+            "#,
+        ),
+        TestAction::assert("first.value === 1 && !first.done"),
+        TestAction::assert("second.value === 2 && !second.done"),
+    ]);
+}

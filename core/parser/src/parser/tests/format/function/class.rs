@@ -104,3 +104,23 @@ fn class_declaration_elements_private_static() {
         "#,
     );
 }
+
+// https://github.com/boa-dev/boa/issues/4605
+#[test]
+fn class_declaration_boolean_literal_method_names() {
+    test_formatting(
+        r#"
+        class A {
+            true() {}
+            false() {}
+            null() {}
+            get true() {}
+            set true(value) {}
+            get false() {}
+            set false(value) {}
+            static true() {}
+            static false() {}
+        }
+        "#,
+    );
+}
