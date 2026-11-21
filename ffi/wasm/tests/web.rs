@@ -1,6 +1,5 @@
 //! Tests for the wasm module.
 #![allow(unused_crate_dependencies)]
-
 #![cfg(all(
     any(target_arch = "wasm32", target_arch = "wasm64"),
     target_os = "unknown"
