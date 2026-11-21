@@ -31,7 +31,7 @@ jobs:
           toolchain: stable
 
       - name: Install cargo-workspaces
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: cargo-workspaces
 
@@ -64,7 +64,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
+        uses: baptiste0928/cargo-install@8195d4f734a149db85385bb4102b42efcd373759 # v3.5.0
         with:
           crate: wasm-pack
 
@@ -72,7 +72,7 @@ jobs:
         run: wasm-pack build --scope boa-dev ./ffi/wasm
 
       - name: Set-up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "24"
           registry-url: 'https://registry.npmjs.org'
@@ -106,7 +106,7 @@ jobs:
           target: x86_64-unknown-linux-gnu
           binary_extension: ""
         - build: macos-arm64
-          os: macos-14
+          os: macos-latest
           target: aarch64-apple-darwin
           binary_extension: ""
         - build: win-msvc
@@ -126,7 +126,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Build
         run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa

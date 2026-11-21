@@ -109,7 +109,7 @@ use crate::{
     error::JsNativeError,
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, PROTOTYPE},
-    property::{Attribute, PropertyDescriptor, PropertyKey},
+    property::{Attribute, CompletePropertyDescriptor, PropertyKey},
 };
 
 /// Native class.
@@ -355,7 +355,7 @@ impl<'ctx> ClassBuilder<'ctx> {
     pub fn property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
+        P: Into<CompletePropertyDescriptor>,
     {
         self.builder.property_descriptor(key, property);
         self
@@ -367,7 +367,7 @@ impl<'ctx> ClassBuilder<'ctx> {
     pub fn static_property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where
         K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
+        P: Into<CompletePropertyDescriptor>,
     {
         self.builder.static_property_descriptor(key, property);
         self

@@ -767,6 +767,13 @@ generate_opcodes! {
     ///   - Input: array
     PushIteratorToArray { array: RegisterOperand },
 
+    /// Convert the value into a int32.
+    ///
+    /// - Registers
+    ///   - Input: src
+    ///   - Output: dst
+    ToInt32 { dst: RegisterOperand, src: RegisterOperand },
+
     /// Binary `+` operator.
     ///
     /// - Registers
@@ -1763,11 +1770,9 @@ generate_opcodes! {
 
     /// Pushes `this` value that is related to the object environment of the given binding
     ///
-    /// - Operands:
-    ///   - index: `IndexOperand`
     /// - Registers:
     ///   - Output: dst
-    ThisForObjectEnvironmentName { dst: RegisterOperand, index: IndexOperand },
+    ThisForObjectEnvironmentName { dst: RegisterOperand },
 
     /// Execute the `super()` method.
     ///
@@ -1988,14 +1993,6 @@ generate_opcodes! {
     /// - Iterator Stack: `iterator` **=>** `iterator`
     IteratorDone { dst: RegisterOperand },
 
-    /// Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
-    /// result of the current iterator.
-    ///
-    /// - Registers:
-    ///   - Input: resume_kind, value
-    /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorFinishAsyncNext { resume_kind: RegisterOperand, value: RegisterOperand },
-
     /// Gets the `value` property of the current iterator record.
     ///
     /// - Registers:
@@ -2010,14 +2007,7 @@ generate_opcodes! {
     /// - Iterator Stack: `iterator` **=>** `iterator`
     IteratorResult { dst: RegisterOperand },
 
-    /// Consume the iterator and construct and array with all the values.
-    ///
-    /// - Registers:
-    ///   - Output: dst
-    /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorToArray { dst: RegisterOperand },
-
-    /// Store `true` in dst if the iterator stack is empty.
+    /// Pushes `true` to the stack if the iterator stack is empty.
     ///
     /// - Registers:
     ///   - Output: dst
@@ -2032,13 +2022,6 @@ generate_opcodes! {
     ///   - Input: value
     ///   - Output: value
     CreateIteratorResult { value: RegisterOperand, done: IndexOperand },
-
-    /// Calls `return` on the current iterator and returns the result.
-    ///
-    /// - Registers:
-    ///   - Output: value, called
-    /// - Iterator Stack: `iterator` **=>**
-    IteratorReturn { value: RegisterOperand, called: RegisterOperand },
 
     /// Concat multiple stack objects into a string.
     ///
@@ -2151,6 +2134,12 @@ generate_opcodes! {
     /// - Registers:
     ///   - Output: dst
     CreateUnmappedArgumentsObject { dst: RegisterOperand },
+
+    /// Declare `var` type variable during eval declaration instantiation.
+    ///
+    /// - Operands:
+    ///   - binding_index: `IndexOperand`
+    DefEvalVar { binding_index: IndexOperand },
 
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
@@ -2270,9 +2259,8 @@ generate_opcodes! {
     Reserved58 => Reserved,
     /// Reserved [`Opcode`].
     Reserved59 => Reserved,
-    /// Declare `var` type variable during eval declaration instantiation.
-    ///
-    /// - Operands:
-    ///   - binding_index: `IndexOperand`
-    DefEvalVar { binding_index: IndexOperand },
+    /// Reserved [`Opcode`].
+    Reserved60 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved61 => Reserved,
 }

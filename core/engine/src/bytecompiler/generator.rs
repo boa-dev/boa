@@ -147,7 +147,7 @@ impl ByteCompiler<'_> {
         // skip pop if the iterator is not done yet
         let skip_pop = self.jump_if_false(value);
 
-        self.bytecode.emit_iterator_value(value.variable());
+        self.iterator_value(value, true);
         self.bytecode
             .emit_iterator_pop(resume_kind.variable(), resume_kind.variable());
         let return_gen = self.jump_if_true(is_return);

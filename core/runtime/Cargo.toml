@@ -51,6 +51,7 @@ default = [
 all = ["default", "reqwest-blocking"]
 url = ["dep:url"]
 fetch = [
+    "dep:url",
     "dep:either",
     "dep:http",
     "dep:serde_json",

@@ -18,6 +18,7 @@ use timezone_provider::experimental_tzif::ZeroCompiledTzdbProvider;
 use crate::job::Job;
 use crate::js_error;
 use crate::module::DynModuleLoader;
+use crate::property::CompletePropertyDescriptor;
 use crate::vm::{CodeBlock, RuntimeLimits, create_function_object_fast};
 use crate::{
     HostDefined, JsNativeError, JsResult, JsString, JsValue, Source, builtins,
@@ -518,9 +519,16 @@ impl Context {
     /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
+        use crate::vm::CallFrameFlags;
         // The first frame is always a dummy frame (see `Vm` implementation for more details),
-        // so skip the dummy frame and return the reversed list so that the most recent frames are first.
-        self.vm.frames.iter().skip(1).rev()
+        // so skip the dummy frame, filter out lightweight native frames, and return the reversed
+        // list so that the most recent frames are first.
+        self.vm
+            .frames
+            .iter()
+            .skip(1)
+            .filter(|f| !f.flags.contains(CallFrameFlags::NATIVE_FRAME))
+            .rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
@@ -648,11 +656,6 @@ impl Context {
         self.module_loader.clone()
     }
 
-    /// Swaps the currently active realm with `realm`.
-    pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
-        std::mem::swap(&mut self.vm.frame_mut().realm, realm);
-    }
-
     /// Increment and get the parser identifier.
     pub(crate) fn next_parser_identifier(&mut self) -> u32 {
         self.parser_identifier += 1;
@@ -680,14 +683,16 @@ impl Context {
         };
 
         // 5. If existingProp.[[Configurable]] is true, return true.
-        if existing_prop.configurable() == Some(true) {
+        if existing_prop.configurable() {
             return Ok(true);
         }
 
         // 6. If IsDataDescriptor(existingProp) is true and existingProp has attribute values { [[Writable]]: true, [[Enumerable]]: true }, return true.
-        if existing_prop.is_data_descriptor()
-            && existing_prop.writable() == Some(true)
-            && existing_prop.enumerable() == Some(true)
+        if let CompletePropertyDescriptor::Data {
+            writable: true,
+            enumerable: true,
+            ..
+        } = existing_prop
         {
             return Ok(true);
         }
@@ -783,9 +788,7 @@ impl Context {
             global_object.__get_own_property__(&name.clone().into(), &mut self.into())?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
-        let desc = if existing_prop.is_none()
-            || existing_prop.and_then(|p| p.configurable()) == Some(true)
-        {
+        let desc = if existing_prop.is_none_or(|p| p.configurable()) {
             // a. Let desc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }.
             PropertyDescriptor::builder()
                 .value(function.clone())
@@ -835,7 +838,7 @@ impl Context {
         };
 
         // 5. If existingProp.[[Configurable]] is true, return false.
-        if existing_prop.configurable() == Some(true) {
+        if existing_prop.configurable() {
             return Ok(false);
         }
 

@@ -6,7 +6,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Response
 
 use crate::fetch::headers::JsHeaders;
-use boa_engine::object::builtins::{JsPromise, JsUint8Array};
+use boa_engine::object::builtins::{
+    JsArrayBuffer, JsDataView, JsPromise, JsTypedArray, JsUint8Array,
+};
 use boa_engine::value::{Convert, TryFromJs, TryIntoJs};
 use boa_engine::{
     Context, JsData, JsNativeError, JsResult, JsString, JsValue, boa_class, js_error, js_str,
@@ -277,9 +279,47 @@ fn initialize_response(
 ///
 /// See <https://fetch.spec.whatwg.org/#concept-bodyinit-extract>
 fn extract_body(val: &JsValue, context: &mut Context) -> JsResult<(Vec<u8>, Option<&'static str>)> {
-    // TODO: handle other BodyInit types: Blob, ArrayBuffer, ArrayBufferView,
-    //       FormData, URLSearchParams.
-    // Currently only USVString is supported.
+    if let Some(obj) = val.as_object() {
+        if let Ok(ab) = JsArrayBuffer::from_object(obj.clone()) {
+            let bytes = ab
+                .to_vec()
+                .ok_or_else(|| JsNativeError::typ().with_message("ArrayBuffer is detached"))?;
+            return Ok((bytes, None));
+        }
+
+        if let Ok(ta) = JsTypedArray::from_object(obj.clone()) {
+            let offset = ta.byte_offset(context)?;
+            let len = ta.byte_length(context)?;
+            let buffer_obj = ta.buffer(context)?.as_object().ok_or_else(|| {
+                JsNativeError::typ().with_message("TypedArray buffer is not an object")
+            })?;
+
+            let ab = JsArrayBuffer::from_object(buffer_obj)?;
+            let data = ab
+                .data()
+                .ok_or_else(|| JsNativeError::typ().with_message("ArrayBuffer is detached"))?;
+            return Ok((data[offset..offset + len].to_vec(), None));
+        }
+
+        if let Ok(dv) = JsDataView::from_object(obj.clone()) {
+            let offset = usize::try_from(dv.byte_offset(context)?)
+                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+            let len = usize::try_from(dv.byte_length(context)?)
+                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+            let buffer_obj = dv.buffer(context)?.as_object().ok_or_else(|| {
+                JsNativeError::typ().with_message("DataView buffer is not an object")
+            })?;
+
+            let ab = JsArrayBuffer::from_object(buffer_obj)?;
+            let data = ab
+                .data()
+                .ok_or_else(|| JsNativeError::typ().with_message("ArrayBuffer is detached"))?;
+            return Ok((data[offset..offset + len].to_vec(), None));
+        }
+    }
+
+    // TODO: handle other BodyInit types: Blob, FormData, URLSearchParams.
+    // Currently Strings and primitives fallback here.
     //
     // For a USVString, the type is "text/plain;charset=UTF-8".
     // See https://fetch.spec.whatwg.org/#concept-bodyinit-extract step 6.

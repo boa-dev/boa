@@ -72,6 +72,114 @@ fn request_constructor_forbidden_method_throws() {
 }
 
 #[test]
+fn request_constructor_get_with_body_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            try {
+                new Request("http://unit.test", { method: "GET", body: "x" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
+fn fetch_get_with_explicit_options_has_no_body() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let mut fetcher = TestFetcher::default();
+            fetcher.add_response(
+                Uri::from_static("http://unit.test"),
+                Response::new(Vec::new()),
+            );
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            globalThis.response = fetch("http://unit.test", {
+                method: "GET",
+                headers: {},
+                redirect: "manual",
+                signal: undefined,
+            });
+        "#}),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
+fn request_constructor_head_with_body_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            try {
+                new Request("http://unit.test", { method: "HEAD", body: "x" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
+fn request_constructor_get_with_inherited_empty_body_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            const request = new Request("http://unit.test", { method: "POST", body: "" });
+            try {
+                new Request(request, { method: "GET" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
+fn request_constructor_head_with_inherited_empty_body_throws() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            const request = new Request("http://unit.test", { method: "POST", body: "" });
+            try {
+                new Request(request, { method: "HEAD" });
+                throw Error("expected the call above to throw");
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+        "#}),
+    ]);
+}
+
+#[test]
 fn request_clone_preserves_body_without_override() {
     run_test_actions([
         TestAction::inspect_context(|ctx| {
@@ -93,7 +201,10 @@ fn request_clone_preserves_body_without_override() {
             let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let request_obj = request.as_object().unwrap();
             let request = request_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(request.inner().body().as_slice(), b"payload");
+            assert_eq!(
+                request.inner().body().as_deref(),
+                Some(b"payload".as_slice())
+            );
         }),
     ]);
 }
@@ -120,7 +231,7 @@ fn request_clone_empty_body_preserved() {
             let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let request_obj = request.as_object().unwrap();
             let request = request_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(request.inner().body().as_slice(), b"");
+            assert_eq!(request.inner().body().as_deref(), Some(b"".as_slice()));
         }),
     ]);
 }
@@ -147,7 +258,10 @@ fn request_clone_body_override() {
             let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let request_obj = request.as_object().unwrap();
             let request = request_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(request.inner().body().as_slice(), b"override");
+            assert_eq!(
+                request.inner().body().as_deref(),
+                Some(b"override".as_slice())
+            );
         }),
     ]);
 }
@@ -171,7 +285,7 @@ fn request_clone_no_body_preserved() {
             let request = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let request_obj = request.as_object().unwrap();
             let request = request_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(request.inner().body().as_slice(), b"");
+            assert_eq!(request.inner().body().as_deref(), None);
         }),
     ]);
 }
@@ -196,7 +310,10 @@ fn request_clone_method_preserves_body() {
             let cloned = ctx.global_object().get(js_str!("cloned"), ctx).unwrap();
             let cloned_obj = cloned.as_object().unwrap();
             let cloned_req = cloned_obj.downcast_ref::<JsRequest>().unwrap();
-            assert_eq!(cloned_req.inner().body().as_slice(), b"payload");
+            assert_eq!(
+                cloned_req.inner().body().as_deref(),
+                Some(b"payload".as_slice())
+            );
         }),
     ]);
 }
@@ -227,13 +344,19 @@ fn request_clone_method_is_independent() {
             let cloned_obj = cloned.as_object().unwrap();
             let cloned_req = cloned_obj.downcast_ref::<JsRequest>().unwrap();
 
-            assert_eq!(original_req.inner().body().as_slice(), b"original-body");
-            assert_eq!(cloned_req.inner().body().as_slice(), b"original-body");
+            assert_eq!(
+                original_req.inner().body().as_deref(),
+                Some(b"original-body".as_slice())
+            );
+            assert_eq!(
+                cloned_req.inner().body().as_deref(),
+                Some(b"original-body".as_slice())
+            );
 
             // Verify they are distinct objects (different pointers).
             assert!(!std::ptr::eq(
-                original_req.inner().body().as_ptr(),
-                cloned_req.inner().body().as_ptr()
+                original_req.inner().body().as_ref().unwrap().as_ptr(),
+                cloned_req.inner().body().as_ref().unwrap().as_ptr()
             ));
         }),
     ]);
@@ -351,6 +474,50 @@ fn request_clone_signal_override() {
                 .signal()
                 .expect("overridden request should keep the new signal");
             assert!(JsObject::equals(&stored_signal, &signal));
+        }),
+    ]);
+}
+
+#[test]
+fn request_getters() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let fetcher = TestFetcher::default();
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
+        }),
+        TestAction::run(indoc! {r#"
+            globalThis.done = (async () => {
+                const request = new Request("http://unit.test/api?x=1", {
+                    method: "POST",
+                    headers: { "content-type": "application/json", "x-test": "yes" },
+                    body: '{"a":1,"b":[2,3]}',
+                });
+                assertEq(request.method, "POST");
+                assertEq(request.url, "http://unit.test/api?x=1");
+                assertEq(request.headers.get("content-type"), "application/json");
+                assertEq(request.headers.get("x-test"), "yes");
+                assertEq(await request.text(), '{"a":1,"b":[2,3]}');
+                const json = await request.json();
+                assertEq(json.a, 1);
+                assertEq(json.b[1], 3);
+
+                const form = new Request("http://unit.test/form", {
+                    method: "POST",
+                    headers: { "content-type": "application/x-www-form-urlencoded" },
+                    body: "a=1&b=two",
+                });
+                const fields = await form.formData();
+                assertEq(fields.a, "1");
+                assertEq(fields.b, "two");
+            })();
+        "#}),
+        TestAction::inspect_context(|ctx| {
+            let done = ctx.global_object().get(js_str!("done"), ctx).unwrap();
+            done.as_promise()
+                .unwrap()
+                .await_blocking(ctx)
+                .expect("request getter assertions should pass");
         }),
     ]);
 }

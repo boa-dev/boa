@@ -62,7 +62,7 @@ fn function_prototype() {
         TestAction::assert_native_error(
             "new Function.prototype()",
             JsNativeErrorKind::Type,
-            "not a constructor",
+            "function is not a constructor",
         ),
     ]);
 }
@@ -191,6 +191,28 @@ fn function_constructor_early_errors_super() {
             "Function('super.a')()",
             JsNativeErrorKind::Syntax,
             "invalid `super` reference",
+        ),
+    ]);
+}
+
+#[cfg(feature = "annex-b")]
+#[test]
+fn function_constructor_conditional_declaration_in_strict_context() {
+    run_test_actions([
+        TestAction::inspect_context(|ctx| {
+            ctx.strict(true);
+        }),
+        TestAction::assert_eq(
+            r#"typeof Function("if (true) function f() {}")"#,
+            js_str!("function"),
+        ),
+        TestAction::assert_eq(
+            r#"Function("if (true) function f() {} return typeof f;")()"#,
+            js_str!("function"),
+        ),
+        TestAction::assert_eq(
+            r#"Function('"use strict"; return this;')()"#,
+            JsValue::undefined(),
         ),
     ]);
 }

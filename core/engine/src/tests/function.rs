@@ -215,8 +215,35 @@ fn should_type_error_when_new_is_not_constructor() {
     run_test_actions([TestAction::assert_native_error(
         "new ''()",
         JsNativeErrorKind::Type,
-        "not a constructor",
+        "string is not a constructor",
     )]);
+}
+
+#[test]
+fn new_on_non_constructor_reports_the_value_type() {
+    run_test_actions([
+        TestAction::assert_native_error(
+            "new 5()",
+            JsNativeErrorKind::Type,
+            "number is not a constructor",
+        ),
+        TestAction::assert_native_error(
+            "new undefined()",
+            JsNativeErrorKind::Type,
+            "undefined is not a constructor",
+        ),
+        TestAction::assert_native_error(
+            "new true()",
+            JsNativeErrorKind::Type,
+            "boolean is not a constructor",
+        ),
+        // A callable object without a [[Construct]] slot, such as an arrow function.
+        TestAction::assert_native_error(
+            "new (() => {})()",
+            JsNativeErrorKind::Type,
+            "function is not a constructor",
+        ),
+    ]);
 }
 
 #[test]
@@ -323,4 +350,90 @@ fn function_constructor_nested_lexical_binding() {
         "#},
         42,
     )]);
+}
+
+/// Regression tests for issues #5634,
+/// A `var` that redeclares a parameter must be initialized from the parameter
+/// environment. Closures created in the parameter list keep seeing that environment.
+#[test]
+fn var_shadowing_parameter_with_initializer_reads_parameter_env() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f(a = () => b, b = 2) { var b = 3; return [a(), b].join(); }
+                f()
+            "#},
+            js_str!("2,3"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function g(a = 1, b = () => a) { var a = 2; return [a, b()].join(); }
+                g()
+            "#},
+            js_str!("2,1"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function m({ a } = { a: () => z }, z = 4) { var z = 5; return [a(), z].join(); }
+                m()
+            "#},
+            js_str!("4,5"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function p(b = 2) { var b = 3; return b; }
+                p()
+            "#},
+            3,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function p(b = 2) { var b; return b; }
+                p()
+            "#},
+            2,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function h(a = () => b, b = 2) { return [a(), b].join(); }
+                h()
+            "#},
+            js_str!("2,2"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f(b = 1) { var b = 2; return (function () { return b; })(); }
+                f()
+            "#},
+            2,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                "use strict";
+                function f(a = () => b, b = 2) { var b; return [a(), b].join(); }
+                f()
+            "#},
+            js_str!("2,2"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f(b = 2) { function b() { return 9; } return b(); }
+                f()
+            "#},
+            9,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f(a = 1) { var c = 4; return c; }
+                f()
+            "#},
+            4,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                ((a = () => b, b = 2) => { var b = 3; return [a(), b].join(); })()
+            "#},
+            js_str!("2,3"),
+        ),
+    ]);
 }

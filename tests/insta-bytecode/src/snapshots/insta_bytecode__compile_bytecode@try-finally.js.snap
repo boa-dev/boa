@@ -9,10 +9,10 @@ Location     Handler      Opcode                            Operands
   000005                    PutLexicalValue                   src:r01, binding_index:0
   00000e                    StoreZero                         dst:r02
   000013                    StoreInt8                         value:5, dst:r03
-  000019                    Jump                              address:000028
-  00001e                    IncrementLoopIteration            
-  00001f                    Inc                               src:r02, dst:r02
-  000028                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:000147
+  000019                    Jump                              address:000027
+  00001e                    Inc                               src:r02, dst:r02
+  000027                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:000147
+  000034                    IncrementLoopIteration            
   000035                    StoreTrue                         dst:r04
   00003a                    StoreZero                         dst:r05
   00003f    > 0: 0000aa     StoreInt8                         value:2, dst:r07
@@ -65,6 +65,6 @@ Handlers:
     0000: Range: [00003f, 0000aa): Handler: 0000aa, Environment: 00
     0001: Range: [0000aa, 0000b9): Handler: 0000b9, Environment: 00
 Source Map:
-    0000: 31..190: (7, 24)
+    0000: 30..190: (7, 24)
     0001: 190..285: (12, 5)
     0002: 285..322: (14, 3)

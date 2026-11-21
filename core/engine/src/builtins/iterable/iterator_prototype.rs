@@ -1,7 +1,7 @@
 use crate::{
     Context, JsArgs, JsObject, JsResult, JsSymbol, JsValue,
     builtins::{
-        IntrinsicObject,
+        IntrinsicObject, Number,
         array::Array,
         builder::BuiltInBuilder,
         iterable::{
@@ -66,7 +66,9 @@ impl IntrinsicObject for Iterator {
             );
 
         #[cfg(feature = "experimental")]
-        let builder = builder.static_method(Self::includes, js_string!("includes"), 1);
+        let builder = builder
+            .static_method(Self::includes, js_string!("includes"), 1)
+            .static_method(Self::join, js_string!("join"), 1);
 
         builder.build();
     }
@@ -302,7 +304,9 @@ impl Iterator {
         let limit = args.get_or_undefined(0);
         let num_limit = if_abrupt_close_iterator!(limit.to_number(context), iterated, context);
 
-        // 6. If numLimit is NaN, throw a RangeError exception.
+        // 6. If numLimit is NaN, then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
         if num_limit.is_nan() {
             return iterated.close(
                 Err(js_error!(
@@ -312,10 +316,22 @@ impl Iterator {
             );
         }
 
-        // 7. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
+        // 7. If numLimit is finite and numLimit > 𝔽(2**53 - 1), then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        if num_limit.is_finite() && num_limit > Number::MAX_SAFE_INTEGER {
+            return iterated.close(
+                Err(js_error!(
+                    RangeError: "Iterator.prototype.take: limit cannot be greater than 2^53 - 1"
+                )),
+                context,
+            );
+        }
+
+        // 8. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
         let integer_limit = IntegerOrInfinity::from(num_limit);
 
-        // 8. If integerLimit < 0, then
+        // 9. If integerLimit < 0, then
         let integer_limit = match integer_limit {
             IntegerOrInfinity::Integer(n) if n >= 0 => Some(n as u64),
             IntegerOrInfinity::PositiveInfinity => None,
@@ -331,14 +347,14 @@ impl Iterator {
             }
         };
 
-        // 9. Set iterated to ? GetIteratorDirect(O).
+        // 10. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 10-12 are deferred to `IteratorHelper::create` and `Take::new`.
+        // 11-13 are deferred to `IteratorHelper::create` and `Take::new`.
         let result =
             IteratorHelper::create(iterator_helper::Take::new(iterated, integer_limit), context);
 
-        // 13. Return result.
+        // 14. Return result.
         Ok(result.into())
     }
 
@@ -363,7 +379,9 @@ impl Iterator {
         let limit = args.get_or_undefined(0);
         let num_limit = if_abrupt_close_iterator!(limit.to_number(context), iterated, context);
 
-        // 6. If numLimit is NaN, throw a RangeError exception.
+        // 6. If numLimit is NaN, then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
         if num_limit.is_nan() {
             return iterated.close(
                 Err(js_error!(
@@ -373,10 +391,22 @@ impl Iterator {
             );
         }
 
-        // 7. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
+        // 7. If numLimit is finite and numLimit > 𝔽(2**53 - 1), then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        if num_limit.is_finite() && num_limit > Number::MAX_SAFE_INTEGER {
+            return iterated.close(
+                Err(js_error!(
+                    RangeError: "Iterator.prototype.drop: limit cannot be greater than 2^53 - 1"
+                )),
+                context,
+            );
+        }
+
+        // 8. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
         let integer_limit = IntegerOrInfinity::from(num_limit);
 
-        // 8. If integerLimit < 0, then
+        // 9. If integerLimit < 0, then
         let integer_limit = match integer_limit {
             IntegerOrInfinity::Integer(n) if n >= 0 => Some(n as u64),
             IntegerOrInfinity::PositiveInfinity => None,
@@ -391,14 +421,14 @@ impl Iterator {
                 );
             }
         };
-        // 9. Set iterated to ? GetIteratorDirect(O).
+        // 10. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 10-12 are deferred to `IteratorHelper::create` and `Drop::new`.
+        // 11-13 are deferred to `IteratorHelper::create` and `Drop::new`.
         let result =
             IteratorHelper::create(iterator_helper::Drop::new(iterated, integer_limit), context);
 
-        // 13. Return result.
+        // 14. Return result.
         Ok(result.into())
     }
 
@@ -509,6 +539,74 @@ impl Iterator {
         }
         // Step 9.b. return false
         Ok(false.into())
+    }
+
+    /// `Iterator.prototype.join ( [ separator ] )`
+    ///
+    /// The `join()` method of `Iterator` instances returns a new string by concatenating
+    /// all of the elements in this iterator, separated by commas or a specified separator string.
+    /// If the iterator has only one item, then that item will be returned without using the separator.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-iterator-join/
+    #[cfg(feature = "experimental")]
+    fn join(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If O is not an Object, throw a TypeError exception.
+        let o = this
+            .as_object()
+            .ok_or_else(|| js_error!(TypeError: "Iterator.prototype.join called on non-object"))?;
+
+        // 3. Let iterated be the Iterator Record { [[Iterator]]: O, [[NextMethod]]: undefined, [[Done]]: false }.
+        let iterated = IteratorRecord::new(o.clone(), JsValue::undefined());
+
+        // 4. If separator is undefined, let sep be ",".
+        //    Else,
+        //      a. Let sep be Completion(ToString(separator)).
+        //      b. ? IfAbruptCloseIterator(sep, iterated).
+        let separator = args.get_or_undefined(0);
+        let sep = if separator.is_undefined() {
+            js_string!(",")
+        } else {
+            let sep = separator.to_string(context);
+            if_abrupt_close_iterator!(sep, iterated, context)
+        };
+
+        // 5. Set iterated to ? GetIteratorDirect(O).
+        let mut iterated = get_iterator_direct(&o, context)?;
+
+        // 6. Let R be the empty String.
+        // 7. Let first be true.
+        let mut r = crate::string::CommonJsStringBuilder::new();
+        let mut first = true;
+
+        // 8. Repeat,
+        while let Some(value) = iterated.step_value(context)? {
+            // a. Let value be ? IteratorStepValue(iterated).
+            // b. If value is done, return R.
+            // c. If first is true, set first to false.
+            // d. Else, set R to the string-concatenation of R and sep.
+            if first {
+                first = false;
+            } else {
+                r.push(sep.clone());
+            }
+
+            // e. If value is neither undefined nor null, then
+            if !value.is_null_or_undefined() {
+                // i. Let S be Completion(ToString(value)).
+                // ii. ? IfAbruptCloseIterator(S, iterated).
+                // iii. Set R to the string-concatenation of R and S.
+                let s = value.to_string(context);
+                let s = if_abrupt_close_iterator!(s, iterated, context);
+                r.push(s);
+            }
+        }
+
+        // 9. Return R.
+        Ok(r.build().into())
     }
 
     /// `Iterator.prototype.reduce ( reducer [ , initialValue ] )`

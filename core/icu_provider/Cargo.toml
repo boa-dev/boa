@@ -16,7 +16,7 @@ icu_provider_blob.workspace = true
 icu_provider_adapters = { workspace = true, features = ["serde"] }
 icu_casemap = { workspace = true, features = ["serde", "datagen"] }
 icu_collator = { workspace = true, features = ["serde", "datagen"] }
-icu_datetime = { workspace = true, features = ["serde", "datagen"] }
+icu_datetime = { workspace = true, features = ["serde", "datagen", "unstable"] }
 icu_time = { workspace = true, features = ["serde", "datagen"] }
 icu_decimal = { workspace = true, features = ["serde", "datagen"] }
 icu_list = { workspace = true, features = ["serde", "datagen"] }

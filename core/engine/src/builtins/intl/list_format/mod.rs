@@ -1,4 +1,4 @@
-use std::fmt::Write;
+use std::fmt;
 
 use boa_gc::{Finalize, Trace};
 use icu_list::{
@@ -7,6 +7,7 @@ use icu_list::{
     provider::{ListAndV1, ListFormatterPatterns},
 };
 use icu_locale::Locale;
+use writeable::adapters::CoreWriteAsPartsWrite;
 
 use crate::{
     Context, JsArgs, JsData, JsExpect, JsNativeError, JsResult, JsString, JsValue,
@@ -266,79 +267,29 @@ impl ListFormat {
         use writeable::{PartsWrite, Writeable};
 
         #[derive(Debug, Clone)]
-        enum Part {
-            Literal(String),
-            Element(String),
-        }
+        struct PartsCollector(Vec<(&'static str, String)>);
 
-        impl Part {
-            const fn typ(&self) -> &'static str {
-                match self {
-                    Self::Literal(_) => "literal",
-                    Self::Element(_) => "element",
-                }
-            }
-
-            #[allow(clippy::missing_const_for_fn)]
-            fn value(self) -> String {
-                match self {
-                    Self::Literal(s) | Self::Element(s) => s,
-                }
-            }
-        }
-
-        #[derive(Debug, Clone)]
-        struct WriteString(String);
-
-        impl Write for WriteString {
-            fn write_str(&mut self, s: &str) -> std::fmt::Result {
-                self.0.write_str(s)
-            }
-
-            fn write_char(&mut self, c: char) -> std::fmt::Result {
-                self.0.write_char(c)
-            }
-        }
-
-        impl PartsWrite for WriteString {
-            type SubPartsWrite = Self;
-
-            fn with_part(
-                &mut self,
-                _part: writeable::Part,
-                mut f: impl FnMut(&mut Self::SubPartsWrite) -> std::fmt::Result,
-            ) -> std::fmt::Result {
-                f(self)
-            }
-        }
-
-        #[derive(Debug, Clone)]
-        struct PartsCollector(Vec<Part>);
-
-        impl Write for PartsCollector {
-            fn write_str(&mut self, _: &str) -> std::fmt::Result {
+        impl fmt::Write for PartsCollector {
+            fn write_str(&mut self, s: &str) -> fmt::Result {
+                self.0.push(("literal", String::from(s)));
                 Ok(())
             }
         }
 
         impl PartsWrite for PartsCollector {
-            type SubPartsWrite = WriteString;
+            type SubPartsWrite = CoreWriteAsPartsWrite<String>;
 
             fn with_part(
                 &mut self,
                 part: writeable::Part,
-                mut f: impl FnMut(&mut Self::SubPartsWrite) -> core::fmt::Result,
-            ) -> core::fmt::Result {
-                assert_eq!(part.category, "list");
-                let mut string = WriteString(String::new());
+                mut f: impl FnMut(&mut Self::SubPartsWrite) -> fmt::Result,
+            ) -> fmt::Result {
+                let mut string = CoreWriteAsPartsWrite(String::new());
                 f(&mut string)?;
-                if !string.0.is_empty() {
-                    match part.value {
-                        "element" => self.0.push(Part::Element(string.0)),
-                        "literal" => self.0.push(Part::Literal(string.0)),
-                        _ => unreachable!(),
-                    }
+                if string.0.is_empty() || part.category != "list" {
+                    return Ok(());
                 }
+                self.0.push((part.value, string.0));
                 Ok(())
             }
         }
@@ -378,7 +329,7 @@ impl ListFormat {
 
         // 3. Let n be 0.
         // 4. For each Record { [[Type]], [[Value]] } part in parts, do
-        for (n, part) in parts.0.into_iter().enumerate() {
+        for (n, (typ, value)) in parts.0.into_iter().enumerate() {
             // a. Let O be OrdinaryObjectCreate(%Object.prototype%).
             let o = context
                 .intrinsics()
@@ -387,11 +338,11 @@ impl ListFormat {
                 .create(OrdinaryObject, vec![]);
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
-            o.create_data_property_or_throw(js_string!("type"), js_string!(part.typ()), context)
+            o.create_data_property_or_throw(js_string!("type"), js_string!(typ), context)
                 .js_expect("operation must not fail per the spec")?;
 
             // c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
-            o.create_data_property_or_throw(js_string!("value"), js_string!(part.value()), context)
+            o.create_data_property_or_throw(js_string!("value"), js_string!(value), context)
                 .js_expect("operation must not fail per the spec")?;
 
             // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
