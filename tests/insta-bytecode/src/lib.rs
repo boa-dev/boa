@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 #[test]
 fn compile_bytecode() {
     use boa_engine::{Context, Script, Source};

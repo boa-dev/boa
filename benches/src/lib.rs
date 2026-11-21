@@ -1,1 +1,1 @@
-#![allow(unused_crate_dependencies)]
+#![allow(missing_docs)]

@@ -857,11 +857,7 @@ impl PropertyMap {
         if let PropertyKey::Index(index) = key {
             return self.indexed_properties.contains_key(index.get());
         }
-        if self.shape.lookup(key).is_some() {
-            return true;
-        }
-
-        false
+        self.shape.lookup(key).is_some()
     }
 }
 
