@@ -27,11 +27,15 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
+mod base64;
 mod builtin;
+mod builtin_uint8;
 mod element;
+mod hex;
 mod object;
 
 pub(crate) use builtin::{BuiltinTypedArray, is_valid_integer_index};
+pub(crate) use builtin_uint8::BuiltinUint8Array;
 #[cfg(feature = "float16")]
 pub(crate) use element::Float16;
 pub(crate) use element::{Atomic, ClampedU8, Element};
@@ -52,7 +56,7 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let mut builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(
                 realm
                     .intrinsics()
@@ -78,8 +82,24 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
                 js_string!("BYTES_PER_ELEMENT"),
                 size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-            )
-            .build();
+            );
+
+        // Uint8Array specific methods for base64 and hex encoding/decoding
+        if T::ERASED == TypedArrayKind::Uint8 {
+            builder = builder
+                .static_method(BuiltinUint8Array::from_base64, js_string!("fromBase64"), 1)
+                .static_method(BuiltinUint8Array::from_hex, js_string!("fromHex"), 1)
+                .method(
+                    BuiltinUint8Array::set_from_base64,
+                    js_string!("setFromBase64"),
+                    1,
+                )
+                .method(BuiltinUint8Array::set_from_hex, js_string!("setFromHex"), 1)
+                .method(BuiltinUint8Array::to_base64, js_string!("toBase64"), 0)
+                .method(BuiltinUint8Array::to_hex, js_string!("toHex"), 0);
+        }
+
+        builder.build();
     }
 }
 
@@ -92,8 +112,8 @@ impl<T: TypedArrayMarker> BuiltInObject for T {
 
 impl<T: TypedArrayMarker> BuiltInConstructor for T {
     const CONSTRUCTOR_ARGUMENTS: usize = 3;
-    const PROTOTYPE_STORAGE_SLOTS: usize = 1;
-    const CONSTRUCTOR_STORAGE_SLOTS: usize = 3;
+    const PROTOTYPE_STORAGE_SLOTS: usize = 5;
+    const CONSTRUCTOR_STORAGE_SLOTS: usize = 5;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         <Self as TypedArrayMarker>::ERASED.standard_constructor();

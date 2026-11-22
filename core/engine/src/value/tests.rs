@@ -210,7 +210,7 @@ fn string_length_is_not_enumerable() {
             )
             .unwrap()
             .unwrap();
-        !length_desc.expect_enumerable()
+        !length_desc.enumerable()
     })]);
 }
 
@@ -228,7 +228,8 @@ fn string_length_is_in_utf16_codeunits() {
             .unwrap()
             .unwrap();
         length_desc
-            .expect_value()
+            .value()
+            .expect("length should be data property descriptor")
             .to_integer_or_infinity(context)
             .unwrap()
             == IntegerOrInfinity::Integer(2)
@@ -295,6 +296,29 @@ fn div_by_zero() {
 #[test]
 fn rem_by_zero() {
     run_test_actions([TestAction::assert_eq("1 % 0", f64::NAN)]);
+}
+
+#[test]
+fn rem_i32_min_by_neg_one() {
+    run_test_actions([TestAction::assert_with_op(
+        "(-2147483648 | 0) % (-1 | 0)",
+        |val, _| {
+            val.as_number()
+                .is_some_and(|n| n == 0.0 && n.is_sign_negative())
+        },
+    )]);
+}
+
+#[test]
+fn rem_fast_i32_min_by_neg_one() {
+    let x = JsValue::from(i32::MIN);
+    let y = JsValue::from(-1_i32);
+    let result = x.rem_fast(&y).unwrap();
+    assert!(
+        result
+            .as_number()
+            .is_some_and(|n| n == 0.0 && n.is_sign_negative())
+    );
 }
 
 #[test]

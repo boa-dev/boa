@@ -1,5 +1,6 @@
 use super::internal_methods::InternalMethodPropertyContext;
 use crate::js_error;
+use crate::property::CompletePropertyDescriptor;
 use crate::value::JsVariant;
 use crate::{
     Context, JsExpect, JsResult, JsSymbol, JsValue,
@@ -629,13 +630,15 @@ impl JsObject {
             // b. If currentDesc is not undefined, then
             if let Some(current_desc) = current_desc {
                 // i. If currentDesc.[[Configurable]] is true, return false.
-                if current_desc.expect_configurable() {
+                if current_desc.configurable() {
                     return Ok(false);
                 }
                 // ii. If level is frozen and IsDataDescriptor(currentDesc) is true, then
-                if level.is_frozen() && current_desc.is_data_descriptor() {
+                if level.is_frozen()
+                    && let CompletePropertyDescriptor::Data { writable, .. } = current_desc
+                {
                     // 1. If currentDesc.[[Writable]] is true, return false.
-                    if current_desc.expect_writable() {
+                    if writable {
                         return Ok(false);
                     }
                 }
@@ -755,7 +758,7 @@ impl JsObject {
                     .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc
-                    && desc.expect_enumerable()
+                    && desc.enumerable()
                 {
                     match kind {
                         // 1. If kind is key, append key to properties.
@@ -794,7 +797,7 @@ impl JsObject {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
-    pub(crate) fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
+    pub fn get_method<K>(&self, key: K, context: &mut Context) -> JsResult<Option<Self>>
     where
         K: Into<PropertyKey>,
     {
@@ -931,8 +934,7 @@ impl JsObject {
 
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc
-                    && let Some(enumerable) = desc.enumerable()
-                    && enumerable
+                    && desc.enumerable()
                 {
                     // 1. Let propValue be ? Get(from, nextKey).
                     let prop_value = from.__get__(&key, from.clone().into(), context)?;
@@ -1368,7 +1370,17 @@ impl JsValue {
     {
         // Note: The spec specifies this function for JsValue.
         // The main part of the function is implemented for JsObject.
-        self.to_object(context)?.get_method(key, context)
+        // 1. Let func be ? GetV(V, P).
+        match self.get_v(key, context)?.variant() {
+            // 3. If func is either undefined or null, return undefined.
+            JsVariant::Undefined | JsVariant::Null => Ok(None),
+            // 5. Return func.
+            JsVariant::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
+            // 4. If IsCallable(func) is false, throw a TypeError exception.
+            _ => Err(JsNativeError::typ()
+                .with_message("value returned for property of object is not a function")
+                .into()),
+        }
     }
 
     /// It is used to create List value whose elements are provided by the indexed properties of

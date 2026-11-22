@@ -59,11 +59,7 @@ impl ForInIterator {
     ) -> (JsObject, JsValue) {
         let iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            context
-                .intrinsics()
-                .objects()
-                .iterator_prototypes()
-                .iterator(),
+            context.intrinsics().constructors().iterator().prototype(),
             Self::new(object),
         )
         .upcast();
@@ -117,7 +113,7 @@ impl ForInIterator {
                     )?
                 {
                     iterator.visited_keys.insert(r.clone());
-                    if desc.expect_enumerable() {
+                    if desc.enumerable() {
                         return Ok(create_iter_result_object(JsValue::new(r), false, context));
                     }
                 }

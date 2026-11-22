@@ -1,5 +1,5 @@
 use crate::{
-    Context, JsResult, JsValue,
+    Context, JsExpect, JsResult, JsValue,
     error::JsNativeError,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
@@ -62,7 +62,7 @@ impl GetNameGlobal {
             let object_borrowed = object.borrow();
             if let Some((shape, slot)) = ic.get(object_borrowed.shape()) {
                 let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                    let prototype = shape.prototype().expect("prototype should have value");
+                    let prototype = shape.prototype().js_expect("prototype should have value")?;
                     let prototype = prototype.borrow();
                     prototype.properties().storage[slot.index as usize].clone()
                 } else {
@@ -71,11 +71,10 @@ impl GetNameGlobal {
 
                 drop(object_borrowed);
                 if slot.attributes.has_get() && result.is_object() {
-                    result = result.as_object().expect("should contain getter").call(
-                        &object.clone().into(),
-                        &[],
-                        context,
-                    )?;
+                    result = result
+                        .as_object()
+                        .js_expect("should contain getter")?
+                        .call(&object.clone().into(), &[], context)?;
                 }
                 context.vm.set_register(dst.into(), result);
                 return Ok(());

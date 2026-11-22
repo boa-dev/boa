@@ -1,3 +1,9 @@
+//! Encoding and decoding helpers for opcode operands.
+//!
+//! The VM only decodes bytecode emitted and patched by Boa. Because of that, these helpers rely on
+//! internal invariants instead of returning recoverable errors for malformed operand layouts. If
+//! decoding fails, it points to a compiler or bytecode management bug.
+
 use thin_vec::ThinVec;
 
 use super::{Address, IndexOperand, RegisterOperand};
@@ -38,6 +44,8 @@ unsafe impl Readable for (u32, u32, u32, u32, u32) {}
 pub(super) fn read<T: Readable>(bytes: &[u8], offset: usize) -> (T, usize) {
     let new_offset = offset + size_of::<T>();
 
+    // The VM only executes bytecode emitted and patched by Boa, so a short operand stream means an
+    // internal invariant was broken earlier in compilation or patching.
     assert!(bytes.len() >= new_offset, "buffer too small to read type T");
 
     // Safety: The assertion above ensures that the slice is large enough to read T.
@@ -203,7 +211,7 @@ macro_rules! impl_argument_for_int {
         impl Argument for $t {
             #[inline(always)]
             fn encode(self, bytes: &mut Vec<u8>) {
-                paste::paste! {
+                pastey::paste! {
                     [<write_ $t>](bytes, self);
                 }
             }

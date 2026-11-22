@@ -5,7 +5,7 @@ use crate::{
         CONSTRUCTOR, FunctionBinding, JsFunction, JsPrototype, PROTOTYPE,
         shape::{property_table::PropertyTableInner, slot::SlotAttributes},
     },
-    property::{Attribute, PropertyDescriptor, PropertyKey},
+    property::{Attribute, CompletePropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
 };
@@ -67,11 +67,12 @@ impl ApplyToObject for Constructor {
     fn apply_to(self, object: &JsObject) {
         object.insert(
             PROTOTYPE,
-            PropertyDescriptor::builder()
-                .value(self.prototype.clone())
-                .writable(false)
-                .enumerable(false)
-                .configurable(false),
+            CompletePropertyDescriptor::Data {
+                value: self.prototype.clone().into(),
+                writable: false,
+                enumerable: false,
+                configurable: false,
+            },
         );
 
         {
@@ -79,11 +80,12 @@ impl ApplyToObject for Constructor {
             prototype.set_prototype(self.inherits);
             prototype.insert(
                 CONSTRUCTOR,
-                PropertyDescriptor::builder()
-                    .value(object.clone())
-                    .writable(self.attributes.writable())
-                    .enumerable(self.attributes.enumerable())
-                    .configurable(self.attributes.configurable()),
+                CompletePropertyDescriptor::Data {
+                    value: object.clone().into(),
+                    writable: self.attributes.writable(),
+                    enumerable: self.attributes.enumerable(),
+                    configurable: self.attributes.configurable(),
+                },
             );
         }
     }
@@ -109,19 +111,21 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
         }
         object.insert(
             StaticJsStrings::LENGTH,
-            PropertyDescriptor::builder()
-                .value(self.length)
-                .writable(false)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: self.length.into(),
+                writable: false,
+                enumerable: false,
+                configurable: true,
+            },
         );
         object.insert(
             js_string!("name"),
-            PropertyDescriptor::builder()
-                .value(self.name)
-                .writable(false)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: self.name.into(),
+                writable: false,
+                enumerable: false,
+                configurable: true,
+            },
         );
 
         self.kind.apply_to(object);
@@ -178,11 +182,6 @@ pub(crate) struct BuiltInConstructorWithPrototype<'ctx> {
     __proto__: JsPrototype,
     inherits: Option<JsObject>,
     attributes: Attribute,
-    /// If `Some`, the `constructor` property on the prototype will be installed
-    /// as a get/set accessor pair instead of as a writable data property.
-    /// This is needed by `Iterator.prototype.constructor` per the spec
-    /// (web-compat requirement).
-    constructor_accessor: Option<(JsFunction, JsFunction)>,
 }
 
 #[allow(dead_code)]
@@ -198,13 +197,6 @@ impl BuiltInConstructorWithPrototype<'_> {
     ///
     /// See [`BuiltInConstructorWithPrototype::build`].
     const OWN_PROTOTYPE_STORAGE_SLOTS: usize = 1;
-
-    /// The number of storage slots properties that are always present in a
-    /// standard constructor's prototype object when `constructor` is installed
-    /// as a get/set **accessor** property (two slots: getter + setter).
-    ///
-    /// See [`BuiltInConstructorWithPrototype::constructor_accessor`].
-    const OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR: usize = 2;
 
     /// Specify how many arguments the constructor function takes.
     ///
@@ -390,25 +382,6 @@ impl BuiltInConstructorWithPrototype<'_> {
         self
     }
 
-    /// Installs `Iterator.prototype.constructor` (or any analogous property) as a
-    /// configurable, non-enumerable **accessor** descriptor instead of the default
-    /// writable data property.
-    ///
-    /// Per the [ECMAScript spec][spec], `Iterator.prototype.constructor` must be an
-    /// accessor for web-compatibility reasons: previously the property did not exist, so
-    /// making it a setter that ignores writes to the prototype avoids breaking existing code
-    /// that assigns `Iterator.prototype.constructor = ...`.
-    ///
-    /// When this method is called the `PROTOTYPE_STORAGE_SLOTS` constant on the
-    /// implementing built-in **must** account for two extra slots (getter + setter)
-    /// instead of the usual one slot for a data property.
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iterator.prototype.constructor
-    pub(crate) fn constructor_accessor(mut self, get: JsFunction, set: JsFunction) -> Self {
-        self.constructor_accessor = Some((get, set));
-        self
-    }
-
     #[track_caller]
     pub(crate) fn build(mut self) {
         let length = self.length;
@@ -418,52 +391,19 @@ impl BuiltInConstructorWithPrototype<'_> {
         self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
         self = self.static_property(PROTOTYPE, prototype, Attribute::empty());
 
-        // Install the `constructor` property on the prototype — either as a writable
-        // data property (the common case) or as a get/set accessor (needed by
-        // `Iterator.prototype.constructor` for web-compat, see `constructor_accessor`).
-        if let Some((get, set)) = self.constructor_accessor.take() {
-            // Accessor path: two storage slots (getter + setter).  The `CONSTRUCTOR` key
-            // must NOT already be present (no duplicate insertion).
-            let mut attributes = SlotAttributes::CONFIGURABLE;
-            attributes.set(SlotAttributes::GET, true);
-            attributes.set(SlotAttributes::SET, true);
-            debug_assert!(
-                !self
-                    .prototype_property_table
-                    .map
-                    .contains_key(&CONSTRUCTOR.into())
-            );
-            self.prototype_property_table
-                .insert(CONSTRUCTOR.into(), attributes);
-            self.prototype_storage
-                .extend([JsValue::new(get), JsValue::new(set)]);
-            #[cfg(debug_assertions)]
-            assert!(
-                self.prototype_storage.len()
-                    <= self.prototype_storage_slots_expected
-                        + Self::OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR,
-                "expected to allocate at most {} prototype storage slots, got {}. \
+        let attributes = self.attributes;
+        let object = self.constructor.clone();
+        self = self.property(CONSTRUCTOR, object, attributes);
+        #[cfg(debug_assertions)]
+        assert!(
+            self.prototype_storage.len()
+                <= self.prototype_storage_slots_expected + Self::OWN_PROTOTYPE_STORAGE_SLOTS,
+            "expected to allocate at most {} prototype storage slots, got {}. \
                 constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
-                self.prototype_storage_slots_expected,
-                self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS_ACCESSOR,
-                self.name.display_escaped(),
-            );
-        } else {
-            // Data property path (the default).
-            let attributes = self.attributes;
-            let object = self.constructor.clone();
-            self = self.property(CONSTRUCTOR, object, attributes);
-            #[cfg(debug_assertions)]
-            assert!(
-                self.prototype_storage.len()
-                    <= self.prototype_storage_slots_expected + Self::OWN_PROTOTYPE_STORAGE_SLOTS,
-                "expected to allocate at most {} prototype storage slots, got {}. \
-                constant {}::PROTOTYPE_STORAGE_SLOTS may need to be adjusted",
-                self.prototype_storage_slots_expected,
-                self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS,
-                self.name.display_escaped(),
-            );
-        }
+            self.prototype_storage_slots_expected,
+            self.prototype_storage.len() - Self::OWN_PROTOTYPE_STORAGE_SLOTS,
+            self.name.display_escaped(),
+        );
 
         #[cfg(debug_assertions)]
         assert!(
@@ -682,7 +622,6 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
             __proto__: Some(realm.intrinsics().constructors().function().prototype()),
             inherits: Some(realm.intrinsics().constructors().object().prototype()),
             attributes: Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
-            constructor_accessor: None,
         }
     }
 }
@@ -706,11 +645,12 @@ impl<T> BuiltInBuilder<'_, T> {
 
         self.object.insert(
             binding.binding,
-            PropertyDescriptor::builder()
-                .value(function)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
+            CompletePropertyDescriptor::Data {
+                value: function.into(),
+                writable: true,
+                enumerable: false,
+                configurable: true,
+            },
         );
         self
     }
@@ -721,12 +661,41 @@ impl<T> BuiltInBuilder<'_, T> {
         K: Into<PropertyKey>,
         V: Into<JsValue>,
     {
-        let property = PropertyDescriptor::builder()
-            .value(value)
-            .writable(attribute.writable())
-            .enumerable(attribute.enumerable())
-            .configurable(attribute.configurable());
-        self.object.insert(key, property);
+        self.object.insert(
+            key,
+            CompletePropertyDescriptor::Data {
+                value: value.into(),
+                writable: attribute.writable(),
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
+        self
+    }
+
+    /// Adds a new accessor property to the builtin object.
+    pub(crate) fn static_accessor<K>(
+        self,
+        key: K,
+        get: Option<JsFunction>,
+        set: Option<JsFunction>,
+        attribute: Attribute,
+    ) -> Self
+    where
+        K: Into<PropertyKey>,
+    {
+        let key = key.into();
+
+        self.object.insert(
+            key,
+            CompletePropertyDescriptor::Accessor {
+                get,
+                set,
+                enumerable: attribute.enumerable(),
+                configurable: attribute.configurable(),
+            },
+        );
+
         self
     }
 

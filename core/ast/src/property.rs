@@ -72,10 +72,35 @@ impl PropertyName {
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Self::Literal(key) => interner.resolve_expect(key.sym()).to_string(),
+            Self::Literal(key) => {
+                let name = interner.resolve_expect(key.sym()).to_string();
+                if is_identifier_name(&name) {
+                    name
+                } else {
+                    // Keys that are not a valid `IdentifierName` (e.g. `{ ':checked + div': 1 }`)
+                    // must be emitted as a quoted string literal, otherwise the output is not
+                    // parsable back as JavaScript.
+                    format!("\"{name}\"")
+                }
+            }
             Self::Computed(key) => format!("[{}]", key.to_interned_string(interner)),
         }
     }
+}
+
+/// Returns `true` if `name` can be emitted as an object property key without quotes.
+///
+/// This is a deliberately conservative ASCII check: a valid non-ASCII `IdentifierName`
+/// is treated as needing quotes. As [`ToInternedString`] is only a display/debug helper,
+/// quoting a valid identifier merely makes the output more verbose (still valid JavaScript),
+/// whereas emitting a non-identifier key unquoted would produce unparsable output.
+fn is_identifier_name(name: &str) -> bool {
+    let mut chars = name.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    (first == '$' || first == '_' || first.is_ascii_alphabetic())
+        && chars.all(|c| c == '$' || c == '_' || c.is_ascii_alphanumeric())
 }
 
 impl From<Identifier> for PropertyName {

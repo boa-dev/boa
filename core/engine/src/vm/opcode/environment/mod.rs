@@ -71,7 +71,7 @@ impl This {
             .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         context.vm.stack.set_this(
-            context.vm.frames.last().expect("frame must exist"),
+            context.vm.frames.last().js_expect("frame must exist")?,
             this.clone(),
         );
         context.vm.set_register(dst.into(), this);
@@ -94,13 +94,20 @@ pub(crate) struct ThisForObjectEnvironmentName;
 
 impl ThisForObjectEnvironmentName {
     #[inline(always)]
-    pub(super) fn operation(
-        (dst, index): (RegisterOperand, IndexOperand),
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
+    pub(super) fn operation(dst: RegisterOperand, context: &mut Context) -> JsResult<()> {
+        // The preceding `GetNameAndLocator` opcode already resolved the binding and
+        // pushed the resolved locator onto the binding stack. Reuse that resolution
+        // to derive the `this` value (`WithBaseObject`) instead of scanning the
+        // environment chain again, so `HasBinding` (and the binding object's
+        // `[[HasProperty]]` trap) runs exactly once, as required by the specification.
+        let binding_locator = context
+            .vm
+            .frame_mut()
+            .binding_stack
+            .pop()
+            .js_expect("locator should have been pushed by GetNameAndLocator")?;
         let this = context
-            .this_from_object_environment_binding(&binding_locator)?
+            .this_from_resolved_object_environment_binding(&binding_locator)
             .map_or(JsValue::undefined(), Into::into);
         context.vm.set_register(dst.into(), this);
         Ok(())
@@ -141,13 +148,13 @@ impl SuperCall {
                 .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
-                .expect("super call must be in function environment")
+                .js_expect("super call must be in function environment")?
         };
 
         let new_target = this_env
             .slots()
             .new_target()
-            .expect("must have new.target")
+            .js_expect("must have new.target")?
             .clone();
 
         context.vm.stack.push(new_target);
@@ -179,12 +186,12 @@ impl SuperCallSpread {
         let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
-            .expect("arguments array in call spread function must be an object");
+            .js_expect("arguments array in call spread function must be an object")?;
         let arguments = arguments_array_object
             .borrow()
             .properties()
             .to_dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense");
+            .js_expect("arguments array in call spread function must be dense")?;
 
         let super_constructor = context.vm.stack.pop();
 
@@ -207,13 +214,13 @@ impl SuperCallSpread {
                 .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
-                .expect("super call must be in function environment")
+                .js_expect("super call must be in function environment")?
         };
 
         let new_target = this_env
             .slots()
             .new_target()
-            .expect("must have new.target")
+            .js_expect("must have new.target")?
             .clone();
 
         context.vm.stack.push(new_target);
@@ -247,18 +254,18 @@ impl SuperCallDerived {
                 .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
-                .expect("super call must be in function environment")
+                .js_expect("super call must be in function environment")?
         };
         let new_target = this_env
             .slots()
             .new_target()
-            .expect("must have new target")
+            .js_expect("must have new target")?
             .clone();
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
             .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))
-            .expect("function object must have prototype")
-            .expect("function object must have prototype");
+            .js_expect("function object must have prototype")?
+            .js_expect("function object must have prototype")?;
 
         if !super_constructor.is_constructor() {
             return Err(JsNativeError::typ()
@@ -304,7 +311,7 @@ impl BindThisValue {
             .vm
             .get_register(value.into())
             .as_object()
-            .expect("construct result should be an object")
+            .js_expect("construct result should be an object")?
             .clone();
 
         // 7. Let thisER be GetThisEnvironment().
@@ -314,7 +321,7 @@ impl BindThisValue {
                 .environments
                 .get_this_environment(frame.realm.environment())
                 .as_function()
-                .expect("super call must be in function environment")
+                .js_expect("super call must be in function environment")?
         };
 
         // 8. Perform ? thisER.BindThisValue(result).

@@ -5,16 +5,23 @@ edition = "2024"
 publish = false
 
 [dependencies]
-boa_engine = { workspace = true, features = ["intl_bundled"] }
-boa_runtime.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
-walkdir = "2"
+walkdir.workspace = true
+regex.workspace = true
+boa_engine = { workspace = true, features = ["intl_bundled"] }
+boa_runtime.workspace = true
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
-jemallocator.workspace = true
+tikv-jemallocator.workspace = true
+
+[target.'cfg(target_os = "macos")'.dev-dependencies]
+mimalloc-safe = { workspace = true, features = ["skip_collect_on_exit"] }
 
 [[bench]]
 name = "scripts"
 harness = false
+
+[lints]
+workspace = true

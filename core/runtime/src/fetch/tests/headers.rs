@@ -119,3 +119,30 @@ fn headers_invalid_inputs_throw_type_error_objects() {
         ),
     ]);
 }
+
+#[test]
+fn headers_iterator_throws_on_invalid_this() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(register),
+        TestAction::run(
+            r#"
+                try {
+                    const iterator = Headers.prototype[Symbol.iterator].call({});
+                    throw Error("expected the call above to throw");
+                } catch (e) {
+                    assert(e instanceof TypeError);
+                    assertEq(e.message, "`Headers.prototype[Symbol.iterator]` requires a `Headers` object");
+                }
+
+                try {
+                    const iterator = Headers.prototype[Symbol.iterator].call(1);
+                    throw Error("expected the call above to throw");
+                } catch (e) {
+                    assert(e instanceof TypeError);
+                    assertEq(e.message, "`Headers.prototype[Symbol.iterator]` requires a `Headers` object");
+                }
+            "#,
+        ),
+    ]);
+}

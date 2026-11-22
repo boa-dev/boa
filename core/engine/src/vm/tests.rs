@@ -343,6 +343,66 @@ fn loop_runtime_limit() {
     ]);
 }
 
+/// Test that the loop iteration limit allows exactly `limit` body executions
+/// and that all loop kinds agree on the count.
+///
+/// See: <https://github.com/boa-dev/boa/issues/5461>
+#[test]
+fn loop_iteration_limit_counts_body_executions() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(10);
+        }),
+        // Loops that run exactly `limit` iterations must complete without error.
+        TestAction::assert_eq("var a = 0; for (let i = 0; i < 10; ++i) { a++; } a", 10),
+        TestAction::assert_eq("var b = 0; while (b < 10) { b++; } b", 10),
+        TestAction::assert_eq("var c = 0; do { c++; } while (c < 10); c", 10),
+        TestAction::assert_eq(
+            "var d = 0; for (const x of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) { d++; } d",
+            10,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                var e = 0;
+                var o = { k0: 0, k1: 0, k2: 0, k3: 0, k4: 0, k5: 0, k6: 0, k7: 0, k8: 0, k9: 0 };
+                for (const k in o) { e++; }
+                e
+            "#},
+            10,
+        ),
+        // Loops that would exceed the limit must error after exactly `limit`
+        // body executions, and `for` and `while` loops must agree.
+        TestAction::assert_runtime_limit_error(
+            "var forCount = 0; for (let i = 0; i < 1000; ++i) { forCount++; }",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("forCount", 10),
+        TestAction::assert_runtime_limit_error(
+            "var whileCount = 0; while (true) { whileCount++; }",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("whileCount", 10),
+        TestAction::assert_runtime_limit_error(
+            "var doWhileCount = 0; do { doWhileCount++; } while (true);",
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("doWhileCount", 10),
+        TestAction::assert_runtime_limit_error(
+            indoc! {r#"
+                var forOfCount = 0;
+                var infinite = {
+                    [Symbol.iterator]() {
+                        return { next() { return { done: false, value: 1 }; } };
+                    }
+                };
+                for (const x of infinite) { forOfCount++; }
+            "#},
+            RuntimeLimitError::LoopIteration,
+        ),
+        TestAction::assert_eq("forOfCount", 10),
+    ]);
+}
+
 #[test]
 fn recursion_runtime_limit() {
     run_test_actions([
@@ -531,5 +591,92 @@ fn recursion_in_setter_throws_uncatchable_error() {
             "#},
             RuntimeLimitError::Recursion,
         ),
+    ]);
+}
+
+#[test]
+fn with_object_environment_call_single_lookup_and_this() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let emptyHasCount = 0;
+            const emptyProxy = new Proxy({}, {
+                has(t, p) {
+                    if (p === "Object") {
+                        emptyHasCount++;
+                    }
+                    return Reflect.has(t, p);
+                }
+            });
+            with (emptyProxy) {
+                Object();
+            }
+
+            let hasCount = 0;
+            let callThis = null;
+            const target = {
+                fn() {
+                    callThis = this;
+                }
+            };
+            const proxy = new Proxy(target, {
+                has(t, p) {
+                    if (p === "fn") {
+                        hasCount++;
+                    }
+                    return Reflect.has(t, p);
+                }
+            });
+            with (proxy) {
+                fn();
+            }
+        "#}),
+        TestAction::assert_eq("emptyHasCount", 1),
+        TestAction::assert_eq("hasCount", 2),
+        TestAction::assert("callThis === proxy"),
+    ]);
+}
+
+#[test]
+fn with_object_environment_binding_deleted_in_unscopables() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let unscopablesCalled = 0;
+            const env = {
+                binding: 42,
+                get [Symbol.unscopables]() {
+                    unscopablesCalled++;
+                    delete env.binding;
+                    return null;
+                }
+            };
+            let sloppyResult = null;
+            with (env) {
+                sloppyResult = binding;
+            }
+
+            let strictThrew = false;
+            const envStrict = {
+                binding: 42,
+                get [Symbol.unscopables]() {
+                    delete envStrict.binding;
+                    return null;
+                }
+            };
+            with (envStrict) {
+                try {
+                    (function() {
+                        "use strict";
+                        return binding;
+                    })();
+                } catch (e) {
+                    if (e instanceof ReferenceError) {
+                        strictThrew = true;
+                    }
+                }
+            }
+        "#}),
+        TestAction::assert_eq("unscopablesCalled", 1),
+        TestAction::assert("sloppyResult === undefined"),
+        TestAction::assert("strictThrew === true"),
     ]);
 }

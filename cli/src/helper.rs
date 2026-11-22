@@ -60,6 +60,11 @@ impl Validator for RLHelper {
         &self,
         context: &mut ValidationContext<'_>,
     ) -> Result<ValidationResult, ReadlineError> {
+        // Dot commands are handled by the REPL loop, not the JS parser.
+        if context.input().trim_start().starts_with('.') {
+            return Ok(ValidationResult::Valid(None));
+        }
+
         let mut parser = boa_parser::Parser::new(Source::from_bytes(context.input()));
         if self.strict {
             parser.set_strict();

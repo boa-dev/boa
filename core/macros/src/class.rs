@@ -13,7 +13,8 @@ use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
     Attribute, ConstParam, Expr, FnArg, GenericParam, Ident, ImplItemFn, ItemImpl, LifetimeParam,
-    Lit, Meta, MetaNameValue, PatType, Receiver, ReturnType, Signature, Token, Type, TypeParam,
+    Lit, Meta, MetaNameValue, PatType, Receiver, ReceiverKind, ReturnType, Signature, Token, Type,
+    TypeParam,
 };
 
 /// The name of a method or accessor, which can be either a string property key or a
@@ -106,7 +107,7 @@ impl Function {
             .unwrap_or("Invalid class for type".to_string());
 
         // `&mut self`
-        let downcast = if receiver.mutability.is_some() {
+        let downcast = if let ReceiverKind::Reference(_, _, Some(_)) = receiver.kind {
             quote! {
                 let object = this.as_object();
                 let self_ = &mut *object.as_ref().and_then(|o| o.downcast_mut::< #class_ty >())
@@ -115,7 +116,7 @@ impl Function {
         } else {
             quote! {
                 let object = this.as_object();
-                let self_ = &*object.as_ref().and_then(|o| o.downcast_ref::< #class_ty >())
+                let self_ = &mut *object.as_ref().and_then(|o| o.downcast_mut::< #class_ty >())
                     .ok_or( boa_engine::js_error!( #err ))?;
             }
         };
@@ -140,7 +141,11 @@ impl Function {
                 mutability: Some(_),
                 ..
             }) => match elem.as_ref() {
-                Type::Path(syn::TypePath { qself: _, path }) => {
+                Type::Path(syn::TypePath {
+                    qself: _,
+                    attrs: _,
+                    path,
+                }) => {
                     if let Some(maybe_ctx) = path.segments.last() {
                         maybe_ctx.ident == "Context"
                     } else {

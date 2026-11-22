@@ -98,9 +98,7 @@ impl TemplateString {
                         Some(0x27 /* ' */) => 0x27 /* ' */,
                         Some(0x5C /* \ */) => 0x5C /* \ */,
                         Some(0x30 /* 0 */) if iter
-                            .peek()
-                            .filter(|ch| (0x30..=0x39 /* 0..=9 */).contains(**ch))
-                            .is_none() => 0x00 /* NULL */,
+                            .peek().as_ref().is_none_or(|ch| !(0x30..=0x39 /* 0..=9 */).contains(**ch)) => 0x00 /* NULL */,
                         // Hex Escape
                         Some(0x078 /* x */) => {
                             let mut s = String::with_capacity(2);

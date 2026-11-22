@@ -196,6 +196,48 @@ fn catch_binding_finally() {
 }
 
 #[test]
+fn finally_fallthrough_with_untaken_return() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                function g(x) {
+                    try {
+                        if (x) return -1;
+                    } catch (e) {} finally {}
+                    return 42;
+                }
+                g(0);
+            "#},
+            42,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function g(x) {
+                    try {
+                        if (x) return -1;
+                    } catch (e) {} finally {}
+                    return 42;
+                }
+                g(1);
+            "#},
+            -1,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function h(x) {
+                    try {
+                        if (x) return -1;
+                    } finally {}
+                    return 42;
+                }
+                h(0);
+            "#},
+            42,
+        ),
+    ]);
+}
+
+#[test]
 fn finally_with_loop_break() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"
@@ -211,6 +253,42 @@ fn finally_with_loop_break() {
         "#},
         30,
     )]);
+}
+
+#[test]
+fn nested_finally_break_discards_inner_return() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() {
+                    try {
+                        return 42;
+                    } finally {
+                        do try {
+                            return 43;
+                        } finally {
+                            break;
+                        } while (0);
+                    }
+                }
+                f();
+            "#},
+            42,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                function f() {
+                    try {
+                        return 42;
+                    } finally {
+                        return 43;
+                    }
+                }
+                f();
+            "#},
+            43,
+        ),
+    ]);
 }
 
 #[test]

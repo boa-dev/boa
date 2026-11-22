@@ -148,9 +148,18 @@ impl<V> OrderedMap<V> {
     /// Removes all elements from the map and resets the counter of
     /// empty entries.
     pub fn clear(&mut self) {
-        self.map.clear();
-        self.map.shrink_to_fit();
-        self.empty_count = 0;
+        if self.lock == 0 {
+            self.map.clear();
+            self.map.shrink_to_fit();
+            self.empty_count = 0;
+        } else {
+            let len = self.map.len();
+            self.map.clear();
+            for i in 0..len {
+                self.map.insert(MapKey::Empty(i), None);
+            }
+            self.empty_count = len;
+        }
     }
 
     /// Return a reference to the value stored for `key`, if it is present,

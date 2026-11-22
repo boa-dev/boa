@@ -1,6 +1,6 @@
 use super::RegisterOperand;
 use crate::{
-    Context,
+    Context, JsExpect, JsResult,
     builtins::array::Array,
     js_string,
     object::IntegrityLevel,
@@ -47,12 +47,12 @@ impl TemplateCreate {
     pub(super) fn operation(
         (site, dst, values): (u64, RegisterOperand, ThinVec<u32>),
         context: &mut Context,
-    ) {
+    ) -> JsResult<()> {
         let count = values.len() / 2;
         let template =
-            Array::array_create(count as u64, None, context).expect("cannot fail per spec");
+            Array::array_create(count as u64, None, context).js_expect("cannot fail per spec")?;
         let raw_obj =
-            Array::array_create(count as u64, None, context).expect("cannot fail per spec");
+            Array::array_create(count as u64, None, context).js_expect("cannot fail per spec")?;
 
         let mut index = 0;
         let mut cooked = true;
@@ -69,7 +69,7 @@ impl TemplateCreate {
                             .configurable(false),
                         context,
                     )
-                    .expect("should not fail on new array");
+                    .js_expect("should not fail on new array")?;
             } else {
                 let raw_value = context.vm.get_register(value as usize);
                 raw_obj
@@ -82,7 +82,7 @@ impl TemplateCreate {
                             .configurable(false),
                         context,
                     )
-                    .expect("should not fail on new array");
+                    .js_expect("should not fail on new array")?;
                 index += 1;
             }
 
@@ -91,7 +91,7 @@ impl TemplateCreate {
 
         raw_obj
             .set_integrity_level(IntegrityLevel::Frozen, context)
-            .expect("should never fail per spec");
+            .js_expect("should never fail per spec")?;
         template
             .define_property_or_throw(
                 js_string!("raw"),
@@ -102,14 +102,15 @@ impl TemplateCreate {
                     .configurable(false),
                 context,
             )
-            .expect("should never fail per spec");
+            .js_expect("should never fail per spec")?;
         template
             .set_integrity_level(IntegrityLevel::Frozen, context)
-            .expect("should never fail per spec");
+            .js_expect("should never fail per spec")?;
 
         context.realm().push_template(site, template.clone());
 
         context.vm.set_register(dst.into(), template.into());
+        Ok(())
     }
 }
 

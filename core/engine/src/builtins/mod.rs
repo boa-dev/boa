@@ -71,8 +71,6 @@ pub mod escape;
 #[cfg(feature = "intl")]
 pub mod intl;
 
-// TODO: remove `cfg` when `Temporal` gets to stage 4.
-#[cfg(any(feature = "intl", feature = "temporal"))]
 pub(crate) mod options;
 
 #[cfg(feature = "temporal")]
@@ -270,9 +268,6 @@ impl Realm {
         Iterator::init(self);
         AsyncIterator::init(self);
         AsyncFromSyncIterator::init(self);
-        // IteratorConstructor must init first — IteratorHelper and WrapForValidIterator
-        // set their [[Prototype]] to Iterator.prototype (the constructor's prototype),
-        // so the constructor must be fully initialized first.
         IteratorConstructor::init(self);
         WrapForValidIterator::init(self);
         IteratorHelper::init(self);

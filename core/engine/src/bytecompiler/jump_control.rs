@@ -67,12 +67,34 @@ pub(crate) enum JumpRecordAction {
     },
 }
 
+/// Where an explicit `return` value is stored while `finally` blocks execute.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ReturnValueLocation {
+    /// On the value stack.
+    ///
+    /// Used when the `return` doesn't pass through any `finally` block, so no
+    /// abrupt completion can interleave and leave stale values behind.
+    OnStack,
+    /// In the function-level pending-return register (see
+    /// [`ByteCompiler::pending_return_slot`]).
+    ///
+    /// Used when the `return` passes through a `finally` block, since abrupt
+    /// completions inside `finally` (e.g. `break`) skip the jump-table handler
+    /// that would pop a stack slot.
+    InSlot(u32),
+    /// In the accumulator.
+    ///
+    /// Used for implicit function returns, where the completion value is
+    /// already in the accumulator.
+    InAccumulator,
+}
+
 /// Local Control flow type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum JumpRecordKind {
     Break,
     Continue,
-    Return { return_value_on_stack: bool },
+    Return { value_location: ReturnValueLocation },
 }
 
 /// This represents a local control flow handling. See [`JumpRecordKind`] for types.
@@ -117,7 +139,9 @@ impl JumpRecord {
                     finally_throw_flag,
                     finally_throw_index,
                 } => {
-                    let index = value as i32;
+                    // Note: +1 because 0 is reserved for the fallthrough entry of the
+                    // jump table emitted in `pop_try_with_finally_control_info`.
+                    let index = value as i32 + 1;
                     compiler
                         .bytecode
                         .emit_store_false(finally_throw_flag.into());
@@ -133,14 +157,18 @@ impl JumpRecord {
         match self.kind {
             JumpRecordKind::Break => compiler.patch_jump(self.label),
             JumpRecordKind::Continue => compiler.patch_jump_with_target(self.label, start_address),
-            JumpRecordKind::Return {
-                return_value_on_stack,
-            } => {
-                if return_value_on_stack {
-                    let value = compiler.register_allocator.alloc();
-                    compiler.pop_into_register(&value);
-                    compiler.bytecode.emit_set_accumulator(value.variable());
-                    compiler.register_allocator.dealloc(value);
+            JumpRecordKind::Return { value_location } => {
+                match value_location {
+                    ReturnValueLocation::OnStack => {
+                        let value = compiler.register_allocator.alloc();
+                        compiler.pop_into_register(&value);
+                        compiler.bytecode.emit_set_accumulator(value.variable());
+                        compiler.register_allocator.dealloc(value);
+                    }
+                    ReturnValueLocation::InSlot(slot) => {
+                        compiler.bytecode.emit_set_accumulator(slot.into());
+                    }
+                    ReturnValueLocation::InAccumulator => {}
                 }
 
                 match (compiler.is_async(), compiler.is_generator()) {
@@ -608,26 +636,32 @@ impl ByteCompiler<'_> {
             self.patch_jump_with_target(*label, finally_start);
         }
 
+        // The jump table holds `info.jumps.len() + 1` entries. Entry 0 is the
+        // fallthrough target, taken when no `break`, `continue`, or `return`
+        // inside the protected region selected a jump record (the index
+        // register keeps its initial value of `0`). Entries `1..=N` correspond
+        // to the registered jump records and are selected by `HandleFinally`.
         // NOTE: +4 to jump past the index operand.
         let jump_table_index = self.next_opcode_location() + size_of::<u32>() as u32;
         self.bytecode.emit_jump_table(
             finally_throw_index,
-            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
+            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len() + 1],
         );
 
-        // We are assuming any indices outside our jump table will fallback
-        // to executing the next available op. Since we kinda control the jump
-        // table index here, this doesn't matter too much, but we _could_ also
-        // throw a PanicError on the next instruction.
+        // Skip the jump-record handlers when falling through.
+        let fallthrough = self.jump();
 
-        let mut patch_jumps = Vec::with_capacity(info.jumps.len());
+        let mut patch_jumps = vec![Self::DUMMY_ADDRESS; info.jumps.len() + 1];
         // Handle breaks/continue/returns in a finally block
         for i in 0..info.jumps.len() {
-            patch_jumps.push(self.next_opcode_location());
+            patch_jumps[i + 1] = self.next_opcode_location();
 
             let jump_record = info.jumps[i].clone();
             jump_record.perform_actions(Self::DUMMY_ADDRESS, self);
         }
+
+        self.patch_jump(fallthrough);
+        patch_jumps[0] = self.next_opcode_location();
 
         self.bytecode
             .patch_jump_table(jump_table_index, &patch_jumps);

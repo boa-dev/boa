@@ -46,6 +46,7 @@ impl CodeBlock {
                 | Instruction::Move { .. }
                 | Instruction::PopIntoRegister { .. }
                 | Instruction::PushFromRegister { .. }
+                | Instruction::ToInt32 { .. }
                 | Instruction::Add { .. }
                 | Instruction::Sub { .. }
                 | Instruction::Div { .. }
@@ -186,6 +187,7 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Instruction::DefVar { .. }
+                | Instruction::DefEvalVar { .. }
                 | Instruction::DefInitVar { .. }
                 | Instruction::PutLexicalValue { .. }
                 | Instruction::GetName { .. }
@@ -329,12 +331,9 @@ impl CodeBlock {
                 | Instruction::IteratorPop { .. }
                 | Instruction::IteratorPush { .. }
                 | Instruction::IteratorUpdateResult { .. }
-                | Instruction::IteratorFinishAsyncNext { .. }
                 | Instruction::IteratorValue { .. }
                 | Instruction::IteratorResult { .. }
                 | Instruction::IteratorDone { .. }
-                | Instruction::IteratorToArray { .. }
-                | Instruction::IteratorReturn { .. }
                 | Instruction::IteratorStackEmpty { .. }
                 | Instruction::ValueNotNullOrUndefined { .. }
                 | Instruction::RestParameterInit { .. }
@@ -433,7 +432,8 @@ impl CodeBlock {
                 | Instruction::Reserved57
                 | Instruction::Reserved58
                 | Instruction::Reserved59
-                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved60
+                | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

@@ -238,7 +238,7 @@ impl JsValue {
     }
 
     fn same_value_non_numeric(x: &Self, y: &Self) -> bool {
-        debug_assert!(x.get_type() == y.get_type());
+        debug_assert_eq!(x.get_type(), y.get_type());
         match (x.variant(), y.variant()) {
             (JsVariant::Null, JsVariant::Null) | (JsVariant::Undefined, JsVariant::Undefined) => {
                 true

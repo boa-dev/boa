@@ -5,8 +5,8 @@ use boa_engine::job::GenericJob;
 use boa_engine::object::builtins::JsFunction;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    Context, Finalize, JsData, JsError, JsNativeError, JsObject, JsResult, JsValue, Trace,
-    boa_class, boa_module, js_error, js_string,
+    Context, Finalize, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue,
+    Trace, boa_class, boa_module, js_error, js_string,
 };
 use boa_gc::GcRefCell;
 use std::cell::Cell;
@@ -52,9 +52,15 @@ pub struct JsAbortSignal {
     #[unsafe_ignore_trace]
     aborted: Cell<bool>,
     reason: GcRefCell<Option<JsValue>>,
-    listeners: GcRefCell<Vec<JsFunction>>,
+    listeners: GcRefCell<Vec<AbortEventListener>>,
     #[unsafe_ignore_trace]
     cancel_token: CancellationToken,
+}
+
+#[derive(Debug, Clone, Trace, Finalize)]
+struct AbortEventListener {
+    event_type: JsString,
+    callback: JsFunction,
 }
 
 impl Default for JsAbortSignal {
@@ -79,7 +85,14 @@ impl JsAbortSignal {
         self.aborted.set(true);
         *self.reason.borrow_mut() = Some(reason);
 
-        let listeners: Vec<JsFunction> = self.listeners.borrow_mut().drain(..).collect();
+        let abort = js_string!("abort");
+        let listeners: Vec<JsFunction> = self
+            .listeners
+            .borrow()
+            .iter()
+            .filter(|listener| listener.event_type == abort)
+            .map(|listener| listener.callback.clone())
+            .collect();
 
         let realm = context.realm().clone();
         for listener in listeners {
@@ -154,28 +167,28 @@ impl JsAbortSignal {
 
     fn add_event_listener(
         &self,
-        event_type: boa_engine::JsString,
+        event_type: JsString,
         callback: JsFunction,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        if event_type.to_std_string_escaped() != "abort" {
-            return Err(js_error!(TypeError: "AbortSignal only supports the 'abort' event type"));
+        _context: &mut Context,
+    ) {
+        {
+            let listeners = self.listeners.borrow();
+            if listeners.iter().any(|listener| {
+                listener.event_type == event_type && JsObject::equals(&listener.callback, &callback)
+            }) {
+                return;
+            }
         }
-        if self.aborted.get() {
-            callback.call(&JsValue::undefined(), &[], context)?;
-        } else {
-            self.listeners.borrow_mut().push(callback);
-        }
-        Ok(())
+        self.listeners.borrow_mut().push(AbortEventListener {
+            event_type,
+            callback,
+        });
     }
 
-    fn remove_event_listener(&self, event_type: boa_engine::JsString, callback: JsFunction) {
-        if event_type.to_std_string_escaped() != "abort" {
-            return;
-        }
-        self.listeners
-            .borrow_mut()
-            .retain(|f| !JsObject::equals(f, &callback));
+    fn remove_event_listener(&self, event_type: JsString, callback: JsFunction) {
+        self.listeners.borrow_mut().retain(|listener| {
+            listener.event_type != event_type || !JsObject::equals(&listener.callback, &callback)
+        });
     }
 }
 

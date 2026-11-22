@@ -524,10 +524,10 @@ fn generate_conversion(
 
         let mut from_js_with = None;
         let mut field_name = rename.rename(format!("{name}"));
-        if let Some(attr) = field
+        for attr in field
             .attrs
             .into_iter()
-            .find(|attr| attr.path().is_ident("boa"))
+            .filter(|attr| attr.path().is_ident("boa"))
         {
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("from_js_with") {
@@ -538,11 +538,18 @@ fn generate_conversion(
                     let value = meta.value()?;
                     field_name = value.parse::<LitStr>()?.value();
                     Ok(())
+                } else if meta.path.is_ident("into_js_with") {
+                    let _unused = meta.value()?.parse::<LitStr>()?;
+                    Ok(())
+                } else if meta.path.is_ident("skip") && meta.input.is_empty() {
+                    Ok(())
                 } else {
                     Err(meta.error(
                         "invalid syntax in the `#[boa()]` attribute. \
-                              Note that this attribute only accepts the following syntax: \
-                            `#[boa(from_js_with = \"fully::qualified::path\")]`",
+                               Note that this attribute only accepts the following syntax: \
+                            \n* `#[boa(from_js_with = \"fully::qualified::path\")]` \
+                            \n* `#[boa(rename = \"jsPropertyName\")]` \
+                            ",
                     ))
                 }
             })
@@ -666,14 +673,17 @@ fn generate_obj_properties(
                     let value = meta.value()?;
                     prop_key = value.parse::<LitStr>()?.value();
                     Ok(())
-                } else if meta.path.is_ident("skip") & meta.input.is_empty() {
+                } else if meta.path.is_ident("skip") && meta.input.is_empty() {
                     skip = true;
+                    Ok(())
+                } else if meta.path.is_ident("from_js_with") {
+                    let _unused = meta.value()?.parse::<LitStr>()?;
                     Ok(())
                 } else {
                     Err(meta.error(
                         "invalid syntax in the `#[boa()]` attribute. \
-                              Note that this attribute only accepts the following syntax: \
-                            \n* `#[boa(into_js_with = \"fully::qualified::path\")]`\
+                               Note that this attribute only accepts the following syntax: \
+                            \n* `#[boa(into_js_with = \"fully::qualified::path\")]` \
                             \n* `#[boa(rename = \"jsPropertyName\")]` \
                             \n* `#[boa(skip)]` \
                             ",

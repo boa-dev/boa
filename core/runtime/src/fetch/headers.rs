@@ -3,8 +3,9 @@
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Headers>.
 #![allow(clippy::needless_pass_by_value)]
 
+use super::headers_iterator::{HeadersIterator, IterationKind};
 use boa_engine::interop::JsClass;
-use boa_engine::object::builtins::{JsArray, TypedJsFunction};
+use boa_engine::object::builtins::TypedJsFunction;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
     Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, boa_class, js_error,
@@ -49,7 +50,7 @@ fn to_header_value(value: impl AsRef<str>) -> JsResult<HeaderValue> {
 #[derive(Debug, Default, Clone, JsData, Trace, Finalize)]
 pub struct JsHeaders {
     #[unsafe_ignore_trace]
-    headers: Rc<RefCell<HttpHeaderMap>>,
+    pub(crate) headers: Rc<RefCell<HttpHeaderMap>>,
 }
 
 impl TryFromJs for JsHeaders {
@@ -159,21 +160,13 @@ impl JsHeaders {
     }
 
     /// Returns an iterator allowing to go through all key/value pairs contained in this object.
-    // TODO: This should return a JsIterator, but not such thing exists yet.
-    pub fn entries(&self, context: &mut Context) -> JsValue {
-        JsArray::from_iter(
-            self.headers
-                .borrow()
-                .iter()
-                .map(|(k, v)| {
-                    let k: JsValue = JsString::from(k.as_str()).into();
-                    let v: JsValue = JsString::from(v.to_str().unwrap_or_default()).into();
-                    JsArray::from_iter([k, v], context).into()
-                })
-                .collect::<Vec<_>>(),
-            context,
-        )
-        .into()
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the headers iterator cannot be created.
+    #[boa(method)]
+    pub fn entries(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
+        HeadersIterator::create_headers_iterator(this.inner(), IterationKind::KeyAndValue, context)
     }
 
     /// Executes a provided function once for each key/value pair in the Headers object.
@@ -246,13 +239,13 @@ impl JsHeaders {
 
     /// Returns an iterator allowing you to go through all keys of the key/value pairs
     /// contained in this object.
-    #[allow(clippy::unused_self)]
-    fn keys(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .keys()
-            .map(|k| JsString::from(k.as_str()))
-            .collect()
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the headers iterator cannot be created.
+    #[boa(method)]
+    fn keys(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
+        HeadersIterator::create_headers_iterator(this.inner(), IterationKind::Key, context)
     }
 
     /// Sets a new value for an existing header inside a Headers object, or adds the
@@ -264,11 +257,24 @@ impl JsHeaders {
         Ok(())
     }
 
-    fn values(&self) -> Vec<JsString> {
-        self.headers
-            .borrow()
-            .values()
-            .map(|v| JsString::from(v.to_str().unwrap_or("")))
-            .collect()
+    /// Returns an iterator allowing you to go through all values of the key/value pairs
+    /// contained in this object.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the headers iterator cannot be created.
+    #[boa(method)]
+    fn values(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
+        HeadersIterator::create_headers_iterator(this.inner(), IterationKind::Value, context)
+    }
+
+    /// `[Symbol.iterator]()` is an alias for `entries()`
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the headers iterator cannot be created.
+    #[boa(symbol = "iterator")]
+    fn symbol_iterator(this: JsClass<Self>, context: &mut Context) -> JsResult<JsValue> {
+        HeadersIterator::create_headers_iterator(this.inner(), IterationKind::KeyAndValue, context)
     }
 }

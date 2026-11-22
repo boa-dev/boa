@@ -8,11 +8,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 
 use crate::fetch::headers::JsHeaders;
+use crate::fetch::headers_iterator::{HeadersIterator, IterationKind};
 use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
 use boa_engine::class::Class;
 use boa_engine::object::FunctionObjectBuilder;
-use boa_engine::object::builtins::JsArray;
 use boa_engine::property::PropertyDescriptor;
 use boa_engine::realm::Realm;
 use boa_engine::{
@@ -25,6 +25,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 pub mod headers;
+pub mod headers_iterator;
 pub mod request;
 pub mod response;
 pub mod tests;
@@ -122,14 +123,16 @@ async fn fetch_inner<T: Fetcher>(
 
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
-    let request: Request<Vec<u8>> = match resource {
+    let mut signal = signal;
+
+    let request: Request<Option<Vec<u8>>> = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
             let url = fetcher
                 .resolve_uri(url, &mut context.borrow_mut())
                 .map_err(JsError::from_rust)?;
 
-            let r = HttpRequest::get(url).body(Vec::new());
+            let r = HttpRequest::get(url).body(None);
             r.map_err(JsError::from_rust)?
         }
         Either::Right(request) => {
@@ -141,9 +144,12 @@ async fn fetch_inner<T: Fetcher>(
                 return Err(js_error!(TypeError: "Request object is already in use"));
             };
 
+            signal = signal.or_else(|| request_ref.data().signal());
             request_ref.data().inner().clone()
         }
     };
+
+    check_abort(signal.as_ref(), &mut context.borrow_mut())?;
 
     let mut request = if let Some(options) = options {
         options.into_request_builder(Some(request))?
@@ -183,6 +189,7 @@ pub mod js_module {
     type JsHeaders = super::JsHeaders;
     type JsRequest = super::JsRequest;
     type JsResponse = super::JsResponse;
+    type HeadersIterator = super::headers_iterator::HeadersIterator;
 
     /// The `fetch` function.
     ///
@@ -202,21 +209,22 @@ pub mod js_module {
     }
 }
 
-#[doc(inline)]
-pub use js_module::fetch;
+fn headers_symbol_iterator(
+    this: &JsValue,
+    _: &[JsValue],
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let this_object = this.as_object().ok_or_else(
+        || js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+    )?;
 
-fn headers_iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    let this_object = this.as_object();
-    let headers = this_object
-        .as_ref()
-        .and_then(JsObject::downcast_ref::<JsHeaders>)
-        .ok_or_else(|| {
-            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object")
-        })?;
+    let Ok(headers) = this_object.clone().downcast::<JsHeaders>() else {
+        return Err(
+            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
+        );
+    };
 
-    let entries = headers.entries(context);
-    let entries_array = JsArray::from_object(entries.to_object(context)?)?;
-    entries_array.values(context)
+    HeadersIterator::create_headers_iterator(headers, IterationKind::KeyAndValue, context)
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
@@ -247,7 +255,7 @@ pub fn register<F: Fetcher>(
 
     let iterator = FunctionObjectBuilder::new(
         context.realm(),
-        NativeFunction::from_fn_ptr(headers_iterator),
+        NativeFunction::from_fn_ptr(headers_symbol_iterator),
     )
     .name(js_string!("[Symbol.iterator]"))
     .length(0)

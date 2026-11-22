@@ -1,5 +1,6 @@
 use crate::{
     Context, JsResult, JsString, JsSymbol, JsValue,
+    error::JsNativeError,
     object::{JsObject, PrivateName},
 };
 use boa_ast::scope::{BindingLocator, BindingLocatorScope, Scope};
@@ -460,16 +461,20 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
+        let deleted_binding = self.is_deleted_binding(locator);
+
         let global = self.vm.frame().realm.environment();
         if let Some(env) = self.vm.frame().environments.current_declarative_ref(global)
             && !env.with()
             && !env.poisoned()
+            && !deleted_binding
         {
             return Ok(());
         }
 
         let (global, min_index) = match locator.scope() {
             BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => (true, 0),
+            BindingLocatorScope::Stack(_) if deleted_binding => (false, 0),
             BindingLocatorScope::Stack(index) => (false, index),
         };
         let max_index = self.vm.frame().environments.len() as u32;
@@ -477,10 +482,13 @@ impl Context {
         for index in (min_index..max_index).rev() {
             match self.environment_expect(index) {
                 Environment::Declarative(env) => {
-                    if env.poisoned() {
+                    if env.poisoned() || deleted_binding {
                         if let Some(env) = env.kind().as_function()
                             && let Some(b) = env.compile().get_binding(locator.name())
                         {
+                            if env.is_deleted_binding(b.binding_index()) {
+                                continue;
+                            }
                             locator.set_scope(b.scope());
                             locator.set_binding_index(b.binding_index());
                             return Ok(());
@@ -505,6 +513,26 @@ impl Context {
             }
         }
 
+        if deleted_binding
+            && let BindingLocatorScope::Stack(index) = locator.scope()
+            && let Environment::Declarative(env) = self.environment_expect(index)
+            && let Some(function_env) = env.kind().as_function()
+        {
+            let mut scope = function_env.compile().outer();
+            while let Some(current_scope) = scope {
+                if let Some(binding) = current_scope.get_binding(locator.name()) {
+                    locator.set_scope(binding.scope());
+                    locator.set_binding_index(binding.binding_index());
+                    return Ok(());
+                }
+                scope = current_scope.outer();
+            }
+
+            locator.set_scope(BindingLocatorScope::GlobalObject);
+            locator.set_binding_index(0);
+            return Ok(());
+        }
+
         if global
             && self.realm().environment().poisoned()
             && let Some(b) = self.realm().scope().get_binding(locator.name())
@@ -516,53 +544,25 @@ impl Context {
         Ok(())
     }
 
-    /// Finds the object environment that contains the binding and returns the `this` value of the object environment.
-    pub(crate) fn this_from_object_environment_binding(
-        &mut self,
+    /// Returns the `this` value (`WithBaseObject`) for an already-resolved binding
+    /// locator, without performing another lookup on the environment chain.
+    ///
+    /// Per the specification, the `this` value of a function call whose callee is a
+    /// reference with an Environment Record base is obtained from that already
+    /// resolved record via `WithBaseObject`. Reusing the resolution avoids
+    /// re-running `HasBinding` (and therefore avoids invoking the binding object's
+    /// `[[HasProperty]]` trap a second time).
+    pub(crate) fn this_from_resolved_object_environment_binding(
+        &self,
         locator: &BindingLocator,
-    ) -> JsResult<Option<JsObject>> {
-        let global = self.vm.frame().realm.environment();
-        if let Some(env) = self.vm.frame().environments.current_declarative_ref(global)
-            && !env.with()
+    ) -> Option<JsObject> {
+        if let BindingLocatorScope::Stack(index) = locator.scope()
+            && let Environment::Object(o) = self.environment_expect(index)
         {
-            return Ok(None);
+            return Some(o.clone());
         }
 
-        let min_index = match locator.scope() {
-            BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => 0,
-            BindingLocatorScope::Stack(index) => index,
-        };
-        let max_index = self.vm.frame().environments.len() as u32;
-
-        for index in (min_index..max_index).rev() {
-            match self.environment_expect(index) {
-                Environment::Declarative(env) => {
-                    if env.poisoned() {
-                        if let Some(env) = env.kind().as_function()
-                            && env.compile().get_binding(locator.name()).is_some()
-                        {
-                            break;
-                        }
-                    } else if !env.with() {
-                        break;
-                    }
-                }
-                Environment::Object(o) => {
-                    let o = o.clone();
-                    let key = locator.name().clone();
-                    if o.has_property(key.clone(), self)? {
-                        if let Some(unscopables) = o.get(JsSymbol::unscopables(), self)?.as_object()
-                            && unscopables.get(key.clone(), self)?.to_boolean()
-                        {
-                            continue;
-                        }
-                        return Ok(Some(o));
-                    }
-                }
-            }
-        }
-
-        Ok(None)
+        None
     }
 
     /// Checks if the binding pointed by `locator` is initialized.
@@ -592,6 +592,24 @@ impl Context {
         }
     }
 
+    pub(crate) fn is_deleted_binding(&self, locator: &BindingLocator) -> bool {
+        match locator.scope() {
+            BindingLocatorScope::Stack(index) => matches!(
+                self.environment_expect(index),
+                Environment::Declarative(env) if env.is_deleted_binding(locator.binding_index())
+            ),
+            BindingLocatorScope::GlobalObject | BindingLocatorScope::GlobalDeclarative => false,
+        }
+    }
+
+    pub(crate) fn restore_deleted_binding(&self, locator: &BindingLocator) {
+        if let BindingLocatorScope::Stack(index) = locator.scope()
+            && let Environment::Declarative(env) = self.environment_expect(index)
+        {
+            env.restore_deleted_binding(locator.binding_index());
+        }
+    }
+
     /// Get the value of a binding.
     ///
     /// # Panics
@@ -614,7 +632,23 @@ impl Context {
                 Environment::Object(obj) => {
                     let key = locator.name().clone();
                     let obj = obj.clone();
-                    obj.get(key, self).map(Some)
+                    // `GetBindingValue` (9.1.1.2.6): step 2 performs `HasProperty`
+                    // before step 4's `Get`. If the binding is gone (e.g. it was
+                    // deleted by an `@@unscopables` getter during `HasBinding`),
+                    // step 3 returns `undefined` in sloppy mode or throws a
+                    // `ReferenceError` in strict mode.
+                    if obj.has_property(key.clone(), self)? {
+                        obj.get(key, self).map(Some)
+                    } else if self.vm.frame().code_block.strict() {
+                        Err(JsNativeError::reference()
+                            .with_message(format!(
+                                "{} is not defined",
+                                locator.name().to_std_string_escaped()
+                            ))
+                            .into())
+                    } else {
+                        Ok(Some(JsValue::undefined()))
+                    }
                 }
             },
         }
@@ -672,7 +706,7 @@ impl Context {
             }
             BindingLocatorScope::GlobalDeclarative => Ok(false),
             BindingLocatorScope::Stack(index) => match self.environment_expect(index) {
-                Environment::Declarative(_) => Ok(false),
+                Environment::Declarative(env) => Ok(env.delete_binding(locator.binding_index())),
                 Environment::Object(obj) => {
                     let key = locator.name().clone();
                     let obj = obj.clone();

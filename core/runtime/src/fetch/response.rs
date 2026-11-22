@@ -6,7 +6,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Response
 
 use crate::fetch::headers::JsHeaders;
-use boa_engine::object::builtins::{JsPromise, JsUint8Array};
+use boa_engine::object::builtins::{
+    JsArrayBuffer, JsDataView, JsPromise, JsTypedArray, JsUint8Array,
+};
 use boa_engine::value::{Convert, TryFromJs, TryIntoJs};
 use boa_engine::{
     Context, JsData, JsNativeError, JsResult, JsString, JsValue, boa_class, js_error, js_str,
@@ -96,11 +98,11 @@ impl TryIntoJs for ResponseType {
     }
 }
 
-/// A null body status is a status that is 101, 103, 204, or 304.
+/// A null body status is a status that is 101, 103, 204, 205, or 304.
 ///
 /// See <https://fetch.spec.whatwg.org/#null-body-status>
 fn is_null_body_status(status: u16) -> bool {
-    matches!(status, 101 | 103 | 204 | 304)
+    matches!(status, 101 | 103 | 204 | 205 | 304)
 }
 
 /// Validates that a string matches the `reason-phrase` token production.
@@ -239,7 +241,7 @@ fn initialize_response(
         // Step 6.1: If response's status is a null body status, throw a TypeError.
         if is_null_body_status(status) {
             return Err(
-                js_error!(TypeError: "Response body is not allowed for null body status codes (101, 103, 204, 304)."),
+                js_error!(TypeError: "Response body is not allowed for null body status codes (101, 103, 204, 205, 304)."),
             );
         }
 
@@ -277,9 +279,47 @@ fn initialize_response(
 ///
 /// See <https://fetch.spec.whatwg.org/#concept-bodyinit-extract>
 fn extract_body(val: &JsValue, context: &mut Context) -> JsResult<(Vec<u8>, Option<&'static str>)> {
-    // TODO: handle other BodyInit types: Blob, ArrayBuffer, ArrayBufferView,
-    //       FormData, URLSearchParams.
-    // Currently only USVString is supported.
+    if let Some(obj) = val.as_object() {
+        if let Ok(ab) = JsArrayBuffer::from_object(obj.clone()) {
+            let bytes = ab
+                .to_vec()
+                .ok_or_else(|| JsNativeError::typ().with_message("ArrayBuffer is detached"))?;
+            return Ok((bytes, None));
+        }
+
+        if let Ok(ta) = JsTypedArray::from_object(obj.clone()) {
+            let offset = ta.byte_offset(context)?;
+            let len = ta.byte_length(context)?;
+            let buffer_obj = ta.buffer(context)?.as_object().ok_or_else(|| {
+                JsNativeError::typ().with_message("TypedArray buffer is not an object")
+            })?;
+
+            let ab = JsArrayBuffer::from_object(buffer_obj)?;
+            let data = ab
+                .data()
+                .ok_or_else(|| JsNativeError::typ().with_message("ArrayBuffer is detached"))?;
+            return Ok((data[offset..offset + len].to_vec(), None));
+        }
+
+        if let Ok(dv) = JsDataView::from_object(obj.clone()) {
+            let offset = usize::try_from(dv.byte_offset(context)?)
+                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+            let len = usize::try_from(dv.byte_length(context)?)
+                .map_err(|e| JsNativeError::range().with_message(e.to_string()))?;
+            let buffer_obj = dv.buffer(context)?.as_object().ok_or_else(|| {
+                JsNativeError::typ().with_message("DataView buffer is not an object")
+            })?;
+
+            let ab = JsArrayBuffer::from_object(buffer_obj)?;
+            let data = ab
+                .data()
+                .ok_or_else(|| JsNativeError::typ().with_message("ArrayBuffer is detached"))?;
+            return Ok((data[offset..offset + len].to_vec(), None));
+        }
+    }
+
+    // TODO: handle other BodyInit types: Blob, FormData, URLSearchParams.
+    // Currently Strings and primitives fallback here.
     //
     // For a USVString, the type is "text/plain;charset=UTF-8".
     // See https://fetch.spec.whatwg.org/#concept-bodyinit-extract step 6.
@@ -319,7 +359,7 @@ impl JsResponse {
 
         Ok(Self {
             url: js_string!(""),
-            r#type: ResponseType::Basic,
+            r#type: ResponseType::Default,
             status: status_code.as_u16(),
             status_text: JsString::from(status_code.canonical_reason().unwrap_or("")),
             headers: JsHeaders::from_http(headers),

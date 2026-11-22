@@ -1,22 +1,46 @@
+use std::ops::ControlFlow;
+
 use boa_gc::{Finalize, Gc, Trace};
 
-use crate::{Context, JsResult, JsValue};
+use crate::{Context, JsError, JsResult, JsValue, vm::CompletionRecord};
 
-#[derive(Trace, Finalize)]
-#[boa_gc(unsafe_no_drop)]
-pub(crate) enum CoroutineState {
-    Yielded(JsValue),
-    Done,
+/// Utility trait to make it easy to break from a coroutine using the `?` operator.
+pub(crate) trait CoroutineBranch<T> {
+    fn branch(self) -> ControlFlow<JsResult<()>, T>;
 }
 
+impl<T, E> CoroutineBranch<T> for Result<T, E>
+where
+    E: Into<JsError>,
+{
+    fn branch(self) -> ControlFlow<JsResult<()>, T> {
+        match self {
+            Ok(v) => ControlFlow::Continue(v),
+            Err(e) => ControlFlow::Break(Err(e.into())),
+        }
+    }
+}
+
+impl CoroutineBranch<JsValue> for CompletionRecord {
+    fn branch(self) -> ControlFlow<JsResult<()>, JsValue> {
+        match self {
+            CompletionRecord::Normal(val) => ControlFlow::Continue(val),
+            CompletionRecord::Return(_) => ControlFlow::Break(Ok(())),
+            CompletionRecord::Throw(err) => ControlFlow::Break(Err(err)),
+        }
+    }
+}
+
+pub(crate) type CoroutineState = ControlFlow<JsResult<()>, JsValue>;
+
 trait TraceableCoroutine: Trace {
-    fn call(&self, value: JsResult<JsValue>, context: &mut Context) -> JsResult<CoroutineState>;
+    fn call(&self, completion: CompletionRecord, context: &mut Context) -> CoroutineState;
 }
 
 #[derive(Trace, Finalize)]
 struct Coroutine<F, T>
 where
-    F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState>,
+    F: Fn(CompletionRecord, &T, &mut Context) -> CoroutineState,
     T: Trace,
 {
     // SAFETY: `NativeCoroutine`'s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -29,11 +53,11 @@ where
 
 impl<F, T> TraceableCoroutine for Coroutine<F, T>
 where
-    F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState>,
+    F: Fn(CompletionRecord, &T, &mut Context) -> CoroutineState,
     T: Trace,
 {
-    fn call(&self, result: JsResult<JsValue>, context: &mut Context) -> JsResult<CoroutineState> {
-        (self.f)(result, &self.captures, context)
+    fn call(&self, completion: CompletionRecord, context: &mut Context) -> CoroutineState {
+        (self.f)(completion, &self.captures, context)
     }
 }
 
@@ -61,7 +85,7 @@ impl NativeCoroutine {
     /// Creates a `NativeCoroutine` from a `Copy` closure and a list of traceable captures.
     pub(crate) fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState> + Copy + 'static,
+        F: Fn(CompletionRecord, &T, &mut Context) -> CoroutineState + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -78,7 +102,7 @@ impl NativeCoroutine {
     /// on why that is the case.
     pub(crate) unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(JsResult<JsValue>, &T, &mut Context) -> JsResult<CoroutineState> + 'static,
+        F: Fn(CompletionRecord, &T, &mut Context) -> CoroutineState + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -100,9 +124,9 @@ impl NativeCoroutine {
     #[inline]
     pub(crate) fn call(
         &self,
-        result: JsResult<JsValue>,
+        completion: CompletionRecord,
         context: &mut Context,
-    ) -> JsResult<CoroutineState> {
-        self.inner.call(result, context)
+    ) -> CoroutineState {
+        self.inner.call(completion, context)
     }
 }

@@ -313,6 +313,7 @@ impl Number {
         #[cfg(feature = "intl")]
         {
             use fixed_decimal::{Decimal, FloatPrecision};
+            use writeable::Writeable;
 
             use crate::builtins::intl::NumberFormat;
 
@@ -329,7 +330,7 @@ impl Number {
                 .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
             // 3. Return FormatNumeric(numberFormat, ! ToIntlMathematicalValue(x)).
-            Ok(js_string!(number_format.format(&mut x).to_string()).into())
+            Ok(js_string!(number_format.format(&mut x).write_to_string()).into())
         }
 
         #[cfg(not(feature = "intl"))]

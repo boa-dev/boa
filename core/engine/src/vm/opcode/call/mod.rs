@@ -5,7 +5,7 @@ use dynify::Dynify;
 
 use super::{IndexOperand, RegisterOperand};
 use crate::{
-    Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
+    Context, JsError, JsExpect, JsObject, JsResult, JsValue, NativeFunction,
     builtins::{Promise, promise::PromiseCapability},
     error::JsNativeError,
     job::NativeAsyncJob,
@@ -107,12 +107,12 @@ impl CallEvalSpread {
         let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
-            .expect("arguments array in call spread function must be an object");
+            .js_expect("arguments array in call spread function must be an object")?;
         let arguments = arguments_array_object
             .borrow()
             .properties()
             .to_dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense");
+            .js_expect("arguments array in call spread function must be dense")?;
 
         let func = context.vm.stack.calling_convention_get_function(0);
 
@@ -223,12 +223,12 @@ impl CallSpread {
         let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
-            .expect("arguments array in call spread function must be an object");
+            .js_expect("arguments array in call spread function must be an object")?;
         let arguments = arguments_array_object
             .borrow()
             .properties()
             .to_dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense");
+            .js_expect("arguments array in call spread function must be dense")?;
 
         let argument_count = arguments.len();
         context
@@ -303,13 +303,13 @@ fn parse_import_attributes(
             for entry in entries {
                 let entry = entry
                     .as_object()
-                    .expect("entry from EnumerableOwnProperties must be an object");
+                    .js_expect("entry from EnumerableOwnProperties must be an object")?;
 
                 // 1. Let key be entry.[[Key]].
                 let key = entry.get(0, context)?;
                 let key_str = key
                     .as_string()
-                    .expect("key from EnumerableOwnProperties must be a string")
+                    .js_expect("key from EnumerableOwnProperties must be a string")?
                     .clone();
 
                 // 2. Let value be entry.[[Value]].

@@ -32,6 +32,11 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
+#[cfg(feature = "intl")]
+use crate::builtins::intl::date_time_format::{
+    FormatDefaults, FormatType, create_date_time_format, format_date_time,
+};
+
 pub(crate) mod utils;
 
 #[cfg(test)]
@@ -976,14 +981,14 @@ impl Date {
         let milli = milli.unwrap_or_else(|| ms_from_time(t).into());
 
         // 13. Let date be MakeDate(Day(t), MakeTime(h, m, s, milli)).
-        let date = make_date(day(t), make_time(h, m, s, milli));
+        let dt = make_date(day(t), make_time(h, m, s, milli));
 
         let u = if LOCAL {
             // 14. Let u be TimeClip(UTC(date)).
-            time_clip(utc_t(date, context.host_hooks().as_ref()))
+            time_clip(utc_t(dt, context.host_hooks().as_ref()))
         } else {
             // 14. Let u be TimeClip(date).
-            time_clip(date)
+            time_clip(dt)
         };
 
         // 15. Set dateObject.[[DateValue]] to u.
@@ -1065,7 +1070,6 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date_obj.borrow().data().0;
@@ -1096,14 +1100,14 @@ impl Date {
         let milli = milli.unwrap_or_else(|| ms_from_time(t).into());
 
         // 11. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), m, s, milli)).
-        let date = make_date(day(t), make_time(hour_from_time(t).into(), m, s, milli));
+        let dt = make_date(day(t), make_time(hour_from_time(t).into(), m, s, milli));
 
         let u = if LOCAL {
             // 12. Let u be TimeClip(UTC(date)).
-            time_clip(utc_t(date, context.host_hooks().as_ref()))
+            time_clip(utc_t(dt, context.host_hooks().as_ref()))
         } else {
             // 12. Let u be TimeClip(date).
-            time_clip(date)
+            time_clip(dt)
         };
 
         // 13. Set dateObject.[[DateValue]] to u.
@@ -1212,17 +1216,17 @@ impl Date {
         let milli = milli.unwrap_or_else(|| ms_from_time(t).into());
 
         // 9. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), MinFromTime(t), s, milli)).
-        let date = make_date(
+        let dt = make_date(
             day(t),
             make_time(hour_from_time(t).into(), min_from_time(t).into(), s, milli),
         );
 
         let u = if LOCAL {
             // 10. Let u be TimeClip(UTC(date)).
-            time_clip(utc_t(date, context.host_hooks().as_ref()))
+            time_clip(utc_t(dt, context.host_hooks().as_ref()))
         } else {
             // 10. Let u be TimeClip(date).
-            time_clip(date)
+            time_clip(dt)
         };
 
         // 11. Set dateObject.[[DateValue]] to u.
@@ -1275,10 +1279,10 @@ impl Date {
         let d = make_day(yyyy, month_from_time(t).into(), date_from_time(t).into());
 
         // 8. Let date be MakeDate(d, TimeWithinDay(t)).
-        let date = make_date(d, time_within_day(t));
+        let dt = make_date(d, time_within_day(t));
 
         // 9. Let u be TimeClip(UTC(date)).
-        let u = time_clip(utc_t(date, context.host_hooks().as_ref()));
+        let u = time_clip(utc_t(dt, context.host_hooks().as_ref()));
 
         // 10. Set dateObject.[[DateValue]] to u.
         date_obj.borrow_mut().data_mut().0 = u;
@@ -1452,6 +1456,36 @@ impl Date {
         func.call(this, &[], context)
     }
 
+    /// Shared implementation of `Date.prototype.toLocaleString`,
+    /// `Date.prototype.toLocaleDateString`, and `Date.prototype.toLocaleTimeString`
+    /// methods with the corresponding formatting params
+    #[cfg(feature = "intl")]
+    #[inline]
+    fn to_locale_string_with(
+        this: &JsValue,
+        args: &[JsValue],
+        required: FormatType,
+        defaults: FormatDefaults,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let dateObject be the this value.
+        // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+        // 3. Let x be dateObject.[[DateValue]].
+        let x = require_internal_slot!(this, Date, "Date").borrow().data().0;
+
+        // 4. If x is NaN, return "Invalid Date".
+        if x.is_nan() {
+            return Ok(JsValue::new(js_string!("Invalid Date")));
+        }
+
+        // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, required, defaults).
+        // 6. Return ! FormatDateTime(dateFormat, x).
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+        let dtf = create_date_time_format(locales, options, required, defaults, context)?;
+        format_date_time(&dtf, x, context)
+    }
+
     /// [`Date.prototype.toLocaleDateString()`][spec].
     ///
     /// The `toLocaleDateString()` method returns the date portion of the given Date instance according
@@ -1462,10 +1496,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaledatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_date_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1473,34 +1503,11 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
-            // 1. Let dateObject be the this value.
-            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-            // 3. Let x be dateObject.[[DateValue]].
-            let date = require_internal_slot!(this, Date, "Date");
-            let t = date.borrow().data().0;
-            // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
-                return Ok(JsValue::new(js_string!("Invalid Date")));
-            }
-            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, date, date).
-            // 6. Return ! FormatDateTime(dateFormat, x).
-            let locales = args.get_or_undefined(0);
-            let options = args.get_or_undefined(1);
-            format_date_time_locale(
-                locales,
-                options,
-                FormatType::Date,
-                FormatDefaults::Date,
-                t,
-                context,
-            )
+            Self::to_locale_string_with(this, args, FormatType::Date, FormatDefaults::Date, context)
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
@@ -1513,10 +1520,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1524,34 +1527,11 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
-            // 1. Let dateObject be the this value.
-            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-            // 3. Let x be dateObject.[[DateValue]].
-            let date = require_internal_slot!(this, Date, "Date");
-            let t = date.borrow().data().0;
-            // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
-                return Ok(JsValue::new(js_string!("Invalid Date")));
-            }
-            // 5. Let dateFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, any, all).
-            // 6. Return ! FormatDateTime(dateFormat, x).
-            let locales = args.get_or_undefined(0);
-            let options = args.get_or_undefined(1);
-            format_date_time_locale(
-                locales,
-                options,
-                FormatType::Any,
-                FormatDefaults::All,
-                t,
-                context,
-            )
+            Self::to_locale_string_with(this, args, FormatType::Any, FormatDefaults::All, context)
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 
@@ -1565,10 +1545,6 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma402/#sup-date.prototype.tolocaletimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleTimeString
-    #[allow(
-        unused_variables,
-        reason = "`args` and `context` are used when the `intl` feature is enabled"
-    )]
     pub(crate) fn to_locale_time_string(
         this: &JsValue,
         args: &[JsValue],
@@ -1576,34 +1552,11 @@ impl Date {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use crate::builtins::intl::date_time_format::{
-                FormatDefaults, FormatType, format_date_time_locale,
-            };
-            // 1. Let dateObject be the this value.
-            // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-            // 3. Let x be dateObject.[[DateValue]].
-            let date = require_internal_slot!(this, Date, "Date");
-            let t = date.borrow().data().0;
-            // 4. If x is NaN, return "Invalid Date".
-            if t.is_nan() {
-                return Ok(JsValue::new(js_string!("Invalid Date")));
-            }
-            // 5. Let timeFormat be ? CreateDateTimeFormat(%Intl.DateTimeFormat%, locales, options, time, time).
-            // 6. Return ! FormatDateTime(timeFormat, x).
-            let locales = args.get_or_undefined(0);
-            let options = args.get_or_undefined(1);
-            format_date_time_locale(
-                locales,
-                options,
-                FormatType::Time,
-                FormatDefaults::Time,
-                t,
-                context,
-            )
+            Self::to_locale_string_with(this, args, FormatType::Time, FormatDefaults::Time, context)
         }
         #[cfg(not(feature = "intl"))]
         {
-            Self::to_string(this, &[], context)
+            Self::to_string(this, args, context)
         }
     }
 

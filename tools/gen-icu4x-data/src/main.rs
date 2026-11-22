@@ -24,6 +24,11 @@ const SERVICES: &[(&str, &[DataMarkerInfo])] = &[
     ("icu_normalizer", icu_normalizer::provider::MARKERS),
     ("icu_plurals", icu_plurals::provider::MARKERS),
     ("icu_segmenter", icu_segmenter::provider::MARKERS),
+    ("icu_calendar", icu_calendar::provider::MARKERS),
+    (
+        "icu_locale_fallback",
+        icu_locale_fallback::provider::MARKERS,
+    ),
 ];
 
 fn export_for_service(

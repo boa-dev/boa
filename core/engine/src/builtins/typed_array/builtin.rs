@@ -457,6 +457,15 @@ impl BuiltinTypedArray {
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsTypedArrayOutOfBounds(taRecord) is true, return +0𝔽.
+<<<<<<< HEAD
+=======
+        if ta
+            .viewed_array_buffer()
+            .as_buffer()
+            .bytes(Ordering::SeqCst)
+            .as_ref()
+            .is_none_or(|s| ta.is_out_of_bounds(s.len()))
+>>>>>>> upstream/main
         {
             let ta_data = ta.borrow();
             let ta_data = ta_data.data();
