@@ -1070,6 +1070,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date_obj.borrow().data().0;

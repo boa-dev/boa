@@ -329,9 +329,7 @@ impl IteratorHelper {
         //
         // Slightly differs from the spec since we don't have a `[[GeneratorState]]`,
         // and we defer checking for `Executing` to `Self::next` and `Self::return`.
-        this.as_object()
-            .and_then(|o| o.downcast::<Self>().ok())
-            .ok_or_else(|| js_error!(TypeError: "Iterator Helper method called on non-object"))
+        this.require_internal_slot::<Self>()
     }
 
     /// Creates a new `IteratorHelper` object.

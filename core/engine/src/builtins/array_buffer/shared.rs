@@ -282,14 +282,7 @@ impl SharedArrayBuffer {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let Some(buf) = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-        else {
-            return Err(JsNativeError::typ()
-                .with_message("SharedArrayBuffer.grow called with non-object value")
-                .into());
-        };
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferMaxByteLength]]).
         if buf.borrow().data().is_fixed_len() {
@@ -377,13 +370,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("SharedArrayBuffer.slice called with invalid `this` value")
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. Let len be ArrayBufferByteLength(O, seq-cst).
         let len = buf.borrow().data().len(Ordering::SeqCst);

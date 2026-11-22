@@ -873,11 +873,10 @@ enum Outcome {
 
 impl From<Option<Negative>> for Outcome {
     fn from(neg: Option<Negative>) -> Self {
-        neg.map(|neg| Self::Negative {
+        neg.map_or_default(|neg| Self::Negative {
             phase: neg.phase,
             error_type: neg.error_type,
         })
-        .unwrap_or_default()
     }
 }
 

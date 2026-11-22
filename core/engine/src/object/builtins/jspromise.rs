@@ -261,12 +261,9 @@ impl JsPromise {
     /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        let Ok(inner) = object.downcast::<Promise>() else {
-            return Err(JsNativeError::typ()
-                .with_message("`object` is not a Promise")
-                .into());
-        };
-        Ok(Self { inner })
+        Ok(Self {
+            inner: object.require_internal_slot::<Promise>()?,
+        })
     }
 
     /// Creates a new `JsPromise` from a [`Future`]-like.

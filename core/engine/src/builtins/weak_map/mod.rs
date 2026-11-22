@@ -288,14 +288,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let object = this.as_object();
-        let map = object
-            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakMap.prototype.getOrInsert: expected 'this' to be a WeakMap object",
-                )
-            })?;
+        let map = this.require_internal_slot::<NativeWeakMap>()?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
         // TODO: Implement proper CanBeHeldWeakly once available. For now, only
@@ -343,14 +336,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let object = this.as_object();
-        let map = object
-            .and_then(|obj| obj.clone().downcast::<NativeWeakMap>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakMap.prototype.getOrInsertComputed: expected 'this' to be a WeakMap object",
-                )
-            })?;
+        let map = this.require_internal_slot::<NativeWeakMap>()?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
         // TODO: Implement proper CanBeHeldWeakly once available. For now, only

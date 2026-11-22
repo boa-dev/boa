@@ -441,7 +441,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = this.require_internal_slot::<Self>()?;
+        let view = view.require_internal_slot::<Self>()?;
 
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
@@ -782,7 +782,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = this.require_internal_slot::<Self>()?;
+        let view = view.require_internal_slot::<Self>()?;
 
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;

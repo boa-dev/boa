@@ -55,7 +55,6 @@ pub type ErasedObject = Object<ErasedObjectData>;
 pub struct ErasedObjectData {}
 
 impl JsData for ErasedObjectData {
-
     fn type_name() -> &'static str
     where
         Self: Sized,
@@ -299,13 +298,6 @@ impl JsObject {
         }
     }
 
-    /// Downcasts `self` to a `JsObject<T>`, returning a
-    /// `TypeError` if the cast fails.
-    pub fn require_internal_slot<T: NativeObject>(self) -> JsResult<JsObject<T>> {
-        self.downcast::<T>()
-            .map_err(|_| js_error!(TypeError: "cannot downcast object with mismatched internal slot to type {}", T::type_name()))
-    }
-
     /// Downcasts the object's inner data to `T` without verifying the inner type of `T`.
     ///
     /// # Safety
@@ -320,6 +312,13 @@ impl JsObject {
         let inner = unsafe { Gc::cast_unchecked::<VTableObject<T>>(self.inner) };
 
         JsObject { inner }
+    }
+
+    /// Downcasts `self` to a `JsObject<T>`, returning a
+    /// `TypeError` if the cast fails.
+    pub fn require_internal_slot<T: NativeObject>(self) -> JsResult<JsObject<T>> {
+        self.downcast::<T>()
+            .map_err(|_| js_error!(TypeError: "object does not contain required internal slot `{}`", T::type_name()))
     }
 
     /// Downcasts a reference to the object,

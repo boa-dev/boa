@@ -578,13 +578,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferMaxByteLength]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("ArrayBuffer.prototype.resize called with invalid `this`")
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. Let newByteLength be ? ToIndex(newLength).
         let new_byte_length = args.get_or_undefined(0).to_index(context)?;
@@ -622,13 +616,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("ArrayBuffer.slice called with invalid `this` value")
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         let len = {
             let buf = buf.borrow();
@@ -668,11 +656,7 @@ impl ArrayBuffer {
 
         // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
         // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
-        let Ok(new) = new.downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer constructor returned invalid object")
-                .into());
-        };
+        let new = new.require_internal_slot::<Self>()?;
 
         // 20. If SameValue(new, O) is true, throw a TypeError exception.
         if JsObject::equals(&buf, &new) {
@@ -739,16 +723,7 @@ impl ArrayBuffer {
 
         // 1. Perform ? RequireInternalSlot(arrayBuffer, [[ArrayBufferData]]).
         // 2. If IsSharedArrayBuffer(arrayBuffer) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(if TO_FIXED_LENGTH {
-                    "ArrayBuffer.prototype.transferToFixedLength called with invalid `this`"
-                } else {
-                    "ArrayBuffer.prototype.transfer called with invalid `this`"
-                })
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 3. If newLength is undefined, then
         let new_len = if new_length.is_undefined() {

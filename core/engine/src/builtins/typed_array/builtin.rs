@@ -409,7 +409,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let ta = this.require_internal_slot::<Self>()?;
+        let ta = this.require_internal_slot::<TypedArray>()?;
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. Return buffer.
@@ -426,7 +426,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let ta = this.require_internal_slot::<Self>()?;
+        let ta = this.require_internal_slot::<TypedArray>()?;
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         let ta_data = ta.borrow();
@@ -435,8 +435,7 @@ impl BuiltinTypedArray {
             .viewed_array_buffer()
             .as_buffer()
             .bytes(Ordering::SeqCst)
-            .map(|s| s.len())
-            .unwrap_or_default();
+            .map_or_default(|s| s.len());
 
         // 5. Let size be TypedArrayByteLength(taRecord).
         // 6. Return 𝔽(size).
@@ -453,7 +452,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let ta = this.require_internal_slot::<Self>()?;
+        let ta = this.require_internal_slot::<TypedArray>()?;
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsTypedArrayOutOfBounds(taRecord) is true, return +0𝔽.
@@ -464,8 +463,7 @@ impl BuiltinTypedArray {
                 .viewed_array_buffer()
                 .as_buffer()
                 .bytes(Ordering::SeqCst)
-                .filter(|s| !ta_data.is_out_of_bounds(s.len()))
-                .is_none()
+                .is_none_or(|s| ta_data.is_out_of_bounds(s.len()))
             {
                 return Ok(0.into());
             }
@@ -1315,7 +1313,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
-        let ta = this.require_internal_slot::<Self>()?;
+        let ta = this.require_internal_slot::<TypedArray>()?;
 
         // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsTypedArrayOutOfBounds(taRecord) is true, return +0𝔽.
@@ -1648,13 +1646,7 @@ impl BuiltinTypedArray {
         // 1. Let target be the this value.
         // 2. Perform ? RequireInternalSlot(target, [[TypedArrayName]]).
         // 3. Assert: target has a [[ViewedArrayBuffer]] internal slot.
-        let target = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("TypedArray.set must be called on typed array object")
-            })?;
+        let target = this.require_internal_slot::<TypedArray>()?;
 
         // 4. Let targetOffset be ? ToIntegerOrInfinity(offset).
         let target_offset = args.get_or_undefined(1).to_integer_or_infinity(context)?;
@@ -2363,12 +2355,7 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let src = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("Value is not a typed array object")
-            })?;
+        let src = this.require_internal_slot::<TypedArray>()?;
 
         let src_borrow = src.borrow();
 

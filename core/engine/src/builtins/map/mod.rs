@@ -203,14 +203,7 @@ impl Map {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.entries` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 2. Return ? CreateMapIterator(M, key+value).
         Ok(MapIterator::create_map_iterator(
@@ -232,10 +225,7 @@ impl Map {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Map.prototype.keys` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 2. Return ? CreateMapIterator(M, key).
         Ok(MapIterator::create_map_iterator(
@@ -260,12 +250,7 @@ impl Map {
 
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError: "method `Map.prototype.set` called on incompatible receiver")
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -301,11 +286,7 @@ impl Map {
         // a. If p.[[Key]] is not empty, set count to count + 1.
         // 6. Return 𝔽(count).
         Ok(this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError: "method `Map.prototype.set` called on incompatible receiver")
-            })?
+            .require_internal_slot::<OrderedMap<JsValue>>()?
             .borrow()
             .data()
             .len()
@@ -326,12 +307,7 @@ impl Map {
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError: "method `Map.prototype.delete` called on incompatible receiver")
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -358,12 +334,7 @@ impl Map {
     pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError: "method `Map.prototype.get` called on incompatible receiver")
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -387,14 +358,7 @@ impl Map {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.clear` called on incompatible receiver"
-                )
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
         //    a. Set p.[[Key]] to empty.
@@ -418,14 +382,7 @@ impl Map {
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.has` called on incompatible receiver"
-                )
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -453,14 +410,7 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.forEach` called on incompatible receiver"
-                )
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback) = args.get_or_undefined(0).as_callable() else {
@@ -523,14 +473,7 @@ impl Map {
     {
         // See `Self::for_each` for comments on the algo.
 
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.forEach` called on incompatible receiver"
-                )
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         let _lock = MapLock::new(&map);
 
@@ -572,14 +515,8 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, value).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.values` called on incompatible receiver"
-                )
-            })?;
+
+        let this = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         Ok(MapIterator::create_map_iterator(
             this,
@@ -608,14 +545,7 @@ impl Map {
 
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.getOrInsert` called on incompatible receiver"
-                )
-            })?;
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -653,14 +583,8 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedMap<JsValue>>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Map.prototype.getOrInsertComputed` called on incompatible receiver"
-                )
-            })?;
+
+        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {

@@ -322,15 +322,7 @@ impl PlainYearMonth {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainYearMonth/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainYearMonth.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let obj = this
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
-
-        let Ok(year_month) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainYearMonth object.")
-                .into());
-        };
+        let year_month = this.require_internal_slot::<Self>()?;
 
         let calendar = year_month.borrow().data().inner.calendar().clone();
         Ok(js_string!(calendar.identifier()).into())

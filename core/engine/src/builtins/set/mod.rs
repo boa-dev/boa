@@ -289,12 +289,7 @@ impl Set {
     pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let set = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError: "method `Set.prototype.add` called on incompatible receiver")
-            })?;
+        let set = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Set value to CanonicalizeKeyedCollectionKey(value).
         let value = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -324,13 +319,7 @@ impl Set {
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         // 3. For each element e of S.[[SetData]], do
         //        a. Replace the element of S.[[SetData]] whose value is e with an element whose value is empty.
-        this.as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.clear` called on incompatible receiver"
-                )
-            })?
+        this.require_internal_slot::<OrderedSet>()?
             .borrow_mut()
             .data_mut()
             .clear();
@@ -353,14 +342,7 @@ impl Set {
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.delete` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         let value = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
@@ -387,14 +369,7 @@ impl Set {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.entries` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         Ok(SetIterator::create_set_iterator(
             this.clone(),
@@ -421,14 +396,7 @@ impl Set {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
 
-        let obj = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.forEach` called on incompatible receiver"
-                )
-            })?;
+        let obj = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(0).as_callable() else {
@@ -484,14 +452,7 @@ impl Set {
     {
         // See `Self::for_each` for comments on the algo.
 
-        let set = this.as_object();
-        let set = set
-            .and_then(|obj| obj.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.forEach` called on incompatible receiver"
-                )
-            })?;
+        let set = this.require_internal_slot::<OrderedSet>()?;
         let _lock = SetLock::new(&set);
 
         let mut index = 0;
@@ -529,14 +490,7 @@ impl Set {
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.has` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Set value to CanonicalizeKeyedCollectionKey(key).
         let value = args.get_or_undefined(0);
@@ -563,10 +517,7 @@ impl Set {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.values` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         Ok(SetIterator::create_set_iterator(
             this,
@@ -595,10 +546,7 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.isDisjointFrom` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -679,10 +627,7 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.isSubsetOf` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -745,10 +690,7 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.isSupersetOf` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -799,10 +741,7 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.symmetricDifference` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -867,10 +806,7 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.union` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -924,10 +860,7 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.intersection` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -1021,14 +954,7 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.difference` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<OrderedSet>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);

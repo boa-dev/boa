@@ -16,8 +16,6 @@ use std::{
 
 use boa_gc::{Ephemeron, Finalize, Gc, GcRefCell, Trace, WeakGc, WeakMap};
 
-use crate::object::ErasedVTableObject;
-
 use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 /// Represents a type that can be stored inside a `JsObject`.
@@ -50,6 +48,7 @@ pub trait JsData {
     }
 
     #[doc(hidden)]
+    #[must_use]
     fn type_name() -> &'static str
     where
         Self: Sized,

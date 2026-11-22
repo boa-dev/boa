@@ -204,12 +204,7 @@ impl TypedArray {
     /// [spec]: https://tc39.es/ecma262/sec-validatetypedarray
     pub(crate) fn validate(this: &JsValue, order: Ordering) -> JsResult<(JsObject<Self>, usize)> {
         // 1. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
-        let obj = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("`this` is not a typed array object")
-            })?;
+        let obj = this.require_internal_slot::<Self>()?;
 
         let len = {
             let array = obj.borrow();
@@ -739,8 +734,7 @@ pub(crate) fn typed_array_set_element(
 ) -> JsResult<()> {
     let obj = obj
         .clone()
-        .downcast::<TypedArray>()
-        .ok()
+        .require_internal_slot::<TypedArray>()
         .js_expect("function can only be called for typed array objects")?;
     // b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
     // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.

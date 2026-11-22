@@ -17,7 +17,7 @@ boa_wintertc.workspace = true
 bus = { workspace = true, optional = true }
 bytemuck.workspace = true
 either = { workspace = true, optional = true }
-futures = "0.3.32"
+futures.workspace = true
 futures-lite.workspace = true
 http = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }

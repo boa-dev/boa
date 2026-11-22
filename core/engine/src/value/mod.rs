@@ -23,7 +23,6 @@ pub use self::{
     display::ValueDisplay, integer::IntegerOrInfinity, operations::*, r#type::Type,
     variant::JsVariant,
 };
-use crate::NativeObject;
 use crate::builtins::RegExp;
 use crate::object::{JsFunction, JsPromise, JsRegExp};
 use crate::{
@@ -38,6 +37,7 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
 };
+use crate::{NativeObject, js_error};
 
 mod conversions;
 pub(crate) mod display;
@@ -1481,11 +1481,11 @@ impl JsValue {
     /// `TypeError` if the cast fails.
     pub fn require_internal_slot<T: NativeObject>(&self) -> JsResult<JsObject<T>> {
         let Some(obj) = self.as_object() else {
-            return js_error!(
-                TypeError: "cannot downcast value of type `{}` to `{}` object",
+            return Err(js_error!(
+                TypeError: "cannot downcast a value of type `{}` to an object with internal slot `{}`",
                 self.type_of(),
                 T::type_name()
-            );
+            ));
         };
 
         obj.require_internal_slot()

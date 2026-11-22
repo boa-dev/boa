@@ -114,10 +114,7 @@ impl BuiltinUint8Array {
     ) -> JsResult<JsValue> {
         // 1. Let into be the this value.
         // 2. Perform ? ValidateUint8Array(into).
-        let uint8array = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+        let uint8array = this.require_internal_slot::<TypedArray>()?;
 
         let uint8array_borrow = uint8array.borrow();
         let uint8array_data = uint8array_borrow.data();
@@ -226,10 +223,7 @@ impl BuiltinUint8Array {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateUint8Array(O).
-        let uint8array = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+        let uint8array = this.require_internal_slot::<TypedArray>()?;
 
         let uint8array_borrow = uint8array.borrow();
         let uint8array_data = uint8array_borrow.data();
@@ -373,10 +367,7 @@ impl BuiltinUint8Array {
     ) -> JsResult<JsValue> {
         // 1. Let into be the this value.
         // 2. Perform ? ValidateUint8Array(into).
-        let uint8array = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+        let uint8array = this.require_internal_slot::<TypedArray>()?;
 
         let uint8array_borrow = uint8array.borrow();
         let uint8array_data = uint8array_borrow.data();
@@ -501,10 +492,7 @@ impl BuiltinUint8Array {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateUint8Array(O).
-        let uint8array = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<TypedArray>().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a Uint8Array object"))?;
+        let uint8array = this.require_internal_slot::<TypedArray>()?;
 
         let uint8array_borrow = uint8array.borrow();
         let uint8array_data = uint8array_borrow.data();
