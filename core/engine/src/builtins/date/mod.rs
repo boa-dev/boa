@@ -451,7 +451,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -487,7 +487,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -526,7 +526,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -555,7 +555,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -590,7 +590,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -625,7 +625,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -660,7 +660,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -696,7 +696,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -731,7 +731,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -769,7 +769,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Return dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         Ok(date.borrow().data().0.into())
     }
 
@@ -792,7 +792,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. If t is NaN, return NaN.
@@ -821,7 +821,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date_obj.borrow().data().0;
@@ -875,7 +875,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let t = date_obj.borrow().data().0;
@@ -944,7 +944,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date_obj.borrow().data().0;
@@ -1012,7 +1012,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date_obj.borrow().data().0;
@@ -1132,7 +1132,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date_obj.borrow().data().0;
@@ -1191,7 +1191,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let mut t = date_obj.borrow().data().0;
@@ -1257,7 +1257,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be dateObject.[[DateValue]].
         let t = date_obj.borrow().data().0;
@@ -1308,7 +1308,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date_obj = require_internal_slot!(this, Date, "Date");
+        let date_obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let t be ? ToNumber(time).
         let t = args.get_or_undefined(0).to_number(context)?;
@@ -1340,7 +1340,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let tv = date.borrow().data().0;
 
         // 4. If tv is NaN, return "Invalid Date".
@@ -1374,7 +1374,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let tv = date.borrow().data().0;
 
         // 4. If tv is not finite, throw a RangeError exception.
@@ -1471,7 +1471,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let x be dateObject.[[DateValue]].
-        let x = require_internal_slot!(this, Date, "Date").borrow().data().0;
+        let x = this.require_internal_slot::<Self>()?.borrow().data().0;
 
         // 4. If x is NaN, return "Invalid Date".
         if x.is_nan() {
@@ -1577,7 +1577,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let tv = date.borrow().data().0;
 
         // 4. Return ToDateString(tv).
@@ -1605,7 +1605,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let tv = date.borrow().data().0;
 
         // 4. If tv is NaN, return "Invalid Date".
@@ -1640,7 +1640,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let tv be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let tv = date.borrow().data().0;
 
         // 4. If tv is NaN, return "Invalid Date".
@@ -1741,7 +1741,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Return dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         Ok(date.borrow().data().0.into())
     }
 
@@ -1810,7 +1810,7 @@ impl Date {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
         // 3. Let t be dateObject.[[DateValue]].
-        let date = require_internal_slot!(this, Date, "Date");
+        let date = this.require_internal_slot::<Self>()?;
         let t = date.borrow().data().0;
 
         // 4. Let ns be ? NumberToBigInt(t) × ℤ(10**6).

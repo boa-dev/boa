@@ -55,7 +55,7 @@ impl Segments {
     fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let segments = require_internal_slot!(this, Self, "Segments");
+        let segments = this.require_internal_slot::<Self>()?;
 
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
         // 4. Let string be segments.[[SegmentsString]].

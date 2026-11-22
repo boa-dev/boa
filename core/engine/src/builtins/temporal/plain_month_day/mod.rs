@@ -192,7 +192,7 @@ impl PlainMonthDay {
 impl PlainMonthDay {
     // Helper for retrieving internal fields
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
         let month_day_data = month_day.borrow();
         let inner = &month_day_data.data().inner;
         match field {
@@ -214,7 +214,7 @@ impl PlainMonthDay {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
         Ok(js_string!(month_day.borrow().data().inner.calendar().identifier()).into())
     }
 
@@ -266,7 +266,7 @@ impl PlainMonthDay {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
 
         // 3. If ? IsPartialTemporalObject(temporalMonthDayLike) is false, throw a TypeError exception.
         let Some(object) = is_partial_temporal_object(args.get_or_undefined(0), context)? else {
@@ -305,7 +305,7 @@ impl PlainMonthDay {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainMonthDay.html#impl-PartialEq-for-PlainMonthDay
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
 
         let other =
             to_temporal_month_day(args.get_or_undefined(0), &JsValue::undefined(), context)?;
@@ -327,7 +327,7 @@ impl PlainMonthDay {
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
 
         // 3. Set options to ? NormalizeOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(0))?;
@@ -360,7 +360,7 @@ impl PlainMonthDay {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
 
         Ok(JsString::from(month_day.borrow().data().inner.to_string()).into())
     }
@@ -375,7 +375,7 @@ impl PlainMonthDay {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plainmonthday.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainMonthDay/toJSON
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
 
         Ok(JsString::from(month_day.borrow().data().inner.to_string()).into())
     }
@@ -409,7 +409,7 @@ impl PlainMonthDay {
     fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let month_day = require_internal_slot!(this, Self, "PlainMonthDay");
+        let month_day = this.require_internal_slot::<Self>()?;
 
         // 3. If item is not an Object, then
         let Some(item) = args.get_or_undefined(0).as_object() else {

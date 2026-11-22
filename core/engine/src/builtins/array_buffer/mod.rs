@@ -496,7 +496,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = require_internal_slot!(this, Self, "ArrayBuffer");
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
         // 5. Let length be O.[[ArrayBufferByteLength]].
@@ -515,7 +515,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = require_internal_slot!(this, Self, "ArrayBuffer");
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
         let buf_data = buf.borrow();
@@ -543,7 +543,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = require_internal_slot!(this, Self, "ArrayBuffer");
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
         Ok(JsValue::from(!buf.borrow().data().is_fixed_len()))
@@ -561,7 +561,7 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = require_internal_slot!(this, Self, "ArrayBuffer");
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. Return IsDetachedBuffer(O).
         Ok(buf.borrow().data().is_detached().into())

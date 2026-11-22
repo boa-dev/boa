@@ -54,7 +54,15 @@ pub type ErasedObject = Object<ErasedObjectData>;
 #[derive(Debug, Trace, Finalize)]
 pub struct ErasedObjectData {}
 
-impl JsData for ErasedObjectData {}
+impl JsData for ErasedObjectData {
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "ErasedObjectData"
+    }
+}
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize)]
@@ -289,6 +297,13 @@ impl JsObject {
         } else {
             Err(self)
         }
+    }
+
+    /// Downcasts `self` to a `JsObject<T>`, returning a
+    /// `TypeError` if the cast fails.
+    pub fn require_internal_slot<T: NativeObject>(self) -> JsResult<JsObject<T>> {
+        self.downcast::<T>()
+            .map_err(|_| js_error!(TypeError: "cannot downcast object with mismatched internal slot to type {}", T::type_name()))
     }
 
     /// Downcasts the object's inner data to `T` without verifying the inner type of `T`.

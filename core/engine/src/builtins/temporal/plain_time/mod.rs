@@ -266,7 +266,7 @@ impl PlainTime {
     fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. Return 𝔽(temporalTime.[[ISOHour]]).
         Ok(time.borrow().data().inner.hour().into())
@@ -286,7 +286,7 @@ impl PlainTime {
     fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. Return 𝔽(temporalTime.[[ISOMinute]]).
         Ok(time.borrow().data().inner.minute().into())
@@ -306,7 +306,7 @@ impl PlainTime {
     fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. Return 𝔽(temporalTime.[[ISOSecond]]).
         Ok(time.borrow().data().inner.second().into())
@@ -326,7 +326,7 @@ impl PlainTime {
     fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. Return 𝔽(temporalTime.[[ISOMillisecond]]).
         Ok(time.borrow().data().inner.millisecond().into())
@@ -346,7 +346,7 @@ impl PlainTime {
     fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. Return 𝔽(temporalTime.[[ISOMicrosecond]]).
         Ok(time.borrow().data().inner.microsecond().into())
@@ -366,7 +366,7 @@ impl PlainTime {
     fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. Return 𝔽(temporalTime.[[ISONanosecond]]).
         Ok(time.borrow().data().inner.nanosecond().into())
@@ -432,7 +432,7 @@ impl PlainTime {
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         let temporal_duration_like = args.get_or_undefined(0);
         let duration = to_temporal_duration_record(temporal_duration_like, context)?;
@@ -456,7 +456,7 @@ impl PlainTime {
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         let temporal_duration_like = args.get_or_undefined(0);
         let duration = to_temporal_duration_record(temporal_duration_like, context)?;
@@ -484,7 +484,7 @@ impl PlainTime {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1.Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. If ? IsPartialTemporalObject(temporalTimeLike) is false, throw a TypeError exception.
         // 4. Set options to ? GetOptionsObject(options).
@@ -526,7 +526,7 @@ impl PlainTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/until
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.until
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
 
@@ -550,7 +550,7 @@ impl PlainTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/since
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.since
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
 
@@ -576,7 +576,7 @@ impl PlainTime {
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. If roundTo is undefined, then
         let round_to_arg = args.get_or_undefined(0);
@@ -647,7 +647,7 @@ impl PlainTime {
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         // 3. Set other to ? ToTemporalTime(other).
         let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
@@ -673,7 +673,7 @@ impl PlainTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainTime.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         let options = get_options_object(args.get_or_undefined(0))?;
 
@@ -704,7 +704,7 @@ impl PlainTime {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         let ixdtf = time
             .borrow()
@@ -724,7 +724,7 @@ impl PlainTime {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaintime.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainTime/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let time = require_internal_slot!(this, Self, "PlainTime");
+        let time = this.require_internal_slot::<Self>()?;
 
         let ixdtf = time
             .borrow()

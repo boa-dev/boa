@@ -262,7 +262,7 @@ impl Segmenter {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
-        let segmenter = require_internal_slot!(this, Self, "Segmenter");
+        let segmenter = this.require_internal_slot::<Self>()?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 4. For each row of Table 19, except the header row, in table order, do

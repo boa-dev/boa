@@ -225,7 +225,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = require_internal_slot!(this, Self, "SharedArrayBuffer");
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. Let length be ArrayBufferByteLength(O, seq-cst).
         let len = buf.borrow().data().bytes(Ordering::SeqCst).len() as u64;
@@ -245,7 +245,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = require_internal_slot!(this, Self, "SharedArrayBuffer");
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
         Ok(JsValue::from(!buf.borrow().data().is_fixed_len()))
@@ -262,7 +262,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = require_internal_slot!(this, Self, "SharedArrayBuffer");
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. If IsFixedLengthArrayBuffer(O) is true, then
         //     a. Let length be O.[[ArrayBufferByteLength]].

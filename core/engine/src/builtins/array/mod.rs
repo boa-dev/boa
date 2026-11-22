@@ -75,6 +75,13 @@ impl JsData for Array {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
         &ARRAY_EXOTIC_INTERNAL_METHODS
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "Array"
+    }
 }
 
 impl IntrinsicObject for Array {

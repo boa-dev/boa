@@ -331,7 +331,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let view = require_internal_slot!(this, Self, "DataView");
+        let view = this.require_internal_slot::<Self>()?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let view_data = view.borrow();
@@ -358,7 +358,7 @@ impl DataView {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let view = require_internal_slot!(this, Self, "DataView");
+        let view = this.require_internal_slot::<Self>()?;
 
         // 4. Let viewRecord be MakeDataViewWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
@@ -399,7 +399,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let view = require_internal_slot!(this, Self, "DataView");
+        let view = this.require_internal_slot::<Self>()?;
 
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         let view_data = view.borrow();
@@ -441,7 +441,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = require_internal_slot!(view, Self, "DataView");
+        let view = this.require_internal_slot::<Self>()?;
 
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
@@ -782,7 +782,7 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = require_internal_slot!(view, Self, "DataView");
+        let view = this.require_internal_slot::<Self>()?;
 
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;

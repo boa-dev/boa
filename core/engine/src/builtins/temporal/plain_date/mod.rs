@@ -331,7 +331,7 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/calendarId
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.calendar
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         Ok(JsString::from(date.borrow().data().inner.calendar().identifier()).into())
     }
@@ -795,7 +795,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         let year_month = date.borrow().data().inner.to_plain_year_month()?;
         create_temporal_year_month(year_month, None, context)
@@ -819,7 +819,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         let month_day = date.borrow().data().inner.to_plain_month_day()?;
         create_temporal_month_day(month_day, None, context)
@@ -839,7 +839,7 @@ impl PlainDate {
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
@@ -869,7 +869,7 @@ impl PlainDate {
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
         let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
@@ -899,7 +899,7 @@ impl PlainDate {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         // 3. If ? IsPartialTemporalObject(temporalDateLike) is false, throw a TypeError exception.
         let Some(partial_object) =
@@ -946,7 +946,7 @@ impl PlainDate {
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let plainDate be the this value.
         // 2. Perform ? RequireInternalSlot(plainDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         // 3. Let calendar be ? ToTemporalCalendarIdentifier(calendarLike).
         let calendar = to_temporal_calendar_identifier(args.get_or_undefined(0))?;
@@ -969,7 +969,7 @@ impl PlainDate {
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
 
@@ -999,7 +999,7 @@ impl PlainDate {
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         // 3. Return ? DifferenceTemporalPlainDate(since, temporalDate, other, options).
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
@@ -1027,7 +1027,7 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/equals
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#impl-Eq-for-PlainDate
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
 
@@ -1052,7 +1052,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         // 3. Set temporalTime to ? ToTemporalTimeOrMidnight(temporalTime).
         let time = args
@@ -1086,7 +1086,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         let item = args.get_or_undefined(0);
         // 3. If item is an Object, then
@@ -1142,7 +1142,7 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toString
     /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.PlainDate.html#method.to_ixdtf_string
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         let options = get_options_object(args.get_or_undefined(0))?;
         let display_calendar =
@@ -1162,7 +1162,7 @@ impl PlainDate {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toLocaleString
     fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         Ok(JsString::from(date.borrow().data().inner.to_string()).into())
     }
@@ -1177,7 +1177,7 @@ impl PlainDate {
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.plaindate.prototype.toJSON
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/PlainDate/toJSON
     fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let date = require_internal_slot!(this, Self, "PlainDate");
+        let date = this.require_internal_slot::<Self>()?;
 
         Ok(JsString::from(date.borrow().data().inner.to_string()).into())
     }

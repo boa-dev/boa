@@ -175,7 +175,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = require_internal_slot!(this, NativeWeakMap, "WeakMap");
+        let map = this.require_internal_slot::<NativeWeakMap>()?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return undefined.
@@ -210,7 +210,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = require_internal_slot!(this, NativeWeakMap, "WeakMap");
+        let map = this.require_internal_slot::<NativeWeakMap>()?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.

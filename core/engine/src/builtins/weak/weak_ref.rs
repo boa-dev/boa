@@ -108,7 +108,7 @@ impl WeakRef {
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
-        let weak_ref = require_internal_slot!(this, WeakGc<ErasedVTableObject>, "WeakRef");
+        let weak_ref = this.require_internal_slot::<WeakGc<ErasedVTableObject>>()?;
 
         // 3. Return WeakRefDeref(weakRef).
 

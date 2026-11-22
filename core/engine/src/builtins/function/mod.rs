@@ -206,6 +206,13 @@ impl JsData for OrdinaryFunction {
             &FUNCTION_METHODS
         }
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "OrdinaryFunction"
+    }
 }
 
 impl OrdinaryFunction {

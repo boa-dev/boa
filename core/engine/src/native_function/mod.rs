@@ -113,6 +113,13 @@ impl JsData for NativeFunctionObject {
             &FUNCTION
         }
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "NativeFunctionObject"
+    }
 }
 
 /// A callable Rust function that can be invoked by the engine.

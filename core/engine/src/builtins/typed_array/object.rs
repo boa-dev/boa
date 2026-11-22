@@ -53,6 +53,13 @@ impl JsData for TypedArray {
 
         &METHODS
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "TypedArray"
+    }
 }
 
 impl TypedArray {

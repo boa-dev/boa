@@ -23,6 +23,7 @@ pub use self::{
     display::ValueDisplay, integer::IntegerOrInfinity, operations::*, r#type::Type,
     variant::JsVariant,
 };
+use crate::NativeObject;
 use crate::builtins::RegExp;
 use crate::object::{JsFunction, JsPromise, JsRegExp};
 use crate::{
@@ -1474,6 +1475,20 @@ impl JsValue {
         } else {
             Ok(self)
         }
+    }
+
+    /// Downcasts `self` to a `JsObject<T>`, returning a
+    /// `TypeError` if the cast fails.
+    pub fn require_internal_slot<T: NativeObject>(&self) -> JsResult<JsObject<T>> {
+        let Some(obj) = self.as_object() else {
+            return js_error!(
+                TypeError: "cannot downcast value of type `{}` to `{}` object",
+                self.type_of(),
+                T::type_name()
+            );
+        };
+
+        obj.require_internal_slot()
     }
 
     /// The abstract operation `ToPropertyDescriptor`.

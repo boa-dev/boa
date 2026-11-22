@@ -413,7 +413,7 @@ impl Collator {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
-        let collator = require_internal_slot!(this, Self, "Collator");
+        let collator = this.require_internal_slot::<Self>()?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         let options = context
