@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{TestAction, run_test_actions};
+use crate::{TestAction, js_string, run_test_actions};
 
 // Intl.DateTimeFormat tests
 
@@ -15,7 +15,7 @@ fn dtf_basic() {
             let formatter = new Intl.DateTimeFormat('en-US');
             let result = formatter.format(date);
         "}),
-        TestAction::assert_eq("result === '12/20/20'", true),
+        TestAction::assert_eq("result === '12/20/2020'", true),
     ]);
     run_test_actions([
         TestAction::run(indoc! {"
@@ -114,5 +114,32 @@ fn dtf_ctor_observable_behavior() {
         TestAction::assert_eq("expected.length === 2", true),
         TestAction::assert_eq("expected[0] === 'prototype-access'", true),
         TestAction::assert_eq("expected[1] === 'error-thrown'", true),
+    ]);
+}
+
+#[test]
+fn numeric_date_year() {
+    run_test_actions([
+        TestAction::run(indoc! {"
+            const date = new Date(Date.UTC(2027, 2, 10, 12));
+            const numeric = { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' };
+        "}),
+        TestAction::assert_eq("date.toLocaleDateString('en-CA')", js_string!("2027-03-10")),
+        TestAction::assert_eq(
+            "new Intl.DateTimeFormat('en-CA', numeric).format(date)",
+            js_string!("2027-03-10"),
+        ),
+        TestAction::assert_eq(
+            "date.toLocaleDateString('en-US', numeric)",
+            js_string!("3/10/2027"),
+        ),
+        TestAction::assert_eq(
+            "date.toLocaleDateString('en-US', { dateStyle: 'short', timeZone: 'UTC' })",
+            js_string!("3/10/27"),
+        ),
+        TestAction::assert_eq(
+            "date.toLocaleDateString('en-US', { ...numeric, year: '2-digit' })",
+            js_string!("3/10/27"),
+        ),
     ]);
 }

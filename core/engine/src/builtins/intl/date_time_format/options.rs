@@ -20,7 +20,7 @@ use icu_calendar::cal::{
 use icu_datetime::{
     DateTimeFormatterPreferences,
     fieldsets::builder::{DateFields, ZoneStyle},
-    options::{Length, SubsecondDigits as IcuSubsecondDigits, TimePrecision},
+    options::{Length, SubsecondDigits as IcuSubsecondDigits, TimePrecision, YearStyle},
     preferences::{CalendarAlgorithm, HourCycle as IcuHourCycle},
     scaffold::CldrCalendar,
 };
@@ -302,6 +302,11 @@ impl FormatOptions {
             (None, None, None, Some(era)) => Some(era.to_length()),
             (None, None, None, None) => None,
         }
+    }
+
+    /// Preserve numeric years instead of ICU's locale-dependent abbreviation.
+    pub(super) fn to_year_style(&self) -> Option<YearStyle> {
+        matches!(self.year, Some(Year::Numeric)).then_some(YearStyle::Full)
     }
 
     /// Convert the current `FormatOptions` to a [`DateFields`].
