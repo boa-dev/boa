@@ -1556,7 +1556,7 @@ impl Date {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
         let dtf = create_date_time_format(locales, options, required, defaults, context)?;
-        format_date_time(&dtf, x, context)
+        format_date_time(&dtf, &x.into(), context)
     }
 
     /// [`Date.prototype.toLocaleDateString()`][spec].
