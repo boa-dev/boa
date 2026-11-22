@@ -1,11 +1,12 @@
 //! Implements a map type that preserves insertion order.
 
-use crate::{JsData, JsValue, object::JsObject};
+use crate::{JsData, JsValue};
 use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::{Equivalent, IndexMap};
 use std::{
     fmt::Debug,
     hash::{Hash, Hasher},
+    rc::Rc,
 };
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -33,12 +34,47 @@ impl Equivalent<MapKey> for JsValue {
     }
 }
 
+/// A lock on an [`OrderedMap`] or an [`OrderedSet`], released when dropped.
+///
+/// The lock count is the strong count of the collection's `Rc`, so releasing a lock touches
+/// neither the collection nor its cell: it can't fail, even while the collection is borrowed.
+///
+/// [`OrderedSet`]: crate::builtins::set::ordered_set::OrderedSet
+#[derive(Debug)]
+pub(crate) struct CollectionLock {
+    _token: Rc<()>,
+}
+
+impl CollectionLock {
+    /// Takes a lock counted by `token`, the collection's own `Rc`, creating it on first use.
+    pub(crate) fn new(token: &mut Option<Rc<()>>) -> Self {
+        Self {
+            _token: Rc::clone(token.get_or_insert_with(Rc::default)),
+        }
+    }
+}
+
 /// A structure wrapping `indexmap::IndexMap`.
-#[derive(Clone, Finalize, JsData)]
+#[derive(Finalize, JsData)]
 pub struct OrderedMap<V> {
     map: IndexMap<MapKey, Option<V>>,
-    lock: u32,
+    lock: Option<Rc<()>>,
     empty_count: usize,
+}
+
+impl<V: Clone> Clone for OrderedMap<V> {
+    /// Clones the entries only: the clone has no empty entries and no locks.
+    fn clone(&self) -> Self {
+        let mut map = self.map.clone();
+        if self.empty_count > 0 {
+            map.retain(|k, _| matches!(k, MapKey::Key(_)));
+        }
+        Self {
+            map,
+            lock: None,
+            empty_count: 0,
+        }
+    }
 }
 
 unsafe impl<V: Trace> Trace for OrderedMap<V> {
@@ -70,7 +106,7 @@ impl<V> OrderedMap<V> {
     pub fn new() -> Self {
         Self {
             map: IndexMap::new(),
-            lock: 0,
+            lock: None,
             empty_count: 0,
         }
     }
@@ -80,7 +116,7 @@ impl<V> OrderedMap<V> {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             map: IndexMap::with_capacity(capacity),
-            lock: 0,
+            lock: None,
             empty_count: 0,
         }
     }
@@ -120,6 +156,7 @@ impl<V> OrderedMap<V> {
     ///
     /// Computes in **O(1)** time (amortized average).
     pub fn insert(&mut self, key: JsValue, value: V) -> Option<V> {
+        self.compact();
         self.map.insert(MapKey::Key(key), Some(value)).flatten()
     }
 
@@ -134,7 +171,8 @@ impl<V> OrderedMap<V> {
     ///
     /// Computes in **O(n)** time (average).
     pub fn remove(&mut self, key: &JsValue) -> Option<V> {
-        if self.lock == 0 {
+        self.compact();
+        if !self.is_locked() {
             self.map.shift_remove(key).flatten()
         } else if self.map.contains_key(key) {
             self.map.insert(MapKey::Empty(self.empty_count), None);
@@ -148,17 +186,17 @@ impl<V> OrderedMap<V> {
     /// Removes all elements from the map and resets the counter of
     /// empty entries.
     pub fn clear(&mut self) {
-        if self.lock == 0 {
-            self.map.clear();
-            self.map.shrink_to_fit();
-            self.empty_count = 0;
-        } else {
+        if self.is_locked() {
             let len = self.map.len();
             self.map.clear();
             for i in 0..len {
                 self.map.insert(MapKey::Empty(i), None);
             }
             self.empty_count = len;
+        } else {
+            self.map.clear();
+            self.map.shrink_to_fit();
+            self.empty_count = 0;
         }
     }
 
@@ -203,34 +241,27 @@ impl<V> OrderedMap<V> {
         self.map.contains_key(key)
     }
 
-    /// Increases the lock counter.
+    /// Locks the map until the returned lock is dropped.
     ///
     /// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.
-    pub(crate) fn lock(&mut self) {
-        self.lock += 1;
+    /// The empty entries left by removals are dropped by the next mutation after the last lock is released.
+    pub(crate) fn lock(&mut self) -> CollectionLock {
+        self.compact();
+        CollectionLock::new(&mut self.lock)
     }
 
-    /// Decreases the lock counter and, if 0, removes all empty entries.
-    pub(crate) fn unlock(&mut self) {
-        self.lock -= 1;
-        if self.lock == 0 {
+    /// Returns `true` if a lock on the map is alive.
+    fn is_locked(&self) -> bool {
+        self.lock
+            .as_ref()
+            .is_some_and(|lock| Rc::strong_count(lock) > 1)
+    }
+
+    /// Removes all empty entries, unless the map is locked.
+    fn compact(&mut self) {
+        if self.empty_count > 0 && !self.is_locked() {
             self.map.retain(|k, _| matches!(k, MapKey::Key(_)));
             self.empty_count = 0;
         }
-    }
-}
-
-pub(crate) struct MapLock<'a, V: Trace + 'static>(&'a JsObject<OrderedMap<V>>);
-
-impl<'a, V: Trace + 'static> MapLock<'a, V> {
-    pub(crate) fn new(js_object: &'a JsObject<OrderedMap<V>>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
-        Self(js_object)
-    }
-}
-
-impl<V: Trace + 'static> Drop for MapLock<'_, V> {
-    fn drop(&mut self) {
-        self.0.borrow_mut().data_mut().unlock();
     }
 }

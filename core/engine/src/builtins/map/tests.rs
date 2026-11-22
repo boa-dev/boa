@@ -1,4 +1,7 @@
-use crate::{JsNativeErrorKind, JsValue, TestAction, run_test_actions};
+use super::ordered_map::OrderedMap;
+use crate::{
+    JsNativeErrorKind, JsObject, JsValue, TestAction, object::builtins::JsMap, run_test_actions,
+};
 use boa_macros::js_str;
 use indoc::indoc;
 
@@ -413,4 +416,128 @@ fn iterator_after_clear_and_set() {
         TestAction::assert("first.value === 1 && !first.done"),
         TestAction::assert("second.value === 2 && !second.done"),
     ]);
+}
+
+/// Asserts that `map` holds `len` entries and no deleted ones.
+fn assert_compact(map: &JsObject, len: usize) {
+    let map = map.downcast_ref::<OrderedMap<JsValue>>().unwrap();
+    assert_eq!((map.len(), map.full_len()), (len, len));
+}
+
+#[test]
+fn iterator_lock_finalized_while_map_borrowed() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        let map = JsMap::new(ctx);
+        map.set(1, 1, ctx).unwrap();
+        drop(map.keys(ctx).unwrap());
+
+        // The dead iterator is collected while the map is borrowed.
+        let borrow = map.borrow();
+        boa_gc::force_collect();
+        drop(borrow);
+
+        // Its lock is released all the same, so deleted entries don't pile up.
+        for i in 100..200 {
+            map.set(i, i, ctx).unwrap();
+            map.delete(i, ctx).unwrap();
+        }
+        assert_compact(&map, 1);
+    })]);
+}
+
+#[test]
+fn iterator_lock_released_when_done() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const map = new Map([[1, 1], [2, 2]]);
+            const iterator = map.keys();
+            while (!iterator.next().done) {}
+            map.delete(1);
+        "#}),
+        TestAction::assert_with_op("map", |map, _| {
+            assert_compact(&map.as_object().unwrap(), 1);
+            true
+        }),
+    ]);
+}
+
+#[test]
+fn iterator_across_delete_and_clear() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const map = new Map([[1, "a"], [2, "b"], [3, "c"]]);
+            const iterator = map.keys();
+            const seen = [iterator.next().value];
+            map.delete(2);
+            seen.push(iterator.next().value);
+            map.clear();
+            map.set(4, "d");
+            seen.push(iterator.next().value);
+            const done = iterator.next().done;
+            map.set(5, "e");
+        "#}),
+        TestAction::assert("seen.join() === '1,3,4' && done"),
+        TestAction::assert_with_op("map", |map, _| {
+            assert_compact(&map.as_object().unwrap(), 2);
+            true
+        }),
+    ]);
+}
+
+#[test]
+fn abandoned_iterators_release_lock_after_collection() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const map = new Map([[1, 1], [2, 2]]);
+            for (let i = 0; i < 10; i++) {
+                map.keys().next();
+            }
+        "#}),
+        TestAction::inspect_context(|_| boa_gc::force_collect()),
+        TestAction::run("map.delete(1);"),
+        TestAction::assert_with_op("map", |map, _| {
+            assert_compact(&map.as_object().unwrap(), 1);
+            true
+        }),
+    ]);
+}
+
+#[test]
+fn for_each_throw_compacts_on_next_mutation() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const map = new Map([[1, 1], [2, 2], [3, 3]]);
+            try {
+                map.forEach(() => {
+                    map.delete(2);
+                    throw new Error();
+                });
+            } catch {}
+            map.set(4, 4);
+        "#}),
+        TestAction::assert_with_op("map", |map, _| {
+            assert_compact(&map.as_object().unwrap(), 3);
+            true
+        }),
+    ]);
+}
+
+#[test]
+fn for_each_native_skips_deleted_entries() {
+    run_test_actions([TestAction::inspect_context(|ctx| {
+        let map = JsMap::new(ctx);
+        for i in 1..=3 {
+            map.set(i, i, ctx).unwrap();
+        }
+        let mut keys = Vec::new();
+        map.for_each_native(|key, _| {
+            if key == JsValue::new(1) {
+                map.delete(2, ctx)?;
+            }
+            keys.push(key);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(keys, [JsValue::new(1), JsValue::new(3)]);
+    })]);
 }

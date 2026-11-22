@@ -5,7 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 
-use super::ordered_map::OrderedMap;
+use super::ordered_map::{CollectionLock, OrderedMap};
 use crate::{
     Context, JsData, JsResult,
     builtins::{
@@ -21,19 +21,19 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
-#[derive(Debug, Trace)]
-struct MapIteratorLock(JsObject<OrderedMap<JsValue>>);
-
-impl MapIteratorLock {
-    fn new(js_object: JsObject<OrderedMap<JsValue>>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
-        Self(js_object)
-    }
+#[derive(Debug, Trace, Finalize)]
+struct MapIteratorLock {
+    map: JsObject<OrderedMap<JsValue>>,
+    // Released by its own drop, without borrowing the map, so the garbage collector can drop it
+    // while the map is borrowed.
+    #[unsafe_ignore_trace]
+    _lock: CollectionLock,
 }
 
-impl Finalize for MapIteratorLock {
-    fn finalize(&self) {
-        self.0.borrow_mut().data_mut().unlock();
+impl MapIteratorLock {
+    fn new(map: JsObject<OrderedMap<JsValue>>) -> Self {
+        let lock = map.borrow_mut().data_mut().lock();
+        Self { map, _lock: lock }
     }
 }
 
@@ -115,7 +115,7 @@ impl MapIterator {
 
         if let Some(obj) = map_iterator.iterated_map.take() {
             let e = {
-                let mut entries = obj.0.borrow_mut();
+                let mut entries = obj.map.borrow_mut();
                 let entries = entries.data_mut();
                 let len = entries.full_len();
                 loop {

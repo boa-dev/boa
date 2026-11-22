@@ -12,7 +12,7 @@
 
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
-    builtins::{BuiltInObject, iterable::IteratorHint, map::ordered_map::MapLock},
+    builtins::{BuiltInObject, iterable::IteratorHint},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_error, js_string,
@@ -481,7 +481,7 @@ impl Map {
         // after it has been visited and then re-added before the forEach call completes.
         // Keys that are deleted after the call to forEach begins and before being visited
         // are not visited unless the key is added again before the forEach call completes.
-        let _lock = MapLock::new(&map);
+        let _lock = map.borrow_mut().data_mut().lock();
 
         // 4. Let entries be the List that is M.[[MapData]].
         // 5. For each Record { [[Key]], [[Value]] } e of entries, do
@@ -532,7 +532,7 @@ impl Map {
                 )
             })?;
 
-        let _lock = MapLock::new(&map);
+        let _lock = map.borrow_mut().data_mut().lock();
 
         let mut index = 0;
         loop {
@@ -544,6 +544,7 @@ impl Map {
                 }
 
                 let Some((k, v)) = map.get_index(index) else {
+                    index += 1;
                     continue;
                 };
 
