@@ -281,8 +281,8 @@ impl BuiltInConstructorWithPrototype<'_> {
         debug_assert!(!self.constructor_property_table.map.contains_key(&key));
         self.constructor_property_table.insert(key, attributes);
         self.constructor_storage.extend([
-            get.map(JsValue::new).unwrap_or_default(),
-            set.map(JsValue::new).unwrap_or_default(),
+            get.map_or_default(JsValue::new),
+            set.map_or_default(JsValue::new),
         ]);
         self
     }
@@ -361,8 +361,8 @@ impl BuiltInConstructorWithPrototype<'_> {
         debug_assert!(!self.prototype_property_table.map.contains_key(&key));
         self.prototype_property_table.insert(key, attributes);
         self.prototype_storage.extend([
-            get.map(JsValue::new).unwrap_or_default(),
-            set.map(JsValue::new).unwrap_or_default(),
+            get.map_or_default(JsValue::new),
+            set.map_or_default(JsValue::new),
         ]);
         self
     }

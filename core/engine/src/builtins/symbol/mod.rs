@@ -357,8 +357,7 @@ impl Symbol {
 
         Ok(GLOBAL_SYMBOL_REGISTRY
             .get_key(&sym)
-            .map(JsValue::from)
-            .unwrap_or_default())
+            .map_or_default(JsValue::from))
     }
 
     /// `Symbol.prototype [ @@toPrimitive ]`

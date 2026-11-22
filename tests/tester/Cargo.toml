@@ -16,7 +16,7 @@ boa_engine = { workspace = true, features = ["float16"] }
 boa_runtime = { workspace = true, features = ["test262"] }
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
-serde_yaml = "0.9.34" # TODO: Track https://github.com/saphyr-rs/saphyr.
+serde_yaml.workspace = true # TODO: Track https://github.com/saphyr-rs/saphyr.
 serde_json.workspace = true
 bitflags.workspace = true
 colored.workspace = true

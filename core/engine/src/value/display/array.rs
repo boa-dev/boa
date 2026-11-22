@@ -16,8 +16,7 @@ pub(super) fn log_array_to(
         .expect("array object must have 'length' property")
         .value()
         .and_then(JsValue::as_number)
-        .map(|n| n.max(0.0) as u32)
-        .unwrap_or_default();
+        .map_or_default(|n| n.max(0.0) as u32);
 
     if print_children {
         // Cap the number of elements we iterate over to avoid hangs on very large/sparse arrays.
@@ -84,8 +83,7 @@ pub(super) fn log_array_compact(
         .expect("array object must have 'length' property")
         .value()
         .and_then(JsValue::as_number)
-        .map(|n| n.max(0.0) as u32)
-        .unwrap_or_default();
+        .map_or_default(|n| n.max(0.0) as u32);
 
     if len == 0 {
         return f.write_str("[]");

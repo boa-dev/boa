@@ -101,9 +101,9 @@ boa_parser.workspace = true
 boa_string.workspace = true
 cow-utils.workspace = true
 futures-lite.workspace = true
-float16 = { version = "0.1", optional = true }
+float16 = { workspace = true, optional = true }
 lz4_flex = { workspace = true, optional = true }
-xsum = { version = "0.1.6", optional = true }
+xsum = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand.workspace = true
@@ -116,7 +116,6 @@ bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
 fast-float2.workspace = true
-tap.workspace = true
 small_btree.workspace = true
 pastey.workspace = true
 thiserror.workspace = true
