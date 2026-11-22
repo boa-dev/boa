@@ -232,7 +232,7 @@ impl EnvironmentStack {
     /// Push a function environment on the environments stack.
     pub(crate) fn push_function(
         &mut self,
-        scope: Scope,
+        scope: &Scope,
         function_slots: FunctionSlots,
         global: &Gc<DeclarativeEnvironment>,
     ) {

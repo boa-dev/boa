@@ -1085,7 +1085,7 @@ pub(crate) fn function_call(
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
-            scope,
+            &scope,
             FunctionSlots::new(this, function_object.clone(), None),
             global,
         );
@@ -1193,7 +1193,7 @@ fn function_construct(
         let frame = context.vm.frame_mut();
         let global = frame.realm.environment();
         frame.environments.push_function(
-            scope,
+            &scope,
             FunctionSlots::new(
                 this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
                     ThisBindingStatus::Initialized(o.into())
