@@ -12,7 +12,6 @@ features = [
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
     "Intl.DurationFormat",
-    "regexp-duplicate-named-groups",
     "explicit-resource-management",
 
     ### Pending proposals
