@@ -680,3 +680,63 @@ fn with_object_environment_binding_deleted_in_unscopables() {
         TestAction::assert("strictThrew === true"),
     ]);
 }
+
+#[test]
+fn binary_operand_evaluation_order_with_mutation() {
+    run_test_actions([
+        TestAction::assert_eq("(() => { var n = 1; return n + ++n; })()", 3),
+        TestAction::assert_eq("(() => { var n = 1; return n - ++n; })()", -1),
+        TestAction::assert_eq("(() => { var n = 2; return n * ++n; })()", 6),
+        TestAction::assert_eq("(() => { var n = 4; return n / (n = 2); })()", 2),
+        TestAction::assert_eq("(() => { var n = 2; return n ** ++n; })()", 8),
+        TestAction::assert_eq("(() => { var n = 5; return n % (n = 3); })()", 2),
+        TestAction::assert_eq("(() => { var n = 1; return n < ++n; })()", true),
+        TestAction::assert_eq("(() => { var n = 1; return n == ++n; })()", false),
+        TestAction::assert_eq("(() => { var n = 1; return n + (n = 10); })()", 11),
+        TestAction::assert_eq("(() => { var n = 1; return n + n++; })()", 2),
+        TestAction::assert_eq("(() => { var n = 1; return n + (n = 2, n = 3); })()", 4),
+        TestAction::assert_eq("(() => { var n = 1; return n + (() => ++n)(); })()", 3),
+    ]);
+}
+
+#[test]
+fn bitwise_operand_evaluation_order_with_mutation() {
+    run_test_actions([
+        TestAction::assert_eq("(() => { var n = 1; return n & ++n; })()", 0),
+        TestAction::assert_eq("(() => { var n = 1; return n | ++n; })()", 3),
+        TestAction::assert_eq("(() => { var n = 1; return n ^ ++n; })()", 3),
+        TestAction::assert_eq("(() => { var n = 1; return n << ++n; })()", 4),
+        TestAction::assert_eq("(() => { var n = 4; return n >> (n = 1); })()", 2),
+        TestAction::assert_eq("(() => { var n = 4; return n >>> (n = 1); })()", 2),
+    ]);
+}
+
+#[test_case::test_case("n < ++n", true; "less_than_true")]
+#[test_case::test_case("n < --n", false; "less_than_false")]
+#[test_case::test_case("n <= ++n", true; "less_than_or_equal_true")]
+#[test_case::test_case("n <= --n", false; "less_than_or_equal_false")]
+#[test_case::test_case("n > --n", true; "greater_than_true")]
+#[test_case::test_case("n > ++n", false; "greater_than_false")]
+#[test_case::test_case("n >= --n", true; "greater_than_or_equal_true")]
+#[test_case::test_case("n >= ++n", false; "greater_than_or_equal_false")]
+#[test_case::test_case("n < (n = 10)", true; "assignment")]
+fn comparison_operand_evaluation_order_with_mutation(condition: &str, expected: bool) {
+    // Keep `n` local to exercise the persistent-register optimization in both
+    // ordinary comparisons and fused comparison-and-branch instructions.
+    for body in [
+        format!("return ({condition});"),
+        format!("if ({condition}) return true; return false;"),
+        format!("return ({condition}) ? true : false;"),
+        format!("while ({condition}) return true; return false;"),
+        format!("for (; {condition};) return true; return false;"),
+        format!(
+            "var count = 0; do {{ if (++count === 2) return true; }} \
+             while ({condition}); return false;"
+        ),
+    ] {
+        run_test_actions([TestAction::assert_eq(
+            format!("(() => {{ var n = 1; {body} }})()"),
+            expected,
+        )]);
+    }
+}
