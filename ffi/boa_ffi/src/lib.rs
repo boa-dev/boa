@@ -18,7 +18,7 @@ pub mod ffi {
     use boa_engine::{
         Context, JsError as BoaJsError, JsNativeError as BoaJsNativeError,
         JsNativeErrorKind as BoaJsNativeErrorKind, JsValue as BoaJsValue, Source,
-        context::ContextBuilder, value::Type,
+        context::ContextBuilder, error::TryNativeError, value::Type,
     };
     use diplomat_runtime::{DiplomatOption, DiplomatStr, DiplomatUtf8StrSlice};
 
@@ -180,6 +180,27 @@ pub mod ffi {
         Other,
     }
 
+    /// The reason an error could not be converted into a native error.
+    #[derive(Debug, PartialEq, Eq)]
+    pub enum JsTryNativeError {
+        /// The error holds a thrown value that is not an Error object.
+        NotAnErrorObject,
+        /// The `message` is not a string, or an aggregate's `errors` is not an array.
+        InvalidPropertyType,
+        /// The `message` contains an unpaired surrogate, so it has no UTF-8 form.
+        InvalidMessageEncoding,
+        /// The `constructor` property is missing or is not a constructor.
+        InvalidConstructor,
+        /// Reading a property of the Error object threw, for example in a getter.
+        InaccessibleProperty,
+        /// Reading a member of an aggregate's `errors` threw.
+        InvalidErrorsIndex,
+        /// The realm of the Error object's constructor could not be found.
+        InaccessibleRealm,
+        /// The error is an engine failure, which has no native form.
+        EngineError,
+    }
+
     /// Native error details borrowed from a live error handle.
     pub struct JsNativeErrorInfo<'a> {
         /// The native category.
@@ -275,6 +296,47 @@ pub mod ffi {
             self.0
                 .as_opaque()
                 .map(|value| Box::new(JsValue(value.clone())))
+        }
+
+        /// Converts this error into a new owned native error.
+        ///
+        /// A native error converts to an equal copy. An opaque error converts if
+        /// its payload is an Error object: the category comes from the object's
+        /// internal type, and the message, cause and aggregate members are read
+        /// from its properties. Unlike the other error functions, this can run
+        /// JavaScript, because those properties may be getters.
+        ///
+        /// This error is left unchanged. Pass the context it came from. In C,
+        /// check `is_ok`, and destroy a returned error with `boa_JsError_destroy`,
+        /// independently of this one.
+        ///
+        /// # Errors
+        ///
+        /// Returns the reason the conversion failed. An exception thrown while
+        /// reading a property is discarded.
+        pub fn try_native(
+            &self,
+            context: &mut BoaContext,
+        ) -> Result<Box<JsError>, JsTryNativeError> {
+            match self.0.try_native(&mut context.context) {
+                Ok(native) => Ok(Box::new(JsError(native.into()))),
+                Err(error) => Err(match error {
+                    TryNativeError::NotAnErrorObject(_) => JsTryNativeError::NotAnErrorObject,
+                    TryNativeError::InvalidPropertyType(_) => JsTryNativeError::InvalidPropertyType,
+                    TryNativeError::InvalidMessageEncoding => {
+                        JsTryNativeError::InvalidMessageEncoding
+                    }
+                    TryNativeError::InvalidConstructor => JsTryNativeError::InvalidConstructor,
+                    TryNativeError::InaccessibleProperty { .. } => {
+                        JsTryNativeError::InaccessibleProperty
+                    }
+                    TryNativeError::InvalidErrorsIndex { .. } => {
+                        JsTryNativeError::InvalidErrorsIndex
+                    }
+                    TryNativeError::InaccessibleRealm { .. } => JsTryNativeError::InaccessibleRealm,
+                    TryNativeError::EngineError { .. } => JsTryNativeError::EngineError,
+                }),
+            }
         }
     }
 

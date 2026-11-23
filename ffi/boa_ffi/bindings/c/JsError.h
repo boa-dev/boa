@@ -7,9 +7,11 @@
 #include <stdbool.h>
 #include "diplomat_runtime.h"
 
+#include "BoaContext.d.h"
 #include "JsErrorRepresentation.d.h"
 #include "JsNativeErrorInfo.d.h"
 #include "JsNativeErrorKind.d.h"
+#include "JsTryNativeError.d.h"
 #include "JsValue.d.h"
 
 #include "JsError.d.h"
@@ -29,6 +31,9 @@ typedef struct boa_JsError_as_native_result {union {JsNativeErrorInfo ok; }; boo
 boa_JsError_as_native_result boa_JsError_as_native(const JsError* self);
 
 JsValue* boa_JsError_as_opaque(const JsError* self);
+
+typedef struct boa_JsError_try_native_result {union {JsError* ok; JsTryNativeError err;}; bool is_ok;} boa_JsError_try_native_result;
+boa_JsError_try_native_result boa_JsError_try_native(const JsError* self, BoaContext* context);
 
 void boa_JsError_destroy(JsError* self);
 
