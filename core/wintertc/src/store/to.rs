@@ -1,5 +1,8 @@
 //! All methods for deserializing a [`JsValueStore`] into a [`JsValue`].
-use crate::store::{JsValueStore, StringStore, ValueStoreInner, unsupported_type};
+use crate::store::{
+    JsValueStore, MAX_CLONE_DEPTH, StringStore, ValueStoreInner, depth_limit_exceeded,
+    unsupported_type,
+};
 use boa_engine::builtins::array_buffer::{AlignedVec, SharedArrayBuffer};
 use boa_engine::builtins::typed_array::TypedArrayKind;
 use boa_engine::object::builtins::{
@@ -9,18 +12,23 @@ use boa_engine::object::builtins::{
 use boa_engine::{Context, JsBigInt, JsObject, JsResult, JsString, JsValue, js_error};
 use rustc_hash::FxHashMap;
 
+/// A Map of already reconstructed objects, keyed by the address of their
+/// stored value. It also tracks the recursion depth of the walk.
 #[derive(Default)]
-pub(super) struct ReverseSeenMap(FxHashMap<usize, JsObject>);
+pub(super) struct ReverseSeenMap {
+    values: FxHashMap<usize, JsObject>,
+    depth: usize,
+}
 
 impl ReverseSeenMap {
     fn get(&self, object: &JsValueStore) -> Option<JsObject> {
         let addr = std::ptr::from_ref(object.0.as_ref()).addr();
-        self.0.get(&addr).cloned()
+        self.values.get(&addr).cloned()
     }
 
     fn insert(&mut self, original: &JsValueStore, object: JsObject) {
         let addr = std::ptr::from_ref(original.0.as_ref()).addr();
-        self.0.insert(addr, object);
+        self.values.insert(addr, object);
     }
 }
 
@@ -183,6 +191,21 @@ fn try_into_data_view(
 }
 
 pub(super) fn try_value_into_js(
+    store: &JsValueStore,
+    seen: &mut ReverseSeenMap,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    if seen.depth >= MAX_CLONE_DEPTH {
+        return Err(depth_limit_exceeded());
+    }
+
+    seen.depth += 1;
+    let result = try_value_into_js_inner(store, seen, context);
+    seen.depth -= 1;
+    result
+}
+
+fn try_value_into_js_inner(
     store: &JsValueStore,
     seen: &mut ReverseSeenMap,
     context: &mut Context,
