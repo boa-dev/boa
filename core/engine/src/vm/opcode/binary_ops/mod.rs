@@ -28,7 +28,6 @@ impl StrictEq {
 }
 
 impl Operation for StrictEq {
-    const NAME: &'static str = "StrictEq";
     const INSTRUCTION: &'static str = "INST - StrictEq";
     const COST: u8 = 2;
 }
@@ -54,7 +53,6 @@ impl StrictNotEq {
 }
 
 impl Operation for StrictNotEq {
-    const NAME: &'static str = "StrictNotEq";
     const INSTRUCTION: &'static str = "INST - StrictNotEq";
     const COST: u8 = 2;
 }
@@ -90,7 +88,6 @@ impl In {
 }
 
 impl Operation for In {
-    const NAME: &'static str = "In";
     const INSTRUCTION: &'static str = "INST - In";
     const COST: u8 = 3;
 }
@@ -139,7 +136,6 @@ impl InPrivate {
 }
 
 impl Operation for InPrivate {
-    const NAME: &'static str = "InPrivate";
     const INSTRUCTION: &'static str = "INST - InPrivate";
     const COST: u8 = 4;
 }

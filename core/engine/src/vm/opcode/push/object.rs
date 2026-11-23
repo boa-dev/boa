@@ -24,7 +24,6 @@ impl StoreEmptyObject {
 }
 
 impl Operation for StoreEmptyObject {
-    const NAME: &'static str = "StoreEmptyObject";
     const INSTRUCTION: &'static str = "INST - StoreEmptyObject";
     const COST: u8 = 1;
 }

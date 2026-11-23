@@ -102,7 +102,6 @@ impl SetPropertyByName {
 }
 
 impl Operation for SetPropertyByNameWithThis {
-    const NAME: &'static str = "SetPropertyByNameWithThis";
     const INSTRUCTION: &'static str = "INST - SetPropertyByNameWithThis";
     const COST: u8 = 4;
 }
@@ -132,7 +131,6 @@ impl SetPropertyByNameWithThis {
 }
 
 impl Operation for SetPropertyByName {
-    const NAME: &'static str = "SetPropertyByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyByName";
     const COST: u8 = 4;
 }
@@ -202,7 +200,6 @@ impl SetPropertyByValue {
 }
 
 impl Operation for SetPropertyByValue {
-    const NAME: &'static str = "SetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyByValue";
     const COST: u8 = 4;
 }
@@ -250,7 +247,6 @@ impl SetPropertyGetterByName {
 }
 
 impl Operation for SetPropertyGetterByName {
-    const NAME: &'static str = "SetPropertyGetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
     const COST: u8 = 4;
 }
@@ -294,7 +290,6 @@ impl SetPropertyGetterByValue {
 }
 
 impl Operation for SetPropertyGetterByValue {
-    const NAME: &'static str = "SetPropertyGetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByValue";
     const COST: u8 = 4;
 }
@@ -343,7 +338,6 @@ impl SetPropertySetterByName {
 }
 
 impl Operation for SetPropertySetterByName {
-    const NAME: &'static str = "SetPropertySetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
     const COST: u8 = 4;
 }
@@ -388,7 +382,6 @@ impl SetPropertySetterByValue {
 }
 
 impl Operation for SetPropertySetterByValue {
-    const NAME: &'static str = "SetPropertySetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByValue";
     const COST: u8 = 4;
 }
@@ -433,7 +426,6 @@ impl SetFunctionName {
 }
 
 impl Operation for SetFunctionName {
-    const NAME: &'static str = "SetFunctionName";
     const INSTRUCTION: &'static str = "INST - SetFunctionName";
     const COST: u8 = 4;
 }

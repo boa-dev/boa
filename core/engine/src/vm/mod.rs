@@ -23,7 +23,7 @@ use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
 use crate::sys::time::Instant;
 
 #[allow(unused_imports)]
-pub(crate) use opcode::{Instruction, InstructionIterator, Opcode};
+pub(crate) use bytecode::{Instruction, InstructionIterator, Opcode};
 
 pub(crate) use {
     call_frame::CallFrameFlags,
@@ -43,6 +43,7 @@ pub use {
 
 pub(crate) use code_block::GlobalFunctionBinding;
 
+pub(crate) mod bytecode;
 mod call_frame;
 mod code_block;
 mod completion_record;

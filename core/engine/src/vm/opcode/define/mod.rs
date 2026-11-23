@@ -34,7 +34,6 @@ impl DefVar {
 }
 
 impl Operation for DefVar {
-    const NAME: &'static str = "DefVar";
     const INSTRUCTION: &'static str = "INST - DefVar";
     const COST: u8 = 3;
 }
@@ -65,7 +64,6 @@ impl DefEvalVar {
 }
 
 impl Operation for DefEvalVar {
-    const NAME: &'static str = "DefEvalVar";
     const INSTRUCTION: &'static str = "INST - DefEvalVar";
     const COST: u8 = 3;
 }
@@ -100,7 +98,6 @@ impl DefInitVar {
 }
 
 impl Operation for DefInitVar {
-    const NAME: &'static str = "DefInitVar";
     const INSTRUCTION: &'static str = "INST - DefInitVar";
     const COST: u8 = 3;
 }
@@ -134,7 +131,6 @@ impl PutLexicalValue {
 }
 
 impl Operation for PutLexicalValue {
-    const NAME: &'static str = "PutLexicalValue";
     const INSTRUCTION: &'static str = "INST - PutLexicalValue";
     const COST: u8 = 3;
 }

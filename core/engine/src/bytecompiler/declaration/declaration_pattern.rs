@@ -1,6 +1,6 @@
 use crate::{
     bytecompiler::{Access, ByteCompiler, Literal, Register, ToJsString},
-    vm::opcode::BindingOpcode,
+    vm::bytecode::BindingOpcode,
 };
 use boa_ast::{
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},

@@ -58,7 +58,6 @@ impl PushClassField {
 }
 
 impl Operation for PushClassField {
-    const NAME: &'static str = "PushClassField";
     const INSTRUCTION: &'static str = "INST - PushClassField";
     const COST: u8 = 6;
 }
@@ -108,7 +107,6 @@ impl PushClassFieldPrivate {
 }
 
 impl Operation for PushClassFieldPrivate {
-    const NAME: &'static str = "PushClassFieldPrivate";
     const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
     const COST: u8 = 3;
 }

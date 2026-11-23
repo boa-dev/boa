@@ -75,7 +75,6 @@ impl SetClassPrototype {
 }
 
 impl Operation for SetClassPrototype {
-    const NAME: &'static str = "SetClassPrototype";
     const INSTRUCTION: &'static str = "INST - SetClassPrototype";
     const COST: u8 = 6;
 }

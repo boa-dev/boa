@@ -38,7 +38,6 @@ impl Dec {
 }
 
 impl Operation for Dec {
-    const NAME: &'static str = "Dec";
     const INSTRUCTION: &'static str = "INST - Dec";
     const COST: u8 = 3;
 }

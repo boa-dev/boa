@@ -36,7 +36,6 @@ impl Throw {
 }
 
 impl Operation for Throw {
-    const NAME: &'static str = "Throw";
     const INSTRUCTION: &'static str = "INST - Throw";
     const COST: u8 = 6;
 }
@@ -71,7 +70,6 @@ impl ReThrow {
 }
 
 impl Operation for ReThrow {
-    const NAME: &'static str = "ReThrow";
     const INSTRUCTION: &'static str = "INST - ReThrow";
     const COST: u8 = 2;
 }
@@ -108,7 +106,6 @@ impl Exception {
 }
 
 impl Operation for Exception {
-    const NAME: &'static str = "Exception";
     const INSTRUCTION: &'static str = "INST - Exception";
     const COST: u8 = 2;
 }
@@ -138,7 +135,6 @@ impl MaybeException {
 }
 
 impl Operation for MaybeException {
-    const NAME: &'static str = "MaybeException";
     const INSTRUCTION: &'static str = "INST - MaybeException";
     const COST: u8 = 3;
 }
@@ -166,7 +162,6 @@ impl ThrowNewTypeError {
 }
 
 impl Operation for ThrowNewTypeError {
-    const NAME: &'static str = "ThrowNewTypeError";
     const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
     const COST: u8 = 2;
 }
@@ -194,7 +189,6 @@ impl ThrowNewReferenceError {
 }
 
 impl Operation for ThrowNewReferenceError {
-    const NAME: &'static str = "ThrowNewReferenceError";
     const INSTRUCTION: &'static str = "INST - ThrowNewReferenceError";
     const COST: u8 = 2;
 }

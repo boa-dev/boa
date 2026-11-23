@@ -38,7 +38,6 @@ impl DeletePropertyByName {
 }
 
 impl Operation for DeletePropertyByName {
-    const NAME: &'static str = "DeletePropertyByName";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByName";
     const COST: u8 = 3;
 }
@@ -78,7 +77,6 @@ impl DeletePropertyByValue {
 }
 
 impl Operation for DeletePropertyByValue {
-    const NAME: &'static str = "DeletePropertyByValue";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
     const COST: u8 = 3;
 }
@@ -106,7 +104,6 @@ impl DeleteName {
 }
 
 impl Operation for DeleteName {
-    const NAME: &'static str = "DeleteName";
     const INSTRUCTION: &'static str = "INST - DeleteName";
     const COST: u8 = 3;
 }
@@ -128,7 +125,6 @@ impl DeleteSuperThrow {
 }
 
 impl Operation for DeleteSuperThrow {
-    const NAME: &'static str = "DeleteSuperThrow";
     const INSTRUCTION: &'static str = "INST - DeleteSuperThrow";
     const COST: u8 = 2;
 }

@@ -32,7 +32,6 @@ impl SetHomeObject {
 }
 
 impl Operation for SetHomeObject {
-    const NAME: &'static str = "SetHomeObject";
     const INSTRUCTION: &'static str = "INST - SetHomeObject";
     const COST: u8 = 4;
 }
@@ -69,7 +68,6 @@ impl GetHomeObject {
 }
 
 impl Operation for GetHomeObject {
-    const NAME: &'static str = "GetHomeObject";
     const INSTRUCTION: &'static str = "INST - GetHomeObject";
     const COST: u8 = 4;
 }
@@ -110,7 +108,6 @@ impl GetMethod {
 }
 
 impl Operation for GetMethod {
-    const NAME: &'static str = "GetMethod";
     const INSTRUCTION: &'static str = "INST - GetMethod";
     const COST: u8 = 3;
 }

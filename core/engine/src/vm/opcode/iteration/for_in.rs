@@ -30,7 +30,6 @@ impl CreateForInIterator {
 }
 
 impl Operation for CreateForInIterator {
-    const NAME: &'static str = "CreateForInIterator";
     const INSTRUCTION: &'static str = "INST - CreateForInIterator";
     const COST: u8 = 4;
 }

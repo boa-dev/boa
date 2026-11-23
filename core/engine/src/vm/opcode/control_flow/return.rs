@@ -23,7 +23,6 @@ impl Return {
 }
 
 impl Operation for Return {
-    const NAME: &'static str = "Return";
     const INSTRUCTION: &'static str = "INST - Return";
     const COST: u8 = 4;
 }
@@ -82,7 +81,6 @@ impl CheckReturn {
 }
 
 impl Operation for CheckReturn {
-    const NAME: &'static str = "CheckReturn";
     const INSTRUCTION: &'static str = "INST - CheckReturn";
     const COST: u8 = 3;
 }
@@ -103,7 +101,6 @@ impl SetAccumulator {
 }
 
 impl Operation for SetAccumulator {
-    const NAME: &'static str = "SetAccumulator";
     const INSTRUCTION: &'static str = "INST - SetAccumulator";
     const COST: u8 = 2;
 }
@@ -124,7 +121,6 @@ impl Move {
 }
 
 impl Operation for Move {
-    const NAME: &'static str = "Move";
     const INSTRUCTION: &'static str = "INST - Move";
     const COST: u8 = 2;
 }
@@ -145,7 +141,6 @@ impl PopIntoRegister {
 }
 
 impl Operation for PopIntoRegister {
-    const NAME: &'static str = "PopIntoRegister";
     const INSTRUCTION: &'static str = "INST - PopIntoRegister";
     const COST: u8 = 2;
 }
@@ -166,7 +161,6 @@ impl PushFromRegister {
 }
 
 impl Operation for PushFromRegister {
-    const NAME: &'static str = "PushFromRegister";
     const INSTRUCTION: &'static str = "INST - PushFromRegister";
     const COST: u8 = 2;
 }
@@ -188,7 +182,6 @@ impl SetRegisterFromAccumulator {
 }
 
 impl Operation for SetRegisterFromAccumulator {
-    const NAME: &'static str = "SetRegisterFromAccumulator";
     const INSTRUCTION: &'static str = "INST - SetRegisterFromAccumulator";
     const COST: u8 = 2;
 }

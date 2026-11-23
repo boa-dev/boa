@@ -41,7 +41,6 @@ impl DefineOwnPropertyByName {
 }
 
 impl Operation for DefineOwnPropertyByName {
-    const NAME: &'static str = "DefineOwnPropertyByName";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
     const COST: u8 = 4;
 }
@@ -84,7 +83,6 @@ impl DefineOwnPropertyByValue {
 }
 
 impl Operation for DefineOwnPropertyByValue {
-    const NAME: &'static str = "DefineOwnPropertyByValue";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByValue";
     const COST: u8 = 4;
 }

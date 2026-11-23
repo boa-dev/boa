@@ -19,7 +19,6 @@ impl Jump {
 }
 
 impl Operation for Jump {
-    const NAME: &'static str = "Jump";
     const INSTRUCTION: &'static str = "INST - Jump";
     const COST: u8 = 1;
 }
@@ -42,7 +41,6 @@ impl JumpIfTrue {
 }
 
 impl Operation for JumpIfTrue {
-    const NAME: &'static str = "JumpIfTrue";
     const INSTRUCTION: &'static str = "INST - JumpIfTrue";
     const COST: u8 = 1;
 }
@@ -65,7 +63,6 @@ impl JumpIfFalse {
 }
 
 impl Operation for JumpIfFalse {
-    const NAME: &'static str = "JumpIfFalse";
     const INSTRUCTION: &'static str = "INST - JumpIfFalse";
     const COST: u8 = 1;
 }
@@ -88,7 +85,6 @@ impl JumpIfNotUndefined {
 }
 
 impl Operation for JumpIfNotUndefined {
-    const NAME: &'static str = "JumpIfNotUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNotUndefined";
     const COST: u8 = 1;
 }
@@ -111,7 +107,6 @@ impl JumpIfNullOrUndefined {
 }
 
 impl Operation for JumpIfNullOrUndefined {
-    const NAME: &'static str = "JumpIfNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
     const COST: u8 = 1;
 }
@@ -147,7 +142,6 @@ impl JumpIfNotLessThan {
 }
 
 impl Operation for JumpIfNotLessThan {
-    const NAME: &'static str = "JumpIfNotLessThan";
     const INSTRUCTION: &'static str = "INST - JumpIfNotLessThan";
     const COST: u8 = 2;
 }
@@ -183,7 +177,6 @@ impl JumpIfNotLessThanOrEqual {
 }
 
 impl Operation for JumpIfNotLessThanOrEqual {
-    const NAME: &'static str = "JumpIfNotLessThanOrEqual";
     const INSTRUCTION: &'static str = "INST - JumpIfNotLessThanOrEqual";
     const COST: u8 = 2;
 }
@@ -219,7 +212,6 @@ impl JumpIfNotGreaterThan {
 }
 
 impl Operation for JumpIfNotGreaterThan {
-    const NAME: &'static str = "JumpIfNotGreaterThan";
     const INSTRUCTION: &'static str = "INST - JumpIfNotGreaterThan";
     const COST: u8 = 2;
 }
@@ -255,7 +247,6 @@ impl JumpIfNotGreaterThanOrEqual {
 }
 
 impl Operation for JumpIfNotGreaterThanOrEqual {
-    const NAME: &'static str = "JumpIfNotGreaterThanOrEqual";
     const INSTRUCTION: &'static str = "INST - JumpIfNotGreaterThanOrEqual";
     const COST: u8 = 2;
 }
@@ -282,7 +273,6 @@ impl JumpIfNotEqual {
 }
 
 impl Operation for JumpIfNotEqual {
-    const NAME: &'static str = "JumpIfNotEqual";
     const INSTRUCTION: &'static str = "INST - JumpIfNotEqual";
     const COST: u8 = 1;
 }
@@ -311,7 +301,6 @@ impl JumpTable {
 }
 
 impl Operation for JumpTable {
-    const NAME: &'static str = "JumpTable";
     const INSTRUCTION: &'static str = "INST - JumpTable";
     const COST: u8 = 5;
 }

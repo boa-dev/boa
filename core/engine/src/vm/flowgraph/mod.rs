@@ -15,7 +15,7 @@ pub use node::*;
 
 use super::{
     Constant,
-    opcode::{Instruction, InstructionIterator},
+    bytecode::{Instruction, InstructionIterator},
 };
 
 impl CodeBlock {

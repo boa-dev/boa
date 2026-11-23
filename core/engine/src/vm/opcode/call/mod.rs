@@ -88,7 +88,6 @@ impl CallEval {
 }
 
 impl Operation for CallEval {
-    const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
     const COST: u8 = 5;
 }
@@ -169,7 +168,6 @@ impl CallEvalSpread {
 }
 
 impl Operation for CallEvalSpread {
-    const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
     const COST: u8 = 5;
 }
@@ -208,7 +206,6 @@ impl Call {
 }
 
 impl Operation for Call {
-    const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
     const COST: u8 = 3;
 }
@@ -253,7 +250,6 @@ impl CallSpread {
 }
 
 impl Operation for CallSpread {
-    const NAME: &'static str = "CallSpread";
     const INSTRUCTION: &'static str = "INST - CallSpread";
     const COST: u8 = 3;
 }
@@ -618,7 +614,6 @@ impl ImportCall {
 }
 
 impl Operation for ImportCall {
-    const NAME: &'static str = "ImportCall";
     const INSTRUCTION: &'static str = "INST - ImportCall";
     const COST: u8 = 15;
 }

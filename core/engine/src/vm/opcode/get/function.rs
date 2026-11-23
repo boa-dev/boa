@@ -27,7 +27,6 @@ impl GetFunction {
 }
 
 impl Operation for GetFunction {
-    const NAME: &'static str = "GetFunction";
     const INSTRUCTION: &'static str = "INST - GetFunction";
     const COST: u8 = 3;
 }

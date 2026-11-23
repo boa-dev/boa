@@ -42,7 +42,6 @@ impl CreateMappedArgumentsObject {
 }
 
 impl Operation for CreateMappedArgumentsObject {
-    const NAME: &'static str = "CreateMappedArgumentsObject";
     const INSTRUCTION: &'static str = "INST - CreateMappedArgumentsObject";
     const COST: u8 = 8;
 }
@@ -64,7 +63,6 @@ impl CreateUnmappedArgumentsObject {
 }
 
 impl Operation for CreateUnmappedArgumentsObject {
-    const NAME: &'static str = "CreateUnmappedArgumentsObject";
     const INSTRUCTION: &'static str = "INST - CreateUnmappedArgumentsObject";
     const COST: u8 = 4;
 }

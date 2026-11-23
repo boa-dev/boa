@@ -15,7 +15,6 @@ impl Reserved {
 }
 
 impl Operation for Reserved {
-    const NAME: &'static str = "Reserved";
     const INSTRUCTION: &'static str = "INST - Reserved";
     const COST: u8 = 0;
 }

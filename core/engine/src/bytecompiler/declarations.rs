@@ -2,7 +2,7 @@ use super::{BindingAccessOpcode, ToJsString};
 use crate::{
     Context, JsNativeError, JsResult, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind, Register},
-    vm::{GlobalFunctionBinding, opcode::BindingOpcode},
+    vm::{GlobalFunctionBinding, bytecode::BindingOpcode},
 };
 use boa_ast::{
     Script,

@@ -47,7 +47,7 @@ use crate::{
     vm::{
         CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding, Handler,
         InlineCache,
-        opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
+        bytecode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -1344,7 +1344,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         binary: &Binary,
         hoisted: Option<&HoistedOperand>,
     ) -> Option<Label> {
-        use crate::vm::opcode::BytecodeEmitter;
+        use crate::vm::bytecode::BytecodeEmitter;
 
         let emit_fn: fn(&mut BytecodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
         {

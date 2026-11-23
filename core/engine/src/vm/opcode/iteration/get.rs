@@ -22,7 +22,6 @@ impl GetIterator {
 }
 
 impl Operation for GetIterator {
-    const NAME: &'static str = "GetIterator";
     const INSTRUCTION: &'static str = "INST - GetIterator";
     const COST: u8 = 6;
 }
@@ -45,7 +44,6 @@ impl GetAsyncIterator {
 }
 
 impl Operation for GetAsyncIterator {
-    const NAME: &'static str = "GetAsyncIterator";
     const INSTRUCTION: &'static str = "INST - GetAsyncIterator";
     const COST: u8 = 6;
 }

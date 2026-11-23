@@ -27,7 +27,6 @@ impl PushScope {
 }
 
 impl Operation for PushScope {
-    const NAME: &'static str = "PushScope";
     const INSTRUCTION: &'static str = "INST - PushScope";
     const COST: u8 = 3;
 }
@@ -50,7 +49,6 @@ impl PushObjectEnvironment {
 }
 
 impl Operation for PushObjectEnvironment {
-    const NAME: &'static str = "PushObjectEnvironment";
     const INSTRUCTION: &'static str = "INST - PushObjectEnvironment";
     const COST: u8 = 3;
 }
@@ -97,7 +95,6 @@ impl PushPrivateEnvironment {
 }
 
 impl Operation for PushPrivateEnvironment {
-    const NAME: &'static str = "PushPrivateEnvironment";
     const INSTRUCTION: &'static str = "INST - PushPrivateEnvironment";
     const COST: u8 = 5;
 }
@@ -117,7 +114,6 @@ impl PopPrivateEnvironment {
 }
 
 impl Operation for PopPrivateEnvironment {
-    const NAME: &'static str = "PopPrivateEnvironment";
     const INSTRUCTION: &'static str = "INST - PopPrivateEnvironment";
     const COST: u8 = 1;
 }

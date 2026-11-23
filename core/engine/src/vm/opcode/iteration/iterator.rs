@@ -40,7 +40,6 @@ impl IteratorPop {
 }
 
 impl Operation for IteratorPop {
-    const NAME: &'static str = "IteratorPop";
     const INSTRUCTION: &'static str = "INST - IteratorPop";
     const COST: u8 = 3;
 }
@@ -80,7 +79,6 @@ impl IteratorPush {
 }
 
 impl Operation for IteratorPush {
-    const NAME: &'static str = "IteratorPush";
     const INSTRUCTION: &'static str = "INST - IteratorPush";
     const COST: u8 = 3;
 }
@@ -116,7 +114,6 @@ impl IteratorUpdateResult {
 }
 
 impl Operation for IteratorUpdateResult {
-    const NAME: &'static str = "IteratorUpdateResult";
     const INSTRUCTION: &'static str = "INST - IteratorUpdateResult";
     const COST: u8 = 2;
 }
@@ -149,7 +146,6 @@ impl IteratorNext {
 }
 
 impl Operation for IteratorNext {
-    const NAME: &'static str = "IteratorNext";
     const INSTRUCTION: &'static str = "INST - IteratorNext";
     const COST: u8 = 6;
 }
@@ -180,7 +176,6 @@ impl IteratorResult {
 }
 
 impl Operation for IteratorResult {
-    const NAME: &'static str = "IteratorResult";
     const INSTRUCTION: &'static str = "INST - IteratorResult";
     const COST: u8 = 3;
 }
@@ -214,7 +209,6 @@ impl IteratorValue {
 }
 
 impl Operation for IteratorValue {
-    const NAME: &'static str = "IteratorValue";
     const INSTRUCTION: &'static str = "INST - IteratorValue";
     const COST: u8 = 5;
 }
@@ -241,7 +235,6 @@ impl IteratorDone {
 }
 
 impl Operation for IteratorDone {
-    const NAME: &'static str = "IteratorDone";
     const INSTRUCTION: &'static str = "INST - IteratorDone";
     const COST: u8 = 3;
 }
@@ -262,7 +255,6 @@ impl IteratorStackEmpty {
 }
 
 impl Operation for IteratorStackEmpty {
-    const NAME: &'static str = "IteratorStackEmpty";
     const INSTRUCTION: &'static str = "INST - IteratorStackEmpty";
     const COST: u8 = 1;
 }
@@ -285,7 +277,6 @@ impl CreateIteratorResult {
 }
 
 impl Operation for CreateIteratorResult {
-    const NAME: &'static str = "CreateIteratorResult";
     const INSTRUCTION: &'static str = "INST - CreateIteratorResult";
     const COST: u8 = 3;
 }

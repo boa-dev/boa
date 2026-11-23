@@ -25,7 +25,6 @@ impl StoreNewArray {
 }
 
 impl Operation for StoreNewArray {
-    const NAME: &'static str = "StoreNewArray";
     const INSTRUCTION: &'static str = "INST - StoreNewArray";
     const COST: u8 = 3;
 }
@@ -73,7 +72,6 @@ impl PushValueToArray {
 }
 
 impl Operation for PushValueToArray {
-    const NAME: &'static str = "PushValueToArray";
     const INSTRUCTION: &'static str = "INST - PushValueToArray";
     const COST: u8 = 3;
 }
@@ -103,7 +101,6 @@ impl PushElisionToArray {
 }
 
 impl Operation for PushElisionToArray {
-    const NAME: &'static str = "PushElisionToArray";
     const INSTRUCTION: &'static str = "INST - PushElisionToArray";
     const COST: u8 = 3;
 }
@@ -133,7 +130,6 @@ impl PushIteratorToArray {
 }
 
 impl Operation for PushIteratorToArray {
-    const NAME: &'static str = "PushIteratorToArray";
     const INSTRUCTION: &'static str = "INST - PushIteratorToArray";
     const COST: u8 = 8;
 }

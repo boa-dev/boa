@@ -170,7 +170,6 @@ impl GetLengthProperty {
 }
 
 impl Operation for GetLengthProperty {
-    const NAME: &'static str = "GetLengthProperty";
     const INSTRUCTION: &'static str = "INST - GetLengthProperty";
     const COST: u8 = 4;
 }
@@ -194,7 +193,6 @@ impl GetPropertyByName {
 }
 
 impl Operation for GetPropertyByName {
-    const NAME: &'static str = "GetPropertyByName";
     const INSTRUCTION: &'static str = "INST - GetPropertyByName";
     const COST: u8 = 4;
 }
@@ -224,7 +222,6 @@ impl GetPropertyByNameWithThis {
 }
 
 impl Operation for GetPropertyByNameWithThis {
-    const NAME: &'static str = "GetPropertyByNameWithThis";
     const INSTRUCTION: &'static str = "INST - GetPropertyByNameWithThis";
     const COST: u8 = 4;
 }
@@ -252,7 +249,6 @@ impl GetPropertyByValue {
 }
 
 impl Operation for GetPropertyByValue {
-    const NAME: &'static str = "GetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
     const COST: u8 = 4;
 }
@@ -280,7 +276,6 @@ impl GetPropertyByValuePush {
 }
 
 impl Operation for GetPropertyByValuePush {
-    const NAME: &'static str = "GetPropertyByValuePush";
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
     const COST: u8 = 4;
 }

@@ -30,7 +30,6 @@ impl RestParameterInit {
 }
 
 impl Operation for RestParameterInit {
-    const NAME: &'static str = "RestParameterInit";
     const INSTRUCTION: &'static str = "INST - RestParameterInit";
     const COST: u8 = 6;
 }

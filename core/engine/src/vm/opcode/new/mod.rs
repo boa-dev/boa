@@ -32,7 +32,6 @@ impl New {
 }
 
 impl Operation for New {
-    const NAME: &'static str = "New";
     const INSTRUCTION: &'static str = "INST - New";
     const COST: u8 = 3;
 }
@@ -82,7 +81,6 @@ impl NewSpread {
 }
 
 impl Operation for NewSpread {
-    const NAME: &'static str = "NewSpread";
     const INSTRUCTION: &'static str = "INST - NewSpread";
     const COST: u8 = 3;
 }

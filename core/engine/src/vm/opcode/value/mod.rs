@@ -27,7 +27,6 @@ impl ValueNotNullOrUndefined {
 }
 
 impl Operation for ValueNotNullOrUndefined {
-    const NAME: &'static str = "ValueNotNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - ValueNotNullOrUndefined";
     const COST: u8 = 2;
 }
@@ -48,7 +47,6 @@ impl IsObject {
 }
 
 impl Operation for IsObject {
-    const NAME: &'static str = "IsObject";
     const INSTRUCTION: &'static str = "INST - IsObject";
     const COST: u8 = 1;
 }

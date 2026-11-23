@@ -21,7 +21,6 @@ impl LogicalNot {
 }
 
 impl Operation for LogicalNot {
-    const NAME: &'static str = "LogicalNot";
     const INSTRUCTION: &'static str = "INST - LogicalNot";
     const COST: u8 = 1;
 }

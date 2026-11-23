@@ -49,7 +49,6 @@ impl DefineClassStaticMethodByName {
 }
 
 impl Operation for DefineClassStaticMethodByName {
-    const NAME: &'static str = "DefineClassStaticMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
     const COST: u8 = 6;
 }
@@ -97,7 +96,6 @@ impl DefineClassMethodByName {
 }
 
 impl Operation for DefineClassMethodByName {
-    const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
     const COST: u8 = 6;
 }
@@ -146,7 +144,6 @@ impl DefineClassStaticMethodByValue {
 }
 
 impl Operation for DefineClassStaticMethodByValue {
-    const NAME: &'static str = "DefineClassStaticMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
     const COST: u8 = 6;
 }
@@ -190,7 +187,6 @@ impl DefineClassMethodByValue {
 }
 
 impl Operation for DefineClassMethodByValue {
-    const NAME: &'static str = "DefineClassMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
     const COST: u8 = 6;
 }

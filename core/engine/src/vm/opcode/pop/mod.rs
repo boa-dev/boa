@@ -15,7 +15,6 @@ impl Pop {
 }
 
 impl Operation for Pop {
-    const NAME: &'static str = "Pop";
     const INSTRUCTION: &'static str = "INST - Pop";
     const COST: u8 = 1;
 }
@@ -35,7 +34,6 @@ impl PopEnvironment {
 }
 
 impl Operation for PopEnvironment {
-    const NAME: &'static str = "PopEnvironment";
     const INSTRUCTION: &'static str = "INST - PopEnvironment";
     const COST: u8 = 1;
 }

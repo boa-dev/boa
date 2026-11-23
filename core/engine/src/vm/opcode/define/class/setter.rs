@@ -61,7 +61,6 @@ impl DefineClassStaticSetterByName {
 }
 
 impl Operation for DefineClassStaticSetterByName {
-    const NAME: &'static str = "DefineClassStaticSetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByName";
     const COST: u8 = 6;
 }
@@ -120,7 +119,6 @@ impl DefineClassSetterByName {
 }
 
 impl Operation for DefineClassSetterByName {
-    const NAME: &'static str = "DefineClassSetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByName";
     const COST: u8 = 6;
 }
@@ -175,7 +173,6 @@ impl DefineClassStaticSetterByValue {
 }
 
 impl Operation for DefineClassStaticSetterByValue {
-    const NAME: &'static str = "DefineClassStaticSetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByValue";
     const COST: u8 = 6;
 }
@@ -230,7 +227,6 @@ impl DefineClassSetterByValue {
 }
 
 impl Operation for DefineClassSetterByValue {
-    const NAME: &'static str = "DefineClassSetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByValue";
     const COST: u8 = 6;
 }

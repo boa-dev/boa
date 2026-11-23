@@ -38,7 +38,6 @@ impl SetPrototype {
 }
 
 impl Operation for SetPrototype {
-    const NAME: &'static str = "SetPrototype";
     const INSTRUCTION: &'static str = "INST - SetPrototype";
     const COST: u8 = 4;
 }
@@ -69,7 +68,6 @@ impl GetPrototype {
 }
 
 impl Operation for GetPrototype {
-    const NAME: &'static str = "GetPrototype";
     const INSTRUCTION: &'static str = "INST - GetPrototype";
     const COST: u8 = 4;
 }
