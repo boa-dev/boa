@@ -344,7 +344,8 @@ pub mod ffi {
     mod tests {
         use super::{
             BoaContext, BoaJsError, BoaJsNativeError, BoaJsNativeErrorKind, BoaJsValue, Context,
-            JsError, JsErrorRepresentation, JsNativeErrorKind, JsValue, JsValueType,
+            JsError, JsErrorRepresentation, JsNativeErrorKind, JsTryNativeError, JsValue,
+            JsValueType,
         };
         use boa_engine::{
             Source,
@@ -790,6 +791,198 @@ pub mod ffi {
                 .expect("a rejected promise is a value, not a thrown error");
             assert_eq!(promise.get_type(), JsValueType::Object);
             assert_eq!(eval_number(&mut context, "ran"), Some(0.0));
+        }
+
+        /// Evaluates source that should fail and returns its error.
+        fn eval_error(context: &mut BoaContext, source: &str) -> Box<JsError> {
+            context
+                .eval(source.as_bytes())
+                .expect_err("source should fail")
+        }
+
+        #[test]
+        fn try_native_reads_the_category_and_message_of_error_objects() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            for (source, kind, message) in [
+                ("throw new Error('boom')", JsNativeErrorKind::Error, "boom"),
+                (
+                    "throw new TypeError('bad type')",
+                    JsNativeErrorKind::Type,
+                    "bad type",
+                ),
+                ("throw new RangeError()", JsNativeErrorKind::Range, ""),
+                // The category is the object's internal type, not its class.
+                (
+                    "class Sub extends Error {} throw new Sub('sub')",
+                    JsNativeErrorKind::Error,
+                    "sub",
+                ),
+            ] {
+                let error = eval_error(&mut context, source);
+                let native = error
+                    .try_native(&mut context)
+                    .expect("Error object should convert");
+                assert_eq!(
+                    native.get_representation(),
+                    JsErrorRepresentation::Native,
+                    "{source}"
+                );
+                let info = native.as_native().expect("native details");
+                assert_eq!(info.kind, kind, "{source}");
+                assert_eq!(info.message.as_bytes(), message.as_bytes(), "{source}");
+            }
+        }
+
+        #[test]
+        fn try_native_leaves_the_original_error_unchanged() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let error = eval_error(
+                &mut context,
+                "globalThis.thrown = new Error('boom'); throw thrown",
+            );
+            let native = error
+                .try_native(&mut context)
+                .expect("Error object should convert");
+
+            assert_eq!(error.get_representation(), JsErrorRepresentation::Opaque);
+            assert!(error.as_native().is_none());
+            let payload = error.as_opaque().expect("opaque payload");
+            let thrown = context.eval(b"thrown").expect("global should be readable");
+            assert!(BoaJsValue::same_value(&payload.0, &thrown.0));
+
+            // The converted error does not depend on the original.
+            drop((error, payload, thrown));
+            gc::force_collect();
+            let info = native.as_native().expect("native details");
+            assert_eq!(info.message.as_bytes(), b"boom");
+        }
+
+        #[test]
+        fn try_native_copies_an_error_that_is_already_native() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            for error in [
+                eval_error(&mut context, "1 +"),
+                JsError::from_native(JsNativeErrorKind::Range, b"out of range")
+                    .expect("known category"),
+            ] {
+                let copy = error
+                    .try_native(&mut context)
+                    .expect("native error should convert");
+                assert_eq!(copy.get_representation(), JsErrorRepresentation::Native);
+                assert_eq!(copy.0, error.0);
+            }
+        }
+
+        #[test]
+        fn try_native_runs_getters_that_inspection_does_not() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let error = eval_error(
+                &mut context,
+                "var reads = 0;
+                 var thrown = new Error();
+                 Object.defineProperty(thrown, 'message', {
+                     get() { reads++; return 'boom'; }
+                 });
+                 throw thrown",
+            );
+            assert_eq!(error.get_representation(), JsErrorRepresentation::Opaque);
+            assert!(error.as_native().is_none());
+            assert!(error.as_opaque().is_some());
+            assert_eq!(eval_number(&mut context, "reads"), Some(0.0));
+
+            let native = error
+                .try_native(&mut context)
+                .expect("Error object should convert");
+            let info = native.as_native().expect("native details");
+            assert_eq!(info.message.as_bytes(), b"boom");
+            assert_eq!(eval_number(&mut context, "reads"), Some(1.0));
+        }
+
+        #[test]
+        fn try_native_keeps_aggregate_members_and_causes() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let error = eval_error(
+                &mut context,
+                "throw new AggregateError([new Error('first'), 7], 'all failed', { cause: 9 })",
+            );
+            let native = error
+                .try_native(&mut context)
+                .expect("aggregate error should convert");
+            let info = native.as_native().expect("native details");
+            assert_eq!(info.kind, JsNativeErrorKind::Aggregate);
+            assert_eq!(info.message.as_bytes(), b"all failed");
+
+            // C cannot reach members or causes yet, so check Boa's own data.
+            let native = native.0.as_native().expect("native error");
+            let BoaJsNativeErrorKind::Aggregate(members) = native.kind() else {
+                panic!("aggregate members should be retained");
+            };
+            assert_eq!(members.len(), 2);
+            let first = members[0].as_opaque().expect("opaque member");
+            assert!(first.is_object());
+            let second = members[1].as_opaque().expect("opaque member");
+            assert_eq!(second.as_number(), Some(7.0));
+            let cause = native.cause().expect("cause should be retained");
+            let cause = cause.as_opaque().expect("opaque cause");
+            assert_eq!(cause.as_number(), Some(9.0));
+        }
+
+        #[test]
+        fn try_native_reports_why_conversion_failed() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            for (source, reason) in [
+                ("throw 7", JsTryNativeError::NotAnErrorObject),
+                ("throw { message: 'x' }", JsTryNativeError::NotAnErrorObject),
+                (
+                    "var e = new Error(); e.message = 7; throw e",
+                    JsTryNativeError::InvalidPropertyType,
+                ),
+                (
+                    "var e = new AggregateError([]); e.errors = 7; throw e",
+                    JsTryNativeError::InvalidPropertyType,
+                ),
+                (
+                    "throw new Error('\\ud800')",
+                    JsTryNativeError::InvalidMessageEncoding,
+                ),
+                (
+                    "var e = new Error(); e.constructor = 7; throw e",
+                    JsTryNativeError::InvalidConstructor,
+                ),
+                (
+                    "var e = new Error();
+                     Object.defineProperty(e, 'message', { get() { throw 1; } });
+                     throw e",
+                    JsTryNativeError::InaccessibleProperty,
+                ),
+                (
+                    "var e = new AggregateError([1]);
+                     Object.defineProperty(e.errors, 0, { get() { throw 1; } });
+                     throw e",
+                    JsTryNativeError::InvalidErrorsIndex,
+                ),
+                (
+                    "var revocable = Proxy.revocable(function () {}, {});
+                     var e = new Error();
+                     e.constructor = revocable.proxy;
+                     revocable.revoke();
+                     throw e",
+                    JsTryNativeError::InaccessibleRealm,
+                ),
+                (
+                    "function recurse() { recurse(); } recurse()",
+                    JsTryNativeError::EngineError,
+                ),
+            ] {
+                let error = eval_error(&mut context, source);
+                let representation = error.get_representation();
+                let failure = error
+                    .try_native(&mut context)
+                    .expect_err("conversion should fail");
+                assert_eq!(failure, reason, "{source}");
+                // A failed conversion leaves the error as it was too.
+                assert_eq!(error.get_representation(), representation, "{source}");
+            }
         }
     }
 }
