@@ -1,8 +1,8 @@
 use super::{BindingAccessOpcode, ToJsString};
 use crate::{
     Context, JsNativeError, JsResult, SpannedSourceText,
-    bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    vm::{CallFrame, GlobalFunctionBinding, opcode::BindingOpcode},
+    bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind, Register},
+    vm::{GlobalFunctionBinding, opcode::BindingOpcode},
 };
 use boa_ast::{
     Script,
@@ -690,12 +690,11 @@ impl ByteCompiler<'_> {
                     // i. Perform ! varEnv.CreateMutableBinding(F, true).
                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
 
-                    use crate::vm::CallFrame;
                     let index = self.insert_binding(binding);
                     self.emit_binding_access(
                         BindingAccessOpcode::DefInitVar,
                         &index,
-                        &CallFrame::undefined_register(),
+                        &Register::undefined_register(),
                     );
                 }
             }
@@ -860,7 +859,7 @@ impl ByteCompiler<'_> {
             self.emit_binding_access(
                 BindingAccessOpcode::DefEvalVar,
                 &index,
-                &CallFrame::undefined_register(),
+                &Register::undefined_register(),
             );
         }
 
@@ -1140,7 +1139,7 @@ impl ByteCompiler<'_> {
                         self.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
                             &index,
-                            &CallFrame::undefined_register(),
+                            &Register::undefined_register(),
                         );
                     }
                 }
@@ -1177,7 +1176,7 @@ impl ByteCompiler<'_> {
                         self.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
                             &index,
-                            &CallFrame::undefined_register(),
+                            &Register::undefined_register(),
                         );
 
                         // c. Append F to instantiatedVarNames.

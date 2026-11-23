@@ -18,7 +18,7 @@ use std::ops::Deref;
 use super::{Access, CallResultDest, Callable, NodeKind, Register, ToJsString};
 use crate::{
     bytecompiler::{ByteCompiler, Literal, ReturnValueLocation},
-    vm::{CallFrame, GeneratorResumeKind},
+    vm::GeneratorResumeKind,
 };
 use boa_ast::{
     Expression,
@@ -345,7 +345,7 @@ impl ByteCompiler<'_> {
                 self.bytecode.emit_get_function_object(value.variable());
                 self.bytecode.emit_get_prototype(value.variable());
 
-                self.push_from_register(&CallFrame::undefined_register());
+                self.push_from_register(&Register::undefined_register());
                 self.push_from_register(&value);
                 self.register_allocator.dealloc(value);
 

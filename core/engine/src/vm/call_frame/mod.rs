@@ -2,11 +2,10 @@
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-use super::ActiveRunnable;
+use super::{ActiveRunnable, frame_layout};
 use crate::{
     JsValue,
     builtins::iterable::IteratorRecord,
-    bytecompiler::Register,
     environments::EnvironmentStack,
     realm::Realm,
     vm::{CodeBlock, SourcePath},
@@ -111,33 +110,6 @@ impl CallFrame {
 
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
-    pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
-    pub(crate) const UNDEFINED_REGISTER_INDEX: usize = 0;
-    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: usize = 1;
-    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: usize = 2;
-    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: usize = 3;
-    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: usize = 4;
-
-    pub(crate) fn undefined_register() -> Register {
-        Register::persistent(Self::UNDEFINED_REGISTER_INDEX as u32)
-    }
-
-    pub(crate) fn promise_capability_promise_register() -> Register {
-        Register::persistent(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32)
-    }
-
-    pub(crate) fn promise_capability_resolve_register() -> Register {
-        Register::persistent(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32)
-    }
-
-    pub(crate) fn promise_capability_reject_register() -> Register {
-        Register::persistent(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32)
-    }
-
-    pub(crate) fn async_generator_object_register() -> Register {
-        Register::persistent(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX as u32)
-    }
-
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
         code_block: Gc<CodeBlock>,
@@ -192,7 +164,7 @@ impl CallFrame {
 
     /// Returns the range of the arguments in the stack.
     pub(crate) fn arguments_range(&self) -> std::ops::Range<usize> {
-        let start = self.fp as usize + Self::FUNCTION_PROLOGUE as usize;
+        let start = self.fp as usize + frame_layout::FUNCTION_PROLOGUE as usize;
         start..start + self.argument_count as usize
     }
 

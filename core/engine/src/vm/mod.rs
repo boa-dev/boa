@@ -46,6 +46,7 @@ pub(crate) use code_block::GlobalFunctionBinding;
 mod call_frame;
 mod code_block;
 mod completion_record;
+pub(crate) mod frame_layout;
 mod inline_cache;
 mod runtime_limits;
 
@@ -191,7 +192,7 @@ impl Stack {
         if argument_count < param_count {
             return None;
         }
-        let args_start = frame.fp as usize + CallFrame::FUNCTION_PROLOGUE as usize;
+        let args_start = frame.fp as usize + frame_layout::FUNCTION_PROLOGUE as usize;
         let args_end = args_start + argument_count;
         let rest_count = argument_count - param_count + 1;
 
@@ -497,11 +498,11 @@ impl Vm {
         }
 
         let rp = self.frame().rp as usize;
-        self.stack.stack[rp + CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX] =
+        self.stack.stack[rp + frame_layout::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX] =
             promise_capability.promise.into();
-        self.stack.stack[rp + CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX] =
+        self.stack.stack[rp + frame_layout::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX] =
             promise_capability.functions.resolve.into();
-        self.stack.stack[rp + CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX] =
+        self.stack.stack[rp + frame_layout::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX] =
             promise_capability.functions.reject.into();
 
         Ok(())
@@ -522,20 +523,20 @@ impl Vm {
         let promise = self
             .stack
             .stack
-            .get(rp + CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX)
+            .get(rp + frame_layout::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX)
             .and_then(JsValue::as_object)
             .js_expect("registers must have a promise capability")?;
         let resolve = self
             .stack
             .stack
-            .get(rp + CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX)
+            .get(rp + frame_layout::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX)
             .and_then(JsValue::as_object)
             .and_then(JsFunction::from_object)
             .js_expect("registers must have a resolve function")?;
         let reject = self
             .stack
             .stack
-            .get(rp + CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX)
+            .get(rp + frame_layout::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX)
             .and_then(JsValue::as_object)
             .and_then(JsFunction::from_object)
             .js_expect("registers must have a reject function")?;
@@ -556,7 +557,7 @@ impl Vm {
         let rp = self.frame().rp as usize;
         self.stack
             .stack
-            .get(rp + CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
+            .get(rp + frame_layout::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
             .expect("registers must have an async generator object")
             .as_object()
     }
@@ -594,7 +595,8 @@ impl Vm {
         //       frame with pre-built stack and registers (fp and rp already set).
         if !frame.registers_already_pushed() {
             let current_stack_length = self.stack.stack.len() as u32;
-            frame.fp = current_stack_length - frame.argument_count - CallFrame::FUNCTION_PROLOGUE;
+            frame.fp =
+                current_stack_length - frame.argument_count - frame_layout::FUNCTION_PROLOGUE;
 
             let register_count = frame.code_block.register_count as usize;
             frame.rp = self.stack.stack.len() as u32;

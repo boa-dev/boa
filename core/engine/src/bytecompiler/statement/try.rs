@@ -1,6 +1,6 @@
 use crate::{
     bytecompiler::{ByteCompiler, Register, ToJsString, jump_control::JumpControlInfoFlags},
-    vm::{CallFrame, opcode::BindingOpcode},
+    vm::opcode::BindingOpcode,
 };
 use boa_ast::{
     Statement, StatementListItem,
@@ -241,7 +241,7 @@ impl ByteCompiler<'_> {
                 StatementListItem::Statement(statement) => match statement.as_ref() {
                     Statement::Break(_) | Statement::Continue(_) => {
                         self.bytecode
-                            .emit_set_accumulator(CallFrame::undefined_register().variable());
+                            .emit_set_accumulator(Register::undefined_register().variable());
                         break;
                     }
                     Statement::Block(block) => b = block,

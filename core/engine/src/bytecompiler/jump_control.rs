@@ -12,7 +12,7 @@
 use super::Register;
 use crate::{
     bytecompiler::{ByteCompiler, Label},
-    vm::{CallFrame, Handler, opcode::Address},
+    vm::{Handler, frame_layout, opcode::Address},
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
@@ -192,7 +192,7 @@ impl JumpRecord {
 
                         // Pushes `undefined` to the stack, which acts as the
                         // `this` value of the call.
-                        compiler.push_from_register(&CallFrame::undefined_register());
+                        compiler.push_from_register(&Register::undefined_register());
 
                         compiler.if_else_with_dealloc(
                             has_exception,
@@ -201,7 +201,7 @@ impl JumpRecord {
                                 // with the current exception.
 
                                 compiler.push_from_register(
-                                    &CallFrame::promise_capability_reject_register(),
+                                    &Register::promise_capability_reject_register(),
                                 );
                                 compiler.push_from_register(&exception);
                                 compiler.register_allocator.dealloc(exception);
@@ -211,7 +211,7 @@ impl JumpRecord {
                                 // has_exception == false, call `resolve` normally.
 
                                 compiler.push_from_register(
-                                    &CallFrame::promise_capability_resolve_register(),
+                                    &Register::promise_capability_resolve_register(),
                                 );
 
                                 {
@@ -229,7 +229,7 @@ impl JumpRecord {
                         // Finally, set the accumulator value to the promise from the
                         // promise capability
                         compiler.bytecode.emit_set_accumulator(
-                            (CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32).into(),
+                            (frame_layout::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32).into(),
                         );
                     }
                     (false, false) => {

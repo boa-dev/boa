@@ -29,7 +29,7 @@ use crate::{
     Context, JsArgs, JsError, JsExpect, JsNativeError, JsObject, JsResult, JsString, JsValue,
     NativeFunction, SpannedSourceText,
     builtins::{Promise, promise::PromiseCapability},
-    bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
+    bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, Register, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     job::NativeAsyncJob,
     js_string,
@@ -1754,7 +1754,7 @@ impl SourceTextModule {
                         compiler.emit_binding_access(
                             BindingAccessOpcode::DefInitVar,
                             &index,
-                            &CallFrame::undefined_register(),
+                            &Register::undefined_register(),
                         );
 
                         // 3. Append dn to declaredVarNames.
