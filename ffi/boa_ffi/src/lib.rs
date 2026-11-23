@@ -560,6 +560,175 @@ pub mod ffi {
                 assert_eq!(error.0.as_engine(), Some(&original));
             }
         }
+
+        /// Evaluates source that should succeed and reads the result as a number.
+        fn eval_number(context: &mut BoaContext, source: &str) -> Option<f64> {
+            context
+                .eval(source.as_bytes())
+                .expect("source should evaluate")
+                .as_number()
+                .into_option()
+        }
+
+        #[test]
+        fn eval_returns_values_and_keeps_each_error_representation() {
+            let mut context = BoaContext::new().expect("context should initialize");
+
+            assert_eq!(eval_number(&mut context, "1 + 2"), Some(3.0));
+            for source in ["undefined", "", "var a = 4;"] {
+                let value = context
+                    .eval(source.as_bytes())
+                    .expect("source should evaluate");
+                assert_eq!(value.get_type(), JsValueType::Undefined, "{source:?}");
+            }
+
+            for (source, payload_type) in [
+                ("throw 7", JsValueType::Number),
+                ("throw null", JsValueType::Null),
+                ("throw undefined", JsValueType::Undefined),
+                ("throw new Error('boom')", JsValueType::Object),
+            ] {
+                let error = context
+                    .eval(source.as_bytes())
+                    .expect_err("source should throw");
+                assert_eq!(
+                    error.get_representation(),
+                    JsErrorRepresentation::Opaque,
+                    "{source}"
+                );
+                assert!(error.as_native().is_none(), "{source}");
+                let payload = error.as_opaque().expect("opaque payload");
+                assert_eq!(payload.get_type(), payload_type, "{source}");
+            }
+
+            for (source, kind) in [
+                ("1 +", JsNativeErrorKind::Syntax),
+                ("setTimeout", JsNativeErrorKind::Reference),
+            ] {
+                let error = context
+                    .eval(source.as_bytes())
+                    .expect_err("source should fail");
+                assert_eq!(
+                    error.get_representation(),
+                    JsErrorRepresentation::Native,
+                    "{source}"
+                );
+                let info = error.as_native().expect("native details");
+                assert_eq!(info.kind, kind, "{source}");
+                assert!(error.as_opaque().is_none(), "{source}");
+            }
+        }
+
+        #[test]
+        fn eval_error_carries_the_thrown_object() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let error = context
+                .eval(b"globalThis.thrown = { payload: 7 }; throw thrown")
+                .expect_err("source should throw");
+            let payload = error.as_opaque().expect("opaque payload");
+            let thrown = context.eval(b"thrown").expect("global should be readable");
+            assert!(BoaJsValue::same_value(&payload.0, &thrown.0));
+        }
+
+        #[test]
+        fn eval_state_persists_across_calls_and_throws() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            context
+                .eval(b"var count = 1;")
+                .expect("declaration should evaluate");
+            assert_eq!(eval_number(&mut context, "count + 1"), Some(2.0));
+
+            // Effects that happened before a throw are kept.
+            let error = context
+                .eval(b"count = 9; throw 7")
+                .expect_err("source should throw");
+            let payload = error.as_opaque().expect("opaque payload");
+            assert_eq!(payload.as_number().into_option(), Some(7.0));
+            assert_eq!(eval_number(&mut context, "count"), Some(9.0));
+        }
+
+        #[test]
+        fn eval_rejects_invalid_utf8_before_running_anything() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            context
+                .eval(b"var ran = 0;")
+                .expect("declaration should evaluate");
+            for invalid in [
+                &b"ran++; \xff"[..],
+                b"ran++; '\xf0\x9f\xa6'",
+                b"ran++; '\xed\xa0\x80'",
+            ] {
+                let error = context
+                    .eval(invalid)
+                    .expect_err("invalid UTF-8 should be rejected");
+                assert_eq!(error.get_representation(), JsErrorRepresentation::Native);
+                let info = error.as_native().expect("native details");
+                assert_eq!(info.kind, JsNativeErrorKind::Type);
+                assert_eq!(info.message.as_bytes(), b"source text is not valid UTF-8");
+            }
+            assert_eq!(eval_number(&mut context, "ran"), Some(0.0));
+        }
+
+        #[test]
+        fn eval_source_may_contain_nul() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            assert_eq!(eval_number(&mut context, "'a\0b'.length"), Some(3.0));
+        }
+
+        #[test]
+        fn eval_reports_engine_errors_and_the_context_stays_usable() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let error = context
+                .eval(b"function recurse() { recurse(); } recurse()")
+                .expect_err("endless recursion should fail");
+            assert_eq!(error.get_representation(), JsErrorRepresentation::Engine);
+            assert!(error.as_native().is_none());
+            assert!(error.as_opaque().is_none());
+            assert_eq!(
+                error.0.as_engine(),
+                Some(&EngineError::from(RuntimeLimitError::Recursion))
+            );
+
+            assert_eq!(eval_number(&mut context, "1 + 2"), Some(3.0));
+        }
+
+        #[test]
+        fn eval_results_can_outlive_their_context() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let object = context
+                .eval(b"({ payload: 7 })")
+                .expect("object should be created");
+            let function = context
+                .eval(b"(function named() { return 7; })")
+                .expect("function should be created");
+            let error = context
+                .eval(b"throw new Error('boom')")
+                .expect_err("source should throw");
+            let payload = error.as_opaque().expect("opaque payload");
+            drop(context);
+            gc::force_collect();
+
+            assert_eq!(object.get_type(), JsValueType::Object);
+            assert_eq!(function.get_type(), JsValueType::Object);
+            assert_eq!(error.get_representation(), JsErrorRepresentation::Opaque);
+            assert_eq!(payload.get_type(), JsValueType::Object);
+            drop((object, function, error, payload));
+            gc::force_collect();
+        }
+
+        #[test]
+        fn eval_does_not_run_promise_jobs() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let promise = context
+                .eval(
+                    b"var ran = 0;
+                      Promise.resolve().then(() => { ran = 1; });
+                      Promise.reject(new Error('boom'))",
+                )
+                .expect("a rejected promise is a value, not a thrown error");
+            assert_eq!(promise.get_type(), JsValueType::Object);
+            assert_eq!(eval_number(&mut context, "ran"), Some(0.0));
+        }
     }
 }
 
