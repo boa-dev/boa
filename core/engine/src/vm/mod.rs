@@ -22,8 +22,7 @@ use std::{future::Future, ops::ControlFlow, path::Path, pin::Pin, task};
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
 
-#[allow(unused_imports)]
-pub(crate) use bytecode::{Instruction, InstructionIterator, Opcode};
+pub(crate) use bytecode::Opcode;
 
 pub(crate) use {
     call_frame::CallFrameFlags,
@@ -740,7 +739,7 @@ impl Context {
         let (instruction, _) = frame
             .code_block
             .bytecode
-            .next_instruction(frame.pc as usize);
+            .decode_instruction(frame.pc as usize, opcode);
         let operands = self
             .vm
             .frame()

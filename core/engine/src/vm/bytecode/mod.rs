@@ -310,10 +310,10 @@ macro_rules! generate_bytecode {
         }
 
         impl Bytecode {
+            /// Decode operands for an already fetched opcode at bytecode offset `pc`.
             #[allow(unused_parens)]
-            pub(crate) fn next_instruction(&self, pc: usize) -> (Instruction, usize) {
+            pub(crate) fn decode_instruction(&self, pc: usize, opcode: Opcode) -> (Instruction, usize) {
                 let bytes = &self.bytes;
-                let opcode = Opcode::decode(bytes[pc]);
 
                 match opcode {
                     $(
@@ -370,7 +370,7 @@ impl Iterator for InstructionIterator<'_> {
         let bytes = &self.bytes.bytes;
         let opcode = Opcode::decode(bytes[self.pc]);
         // Get instruction and determine how much to advance pc
-        let (instruction, read_size) = self.bytes.next_instruction(self.pc);
+        let (instruction, read_size) = self.bytes.decode_instruction(self.pc, opcode);
         self.pc = read_size;
         Some((start_pc, opcode, instruction))
     }
