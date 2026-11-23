@@ -51,8 +51,7 @@ impl Await {
             .vm
             .get_promise_capability()
             .ok()
-            .map(|cap| JsValue::from(cap.promise))
-            .unwrap_or_default();
+            .map_or_default(|cap| JsValue::from(cap.promise));
 
         let r#gen = GeneratorContext::from_current(context, None);
 

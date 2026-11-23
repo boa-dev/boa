@@ -486,8 +486,7 @@ impl Locale {
             .unicode
             .keywords
             .get(&key!("ca"))
-            .map(|v| js_string!(v.to_string()).into())
-            .unwrap_or_default())
+            .map_or_default(|v| js_string!(v.to_string()).into()))
     }
 
     /// [`get Intl.Locale.prototype.caseFirst`][spec].
@@ -516,8 +515,7 @@ impl Locale {
             .unicode
             .keywords
             .get(&key!("kf"))
-            .map(|v| js_string!(v.to_string()).into())
-            .unwrap_or_default())
+            .map_or_default(|v| js_string!(v.to_string()).into()))
     }
 
     /// [`get Intl.Locale.prototype.collation`][spec].
@@ -546,8 +544,7 @@ impl Locale {
             .unicode
             .keywords
             .get(&key!("co"))
-            .map(|v| js_string!(v.to_string()).into())
-            .unwrap_or_default())
+            .map_or_default(|v| js_string!(v.to_string()).into()))
     }
 
     /// [`get Intl.Locale.prototype.hourCycle`][spec].
@@ -576,8 +573,7 @@ impl Locale {
             .unicode
             .keywords
             .get(&key!("hc"))
-            .map(|v| js_string!(v.to_string()).into())
-            .unwrap_or_default())
+            .map_or_default(|v| js_string!(v.to_string()).into()))
     }
 
     /// [`get Intl.Locale.prototype.numeric`][spec].
@@ -641,8 +637,7 @@ impl Locale {
             .unicode
             .keywords
             .get(&key!("nu"))
-            .map(|v| js_string!(v.to_string()).into())
-            .unwrap_or_default())
+            .map_or_default(|v| js_string!(v.to_string()).into()))
     }
 
     /// [`get Intl.Locale.prototype.language`][spec].
@@ -698,8 +693,7 @@ impl Locale {
         Ok(loc
             .id
             .script
-            .map(|sc| js_string!(sc.to_string()).into())
-            .unwrap_or_default())
+            .map_or_default(|sc| js_string!(sc.to_string()).into()))
     }
 
     /// [`get Intl.Locale.prototype.region`][spec].
@@ -729,8 +723,7 @@ impl Locale {
         Ok(loc
             .id
             .region
-            .map(|sc| js_string!(sc.to_string()).into())
-            .unwrap_or_default())
+            .map_or_default(|sc| js_string!(sc.to_string()).into()))
     }
 
     /// [`get Intl.Locale.prototype.variants`][spec].

@@ -1,4 +1,5 @@
 use crate::{TestAction, run_test_actions};
+use boa_macros::js_str;
 use indoc::indoc;
 
 #[test]
@@ -96,5 +97,53 @@ fn promise_race_resolves_first() {
         "#}),
         TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert_eq("val", 10),
+    ]);
+}
+
+#[test]
+fn promise_try_returns_promise_of_same_constructor_as_is() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            var p = Promise.resolve(1);
+            class SubPromise extends Promise {}
+            var sub = SubPromise.resolve(2);
+        "#}),
+        TestAction::assert("Promise.try(() => p) === p"),
+        TestAction::assert("SubPromise.try(() => sub) === sub"),
+        // A promise from another constructor is still wrapped.
+        TestAction::assert("Promise.try(() => sub) !== sub"),
+        TestAction::assert("SubPromise.try(() => p) !== p"),
+        TestAction::assert("SubPromise.try(() => p) instanceof SubPromise"),
+    ]);
+}
+
+#[test]
+fn promise_try_constructs_only_after_calling_the_callback() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            var log = [];
+            function Ctor(executor) {
+                log.push("construct");
+                return new Promise(executor);
+            }
+            Promise.try.call(Ctor, () => { log.push("callback"); return 1; });
+            Promise.try.call(Ctor, () => { log.push("callback"); throw 2; });
+        "#}),
+        TestAction::assert_eq(
+            "log.join()",
+            js_str!("callback,construct,callback,construct"),
+        ),
+    ]);
+}
+
+#[test]
+fn promise_try_rejects_with_the_thrown_value() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            var err = null;
+            Promise.try(() => { throw 3; }).catch(e => { err = e; });
+        "#}),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
+        TestAction::assert_eq("err", 3),
     ]);
 }

@@ -406,8 +406,6 @@ impl BuiltInFunctionObject {
             new_target.clone()
         };
 
-        let strict = context.is_strict();
-
         let default = if r#async && generator {
             // 5. Else,
             //     a. Assert: kind is async-generator.
@@ -647,8 +645,10 @@ impl BuiltInFunctionObject {
             false,
             Span::new(function_span_start, function_span_end),
         );
+
+        // Function constructors do not inherit the caller's strict mode.
         if let Err(reason) =
-            function.analyze_scope(strict, context.realm().scope(), context.interner())
+            function.analyze_scope(false, context.realm().scope(), context.interner())
         {
             return Err(js_error!(SyntaxError: "failed to analyze function scope: {}", reason));
         }
@@ -1213,7 +1213,7 @@ fn function_construct(
     let context = context.context();
     context.vm.stack.set_this(
         context.vm.frames.last().js_expect("frame must exist")?,
-        this.map(JsValue::new).unwrap_or_default(),
+        this.map_or_default(JsValue::new),
     );
 
     Ok(CallValue::Ready)

@@ -1,5 +1,5 @@
 use crate::builtins::function::arguments::MappedArguments;
-use crate::property::DescriptorKind;
+use crate::property::CompletePropertyDescriptor;
 use crate::value::display::value;
 use crate::{JsObject, JsValue, js_string};
 use std::collections::HashSet;
@@ -61,22 +61,18 @@ pub(super) fn log_arguments_to(
         } else {
             let borrow = x.borrow();
             if let Some(d) = borrow.properties().get(&i.into()) {
-                match d.kind() {
-                    DescriptorKind::Data { value, .. } => {
-                        if let Some(v) = value {
-                            write!(
-                                f,
-                                "{}",
-                                CompactValue {
-                                    value: v,
-                                    print_internals
-                                }
-                            )?;
-                        } else {
-                            f.write_str("undefined")?;
-                        }
+                match &d {
+                    CompletePropertyDescriptor::Data { value, .. } => {
+                        write!(
+                            f,
+                            "{}",
+                            CompactValue {
+                                value,
+                                print_internals
+                            }
+                        )?;
                     }
-                    DescriptorKind::Accessor { get, set } => {
+                    CompletePropertyDescriptor::Accessor { get, set, .. } => {
                         let label = match (get.is_some(), set.is_some()) {
                             (true, true) => "[Getter/Setter]",
                             (true, false) => "[Getter]",
@@ -85,7 +81,6 @@ pub(super) fn log_arguments_to(
                         };
                         f.write_str(label)?;
                     }
-                    DescriptorKind::Generic => f.write_str("undefined")?,
                 }
             } else {
                 f.write_str("<empty>")?;

@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fmt;
 
-use crate::{JsObject, JsValue, js_string, property::DescriptorKind};
+use crate::{JsObject, JsValue, js_string, property::CompletePropertyDescriptor};
 
 pub(super) fn log_array_to(
     f: &mut fmt::Formatter<'_>,
@@ -16,8 +16,7 @@ pub(super) fn log_array_to(
         .expect("array object must have 'length' property")
         .value()
         .and_then(JsValue::as_number)
-        .map(|n| n.max(0.0) as u32)
-        .unwrap_or_default();
+        .map_or_default(|n| n.max(0.0) as u32);
 
     if print_children {
         // Cap the number of elements we iterate over to avoid hangs on very large/sparse arrays.
@@ -39,15 +38,11 @@ pub(super) fn log_array_to(
             }
 
             if let Some(desc) = x.borrow().properties().get(&i.into()) {
-                match desc.kind() {
-                    DescriptorKind::Data { value, .. } => {
-                        if let Some(value) = value {
-                            super::value::log_value_to(f, value, print_internals, false)?;
-                        } else {
-                            f.write_str("undefined")?;
-                        }
+                match desc {
+                    CompletePropertyDescriptor::Data { value, .. } => {
+                        super::value::log_value_to(f, &value, print_internals, false)?;
                     }
-                    DescriptorKind::Accessor { get, set } => {
+                    CompletePropertyDescriptor::Accessor { get, set, .. } => {
                         let display = match (get.is_some(), set.is_some()) {
                             (true, true) => "[Getter/Setter]",
                             (true, false) => "[Getter]",
@@ -55,9 +50,6 @@ pub(super) fn log_array_to(
                             _ => "<empty>",
                         };
                         f.write_str(display)?;
-                    }
-                    DescriptorKind::Generic => {
-                        unreachable!("found generic descriptor in array")
                     }
                 }
             } else {
@@ -91,8 +83,7 @@ pub(super) fn log_array_compact(
         .expect("array object must have 'length' property")
         .value()
         .and_then(JsValue::as_number)
-        .map(|n| n.max(0.0) as u32)
-        .unwrap_or_default();
+        .map_or_default(|n| n.max(0.0) as u32);
 
     if len == 0 {
         return f.write_str("[]");
@@ -107,21 +98,17 @@ pub(super) fn log_array_compact(
             f.write_str(", ")?;
         }
         if let Some(desc) = x.borrow().properties().get(&i.into()) {
-            match desc.kind() {
-                DescriptorKind::Data { value, .. } => {
-                    if let Some(value) = value {
-                        super::value::log_value_compact(
-                            f,
-                            value,
-                            depth + 1,
-                            print_internals,
-                            encounters,
-                        )?;
-                    } else {
-                        f.write_str("undefined")?;
-                    }
+            match &desc {
+                CompletePropertyDescriptor::Data { value, .. } => {
+                    super::value::log_value_compact(
+                        f,
+                        value,
+                        depth + 1,
+                        print_internals,
+                        encounters,
+                    )?;
                 }
-                DescriptorKind::Accessor { get, set } => {
+                CompletePropertyDescriptor::Accessor { get, set, .. } => {
                     let display = match (get.is_some(), set.is_some()) {
                         (true, true) => "[Getter/Setter]",
                         (true, false) => "[Getter]",
@@ -129,9 +116,6 @@ pub(super) fn log_array_compact(
                         _ => "<empty>",
                     };
                     f.write_str(display)?;
-                }
-                DescriptorKind::Generic => {
-                    unreachable!("found generic descriptor in array")
                 }
             }
         } else {

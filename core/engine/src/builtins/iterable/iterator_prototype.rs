@@ -1,7 +1,7 @@
 use crate::{
     Context, JsArgs, JsObject, JsResult, JsSymbol, JsValue,
     builtins::{
-        IntrinsicObject,
+        IntrinsicObject, Number,
         array::Array,
         builder::BuiltInBuilder,
         iterable::{
@@ -304,7 +304,9 @@ impl Iterator {
         let limit = args.get_or_undefined(0);
         let num_limit = if_abrupt_close_iterator!(limit.to_number(context), iterated, context);
 
-        // 6. If numLimit is NaN, throw a RangeError exception.
+        // 6. If numLimit is NaN, then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
         if num_limit.is_nan() {
             return iterated.close(
                 Err(js_error!(
@@ -314,10 +316,22 @@ impl Iterator {
             );
         }
 
-        // 7. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
+        // 7. If numLimit is finite and numLimit > 𝔽(2**53 - 1), then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        if num_limit.is_finite() && num_limit > Number::MAX_SAFE_INTEGER {
+            return iterated.close(
+                Err(js_error!(
+                    RangeError: "Iterator.prototype.take: limit cannot be greater than 2^53 - 1"
+                )),
+                context,
+            );
+        }
+
+        // 8. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
         let integer_limit = IntegerOrInfinity::from(num_limit);
 
-        // 8. If integerLimit < 0, then
+        // 9. If integerLimit < 0, then
         let integer_limit = match integer_limit {
             IntegerOrInfinity::Integer(n) if n >= 0 => Some(n as u64),
             IntegerOrInfinity::PositiveInfinity => None,
@@ -333,14 +347,14 @@ impl Iterator {
             }
         };
 
-        // 9. Set iterated to ? GetIteratorDirect(O).
+        // 10. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 10-12 are deferred to `IteratorHelper::create` and `Take::new`.
+        // 11-13 are deferred to `IteratorHelper::create` and `Take::new`.
         let result =
             IteratorHelper::create(iterator_helper::Take::new(iterated, integer_limit), context);
 
-        // 13. Return result.
+        // 14. Return result.
         Ok(result.into())
     }
 
@@ -365,7 +379,9 @@ impl Iterator {
         let limit = args.get_or_undefined(0);
         let num_limit = if_abrupt_close_iterator!(limit.to_number(context), iterated, context);
 
-        // 6. If numLimit is NaN, throw a RangeError exception.
+        // 6. If numLimit is NaN, then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
         if num_limit.is_nan() {
             return iterated.close(
                 Err(js_error!(
@@ -375,10 +391,22 @@ impl Iterator {
             );
         }
 
-        // 7. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
+        // 7. If numLimit is finite and numLimit > 𝔽(2**53 - 1), then
+        //    a. Let error be ThrowCompletion(a newly created RangeError object).
+        //    b. Return ? IteratorClose(iterated, error).
+        if num_limit.is_finite() && num_limit > Number::MAX_SAFE_INTEGER {
+            return iterated.close(
+                Err(js_error!(
+                    RangeError: "Iterator.prototype.drop: limit cannot be greater than 2^53 - 1"
+                )),
+                context,
+            );
+        }
+
+        // 8. Let integerLimit be ! ToIntegerOrInfinity(numLimit).
         let integer_limit = IntegerOrInfinity::from(num_limit);
 
-        // 8. If integerLimit < 0, then
+        // 9. If integerLimit < 0, then
         let integer_limit = match integer_limit {
             IntegerOrInfinity::Integer(n) if n >= 0 => Some(n as u64),
             IntegerOrInfinity::PositiveInfinity => None,
@@ -393,14 +421,14 @@ impl Iterator {
                 );
             }
         };
-        // 9. Set iterated to ? GetIteratorDirect(O).
+        // 10. Set iterated to ? GetIteratorDirect(O).
         let iterated = get_iterator_direct(iterated.iterator(), context)?;
 
-        // 10-12 are deferred to `IteratorHelper::create` and `Drop::new`.
+        // 11-13 are deferred to `IteratorHelper::create` and `Drop::new`.
         let result =
             IteratorHelper::create(iterator_helper::Drop::new(iterated, integer_limit), context);
 
-        // 13. Return result.
+        // 14. Return result.
         Ok(result.into())
     }
 
