@@ -1,7 +1,9 @@
 use boa_macros::js_str;
 use indoc::indoc;
 
-use crate::{JsNativeErrorKind, JsValue, TestAction, js_string, run_test_actions};
+use crate::{
+    JsNativeErrorKind, JsValue, TestAction, error::RuntimeLimitError, js_string, run_test_actions,
+};
 
 #[test]
 fn json_sanity() {
@@ -361,4 +363,49 @@ fn json_stringify_cyclic_nested_object_throws_type_error() {
         JsNativeErrorKind::Type,
         "cyclic object value",
     )]);
+}
+
+#[test]
+fn json_stringify_deep_nesting_reports_the_recursion_limit() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_recursion_limit(64);
+        }),
+        TestAction::run(indoc! {r#"
+            function nestObjects(depth) {
+                const root = {};
+                let node = root;
+                for (let i = 0; i < depth; i++) {
+                    node.a = {};
+                    node = node.a;
+                }
+                return root;
+            }
+
+            function nestArrays(depth) {
+                const root = [];
+                let node = root;
+                for (let i = 0; i < depth; i++) {
+                    node[0] = [];
+                    node = node[0];
+                }
+                return root;
+            }
+        "#}),
+        // Nesting within the limit is unaffected.
+        TestAction::assert_eq(
+            "JSON.stringify(nestObjects(4))",
+            js_string!(r#"{"a":{"a":{"a":{"a":{}}}}}"#),
+        ),
+        TestAction::assert_eq("JSON.stringify(nestArrays(3))", js_string!("[[[[]]]]")),
+        // Deeper nesting reports the limit instead of exhausting the native stack.
+        TestAction::assert_runtime_limit_error(
+            "JSON.stringify(nestObjects(200))",
+            RuntimeLimitError::Recursion,
+        ),
+        TestAction::assert_runtime_limit_error(
+            "JSON.stringify(nestArrays(200))",
+            RuntimeLimitError::Recursion,
+        ),
+    ]);
 }
