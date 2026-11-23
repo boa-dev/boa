@@ -59,10 +59,7 @@ impl Identifier {
             let b = ch as u8;
             return b.is_ascii_alphanumeric() || b == b'$' || b == b'_';
         }
-        matches!(
-            ch,
-            0x0024 /* $ */ | 0x005F /* _ */ | 0x200C /* <ZWNJ> */ | 0x200D /* <ZWJ> */
-        ) || ID_CONTINUE.contains32(ch)
+        matches!(ch, 0x200C /* <ZWNJ> */ | 0x200D /* <ZWJ> */) || ID_CONTINUE.contains32(ch)
     }
 }
 
