@@ -191,6 +191,8 @@ impl Logger for NullLogger {
 }
 
 /// This represents the `console` formatter.
+///
+/// See Also: https://console.spec.whatwg.org/
 fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     fn to_string(value: &JsValue, _context: &mut Context) -> String {
         match value.variant() {
@@ -203,12 +205,18 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
         [] => Ok(String::new()),
         [val] => Ok(to_string(val, context)),
         data => {
+            // Only strings are format strings. Otherwises do not format it.
+            let Some(target) = data[0].as_string() else {
+                return Ok(data
+                    .iter()
+                    .map(|value| to_string(value, context))
+                    .collect::<Vec<_>>()
+                    .join(" "));
+            };
+
             let mut formatted = String::new();
             let mut arg_index = 1;
-            let target = data
-                .get_or_undefined(0)
-                .to_string(context)?
-                .to_std_string_escaped();
+            let target = target.to_std_string_escaped();
             let mut chars = target.chars();
             while let Some(c) = chars.next() {
                 if c == '%' {
