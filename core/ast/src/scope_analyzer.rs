@@ -127,9 +127,12 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         let direct_eval_old = self.direct_eval;
         self.direct_eval = node.contains_direct_eval || self.direct_eval;
         if let Some(scope) = &mut node.scope {
-            if self.direct_eval {
-                scope.escape_all_bindings();
-            }
+            // All case clauses share one block scope, so a binding declared in a
+            // case may be accessed from another case before its declaration is
+            // evaluated. Local (register) bindings only track the TDZ at compile
+            // time, which cannot model this control flow, so force these bindings
+            // into a declarative environment where the TDZ is tracked at runtime.
+            scope.escape_all_bindings();
             std::mem::swap(&mut self.scope, scope);
         }
         for case in &mut node.cases {
