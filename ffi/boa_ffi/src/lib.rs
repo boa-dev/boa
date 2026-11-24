@@ -984,6 +984,22 @@ pub mod ffi {
                 assert_eq!(error.get_representation(), representation, "{source}");
             }
         }
+
+        #[test]
+        #[cfg(feature = "default")]
+        fn default_features_enable_optional_builtins() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            for (name, expected) in [
+                ("Temporal", "object"),
+                ("Intl", "object"),
+                ("Float16Array", "function"),
+                ("Math.sumPrecise", "function"),
+                ("escape", "function"),
+            ] {
+                let source = format!("typeof {name} === '{expected}' ? 1 : 0");
+                assert_eq!(eval_number(&mut context, &source), Some(1.0), "{name}");
+            }
+        }
     }
 }
 

@@ -17,5 +17,15 @@ boa_engine.workspace = true
 diplomat.workspace = true
 diplomat-runtime.workspace = true
 
+[features]
+default = [
+    "boa_engine/annex-b",
+    "boa_engine/experimental",
+    "boa_engine/float16",
+    "boa_engine/intl_bundled",
+    "boa_engine/temporal",
+    "boa_engine/xsum",
+]
+
 [lints]
 workspace = true

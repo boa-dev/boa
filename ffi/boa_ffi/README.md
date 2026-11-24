@@ -20,6 +20,21 @@ The library is `target/debug/libboa_ffi.dylib` on macOS or
 `bindings/c/BoaContext.h`, `bindings/c/JsValue.h` and `bindings/c/JsError.h` as
 needed in C programs and link against this library.
 
+The default build enables the same engine features as Boa's WebAssembly
+bindings: `annex-b`, `experimental`, `float16`, `intl_bundled`, `temporal` and
+`xsum`. Scripts can therefore use `Intl`, `Temporal`, `Float16Array`,
+`Math.sumPrecise` and the Annex B additions. `intl_bundled` embeds ICU data,
+which makes a release library roughly three times larger. For a small build
+without these features, add `--no-default-features`:
+
+```sh
+cargo build --locked -p boa_ffi --no-default-features
+```
+
+A single feature can be added back with, for example,
+`--features boa_engine/temporal`. The C test runner builds the default
+features and its tests expect them.
+
 The C test runner requires a native macOS or Linux environment and a C11 compiler
 (`cc`, or an executable specified by `CC`). By default it builds for the Rust
 host explicitly in `target/<host>/debug/`, honors `CARGO_TARGET_DIR`, and runs

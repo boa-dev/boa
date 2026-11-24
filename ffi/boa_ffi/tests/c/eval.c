@@ -252,6 +252,15 @@ static bool failed_conversions(BoaContext *context) {
                          JsErrorRepresentation_Engine, JsTryNativeError_EngineError);
 }
 
+// The runner builds the library with its default features.
+static bool default_features(BoaContext *context) {
+    return has_number(context, "typeof Temporal === 'object' ? 1 : 0", 1.0) &&
+        has_number(context, "typeof Intl === 'object' ? 1 : 0", 1.0) &&
+        has_number(context, "typeof Float16Array === 'function' ? 1 : 0", 1.0) &&
+        has_number(context, "typeof Math.sumPrecise === 'function' ? 1 : 0", 1.0) &&
+        has_number(context, "typeof escape === 'function' ? 1 : 0", 1.0);
+}
+
 static bool destruction_order(bool context_first) {
     BoaContext *context = boa_BoaContext_new();
     if (context == NULL) {
@@ -311,6 +320,8 @@ int main(void) {
         failure = "thrown Error objects were not converted to native errors";
     } else if (!failed_conversions(context)) {
         failure = "failed conversions did not report their reason";
+    } else if (!default_features(context)) {
+        failure = "default engine features were missing";
     }
     boa_BoaContext_destroy(context);
 
