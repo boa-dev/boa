@@ -1013,6 +1013,22 @@ impl Context {
         CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
+    /// Checks that `extra_depth` levels of native recursion (for example, nested objects visited
+    /// by `JSON.stringify`) on top of the current call depth stay within the recursion limit.
+    ///
+    /// Native builtins that recurse over user-controlled data without re-entering the VM
+    /// don't go through [`Context::check_runtime_limits`], so a deeply nested input would
+    /// otherwise overflow the native stack and abort the process.
+    pub(crate) fn check_native_recursion(&self, extra_depth: usize) -> JsResult<()> {
+        let recursion_depth = (self.vm.frames.len() - 1)
+            .saturating_add(self.vm.host_call_depth)
+            .saturating_add(extra_depth);
+        if self.vm.runtime_limits.recursion_limit() <= recursion_depth {
+            return Err(RuntimeLimitError::Recursion.into());
+        }
+        Ok(())
+    }
+
     /// Checks if we haven't exceeded the defined runtime limits.
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
         // Must throw if the number of recursive calls exceeds the defined limit.

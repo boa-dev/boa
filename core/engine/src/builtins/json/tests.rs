@@ -1,7 +1,9 @@
 use boa_macros::js_str;
 use indoc::indoc;
 
-use crate::{JsNativeErrorKind, JsValue, TestAction, js_string, run_test_actions};
+use crate::{
+    JsNativeErrorKind, JsValue, TestAction, error::RuntimeLimitError, js_string, run_test_actions,
+};
 
 #[test]
 fn json_sanity() {
@@ -361,4 +363,32 @@ fn json_stringify_cyclic_nested_object_throws_type_error() {
         JsNativeErrorKind::Type,
         "cyclic object value",
     )]);
+}
+
+#[test]
+fn json_stringify_deeply_nested_object_hits_recursion_limit() {
+    // Without a depth bound this overflows the native stack and aborts the process.
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_recursion_limit(128);
+        }),
+        TestAction::run(
+            "var deep = {}; var cur = deep; for (var i = 0; i < 100000; i++) { cur.a = {}; cur = cur.a; }",
+        ),
+        TestAction::assert_runtime_limit_error(
+            "JSON.stringify(deep)",
+            RuntimeLimitError::Recursion,
+        ),
+    ]);
+}
+
+#[test]
+fn json_stringify_nested_array_within_recursion_limit() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_recursion_limit(128);
+        }),
+        TestAction::run("var a = []; for (var i = 0; i < 100; i++) { a = [a]; }"),
+        TestAction::assert_eq("JSON.stringify(a).length", 202),
+    ]);
 }
