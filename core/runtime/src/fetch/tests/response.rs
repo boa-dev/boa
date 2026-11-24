@@ -376,6 +376,44 @@ fn response_headers_get_combines_duplicate_values_with_comma_space() {
 }
 
 #[test]
+fn response_headers_preserve_opaque_bytes() {
+    run_test_actions([
+        TestAction::harness(),
+        TestAction::inspect_context(|ctx| {
+            let response = Response::builder()
+                .header(
+                    "x-elapsed",
+                    http::HeaderValue::from_bytes("1µs".as_bytes()).unwrap(),
+                )
+                .header(
+                    "set-cookie",
+                    http::HeaderValue::from_bytes(b"key=\x80\xff").unwrap(),
+                )
+                .body(Vec::new())
+                .unwrap();
+            register(&[("http://unit.test", response)], ctx);
+        }),
+        TestAction::run(
+            r#"
+                globalThis.response = (async () => {
+                    const response = await fetch("http://unit.test");
+                    assertEq(response.headers.get("x-elapsed"), "1Âµs");
+                    assertEq([...response.headers].find(([name]) => name === "x-elapsed")[1], "1Âµs");
+                    assertEq(response.headers.getSetCookie()[0], "key=\u0080\u00ff");
+                    let value;
+                    response.headers.forEach((v, k) => { if (k === "x-elapsed") value = v; });
+                    assertEq(value, "1Âµs");
+                })();
+            "#,
+        ),
+        TestAction::inspect_context(|ctx| {
+            let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
+            response.as_promise().unwrap().await_blocking(ctx).unwrap();
+        }),
+    ]);
+}
+
+#[test]
 fn response_clone_read_both() {
     run_test_actions([
         TestAction::harness(),

@@ -12,7 +12,7 @@ use boa_engine::{
 };
 use boa_gc::{Finalize, Trace};
 
-use super::headers::JsHeaders;
+use super::headers::{JsHeaders, header_value_to_js_string};
 
 /// The `IterationKind` enum represents the different kinds of iteration that can be performed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -69,7 +69,7 @@ impl HeadersIterator {
             .map(|(k, v)| {
                 (
                     JsValue::from(JsString::from(k.as_str())),
-                    JsValue::from(JsString::from(v.to_str().unwrap_or(""))),
+                    JsValue::from(header_value_to_js_string(v)),
                 )
             });
 
