@@ -163,6 +163,16 @@ impl<'a> IntoIterator for &'a JsString {
 
 impl JsString {
     /// Create an iterator over the [`JsString`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("abc");
+    /// let units: Vec<u16> = s.iter().collect();
+    /// assert_eq!(units, vec![0x61, 0x62, 0x63]);
+    /// ```
     #[inline]
     #[must_use]
     pub fn iter(&self) -> Iter<'_> {
@@ -170,6 +180,15 @@ impl JsString {
     }
 
     /// Create an iterator over overlapping subslices of length size.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert_eq!(s.windows(2).count(), 4);
+    /// ```
     #[inline]
     #[must_use]
     pub fn windows(&self, size: usize) -> Windows<'_> {
@@ -178,6 +197,18 @@ impl JsString {
 
     /// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation
     /// in 4 digit hexadecimal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert_eq!(s.to_std_string_escaped(), "hello");
+    ///
+    /// let unpaired = JsString::from(&[0xD800]);
+    /// assert_eq!(unpaired.to_std_string_escaped(), "\\uD800");
+    /// ```
     #[inline]
     #[must_use]
     pub fn to_std_string_escaped(&self) -> String {
@@ -186,6 +217,18 @@ impl JsString {
 
     /// Decodes a [`JsString`] into a [`String`], replacing invalid data with the
     /// replacement character U+FFFD.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert_eq!(s.to_std_string_lossy(), "hello");
+    ///
+    /// let unpaired = JsString::from(&[0xD800]);
+    /// assert_eq!(unpaired.to_std_string_lossy(), "\u{FFFD}");
+    /// ```
     #[inline]
     #[must_use]
     pub fn to_std_string_lossy(&self) -> String {
@@ -198,6 +241,18 @@ impl JsString {
     /// # Errors
     ///
     /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert_eq!(s.to_std_string().unwrap(), "hello");
+    ///
+    /// let unpaired = JsString::from(&[0xD800]);
+    /// assert!(unpaired.to_std_string().is_err());
+    /// ```
     #[inline]
     pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
         self.as_str().to_std_string()
@@ -205,6 +260,16 @@ impl JsString {
 
     /// Decodes a [`JsString`] into an iterator of [`Result<String, u16>`], returning surrogates as
     /// errors.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// let parts: Vec<Result<String, u16>> = s.to_std_string_with_surrogates().collect();
+    /// assert_eq!(parts, vec![Ok("hello".to_string())]);
+    /// ```
     #[inline]
     #[allow(clippy::missing_panics_doc)]
     pub fn to_std_string_with_surrogates(
@@ -234,6 +299,16 @@ impl JsString {
     }
 
     /// Maps the valid segments of an UTF16 string and leaves the unpaired surrogates unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// let upper = s.map_valid_segments(|segment| segment.to_uppercase());
+    /// assert_eq!(upper, "HELLO");
+    /// ```
     #[inline]
     #[must_use]
     pub fn map_valid_segments<F>(&self, mut f: F) -> Self
@@ -253,6 +328,16 @@ impl JsString {
     }
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::{CodePoint, JsString};
+    ///
+    /// let s = JsString::from("a");
+    /// let points: Vec<CodePoint> = s.code_points().collect();
+    /// assert_eq!(points, vec![CodePoint::Unicode('a')]);
+    /// ```
     #[inline]
     #[must_use]
     pub fn code_points(&self) -> CodePointsIter<'_> {
@@ -260,6 +345,15 @@ impl JsString {
     }
 
     /// Get the variant of this string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::{JsStrVariant, JsString};
+    ///
+    /// let latin1_str = JsString::from("hello");
+    /// assert!(matches!(latin1_str.variant(), JsStrVariant::Latin1(_)));
+    /// ```
     #[inline]
     #[must_use]
     pub fn variant(&self) -> JsStrVariant<'_> {
@@ -275,6 +369,17 @@ impl JsString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello world");
+    /// let target = JsString::from("world");
+    /// assert_eq!(s.index_of(target.as_str(), 0), Some(6));
+    /// assert_eq!(s.index_of(target.as_str(), 7), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn index_of(&self, search_value: JsStr<'_>, from_index: usize) -> Option<usize> {
@@ -297,6 +402,17 @@ impl JsString {
     /// # Panics
     ///
     /// If `position` is smaller than size of string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::{CodePoint, JsString};
+    ///
+    /// let s = JsString::from("abc");
+    /// assert_eq!(s.code_point_at(0), CodePoint::Unicode('a'));
+    /// assert_eq!(s.code_point_at(1), CodePoint::Unicode('b'));
+    /// assert_eq!(s.code_point_at(2), CodePoint::Unicode('c'));
+    /// ```
     #[inline]
     #[must_use]
     pub fn code_point_at(&self, position: usize) -> CodePoint {
@@ -309,6 +425,21 @@ impl JsString {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringtonumber
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("42");
+    /// assert_eq!(s.to_number(), 42.0);
+    ///
+    /// let s = JsString::from("3.14");
+    /// assert_eq!(s.to_number(), 3.14);
+    ///
+    /// let invalid = JsString::from("not a number");
+    /// assert!(invalid.to_number().is_nan());
+    /// ```
     #[inline]
     #[must_use]
     pub fn to_number(&self) -> f64 {
@@ -316,6 +447,18 @@ impl JsString {
     }
 
     /// Get the length of the [`JsString`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert_eq!(s.len(), 5);
+    ///
+    /// let empty = JsString::default();
+    /// assert_eq!(empty.len(), 0);
+    /// ```
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
@@ -323,13 +466,34 @@ impl JsString {
     }
 
     /// Return true if the [`JsString`] is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let empty = JsString::default();
+    /// assert!(empty.is_empty());
+    ///
+    /// let non_empty = JsString::from("boa");
+    /// assert!(!non_empty.is_empty());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    /// Convert the [`JsString`] into a [`Vec<U16>`].
+    /// Convert the [`JsString`] into a [`Vec<u16>`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("abc");
+    /// assert_eq!(s.to_vec(), vec![0x61, 0x62, 0x63]);
+    /// ```
     #[inline]
     #[must_use]
     pub fn to_vec(&self) -> Vec<u16> {
@@ -337,6 +501,16 @@ impl JsString {
     }
 
     /// Check if the [`JsString`] contains a byte.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert!(s.contains(b'e'));
+    /// assert!(!s.contains(b'z'));
+    /// ```
     #[inline]
     #[must_use]
     pub fn contains(&self, element: u8) -> bool {
@@ -344,6 +518,15 @@ impl JsString {
     }
 
     /// Trim whitespace from the start and end of the [`JsString`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("  hello world  ");
+    /// assert_eq!(s.trim(), "hello world");
+    /// ```
     #[inline]
     #[must_use]
     pub fn trim(&self) -> JsString {
@@ -381,6 +564,15 @@ impl JsString {
     }
 
     /// Trim whitespace from the start of the [`JsString`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("  hello  ");
+    /// assert_eq!(s.trim_start(), "hello  ");
+    /// ```
     #[inline]
     #[must_use]
     pub fn trim_start(&self) -> JsString {
@@ -399,6 +591,15 @@ impl JsString {
     }
 
     /// Trim whitespace from the end of the [`JsString`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("  hello  ");
+    /// assert_eq!(s.trim_end(), "  hello");
+    /// ```
     #[inline]
     #[must_use]
     pub fn trim_end(&self) -> JsString {
@@ -418,6 +619,19 @@ impl JsString {
     }
 
     /// Returns true if needle is a prefix of the [`JsStr`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello world");
+    /// let prefix = JsString::from("hello");
+    /// assert!(s.starts_with(prefix.as_str()));
+    ///
+    /// let other = JsString::from("world");
+    /// assert!(!s.starts_with(other.as_str()));
+    /// ```
     #[inline]
     #[must_use]
     // We check the size, so this should never panic.
@@ -427,6 +641,19 @@ impl JsString {
     }
 
     /// Returns `true` if `needle` is a suffix of the [`JsStr`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello world");
+    /// let suffix = JsString::from("world");
+    /// assert!(s.ends_with(suffix.as_str()));
+    ///
+    /// let other = JsString::from("hello");
+    /// assert!(!s.ends_with(other.as_str()));
+    /// ```
     #[inline]
     #[must_use]
     // We check the size, so this should never panic.
@@ -437,6 +664,17 @@ impl JsString {
 
     /// Get the `u16` code unit at index. This does not parse any characters if there
     /// are pairs, it is simply the index of the `u16` elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("abc");
+    /// assert_eq!(s.code_unit_at(0), Some(0x61));
+    /// assert_eq!(s.code_unit_at(1), Some(0x62));
+    /// assert_eq!(s.code_unit_at(10), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn code_unit_at(&self, index: usize) -> Option<u16> {
@@ -444,6 +682,16 @@ impl JsString {
     }
 
     /// Get the element at the given index, or [`None`] if the index is out of range.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello world");
+    /// assert_eq!(s.get(0..5), Some(JsString::from("hello")));
+    /// assert_eq!(s.get(0..50), None);
+    /// ```
     #[inline]
     #[must_use]
     pub fn get<I>(&self, index: I) -> Option<JsString>
@@ -457,6 +705,15 @@ impl JsString {
     ///
     /// # Panics
     /// If the index returns `None`, this will panic.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello world");
+    /// assert_eq!(s.get_expect(0..5), "hello");
+    /// ```
     #[inline]
     #[must_use]
     pub fn get_expect<I>(&self, index: I) -> JsString
@@ -469,6 +726,18 @@ impl JsString {
     /// Gets a displayable escaped string. This may be faster and has fewer
     /// allocations than `format!("{}", str.to_string_escaped())` when
     /// displaying.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert_eq!(format!("{}", s.display_escaped()), "hello");
+    ///
+    /// let unpaired = JsString::from(&[0xD800]);
+    /// assert_eq!(format!("{}", unpaired.display_escaped()), "\\uD800");
+    /// ```
     #[inline]
     #[must_use]
     pub fn display_escaped(&self) -> JsStrDisplayEscaped<'_> {
@@ -477,6 +746,18 @@ impl JsString {
 
     /// Gets a displayable lossy string. This may be faster and has fewer
     /// allocations than `format!("{}", str.to_string_lossy())` when displaying.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// assert_eq!(format!("{}", s.display_lossy()), "hello");
+    ///
+    /// let unpaired = JsString::from(&[0xD800]);
+    /// assert_eq!(format!("{}", unpaired.display_lossy()), "\u{FFFD}");
+    /// ```
     #[inline]
     #[must_use]
     pub fn display_lossy(&self) -> JsStrDisplayLossy<'_> {
@@ -484,6 +765,16 @@ impl JsString {
     }
 
     /// Get a debug displayable info and metadata for this string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello");
+    /// let debug = format!("{:?}", s.debug_info());
+    /// assert!(!debug.is_empty());
+    /// ```
     #[inline]
     #[must_use]
     pub fn debug_info(&self) -> JsStringDebugInfo<'_> {
@@ -494,6 +785,17 @@ impl JsString {
     ///
     /// To avoid a memory leak the pointer must be converted back to a `JsString` using
     /// [`JsString::from_raw`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("raw pointer roundtrip");
+    /// let raw = s.into_raw();
+    /// let restored = unsafe { JsString::from_raw(raw) };
+    /// assert_eq!(restored, "raw pointer roundtrip");
+    /// ```
     #[inline]
     #[must_use]
     pub fn into_raw(self) -> NonNull<RawJsString> {
@@ -509,6 +811,17 @@ impl JsString {
     ///
     /// This function is unsafe because improper use may lead to memory unsafety,
     /// even if the returned `JsString` is never accessed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("raw pointer roundtrip");
+    /// let raw = s.into_raw();
+    /// let restored = unsafe { JsString::from_raw(raw) };
+    /// assert_eq!(restored, "raw pointer roundtrip");
+    /// ```
     #[inline]
     #[must_use]
     pub const unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
@@ -534,6 +847,17 @@ static_assertions::const_assert!(align_of::<*const JsStr<'static>>() >= 2);
 /// Dealing with inner types.
 impl JsString {
     /// Check if this is a static string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::{JsString, StaticJsStrings};
+    ///
+    /// assert!(StaticJsStrings::EMPTY_STRING.is_static());
+    ///
+    /// let dynamic = JsString::from("some dynamically created string");
+    /// assert!(!dynamic.is_static());
+    /// ```
     #[inline]
     #[must_use]
     pub fn is_static(&self) -> bool {
@@ -552,6 +876,16 @@ impl JsString {
     /// Create a [`JsString`] from a [`StaticString`] instance. This is assumed that the
     /// static string referenced is available for the duration of the `JsString` instance
     /// returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::{JsStr, JsString, StaticString};
+    ///
+    /// static STATIC_STR: StaticString = StaticString::new(JsStr::latin1(b"static"));
+    /// let s = JsString::from_static(&STATIC_STR);
+    /// assert_eq!(s, "static");
+    /// ```
     #[inline]
     #[must_use]
     pub const fn from_static(str: &'static StaticString) -> Self {
@@ -581,6 +915,16 @@ impl JsString {
 
     /// Create a [`JsString`] from an existing `JsString` and start, end
     /// range. Returns None if the start/end is invalid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("hello world");
+    /// assert_eq!(s.slice(0, 5), "hello");
+    /// assert_eq!(s.slice(6, 11), "world");
+    /// ```
     #[inline]
     #[must_use]
     pub fn slice(&self, p1: usize, mut p2: usize) -> JsString {
@@ -616,6 +960,17 @@ impl JsString {
 
 impl JsString {
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("boa");
+    /// let str_ref = s.as_str();
+    /// assert_eq!(str_ref.len(), 3);
+    /// assert_eq!(str_ref, "boa");
+    /// ```
     #[inline]
     #[must_use]
     pub fn as_str(&self) -> JsStr<'_> {
@@ -623,6 +978,17 @@ impl JsString {
     }
 
     /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let a = JsString::from("foo");
+    /// let b = JsString::from("bar");
+    /// let combined = JsString::concat(a.as_str(), b.as_str());
+    /// assert_eq!(combined, "foobar");
+    /// ```
     #[inline]
     #[must_use]
     pub fn concat(x: JsStr<'_>, y: JsStr<'_>) -> Self {
@@ -631,6 +997,18 @@ impl JsString {
 
     /// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let a = JsString::from("a");
+    /// let b = JsString::from("b");
+    /// let c = JsString::from("c");
+    /// let combined = JsString::concat_array(&[a.as_str(), b.as_str(), c.as_str()]);
+    /// assert_eq!(combined, "abc");
+    /// ```
     #[inline]
     #[must_use]
     pub fn concat_array(strings: &[JsStr<'_>]) -> Self {
@@ -748,6 +1126,20 @@ impl JsString {
     }
 
     /// Gets the number of `JsString`s which point to this allocation.
+    ///
+    /// Static strings do not maintain a reference count and will return `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use boa_string::JsString;
+    ///
+    /// let s = JsString::from("example dynamic string");
+    /// assert_eq!(s.refcount(), Some(1));
+    ///
+    /// let cloned = s.clone();
+    /// assert_eq!(s.refcount(), Some(2));
+    /// ```
     #[inline]
     #[must_use]
     pub fn refcount(&self) -> Option<usize> {
