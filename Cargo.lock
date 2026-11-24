@@ -629,6 +629,7 @@ dependencies = [
  "fast-float2",
  "icu_properties",
  "indoc",
+ "libc",
  "num-bigint 0.5.1",
  "num-traits",
  "regress",

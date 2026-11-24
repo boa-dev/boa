@@ -96,6 +96,7 @@ time = { version = "0.3.55", default-features = false, features = [
     "macros",
 ] }
 log = "0.4.35"
+libc = "0.2"
 simple_logger = "5.2.0"
 cargo_metadata = "0.23.1"
 trybuild = "1.0.125"
