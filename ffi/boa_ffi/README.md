@@ -86,7 +86,8 @@ int main(void) {
 - Copying a pointer creates an alias, not another owned handle. After destruction,
   every alias is invalid.
 - Use and destroy a context on the thread that created it. Calls on the same
-  handle must not overlap. Multiple independent contexts can coexist on one thread.
+  handle must not overlap. Contexts on the same thread share Boa's runtime,
+  and each has its own globals.
 - `NULL` does not represent recovery from arbitrary Rust panics or allocation
   failure. These failures may abort the process; this API does not catch panics.
 
@@ -150,11 +151,13 @@ int main(void) {
   is `Engine`, and the context remains usable afterward.
 - Source that is not valid UTF-8 fails with a `Native` type error, and nothing
   is evaluated.
-- Calls on one context share its global state: a later call sees what an
-  earlier one defined, and a throw does not undo what ran before it. Separate
-  contexts share nothing.
-- Promise jobs are not run. `then` callbacks do not execute, and a rejected
-  promise is returned as a value, not reported as an error.
+- Calls on one context see globals defined by earlier calls, including changes
+  made before a script threw.
+- The context discards promise jobs as they are scheduled. A `then` callback
+  never runs. Evaluating a rejected promise returns the promise as a value.
+- When `eval` or `try_native` finishes running JavaScript, it releases the
+  temporary references Boa keeps for `WeakRef`. An owned value handle still
+  keeps its object alive until the caller destroys the handle.
 - There is no time limit. A script that never finishes never returns.
 - Returned handles do not borrow from the context. Each one may be inspected
   and destroyed before or after the context is destroyed.
@@ -291,13 +294,15 @@ int main(void) {
 - Unlike the other error functions, it can run JavaScript. It reads properties
   of the Error object, such as `message` and `cause`, and a property may be a
   getter.
-- Pass the context the error came from. The context must still be alive.
-- The original error is not consumed or changed: it keeps its representation
-  and payload. The converted error is a separate handle. Destroy both, in
-  either order.
+- Pass a live context on the error's creating thread. For a thrown Error
+  object, use the object's original context to run its getters. A native error,
+  including one created with `boa_JsError_from_native()`, can be copied with
+  any live context on that thread.
+- The original handle keeps its representation and payload. The converted
+  error is a separate handle. Destroy both in either order.
 - The category comes from the object's internal type, so an instance of a class
-  that extends `Error` reports `Error`. An error that is already `Native`
-  converts to an equal copy.
+  that extends `Error` reports `Error`. Copying an already-native error
+  preserves its captured JavaScript backtrace.
 - Check `is_ok` before reading the result. On failure nothing is returned to
   destroy, and `err` is a `JsTryNativeError` reason:
   - `NotAnErrorObject`: the thrown value is not an Error object, as with

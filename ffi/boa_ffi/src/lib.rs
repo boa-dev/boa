@@ -15,10 +15,12 @@
     reason = "Diplomat transfers opaque handle ownership to C through boxed pointers"
 )]
 pub mod ffi {
+    use std::rc::Rc;
+
     use boa_engine::{
         Context, JsError as BoaJsError, JsNativeError as BoaJsNativeError,
         JsNativeErrorKind as BoaJsNativeErrorKind, JsValue as BoaJsValue, Source,
-        context::ContextBuilder, error::TryNativeError, value::Type,
+        context::ContextBuilder, error::TryNativeError, job::IdleJobExecutor, value::Type,
     };
     use diplomat_runtime::{DiplomatOption, DiplomatStr, DiplomatUtf8StrSlice};
 
@@ -41,7 +43,7 @@ pub mod ffi {
         /// failures may abort the process rather than return null.
         #[must_use]
         pub fn new() -> Option<Box<BoaContext>> {
-            Self::from_builder(Context::builder())
+            Self::from_builder(Context::builder().job_executor(Rc::new(IdleJobExecutor)))
         }
 
         fn from_builder(builder: ContextBuilder) -> Option<Box<Self>> {
@@ -54,8 +56,8 @@ pub mod ffi {
         /// Evaluates UTF-8 source text as a script and returns its completion value.
         ///
         /// Empty source evaluates to undefined. The source is borrowed only for
-        /// this call. Promise jobs are not run, and there is no time limit: a
-        /// script that never finishes never returns.
+        /// this call. The context discards promise jobs as they are scheduled.
+        /// Evaluation has no time limit.
         ///
         /// In C, check `is_ok`, then destroy the handle that was returned with
         /// `boa_JsValue_destroy` or `boa_JsError_destroy`. It is never null.
@@ -70,7 +72,10 @@ pub mod ffi {
                 let error = BoaJsNativeError::typ().with_message("source text is not valid UTF-8");
                 return Err(Box::new(JsError(error.into())));
             };
-            match self.context.eval(Source::from_bytes(source)) {
+            let result = self.context.eval(Source::from_bytes(source));
+            // Release the temporary WeakRef roots even if the script threw.
+            self.context.clear_kept_objects();
+            match result {
                 Ok(value) => Ok(Box::new(JsValue(value))),
                 Err(error) => Err(Box::new(JsError(error))),
             }
@@ -300,15 +305,14 @@ pub mod ffi {
 
         /// Converts this error into a new owned native error.
         ///
-        /// A native error converts to an equal copy. An opaque error converts if
-        /// its payload is an Error object: the category comes from the object's
-        /// internal type, and the message, cause and aggregate members are read
-        /// from its properties. Unlike the other error functions, this can run
-        /// JavaScript, because those properties may be getters.
+        /// A native error is copied with its captured backtrace. For an opaque
+        /// Error object, the category comes from its internal type. Reading its
+        /// message, cause and aggregate members can run JavaScript getters.
         ///
-        /// This error is left unchanged. Pass the context it came from. In C,
-        /// check `is_ok`, and destroy a returned error with `boa_JsError_destroy`,
-        /// independently of this one.
+        /// Pass the object's original context when reading an Error object.
+        /// A native error can be copied with any live context on its creating
+        /// thread. In C, check `is_ok` and destroy the returned handle with
+        /// `boa_JsError_destroy` independently of the original.
         ///
         /// # Errors
         ///
@@ -318,7 +322,13 @@ pub mod ffi {
             &self,
             context: &mut BoaContext,
         ) -> Result<Box<JsError>, JsTryNativeError> {
-            match self.0.try_native(&mut context.context) {
+            // Rebuilding a native error from its inner value drops the outer backtrace.
+            if self.0.as_native().is_some() {
+                return Ok(Box::new(Self(self.0.clone())));
+            }
+            let result = self.0.try_native(&mut context.context);
+            context.context.clear_kept_objects();
+            match result {
                 Ok(native) => Ok(Box::new(JsError(native.into()))),
                 Err(error) => Err(match error {
                     TryNativeError::NotAnErrorObject(_) => JsTryNativeError::NotAnErrorObject,
@@ -779,8 +789,37 @@ pub mod ffi {
             gc::force_collect();
         }
 
+        fn eval_after_gc(context: &mut BoaContext, source: &str) -> Box<JsValue> {
+            gc::force_collect();
+            context
+                .eval(source.as_bytes())
+                .expect("source should evaluate")
+        }
+
         #[test]
-        fn eval_does_not_run_promise_jobs() {
+        fn eval_releases_weak_ref_targets_on_return_and_throw() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let owned = context
+                .eval(b"var weak = new WeakRef({}); weak.deref()")
+                .expect("target should be returned");
+            let deref = "weak.deref()";
+            let target = eval_after_gc(&mut context, deref);
+            assert!(BoaJsValue::same_value(&owned.0, &target.0));
+            drop((owned, target));
+            assert_eq!(
+                eval_after_gc(&mut context, deref).get_type(),
+                JsValueType::Undefined
+            );
+
+            eval_error(&mut context, "weak = new WeakRef({}); throw 7");
+            assert_eq!(
+                eval_after_gc(&mut context, deref).get_type(),
+                JsValueType::Undefined
+            );
+        }
+
+        #[test]
+        fn eval_discards_promise_jobs() {
             let mut context = BoaContext::new().expect("context should initialize");
             let promise = context
                 .eval(
@@ -790,6 +829,8 @@ pub mod ffi {
                 )
                 .expect("a rejected promise is a value, not a thrown error");
             assert_eq!(promise.get_type(), JsValueType::Object);
+            // A deferred callback would run when the executor is drained.
+            context.context.run_jobs().expect("executor should finish");
             assert_eq!(eval_number(&mut context, "ran"), Some(0.0));
         }
 
@@ -860,16 +901,27 @@ pub mod ffi {
         #[test]
         fn try_native_copies_an_error_that_is_already_native() {
             let mut context = BoaContext::new().expect("context should initialize");
-            for error in [
+            let runtime_error = eval_error(
+                &mut context,
+                "function readConfig() { return missingOption; } readConfig()",
+            );
+            assert!(runtime_error.0.to_string().contains("readConfig"));
+            let errors = [
+                runtime_error,
                 eval_error(&mut context, "1 +"),
                 JsError::from_native(JsNativeErrorKind::Range, b"out of range")
                     .expect("known category"),
-            ] {
+            ];
+            drop(context);
+            let mut other_context = BoaContext::new().expect("context should initialize");
+            for error in errors {
                 let copy = error
-                    .try_native(&mut context)
+                    .try_native(&mut other_context)
                     .expect("native error should convert");
                 assert_eq!(copy.get_representation(), JsErrorRepresentation::Native);
                 assert_eq!(copy.0, error.0);
+                // Boa ignores backtraces when comparing errors for equality.
+                assert_eq!(copy.0.to_string(), error.0.to_string());
             }
         }
 
@@ -896,6 +948,25 @@ pub mod ffi {
             let info = native.as_native().expect("native details");
             assert_eq!(info.message.as_bytes(), b"boom");
             assert_eq!(eval_number(&mut context, "reads"), Some(1.0));
+        }
+
+        #[test]
+        fn try_native_releases_weak_ref_targets_after_getters() {
+            let mut context = BoaContext::new().expect("context should initialize");
+            let error = eval_error(
+                &mut context,
+                "var weak, reads = 0;
+                 throw Object.defineProperty(new Error(), 'message', { get() {
+                     weak = new WeakRef({});
+                     if (++reads === 2) throw 7;
+                     return 'boom';
+                 } });",
+            );
+            for failure in [None, Some(JsTryNativeError::InaccessibleProperty)] {
+                assert_eq!(error.try_native(&mut context).err(), failure);
+                let target = eval_after_gc(&mut context, "weak.deref()");
+                assert_eq!(target.get_type(), JsValueType::Undefined);
+            }
         }
 
         #[test]
