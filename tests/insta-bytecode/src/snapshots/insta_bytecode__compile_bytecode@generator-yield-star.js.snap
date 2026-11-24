@@ -15,8 +15,8 @@ Location     Handler      Opcode                            Operands
   000043                    SetHomeObject                     function:r03, home:r01
   00004c                    DefineOwnPropertyByValue          object:r01, key:r02, value:r03
   000059                    SetNameByLocator                  src:r01
-  00005e                    CheckReturn
-  00005f                    Return
+  00005e                    CheckReturn                       
+  00005f                    Return                            
 
 Register Count: 4, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
 Constants:

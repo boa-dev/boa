@@ -12,7 +12,7 @@ Location     Handler      Opcode                            Operands
   000019                    Jump                              address:000027
   00001e                    Inc                               src:r02, dst:r02
   000027                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:000147
-  000034                    IncrementLoopIteration
+  000034                    IncrementLoopIteration            
   000035                    StoreTrue                         dst:r04
   00003a                    StoreZero                         dst:r05
   00003f    > 0: 0000aa     StoreInt8                         value:2, dst:r07
@@ -53,8 +53,8 @@ Location     Handler      Opcode                            Operands
   000142                    Jump                              address:00001e
   000147                    GetName                           dst:r03, binding_index:0
   000150                    SetAccumulator                    src:r03
-  000155                    CheckReturn
-  000156                    Return
+  000155                    CheckReturn                       
+  000156                    Return                            
 
 Register Count: 10, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
 Constants:

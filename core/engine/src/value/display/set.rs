@@ -9,9 +9,7 @@ pub(super) fn log_set_to(
     print_internals: bool,
     print_children: bool,
 ) -> fmt::Result {
-    let set = v
-        .downcast_ref::<Set>()
-        .expect("object must be a set");
+    let set = v.downcast_ref::<Set>().expect("object must be a set");
     let size = set.0.len();
 
     if size == 0 {
@@ -41,9 +39,7 @@ pub(super) fn log_set_compact(
     print_internals: bool,
     encounters: &mut HashSet<usize>,
 ) -> fmt::Result {
-    let set = v
-        .downcast_ref::<Set>()
-        .expect("object must be a set");
+    let set = v.downcast_ref::<Set>().expect("object must be a set");
     let size = set.0.len();
 
     if size == 0 {

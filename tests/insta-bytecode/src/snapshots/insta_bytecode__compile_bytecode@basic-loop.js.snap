@@ -10,10 +10,10 @@ Location     Handler      Opcode                            Operands
   00000b                    Jump                              address:000019
   000010                    Inc                               src:r02, dst:r02
   000019                    JumpIfNotLessThan                 lhs:r02, rhs:r03, address:00002c
-  000026                    IncrementLoopIteration
+  000026                    IncrementLoopIteration            
   000027                    Jump                              address:000010
-  00002c                    CheckReturn
-  00002d                    Return
+  00002c                    CheckReturn                       
+  00002d                    Return                            
 
 Register Count: 5, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
 Constants: <empty>

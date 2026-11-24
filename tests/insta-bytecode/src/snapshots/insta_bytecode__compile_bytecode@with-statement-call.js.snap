@@ -17,9 +17,9 @@ Location     Handler      Opcode                            Operands
   000041                    Call                              argument_count:0
   000046                    PopIntoRegister                   dst:r01
   00004b                    SetAccumulator                    src:r01
-  000050                    PopEnvironment
-  000051                    CheckReturn
-  000052                    Return
+  000050                    PopEnvironment                    
+  000051                    CheckReturn                       
+  000052                    Return                            
 
 Register Count: 4, Flags: CodeBlockFlags(HAS_PROTOTYPE_PROPERTY)
 Constants:
