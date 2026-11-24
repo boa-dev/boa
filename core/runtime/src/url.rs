@@ -310,8 +310,7 @@ impl UrlSearchParams {
             },
             context,
         )?
-        .downcast::<Self>()
-        .map_err(|_| js_error!(Error: "URLSearchParams class should be registered"))
+        .require_internal_slot::<Self>()
     }
 
     fn pairs(&self) -> Vec<(JsString, JsString)> {

@@ -71,7 +71,12 @@ trace = ["js"]
 annex-b = ["boa_ast/annex-b", "boa_parser/annex-b"]
 
 # Enable Boa's Temporal proposal implementation
-temporal = ["dep:icu_calendar", "dep:temporal_rs", "dep:timezone_provider", "timezone_provider/experimental_tzif"]
+temporal = [
+    "dep:icu_calendar",
+    "dep:temporal_rs",
+    "dep:timezone_provider",
+    "timezone_provider/experimental_tzif",
+]
 
 #Enable access to host system timezone
 system-time-zone = ["dep:iana-time-zone"]
@@ -122,7 +127,9 @@ thiserror.workspace = true
 dashmap.workspace = true
 num_enum.workspace = true
 thin-vec.workspace = true
-itertools = { workspace = true, default-features = false, features = ["use_alloc"] }
+itertools = { workspace = true, default-features = false, features = [
+    "use_alloc",
+] }
 icu_normalizer = { workspace = true, features = [
     "compiled_data",
     "utf16_iter",
@@ -153,7 +160,7 @@ icu_locale = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_datetime = { workspace = true, default-features = false, features = [
     "serde",
-    "unstable"
+    "unstable",
 ], optional = true }
 icu_time = { workspace = true, default-features = false, features = [
     "serde",
@@ -178,14 +185,13 @@ icu_segmenter = { workspace = true, default-features = false, features = [
     "serde",
 ], optional = true }
 icu_decimal = { workspace = true, default-features = false, features = [
-    "serde", "unstable"
+    "serde",
+    "unstable",
 ], optional = true }
 writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }
 zerofrom = { workspace = true, optional = true }
-fixed_decimal = { workspace = true, features = [
-    "ryu",
-], optional = true }
+fixed_decimal = { workspace = true, features = ["ryu"], optional = true }
 tinystr = { workspace = true, optional = true }
 
 # temporal deps

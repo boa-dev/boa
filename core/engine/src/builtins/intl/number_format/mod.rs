@@ -677,15 +677,8 @@ impl NumberFormat {
 
         // 1. Let nf be the this value.
         // 2. Perform ? RequireInternalSlot(nf, [[InitializedNumberFormat]]).
-        let nf = this
-            .as_object()
-            .and_then(|o| o.downcast::<Self>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError:
-                    "value was not an initialized `Intl.NumberFormat` object"
-                )
-            })?;
+        let nf = this.require_internal_slot::<Self>()?;
+
         // 3. Let x be ? ToIntlMathematicalValue(value).
         let mut x = to_intl_mathematical_value(args.get_or_undefined(0), context)?;
 

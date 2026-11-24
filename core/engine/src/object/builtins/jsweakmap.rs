@@ -30,7 +30,7 @@ impl JsWeakMap {
             inner: JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 context.intrinsics().constructors().weak_map().prototype(),
-                NativeWeakMap::new(),
+                WeakMap(NativeWeakMap::new()),
             )
             .upcast(),
         }
@@ -134,7 +134,7 @@ impl JsWeakMap {
     /// if it is not a `WeakMap`.
     #[inline]
     pub fn from_object(object: JsObject) -> Result<Self, JsObject> {
-        if object.downcast_ref::<NativeWeakMap>().is_some() {
+        if object.downcast_ref::<WeakMap>().is_some() {
             Ok(Self { inner: object })
         } else {
             Err(object)

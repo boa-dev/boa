@@ -37,6 +37,13 @@ impl JsData for BoundFunction {
             &FUNCTION_METHODS
         }
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "BoundFunction"
+    }
 }
 
 impl BoundFunction {

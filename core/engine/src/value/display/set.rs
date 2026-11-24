@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fmt;
 
-use crate::{JsObject, builtins::set::ordered_set::OrderedSet};
+use crate::{JsObject, builtins::set::Set};
 
 pub(super) fn log_set_to(
     f: &mut fmt::Formatter<'_>,
@@ -9,10 +9,8 @@ pub(super) fn log_set_to(
     print_internals: bool,
     print_children: bool,
 ) -> fmt::Result {
-    let set = v
-        .downcast_ref::<OrderedSet>()
-        .expect("object must be a set");
-    let size = set.len();
+    let set = v.downcast_ref::<Set>().expect("object must be a set");
+    let size = set.0.len();
 
     if size == 0 {
         return f.write_str("Set(0)");
@@ -24,7 +22,7 @@ pub(super) fn log_set_to(
 
     f.write_str("Set { ")?;
     let mut first = true;
-    for value in set.iter() {
+    for value in set.0.iter() {
         if !first {
             f.write_str(", ")?;
         }
@@ -41,10 +39,8 @@ pub(super) fn log_set_compact(
     print_internals: bool,
     encounters: &mut HashSet<usize>,
 ) -> fmt::Result {
-    let set = v
-        .downcast_ref::<OrderedSet>()
-        .expect("object must be a set");
-    let size = set.len();
+    let set = v.downcast_ref::<Set>().expect("object must be a set");
+    let size = set.0.len();
 
     if size == 0 {
         return f.write_str("Set(0)");
@@ -56,7 +52,7 @@ pub(super) fn log_set_compact(
 
     f.write_str("Set { ")?;
     let mut first = true;
-    for value in set.iter() {
+    for value in set.0.iter() {
         if !first {
             f.write_str(", ")?;
         }

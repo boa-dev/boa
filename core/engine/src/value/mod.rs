@@ -37,6 +37,7 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
 };
+use crate::{NativeObject, js_error};
 
 mod conversions;
 pub(crate) mod display;
@@ -1474,6 +1475,20 @@ impl JsValue {
         } else {
             Ok(self)
         }
+    }
+
+    /// Downcasts `self` to a `JsObject<T>`, returning a
+    /// `TypeError` if the cast fails.
+    pub fn require_internal_slot<T: NativeObject>(&self) -> JsResult<JsObject<T>> {
+        let Some(obj) = self.as_object() else {
+            return Err(js_error!(
+                TypeError: "cannot downcast a value of type `{}` to an object with internal slot `{}`",
+                self.type_of(),
+                T::type_name()
+            ));
+        };
+
+        obj.require_internal_slot()
     }
 
     /// The abstract operation `ToPropertyDescriptor`.

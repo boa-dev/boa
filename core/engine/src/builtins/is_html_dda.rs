@@ -40,6 +40,13 @@ impl JsData for IsHTMLDDA {
         };
         &IS_HTML_DDA_INTERNAL_METHODS
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "IsHTMLDDA"
+    }
 }
 
 /// The `[[Call]]` internal method for `IsHTMLDDA` objects.

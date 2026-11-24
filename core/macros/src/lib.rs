@@ -453,7 +453,15 @@ decl_derive! {
 /// Derives the `JsData` trait.
 #[allow(clippy::needless_pass_by_value)]
 fn derive_js_data(s: Structure<'_>) -> proc_macro2::TokenStream {
-    s.unbound_impl(quote!(::boa_engine::JsData), quote!())
+    let name = &s.ast().ident.to_string();
+    s.unbound_impl(
+        quote!(::boa_engine::JsData),
+        quote!(
+            fn type_name() -> &'static str {
+                #name
+            }
+        ),
+    )
 }
 
 /// Derives the `TryFromJs` trait, with the `#[boa()]` attribute.

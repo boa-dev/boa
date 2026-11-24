@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 use std::fmt::{self, Display};
 
+use crate::builtins::Map;
+use crate::builtins::weak_map::WeakMap;
+use crate::builtins::weak_set::WeakSet;
 use crate::property::CompletePropertyDescriptor;
 use crate::{
     JsError, JsString, JsValue, JsVariant,
@@ -11,12 +14,9 @@ use crate::{
             OrdinaryFunction,
             arguments::{MappedArguments, UnmappedArguments},
         },
-        map::ordered_map::OrderedMap,
         promise::PromiseState,
-        set::ordered_set::OrderedSet,
+        set::Set,
         typed_array::TypedArray,
-        weak_map::NativeWeakMap,
-        weak_set::NativeWeakSet,
     },
     js_string,
     property::PropertyKey,
@@ -48,13 +48,13 @@ pub(crate) fn log_value_to(
                 super::array::log_array_to(f, &v, print_internals, print_children)
             } else if v.is::<UnmappedArguments>() || v.is::<MappedArguments>() {
                 super::arguments::log_arguments_to(f, &v, print_internals, print_children)
-            } else if v.downcast_ref::<OrderedMap<JsValue>>().is_some() {
+            } else if v.downcast_ref::<Map>().is_some() {
                 super::map::log_map_to(f, &v, print_internals, print_children)
-            } else if v.downcast_ref::<OrderedSet>().is_some() {
+            } else if v.downcast_ref::<Set>().is_some() {
                 super::set::log_set_to(f, &v, print_internals, print_children)
-            } else if v.downcast_ref::<NativeWeakMap>().is_some() {
+            } else if v.downcast_ref::<WeakMap>().is_some() {
                 f.write_str("WeakMap { <items unknown> }")
-            } else if v.downcast_ref::<NativeWeakSet>().is_some() {
+            } else if v.downcast_ref::<WeakSet>().is_some() {
                 f.write_str("WeakSet { <items unknown> }")
             } else if v.is::<Error>() {
                 let name: std::borrow::Cow<'static, str> = v
@@ -203,13 +203,13 @@ pub(super) fn log_value_compact(
                 }
             } else if v.is::<UnmappedArguments>() || v.is::<MappedArguments>() {
                 f.write_str("[Arguments]")
-            } else if v.downcast_ref::<OrderedMap<JsValue>>().is_some() {
+            } else if v.downcast_ref::<Map>().is_some() {
                 super::map::log_map_compact(f, &v, depth, print_internals, encounters)
-            } else if v.downcast_ref::<OrderedSet>().is_some() {
+            } else if v.downcast_ref::<Set>().is_some() {
                 super::set::log_set_compact(f, &v, depth, print_internals, encounters)
-            } else if v.downcast_ref::<NativeWeakMap>().is_some() {
+            } else if v.downcast_ref::<WeakMap>().is_some() {
                 f.write_str("WeakMap { <items unknown> }")
-            } else if v.downcast_ref::<NativeWeakSet>().is_some() {
+            } else if v.downcast_ref::<WeakSet>().is_some() {
                 f.write_str("WeakSet { <items unknown> }")
             } else if v.downcast_ref::<crate::builtins::date::Date>().is_some()
                 || v.downcast_ref::<crate::builtins::regexp::RegExp>()

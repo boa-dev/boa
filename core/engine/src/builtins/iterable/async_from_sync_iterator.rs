@@ -6,6 +6,7 @@ use crate::{
         promise::{PromiseCapability, if_abrupt_reject_promise},
     },
     context::intrinsics::Intrinsics,
+    error::PanicError,
     js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
@@ -344,14 +345,19 @@ impl AsyncFromSyncIterator {
             //    true, then
             Err(e) if !done && close_on_rejection => {
                 // a. Set valueWrapper to Completion(IteratorClose(syncIteratorRecord, valueWrapper)).
-                Err(sync_iterator_record.close(Err(e), context).expect_err(
-                    "closing an iterator with an error must always return an error back",
-                ))
+                let Err(e) = sync_iterator_record.close(Err(e), context) else {
+                    return Err(PanicError::new(
+                        "closing an iterator with an error must always return an error back",
+                    )
+                    .into());
+                };
+
+                Err(e)
             }
-            other => other.map(|o| {
-                o.downcast::<Promise>()
-                    .expect("%Promise% constructor must return a `Promise` object")
-            }),
+            Err(e) => Err(e),
+            Ok(o) => Ok(o
+                .require_internal_slot::<Promise>()
+                .js_expect("%Promise% constructor must return a `Promise` object")?),
         };
 
         // 8. IfAbruptRejectPromise(valueWrapper, promiseCapability).

@@ -70,14 +70,9 @@ impl JsSharedArrayBuffer {
     /// the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        object
-            .downcast::<SharedArrayBuffer>()
-            .map(|inner| Self { inner })
-            .map_err(|_| {
-                JsNativeError::typ()
-                    .with_message("object is not a SharedArrayBuffer")
-                    .into()
-            })
+        Ok(Self {
+            inner: object.require_internal_slot::<SharedArrayBuffer>()?,
+        })
     }
 
     /// Returns the byte length of the array buffer.

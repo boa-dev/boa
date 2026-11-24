@@ -1,11 +1,12 @@
 //! Implements a map type that preserves insertion order.
 
-use crate::{JsData, JsValue, object::JsObject};
+use crate::{JsData, JsValue, NativeObject, object::JsObject};
 use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::{Equivalent, IndexMap};
 use std::{
     fmt::Debug,
     hash::{Hash, Hasher},
+    marker::PhantomData,
 };
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -220,17 +221,20 @@ impl<V> OrderedMap<V> {
     }
 }
 
-pub(crate) struct MapLock<'a, V: Trace + 'static>(&'a JsObject<OrderedMap<V>>);
+pub(crate) struct MapLock<'a, V, A: NativeObject + AsMut<OrderedMap<V>>>(
+    &'a JsObject<A>,
+    PhantomData<V>,
+);
 
-impl<'a, V: Trace + 'static> MapLock<'a, V> {
-    pub(crate) fn new(js_object: &'a JsObject<OrderedMap<V>>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
-        Self(js_object)
+impl<'a, V, A: NativeObject + AsMut<OrderedMap<V>>> MapLock<'a, V, A> {
+    pub(crate) fn new(js_object: &'a JsObject<A>) -> Self {
+        js_object.borrow_mut().data_mut().as_mut().lock();
+        Self(js_object, PhantomData)
     }
 }
 
-impl<V: Trace + 'static> Drop for MapLock<'_, V> {
+impl<V, A: NativeObject + AsMut<OrderedMap<V>>> Drop for MapLock<'_, V, A> {
     fn drop(&mut self) {
-        self.0.borrow_mut().data_mut().unlock();
+        self.0.borrow_mut().data_mut().as_mut().unlock();
     }
 }

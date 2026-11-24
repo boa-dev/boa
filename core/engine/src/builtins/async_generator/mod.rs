@@ -136,11 +136,7 @@ impl AsyncGenerator {
                 .into()
         });
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
-        let result: JsResult<_> = generator.clone().downcast::<Self>().map_err(|_| {
-            JsNativeError::typ()
-                .with_message("generator resumed on non generator object")
-                .into()
-        });
+        let result: JsResult<_> = generator.require_internal_slot::<Self>();
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
 
         Self::inner_next(
@@ -221,11 +217,7 @@ impl AsyncGenerator {
                 .into()
         });
         let generator_object = if_abrupt_reject_promise!(result, promise_capability, context);
-        let result: JsResult<_> = generator_object.clone().downcast::<Self>().map_err(|_| {
-            JsNativeError::typ()
-                .with_message("generator resumed on non generator object")
-                .into()
-        });
+        let result: JsResult<_> = generator_object.require_internal_slot::<Self>();
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
 
         Self::inner_return(
@@ -301,11 +293,7 @@ impl AsyncGenerator {
                 .into()
         });
         let generator_object = if_abrupt_reject_promise!(result, promise_capability, context);
-        let result: JsResult<_> = generator_object.clone().downcast::<Self>().map_err(|_| {
-            JsNativeError::typ()
-                .with_message("generator resumed on non generator object")
-                .into()
-        });
+        let result: JsResult<_> = generator_object.require_internal_slot::<Self>();
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
         Self::inner_throw(
             &generator,
