@@ -159,6 +159,99 @@ static bool contexts_are_isolated(void) {
     return valid;
 }
 
+static bool converts(BoaContext *context, const char *source, JsNativeErrorKind kind,
+                     const char *message, bool original_first) {
+    JsError *error = eval_error(context, view(source));
+    if (error == NULL) {
+        return false;
+    }
+    boa_JsError_try_native_result converted = boa_JsError_try_native(error, context);
+    if (!converted.is_ok || converted.ok == NULL) {
+        boa_JsError_destroy(error);
+        return false;
+    }
+    bool valid = boa_JsError_get_representation(error) == JsErrorRepresentation_Opaque;
+    if (original_first) {
+        boa_JsError_destroy(error);
+    }
+
+    boa_JsError_as_native_result info = boa_JsError_as_native(converted.ok);
+    valid = valid &&
+        boa_JsError_get_representation(converted.ok) == JsErrorRepresentation_Native &&
+        info.is_ok && info.ok.kind == kind && info.ok.message.len == strlen(message) &&
+        (info.ok.message.len == 0 ||
+         memcmp(info.ok.message.data, message, info.ok.message.len) == 0);
+    boa_JsError_destroy(converted.ok);
+    if (!original_first) {
+        valid = valid && boa_JsError_get_representation(error) == JsErrorRepresentation_Opaque;
+        boa_JsError_destroy(error);
+    }
+    return valid;
+}
+
+static bool conversions(BoaContext *context) {
+    return converts(context, "throw new Error('boom')", JsNativeErrorKind_Error, "boom", true) &&
+        converts(context, "throw new Error('boom')", JsNativeErrorKind_Error, "boom", false) &&
+        converts(context, "throw new TypeError('bad type')",
+                 JsNativeErrorKind_Type, "bad type", false) &&
+        converts(context, "class Sub extends Error {} throw new Sub('sub')",
+                 JsNativeErrorKind_Error, "sub", false);
+}
+
+// A failed conversion must leave the error with its representation and payload.
+static bool conversion_fails(BoaContext *context, const char *source,
+                             JsErrorRepresentation representation, JsTryNativeError reason) {
+    JsError *error = eval_error(context, view(source));
+    if (error == NULL) {
+        return false;
+    }
+    boa_JsError_try_native_result converted = boa_JsError_try_native(error, context);
+    JsValue *payload = boa_JsError_as_opaque(error);
+    bool valid = !converted.is_ok && converted.err == reason &&
+        boa_JsError_get_representation(error) == representation &&
+        (payload != NULL) == (representation == JsErrorRepresentation_Opaque);
+    if (converted.is_ok && converted.ok != NULL) {
+        boa_JsError_destroy(converted.ok);
+    }
+    if (payload != NULL) {
+        boa_JsValue_destroy(payload);
+    }
+    boa_JsError_destroy(error);
+    return valid;
+}
+
+static bool failed_conversions(BoaContext *context) {
+    const JsErrorRepresentation opaque = JsErrorRepresentation_Opaque;
+    return conversion_fails(context, "throw 7", opaque, JsTryNativeError_NotAnErrorObject) &&
+        conversion_fails(context, "throw { message: 'x' }",
+                         opaque, JsTryNativeError_NotAnErrorObject) &&
+        conversion_fails(context, "var e = new Error(); e.message = 7; throw e",
+                         opaque, JsTryNativeError_InvalidPropertyType) &&
+        conversion_fails(context, "throw new Error('\\ud800')",
+                         opaque, JsTryNativeError_InvalidMessageEncoding) &&
+        conversion_fails(context, "var e = new Error(); e.constructor = 7; throw e",
+                         opaque, JsTryNativeError_InvalidConstructor) &&
+        conversion_fails(context,
+                         "var e = new Error();"
+                         "Object.defineProperty(e, 'message', { get() { throw 1; } });"
+                         "throw e",
+                         opaque, JsTryNativeError_InaccessibleProperty) &&
+        conversion_fails(context,
+                         "var e = new AggregateError([1]);"
+                         "Object.defineProperty(e.errors, 0, { get() { throw 1; } });"
+                         "throw e",
+                         opaque, JsTryNativeError_InvalidErrorsIndex) &&
+        conversion_fails(context,
+                         "var revocable = Proxy.revocable(function () {}, {});"
+                         "var e = new Error();"
+                         "e.constructor = revocable.proxy;"
+                         "revocable.revoke();"
+                         "throw e",
+                         opaque, JsTryNativeError_InaccessibleRealm) &&
+        conversion_fails(context, "function recurse() { recurse(); } recurse()",
+                         JsErrorRepresentation_Engine, JsTryNativeError_EngineError);
+}
+
 static bool destruction_order(bool context_first) {
     BoaContext *context = boa_BoaContext_new();
     if (context == NULL) {
@@ -167,14 +260,23 @@ static bool destruction_order(bool context_first) {
     JsValue *value = eval_value(context, view("({ payload: 7 })"));
     JsError *error = eval_error(context, view("throw new Error('boom')"));
     JsValue *payload = error == NULL ? NULL : boa_JsError_as_opaque(error);
+    JsError *converted = NULL;
+    if (error != NULL) {
+        boa_JsError_try_native_result result = boa_JsError_try_native(error, context);
+        converted = result.is_ok ? result.ok : NULL;
+    }
     if (context_first) {
         boa_BoaContext_destroy(context);
     }
 
-    bool valid = value != NULL && error != NULL && payload != NULL &&
+    bool valid = value != NULL && error != NULL && payload != NULL && converted != NULL &&
         boa_JsValue_get_type(value) == JsValueType_Object &&
         boa_JsError_get_representation(error) == JsErrorRepresentation_Opaque &&
-        boa_JsValue_get_type(payload) == JsValueType_Object;
+        boa_JsValue_get_type(payload) == JsValueType_Object &&
+        boa_JsError_get_representation(converted) == JsErrorRepresentation_Native;
+    if (converted != NULL) {
+        boa_JsError_destroy(converted);
+    }
     if (value != NULL) {
         boa_JsValue_destroy(value);
     }
@@ -205,6 +307,10 @@ int main(void) {
         failure = "eval results depended on the source buffer";
     } else if (!state_and_limits(context)) {
         failure = "eval state or engine limit handling failed";
+    } else if (!conversions(context)) {
+        failure = "thrown Error objects were not converted to native errors";
+    } else if (!failed_conversions(context)) {
+        failure = "failed conversions did not report their reason";
     }
     boa_BoaContext_destroy(context);
 
