@@ -83,6 +83,9 @@ pub struct Vm {
     pub(crate) pending_exception: Option<JsError>,
     pub(crate) runtime_limits: RuntimeLimits,
 
+    /// Cumulative loop iterations executed during the current top-level evaluation.
+    pub(crate) loop_iteration_count: u64,
+
     /// This is used to assign a native (rust) function as the active function,
     /// because we don't push a frame for them.
     pub(crate) native_active_function: Option<JsObject>,
@@ -418,6 +421,7 @@ impl Vm {
             return_value: JsValue::undefined(),
             pending_exception: None,
             runtime_limits: RuntimeLimits::default(),
+            loop_iteration_count: 0,
             native_active_function: None,
             host_call_depth: 0,
             shadow_stack: ShadowStack::default(),
@@ -636,7 +640,11 @@ impl Vm {
             return None;
         }
         self.shadow_stack.pop();
-        self.frames.pop()
+        let frame = self.frames.pop();
+        if self.frames.len() <= 1 {
+            self.loop_iteration_count = 0;
+        }
+        frame
     }
 
     /// Handles an exception thrown at position `pc`.
@@ -815,24 +823,15 @@ impl Context {
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
-            let mut frame = None;
-            let mut env_fp = self.vm.frame().environments.len();
-            loop {
-                if self.vm.frame().exit_early() {
+            while !self.vm.frame().exit_early() {
+                if self.vm.pop_frame().is_none() {
                     break;
                 }
-
-                env_fp = self.vm.frame().env_fp as usize;
-
-                let Some(f) = self.vm.pop_frame() else {
-                    break;
-                };
-                frame = Some(f);
             }
+            let env_fp = self.vm.frame().env_fp as usize;
             self.vm.frame_mut().environments.truncate(env_fp);
-            if let Some(frame) = frame {
-                self.vm.stack.truncate_to_frame(&frame);
-            }
+            let frame = self.vm.frames.last().expect("frame must exist");
+            self.vm.stack.truncate_to_frame(frame);
             return ControlFlow::Break(CompletionRecord::Throw(err));
         }
 
@@ -1015,6 +1014,8 @@ impl Context {
 
     /// Checks if we haven't exceeded the defined runtime limits.
     pub(crate) fn check_runtime_limits(&self) -> JsResult<()> {
+        self.host_hooks.check_interrupt()?;
+
         // Must throw if the number of recursive calls exceeds the defined limit.
         //
         // `host_call_depth` accounts for nested host calls that re-enter the VM by invoking

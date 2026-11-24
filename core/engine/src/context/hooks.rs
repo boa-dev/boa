@@ -223,6 +223,17 @@ pub trait HostHooks {
     fn max_buffer_size(&self, _context: &mut Context) -> u64 {
         1_610_612_736 // 1.5 GiB
     }
+
+    /// Checks whether the host has requested to interrupt execution.
+    ///
+    /// This hook is invoked on every `IncrementLoopIteration` opcode and before every
+    /// function or constructor call (`Context::check_runtime_limits`). Returning an
+    /// `Err` aborts execution; returning [`RuntimeLimitError::Interrupt`][crate::error::RuntimeLimitError::Interrupt]
+    /// produces an uncatchable engine error that cannot be swallowed by JavaScript
+    /// `try`/`catch` blocks.
+    fn check_interrupt(&self) -> JsResult<()> {
+        Ok(())
+    }
 }
 
 /// Default implementation of [`HostHooks`], which doesn't carry any state.
