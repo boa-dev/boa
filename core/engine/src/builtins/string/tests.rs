@@ -166,6 +166,28 @@ fn repeat_throws_when_count_overflows_max_length() {
 }
 
 #[test]
+fn repeat_loop_limit_fails_before_building_result() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_loop_iteration_limit(0);
+        }),
+        TestAction::assert_runtime_limit_error(
+            "'x'.repeat(100)",
+            crate::error::RuntimeLimitError::LoopIteration,
+        ),
+    ]);
+}
+
+#[test]
+fn repeat_moderate_count_without_loop_limit() {
+    run_test_actions([
+        TestAction::assert_eq("'ab'.repeat(1000).length", 2000),
+        TestAction::assert_eq("'ab'.repeat(1000).slice(0, 4)", js_str!("abab")),
+        TestAction::assert_eq("'ab'.repeat(1000).slice(-4)", js_str!("abab")),
+    ]);
+}
+
+#[test]
 fn repeat_generic() {
     run_test_actions([
         TestAction::run("Number.prototype.repeat = String.prototype.repeat;"),
