@@ -86,6 +86,25 @@ impl<'a> Iterator for Windows<'a> {
             WindowsInner::U16(iter) => iter.next().map(JsStr::utf16),
         }
     }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        match &self.inner {
+            WindowsInner::U8(iter) => iter.size_hint(),
+            WindowsInner::U16(iter) => iter.size_hint(),
+        }
+    }
+
+    // Forward to the slice iterator, which skips in constant time. The default
+    // implementation calls `next` once per skipped item, which makes
+    // `windows(n).skip(from_index)` (used by `JsStr::index_of`) cost `O(from_index)`.
+    #[inline]
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        match &mut self.inner {
+            WindowsInner::U8(iter) => iter.nth(n).map(JsStr::latin1),
+            WindowsInner::U16(iter) => iter.nth(n).map(JsStr::utf16),
+        }
+    }
 }
 
 impl FusedIterator for Windows<'_> {}
