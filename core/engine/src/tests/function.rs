@@ -437,3 +437,18 @@ fn var_shadowing_parameter_with_initializer_reads_parameter_env() {
         ),
     ]);
 }
+
+#[test]
+fn nested_arrow_functions_have_the_this_of_their_method() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const object = {
+                method() {
+                    return [1].map(() => [2].map(() => this.value));
+                },
+                value: 3,
+            };
+        "#}),
+        TestAction::assert_eq("object.method()[0][0]", 3),
+    ]);
+}

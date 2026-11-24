@@ -103,6 +103,8 @@ pub(crate) struct Inner {
     index: Cell<u32>,
     bindings: RefCell<Vec<Binding>>,
     function: bool,
+    // An arrow function's scope, which has the `this` of the function around it.
+    arrow: bool,
     // Has the `this` been accessed/escaped outside the function environment boundary.
     this_escaped: Cell<bool>,
 
@@ -120,6 +122,7 @@ impl Scope {
                 index: Cell::default(),
                 bindings: RefCell::default(),
                 function: true,
+                arrow: false,
                 this_escaped: Cell::new(false),
                 context: Rc::default(),
             }),
@@ -129,12 +132,23 @@ impl Scope {
     /// Creates a new scope.
     #[must_use]
     pub fn new(parent: Self, function: bool) -> Self {
+        Self::with_kind(parent, function, false)
+    }
+
+    /// Creates a new arrow function scope.
+    #[must_use]
+    pub fn new_arrow(parent: Self) -> Self {
+        Self::with_kind(parent, true, true)
+    }
+
+    fn with_kind(parent: Self, function: bool, arrow: bool) -> Self {
         Self {
             inner: Rc::new(Inner {
                 unique_id: parent.inner.context.next_unique_id(),
                 index: Cell::new(parent.inner.index.get() + 1),
                 bindings: RefCell::default(),
                 function,
+                arrow,
                 this_escaped: Cell::new(false),
                 context: parent.inner.context.clone(),
                 outer: Some(parent),
@@ -355,13 +369,14 @@ impl Scope {
         }
     }
 
-    /// Escape enclosing function environment's `this`.
+    /// Escape enclosing function environment's `this`: of the first function around this one that
+    /// isn't an arrow function, as arrow functions have the `this` of theirs.
     pub fn escape_this_in_enclosing_function_scope(&self) {
         let mut current = self;
         let mut crossed_function_border = false;
 
         loop {
-            if crossed_function_border && current.is_function() {
+            if crossed_function_border && current.is_function() && !current.inner.arrow {
                 current.inner.this_escaped.set(true);
                 return;
             }
