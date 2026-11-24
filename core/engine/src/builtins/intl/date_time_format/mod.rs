@@ -58,6 +58,7 @@ use icu_time::{
         models::{AtTime, Base},
     },
 };
+use temporal_rs::host::HostHooks;
 use timezone_provider::provider::TimeZoneId;
 use writeable::{PartsWrite, Writeable, adapters::CoreWriteAsPartsWrite};
 
@@ -197,6 +198,7 @@ impl BuiltInConstructor for DateTimeFormat {
             options,
             FormatType::Any,
             FormatDefaults::Date,
+            None,
             context,
         )?;
         let date_time_format = JsObject::from_proto_and_data(prototype, dtf);
@@ -593,14 +595,24 @@ impl ToLocalTime {
 
 // ==== Abstract Operations ====
 
-/// Creates a [`DateTimeFormat`] struct (internal slots only). The constructor wraps this in a
-/// `JsObject` with the correct prototype; Date.prototype.toLocaleString (and friends) use it
-/// directly with [`format_date_time`] without allocating a JS object.
+/// Abstract operation [`CreateDateTimeFormat ( newTarget, locales, options, required, defaults [ , toLocaleStringTimeZone ] )`][spec]
+///
+/// The abstract operation `CreateDateTimeFormat` takes arguments newTarget (a constructor), locales (an
+/// ECMAScript language value), options (an ECMAScript language value), required (date, time, or any), and defaults
+/// (date, time, or all) and optional argument toLocaleStringTimeZone (a primary time zone identifier) and returns
+/// either a normal completion containing a `DateTimeFormat` object or a throw completion.
+///
+/// If the additional toLocaleStringTimeZone argument is provided, the time zone will be overridden and some
+/// adjustments will be made to the defaults in order to implement the behaviour of
+/// Temporal.ZonedDateTime.prototype.toLocaleString.
+///
+/// [spec]: https://tc39.es/proposal-temporal/#sec-createdatetimeformat
 pub(crate) fn create_date_time_format(
     locales: &JsValue,
     options: &JsValue,
     date_time_format_type: FormatType,
     defaults: FormatDefaults,
+    to_locale_string_timezone: Option<JsString>,
     context: &mut Context,
 ) -> JsResult<DateTimeFormat> {
     // NOTE: The below step's code was moved out into constructor to prevent unnecessary JsObject allocation when we create dtf internally
@@ -608,174 +620,163 @@ pub(crate) fn create_date_time_format(
     // 1. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, "%Intl.DateTimeFormat.prototype%",
     // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]],
     // [[HourCycle]], [[DateStyle]], [[TimeStyle]], [[DateTimeFormat]], [[BoundFormat]] »).
-    // 2. Let hour12 be undefined. <- TODO
-    // 3. Let modifyResolutionOptions be a new Abstract Closure with parameters (options) that captures hour12 and performs the following steps when called:
-    //        a. Set hour12 to options.[[hour12]].
-    //        b. Remove field [[hour12]] from options.
-    //        c. If hour12 is not undefined, set options.[[hc]] to null.
-    // 4. Let optionsResolution be ? ResolveOptions(%Intl.DateTimeFormat%, %Intl.DateTimeFormat%.[[LocaleData]],
-    // locales, options, « coerce-options », modifyResolutionOptions).
-    //
-    // NOTE: We inline ResolveOptions here. (Could be worked into an abstract operation util function)
-    // ResolveOptions 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
+
+    // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
     let requested_locales = canonicalize_locale_list(locales, context)?;
-    // NOTE: skip ResolveOptions 2, which is based on `REQUIRE-OPTIONS` vs `COERCE-OPTIONS`
-    // ResolveOptions 3. If specialBehaviours is present and contains coerce-options,
-    // set options to ? CoerceOptionsToObject(options). Otherwise, set options to ? GetOptionsObject(options).
+    // 3. Set options to ? CoerceOptionsToObject(options).
     let options = coerce_options_to_object(options, context)?;
-    // ResolveOptions 4. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-    let matcher = get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
-    // NOTE: We unroll the below const loop in step 6 using the
-    // ResolutionOptionDescriptors from the internal slots
-    // https://tc39.es/ecma402/#sec-intl.datetimeformat-internal-slots
-    let mut preferences = DateTimeFormatterPreferences::default();
+    // 4. Let opt be a new Record.
+    // 5. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
+    // 6. Set opt.[[localeMatcher]] to matcher.
+    let mut opt = IntlOptions::<DateTimeFormatterPreferences> {
+        matcher: get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default(),
+        ..Default::default()
+    };
 
-    // 6. For each Resolution Option Descriptor desc of constructor.[[ResolutionOptionDescriptors]], do
-    // a. If desc has a [[Type]] field, let type be desc.[[Type]]. Otherwise, let type be string.
-    // b. If desc has a [[Values]] field, let values be desc.[[Values]]. Otherwise, let values be empty.
-    // c. Let value be ? GetOption(options, desc.[[Property]], type, values, undefined).
-    // d. If value is not undefined, then
-    // i. Set value to ! ToString(value).
-    // ii. If value cannot be matched by the type Unicode locale nonterminal, throw a RangeError exception.
-    // e. Let key be desc.[[Key]].
-    // f. Set opt.[[<key>]] to value.
-
-    // Handle { [[Key]]: "ca", [[Property]]: "calendar" }
-    preferences.calendar_algorithm =
+    // 7. Let calendar be ? GetOption(options, "calendar", string, empty, undefined).
+    // 8. If calendar is not undefined, then
+    //    a. If calendar cannot be matched by the type Unicode locale nonterminal, throw a RangeError exception.
+    // 9. Set opt.[[ca]] to calendar.
+    opt.preferences.calendar_algorithm =
         get_option::<Value>(&options, js_string!("calendar"), context)?
             .and_then(|ca| CalendarAlgorithm::try_from(&ca).ok());
 
-    // { [[Key]]: "nu", [[Property]]: "numberingSystem" }
-    preferences.numbering_system =
+    // 10. Let numberingSystem be ? GetOption(options, "numberingSystem", string, empty, undefined).
+    // 11. If numberingSystem is not undefined, then
+    //     a. If numberingSystem cannot be matched by the type Unicode locale nonterminal, throw a RangeError exception.
+    // 12. Set opt.[[nu]] to numberingSystem.
+    opt.preferences.numbering_system =
         get_option::<Value>(&options, js_string!("numberingSystem"), context)?
-            .map(NumberingSystem::try_from)
-            .transpose()
-            .map_err(|_icu4x_error| js_error!(RangeError: "unknown numbering system"))?;
+            .and_then(|nu| NumberingSystem::try_from(nu).ok());
 
-    // { [[Key]]: "hour12", [[Property]]: "hour12", [[Type]]: boolean }
+    // 13. Let hour12 be ? GetOption(options, "hour12", boolean, empty, undefined).
     let hour_12 = get_option::<bool>(&options, js_string!("hour12"), context)?;
 
-    // { [[Key]]: "hc", [[Property]]: "hourCycle", [[Values]]: « "h11", "h12", "h23", "h24" » }
-    preferences.hour_cycle =
+    // 14. Let hourCycle be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
+    // 15. If hour12 is not undefined, then
+    //     a. Set hourCycle to null.
+    // 16. Set opt.[[hc]] to hourCycle.
+    opt.preferences.hour_cycle =
         match get_option::<options::HourCycle>(&options, js_string!("hourCycle"), context)? {
-            // Handle steps 3.a-c here
-            // c. If hour12 is not undefined, set options.[[hc]] to null.
             _ if hour_12.is_some() => None,
             Some(hc) => Some(IcuHourCycle::try_from(hc)?),
             _ => None,
         };
 
-    let mut intl_options = IntlOptions {
-        matcher,
-        preferences,
-    };
-
-    // ResolveOptions 8. Let resolution be ResolveLocale(constructor.[[AvailableLocales]], requestedLocales,
-    // opt, constructor.[[RelevantExtensionKeys]], localeData).
-    let resolved_locale = resolve_locale::<DateTimeFormat>(
-        requested_locales,
-        &mut intl_options,
-        context.intl_provider(),
-    )?;
+    // 17. Let r be ResolveLocale(%Intl.DateTimeFormat%.[[AvailableLocales]], requestedLocales,
+    // opt, %Intl.DateTimeFormat%.[[RelevantExtensionKeys]], %Intl.DateTimeFormat%.[[LocaleData]]).
+    let locale =
+        resolve_locale::<DateTimeFormat>(requested_locales, &mut opt, context.intl_provider())?;
 
     // TODO: The resolved calendar, numbering system, and hour cycle should come from
     // the ICU4X locale resolution result, not hardcoded defaults. However, ICU4X does
     // not yet expose getters for these computed values on DateTimeFormatter.
     // This means e.g. `new Intl.DateTimeFormat("ar").resolvedOptions().numberingSystem`
     // incorrectly returns "latn" instead of "arab".
-    // Tracked at: unicode-org/icu4x#5868
-    if intl_options.preferences.calendar_algorithm.is_none() {
-        intl_options.preferences.calendar_algorithm = CalendarAlgorithm::try_from(
+    // Tracked at: https://github.com/unicode-org/icu4x/issues/5868
+    if opt.preferences.calendar_algorithm.is_none() {
+        opt.preferences.calendar_algorithm = CalendarAlgorithm::try_from(
             &Value::try_from_str("gregory").expect("'gregory' is a valid BCP 47 value"),
         )
         .ok();
     }
 
-    if intl_options.preferences.numbering_system.is_none() {
-        intl_options.preferences.numbering_system = NumberingSystem::try_from(
+    if opt.preferences.numbering_system.is_none() {
+        opt.preferences.numbering_system = NumberingSystem::try_from(
             Value::try_from_str("latn").expect("'latn' is a valid BCP 47 value"),
         )
         .ok();
     }
 
-    if intl_options.preferences.hour_cycle.is_none() {
-        intl_options.preferences.hour_cycle = IcuHourCycle::try_from(
+    if opt.preferences.hour_cycle.is_none() {
+        opt.preferences.hour_cycle = IcuHourCycle::try_from(
             &Value::try_from_str("h12").expect("'h12' is a valid BCP 47 value"),
         )
         .ok();
     }
-    // 5. Set options to optionsResolution.[[Options]].
-    // 6. Let r be optionsResolution.[[ResolvedLocale]].
-    // 7. Set (deferred) dateTimeFormat.[[Locale]] to r.[[Locale]].
-    // 8. Let (deferred) resolvedCalendar be r.[[ca]].
-    // 9. Set (deferred) dateTimeFormat.[[Calendar]] to resolvedCalendar.
-    // 10. Set (deferred) dateTimeFormat.[[NumberingSystem]] to r.[[nu]].
-    // 11. Let (deferred) resolvedLocaleData be r.[[LocaleData]].
+
+    // 18. (deferred) Set dateTimeFormat.[[Locale]] to r.[[Locale]].
+    // 19. (deferred) Let resolvedCalendar be r.[[ca]].
+    // 20. (deferred) Set dateTimeFormat.[[Calendar]] to resolvedCalendar.
+    // 21. (deferred) Set dateTimeFormat.[[NumberingSystem]] to r.[[nu]].
+    // 22. (deferred) Let resolvedLocaleData be r.[[LocaleData]].
 
     // TODO: Handle hour12 and hc
-    // 12. If hour12 is true, then
+    // 23. If hour12 is true, then
     // a. Let hc be resolvedLocaleData.[[hourCycle12]].
-    // 13. Else if hour12 is false, then
+    // 24. Else if hour12 is false, then
     // a. Let hc be resolvedLocaleData.[[hourCycle24]].
-    // 14. Else,
+    // 25. Else,
     // a. Assert: hour12 is undefined.
     // b. Let hc be r.[[hc]].
     // c. If hc is null, set hc to resolvedLocaleData.[[hourCycle]].
+    // 26. (deferred) Set dateTimeFormat.[[HourCycle]] to hc.
 
-    // 15. Let timeZone be ? Get(options, "timeZone").
+    // 27. Let timeZone be ? Get(options, "timeZone").
     let time_zone = options.get(js_string!("timeZone"), context)?;
 
-    // 16. If timeZone is undefined, then
+    // 28. If timeZone is undefined, then
     let time_zone = if time_zone.is_undefined() {
-        // TODO (nekevss): Resolve system time zone
-        // a. Set timeZone to SystemTimeZoneIdentifier().
-        JsString::from("Etc/UTC")
-    // 17. Else,
+        // a. If toLocaleStringTimeZone is present, then
+        if let Some(tz) = to_locale_string_timezone {
+            // i. Set timeZone to toLocaleStringTimeZone.
+            tz
+        // b. Else,
+        } else {
+            // i. Set timeZone to SystemTimeZoneIdentifier().
+            let context: &Context = context;
+            let time_zone = context.get_system_time_zone(context.timezone_provider())?;
+            JsString::from(time_zone.identifier_with_provider(context.timezone_provider())?)
+        }
+    // 29. Else,
     } else {
-        // a. Set timeZone to ? ToString(timeZone).
+        // a. If toLocaleStringTimeZone is present, throw a TypeError exception.
+        if to_locale_string_timezone.is_some() {
+            return Err(
+                js_error!(TypeError: "cannot set option timeZone when Temporal.ZonedDateTime.toLocaleString is used"),
+            );
+        }
+        // b. Set timeZone to ? ToString(timeZone).
         time_zone.to_string(context)?
     };
-    // 18. If IsTimeZoneOffsetString(timeZone) is true, then
+
+    // 30. If IsTimeZoneOffsetString(timeZone) is true, then
     let time_zone_string = time_zone.to_std_string_escaped();
     // Note: Should a timezone enum be part of temporal_rs, icu_time, or an ECMA402 wrapper lib
     let time_zone = if let Ok(utc_offset) = UtcOffset::try_from_str(&time_zone_string) {
-        //  a. Let parseResult be ParseText(StringToCodePoints(timeZone), UTCOffset).
-        //  b. Assert: parseResult is a Parse Node.
-        //  c. If parseResult contains more than one MinuteSecond Parse Node, throw a RangeError exception.
-        //  d. Let offsetNanoseconds be ParseTimeZoneOffsetString(timeZone).
-        //  e. Let offsetMinutes be offsetNanoseconds / (6 × 10**10).
-        //  f. Assert: offsetMinutes is an integer.
-        //  g. Set timeZone to FormatOffsetTimeZoneIdentifier(offsetMinutes).
+        // a. Let parseResult be ParseText(StringToCodePoints(timeZone), UTCOffset[~SubMinutePrecision]).
+        // b. Assert: parseResult is a Parse Node.
+        // c. Let offsetNanoseconds be ? ParseDateTimeUTCOffset(timeZone).
+        // d. Let offsetMinutes be offsetNanoseconds / (6 × 10**10).
+        // e. Assert: offsetMinutes is an integer.
+        // f. Set timeZone to FormatOffsetTimeZoneIdentifier(offsetMinutes).
         FormatTimeZone::UtcOffset(utc_offset)
+    // 31. Else,
     } else {
-        // 19. Else,
-        //  a. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(timeZone).
-        //  b. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
-        //  c. Set timeZone to timeZoneIdentifierRecord.[[PrimaryIdentifier]].
+        // a. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(timeZone).
+        // b. If timeZoneIdentifierRecord is empty, then
+        //     i. Throw a RangeError exception.
+        // c. Set timeZone to timeZoneIdentifierRecord.[[Identifier]].
         let parser =
             IanaParser::try_new_with_buffer_provider(context.intl_provider().erased_provider())
-                .map_err(|_| {
-                    JsNativeError::error().with_message("Failed to init time zone data provider")
-                })?;
+                .map_err(|_| js_error!(Error: "failed to init time zone data provider"))?;
         let time_zone = parser.as_borrowed().parse(&time_zone_string);
         let time_zone_id = context
             .timezone_provider()
             .get(time_zone_string.as_bytes())
-            .map_err(|_| {
-                JsNativeError::range()
-                    .with_message(format!("{time_zone_string:#?} was not a valid time zone."))
-            })?;
+            .map_err(
+                |_| js_error!(RangeError: "{time_zone_string:?} was not a valid time zone."),
+            )?;
         FormatTimeZone::Identifier((time_zone, time_zone_id))
     };
-    // 20. (deferred) Set dateTimeFormat.[[TimeZone]] to timeZone.
+    // 32. (deferred) Set dateTimeFormat.[[TimeZone]] to timeZone.
 
-    // 21. Let formatOptions be a new Record.
-    // 22. Set formatOptions.[[hourCycle]] to hc.
-    // 23. Let hasExplicitFormatComponents be false.
-
-    // NOTE (nekevss): Step 24 is adopted in the `FormatOptions`
-    // 24. For each row of Table 16, except the header row, in table order, do
+    // 33. Let formatOptions be a new Record.
+    // 34. Set formatOptions.[[hourCycle]] to hc.
+    // 35. Let hasExplicitFormatComponents be false.
+    // NOTE: Step 36 is adopted in the `FormatOptions`
+    // 36. For each row of Table 16, except the header row, in table order, do
     //         a. Let prop be the name given in the Property column of the current row.
     //         b. If prop is "fractionalSecondDigits", then
     //                i. Let value be ? GetNumberOption(options, "fractionalSecondDigits", 1, 3, undefined).
@@ -785,18 +786,22 @@ pub(crate) fn create_date_time_format(
     //         d. Set formatOptions.[[<prop>]] to value.
     //         e. If value is not undefined, then
     //                i. Set hasExplicitFormatComponents to true.
-    let mut format_options = FormatOptions::try_init(&options, preferences.hour_cycle, context)?;
+    let mut format_options =
+        FormatOptions::try_init(&options, opt.preferences.hour_cycle, context)?;
 
     // TODO: how should formatMatcher be used?
-    // 25. Let formatMatcher be ? GetOption(options, "formatMatcher", string, « "basic", "best fit" », "best fit").
+    // 37. Let formatMatcher be ? GetOption(options, "formatMatcher", string, « "basic", "best fit" », "best fit").
     let format_matcher =
         get_option::<FormatMatcher>(&options, js_string!("formatMatcher"), context)?
             .unwrap_or(FormatMatcher::BestFit);
-    // 26. Let dateStyle be ? GetOption(options, "dateStyle", string, « "full", "long", "medium", "short" », undefined).
+
+    // 38. Let dateStyle be ? GetOption(options, "dateStyle", string, « "full", "long", "medium", "short" », undefined).
     let date_style = get_option::<FieldStyle>(&options, js_string!("dateStyle"), context)?;
-    // 27. Set dateTimeFormat.[[DateStyle]] to dateStyle.
-    // 28. Let timeStyle be ? GetOption(options, "timeStyle", string, « "full", "long", "medium", "short" », undefined).
+    // 39. (deferred) Set dateTimeFormat.[[DateStyle]] to dateStyle.
+
+    // 40. Let timeStyle be ? GetOption(options, "timeStyle", string, « "full", "long", "medium", "short" », undefined).
     let time_style = get_option::<FieldStyle>(&options, js_string!("timeStyle"), context)?;
+    // 41. (deferred) Set dateTimeFormat.[[TimeStyle]] to timeStyle.
 
     let format_style = match (date_style, time_style) {
         (None, None) => None,
@@ -808,8 +813,9 @@ pub(crate) fn create_date_time_format(
         }),
     };
 
-    // 29. (deferred) Set dateTimeFormat.[[TimeStyle]] to timeStyle.
-    // 30. If dateStyle is not undefined or timeStyle is not undefined, then
+    // 42. Let formats be resolvedLocaleData.[[formats]].[[<resolvedCalendar>]].
+
+    // 43. If dateStyle is not undefined or timeStyle is not undefined, then
     let fieldset = if let Some(format_style) = format_style {
         // a. If hasExplicitFormatComponents is true, then
         if format_options.has_explicit_format_components() {
@@ -840,14 +846,40 @@ pub(crate) fn create_date_time_format(
             }
             _ => {}
         }
-
-        // TODO (nekevss): implement d-e
+        // TODO: implement d-k
         // TODO (nekevss): Do we have access to the styles?
         // d. Let styles be resolvedLocaleData.[[styles]].[[<resolvedCalendar>]].
         // e. Let bestFormat be DateTimeStyleFormat(dateStyle, timeStyle, styles).
         date_time_style_format(format_style)?
-    // 31. Else,
+        // f. If dateStyle is not undefined, then
+        // i. Set dateTimeFormat.[[TemporalPlainDateFormat]] to AdjustDateTimeStyleFormat(formats, bestFormat, formatMatcher, « "weekday", "era", "year", "month", "day" »).
+        // ii. Set dateTimeFormat.[[TemporalPlainYearMonthFormat]] to AdjustDateTimeStyleFormat(formats, bestFormat, formatMatcher, « "era", "year", "month" »).
+        // iii. Set dateTimeFormat.[[TemporalPlainMonthDayFormat]] to AdjustDateTimeStyleFormat(formats, bestFormat, formatMatcher, « "month", "day" »).
+        // g. Else,
+        // i. Set dateTimeFormat.[[TemporalPlainDateFormat]] to null.
+        // ii. Set dateTimeFormat.[[TemporalPlainYearMonthFormat]] to null.
+        // iii. Set dateTimeFormat.[[TemporalPlainMonthDayFormat]] to null.
+        // h. If timeStyle is not undefined, then
+        // i. Set dateTimeFormat.[[TemporalPlainTimeFormat]] to AdjustDateTimeStyleFormat(formats, bestFormat, formatMatcher, « "dayPeriod", "hour", "minute", "second", "fractionalSecondDigits" »).
+        // i. Else,
+        // i. Set dateTimeFormat.[[TemporalPlainTimeFormat]] to null.
+        // j. Set dateTimeFormat.[[TemporalPlainDateTimeFormat]] to AdjustDateTimeStyleFormat(formats, bestFormat, formatMatcher, « "weekday", "era", "year", "month", "day", "dayPeriod", "hour", "minute", "second", "fractionalSecondDigits" »).
+        // k. Set dateTimeFormat.[[TemporalInstantFormat]] to bestFormat.
+
+        // 44. Else,
     } else {
+        // a. Let bestFormat be GetDateTimeFormat(formats, formatMatcher, formatOptions, required, defaults, all).
+        // b. Set dateTimeFormat.[[TemporalPlainDateFormat]] to GetDateTimeFormat(formats, formatMatcher, formatOptions, date, date, relevant).
+        // c. Set dateTimeFormat.[[TemporalPlainYearMonthFormat]] to GetDateTimeFormat(formats, formatMatcher, formatOptions, year-month, year-month, relevant).
+        // d. Set dateTimeFormat.[[TemporalPlainMonthDayFormat]] to GetDateTimeFormat(formats, formatMatcher, formatOptions, month-day, month-day, relevant).
+        // e. Set dateTimeFormat.[[TemporalPlainTimeFormat]] to GetDateTimeFormat(formats, formatMatcher, formatOptions, time, time, relevant).
+        // f. Set dateTimeFormat.[[TemporalPlainDateTimeFormat]] to GetDateTimeFormat(formats, formatMatcher, formatOptions, any, all, relevant).
+        // g. If toLocaleStringTimeZone is present, then
+        // i. Set dateTimeFormat.[[TemporalInstantFormat]] to GetDateTimeFormat(formats, formatMatcher, formatOptions, any, zoned-date-time, all).
+        // h. Else,
+        // i. Set dateTimeFormat.[[TemporalInstantFormat]] to GetDateTimeFormat(formats, formatMatcher, formatOptions, any, all, all).
+
+        // NOTE: The below is temporally preserved 'as-is' for proper work. This is about to be delete in the near future
         // a. Let needDefaults be true.
         // b. If required is date or any, then
         // i. For each property name prop of « "weekday", "year", "month", "day" », do
@@ -884,29 +916,27 @@ pub(crate) fn create_date_time_format(
             }
         }
     };
-    // 32. Set dateTimeFormat.[[DateTimeFormat]] to bestFormat.
-    // 33. If bestFormat has a field [[hour]], then
-    // a. Set dateTimeFormat.[[HourCycle]] to hc.
-    // 34. Return dateTimeFormat.
+    // 45. Set dateTimeFormat.[[DateTimeFormat]] to bestFormat.
+    // 46. Return dateTimeFormat.
     let formatter = DateTimeFormatter::try_new_with_buffer_provider(
         context.intl_provider().erased_provider(),
-        resolved_locale.clone().into(),
+        locale.clone().into(),
         fieldset,
     )
     .map_err(|e| js_error!(RangeError: "failed to load formatter: {}", e))?;
 
     let range_formatter = DateRangeFormatter::try_new_with_buffer_provider(
         context.intl_provider().erased_provider(),
-        resolved_locale.clone().into(),
+        locale.clone().into(),
         fieldset,
     )
     .map_err(|e| js_error!(RangeError: "failed to load formatter: {}", e))?;
 
     Ok(DateTimeFormat {
-        locale: resolved_locale,
-        calendar_algorithm: intl_options.preferences.calendar_algorithm,
-        numbering_system: intl_options.preferences.numbering_system,
-        hour_cycle: intl_options.preferences.hour_cycle,
+        locale,
+        calendar_algorithm: opt.preferences.calendar_algorithm,
+        numbering_system: opt.preferences.numbering_system,
+        hour_cycle: opt.preferences.hour_cycle,
         date_style,
         time_style,
         fractional_second_digits: format_options.fractional_second_digits(),
@@ -1203,7 +1233,7 @@ pub(crate) enum FormatDefaults {
     All,
 }
 
-/// Abstract operation [`UnwrapDateTimeFormat ( dtf )`][spec].
+/// Abstract operation [`UnwrapDateTimeFormat ( dtf )`][spec]
 ///
 /// This also checks that the returned object is a `DateTimeFormat`, which skips the
 /// call to `RequireInternalSlot`.
