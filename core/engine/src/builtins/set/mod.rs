@@ -118,7 +118,7 @@ fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
     })
 }
 
-/// The ECMASCript `Set`.
+/// The `Set` object.
 #[derive(Debug, Trace, Finalize, JsData)]
 pub struct Set(pub(crate) OrderedSet);
 

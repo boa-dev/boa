@@ -39,7 +39,7 @@ use ordered_map::OrderedMap;
 #[cfg(test)]
 mod tests;
 
-/// The ECMASCript `Map`.
+/// The `Map` object.
 #[derive(Debug, Trace, Finalize, JsData)]
 pub struct Map(pub(crate) OrderedMap<JsValue>);
 
