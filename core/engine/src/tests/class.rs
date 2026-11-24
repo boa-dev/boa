@@ -201,3 +201,18 @@ fn class_boolean_literal_getter_setter_names() {
         TestAction::assert_eq("c.false", 84),
     ]);
 }
+
+#[test]
+fn class_field_initializer_sets_a_static_private_field() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class C {
+                static #count = 0;
+                id = ++C.#count;
+            }
+            new C();
+            let c = new C();
+        "#}),
+        TestAction::assert_eq("c.id", 2),
+    ]);
+}
