@@ -46,10 +46,10 @@ pub(super) fn log_typed_array(
 
     write!(f, "{type_name}({length}) [ ")?;
 
-    let offset = inner.byte_offset() as usize;
-    let elem_size = kind.element_size() as usize;
+    let offset = inner.byte_offset();
+    let elem_size = kind.element_size();
 
-    for i in 0..length as usize {
+    for i in 0..length {
         if i > 0 {
             f.write_str(", ")?;
         }
