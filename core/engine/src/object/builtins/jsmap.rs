@@ -154,10 +154,7 @@ impl JsMap {
     /// # fn main() -> JsResult<()> {
     /// # let context = &mut Context::default();
     /// // `some_object` can be any JavaScript `Map` object.
-    /// let some_object = JsObject::from_proto_and_data(
-    ///     context.intrinsics().constructors().map().prototype(),
-    ///     OrderedMap::<JsValue>::new(),
-    /// );
+    /// let some_object: JsObject = JsMap::new(context).into();
     ///
     /// // Create `JsMap` object with incoming object.
     /// let js_map = JsMap::from_object(some_object)?;
