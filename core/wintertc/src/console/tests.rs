@@ -418,6 +418,41 @@ fn console_log_date() {
 }
 
 #[test]
+fn console_log_non_string_first_argument() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(logger.clone(), &mut context).unwrap();
+
+    run_test_actions_with(
+        [TestAction::run(indoc! {r#"
+            console.log([], { hello: 'world' });
+            console.log({ hello: 'world' }, 'tail');
+            console.log(Symbol('test'), 'tail');
+            console.log(['%s'], 'tail');
+            console.log(null, undefined, false, 42, 1n);
+            const array = [];
+            Object.defineProperty(array, 'toString', {
+                value() { throw new Error('must not call toString'); }
+            });
+            console.log(array, 'tail');
+        "#})],
+        &mut context,
+    );
+
+    assert_eq!(
+        *logger.log.borrow(),
+        indoc! {r#"
+            [] { hello: "world" }
+            { hello: "world" } tail
+            Symbol(test) tail
+            [ "%s" ] tail
+            null undefined false 42 1n
+            [] tail
+        "#}
+    );
+}
+
+#[test]
 fn trace_with_stack_trace() {
     let mut context = Context::default();
     let logger = RecordingLogger::default();
