@@ -685,3 +685,56 @@ fn to_precision_edge_cases() {
         TestAction::assert_eq("(9).toPrecision(1)", js_str!("9")),
     ]);
 }
+
+#[test]
+fn to_precision_subnormal() {
+    run_test_actions([
+        // {:.100} never reaches the first digit of a subnormal (~1e-324).
+        TestAction::assert_eq("Number.MIN_VALUE.toPrecision(1)", js_str!("5e-324")),
+        TestAction::assert_eq("Number.MIN_VALUE.toPrecision(2)", js_str!("4.9e-324")),
+        TestAction::assert_eq(
+            "Number.MIN_VALUE.toPrecision(17)",
+            js_str!("4.9406564584124654e-324"),
+        ),
+        TestAction::assert_eq(
+            "Number.MIN_VALUE.toPrecision(21)",
+            js_str!("4.94065645841246544177e-324"),
+        ),
+        TestAction::assert_eq(
+            "Number.MIN_VALUE.toPrecision(100)",
+            js_str!(
+                "4.940656458412465441765687928682213723650598026143247644255856825006755072702087518652998363616359924e-324"
+            ),
+        ),
+        TestAction::assert_eq("(-Number.MIN_VALUE).toPrecision(1)", js_str!("-5e-324")),
+        TestAction::assert_eq(
+            "(-Number.MIN_VALUE).toPrecision(21)",
+            js_str!("-4.94065645841246544177e-324"),
+        ),
+        // Same hole past the old 100-place window, including tiny normals.
+        TestAction::assert_eq("(1e-101).toPrecision(1)", js_str!("1e-101")),
+        TestAction::assert_eq("(1e-101).toPrecision(3)", js_str!("1.00e-101")),
+        TestAction::assert_eq("(5e-101).toPrecision(1)", js_str!("5e-101")),
+        TestAction::assert_eq("(1e-100).toPrecision(1)", js_str!("1e-100")),
+        TestAction::assert_eq("(-1e-120).toPrecision(2)", js_str!("-1.0e-120")),
+        TestAction::assert_eq("(2 ** -1022).toPrecision(1)", js_str!("2e-308")),
+        TestAction::assert_eq(
+            "(2 ** -1022).toPrecision(21)",
+            js_str!("2.22507385850720138309e-308"),
+        ),
+        TestAction::assert_eq("(2 ** -1023).toPrecision(1)", js_str!("1e-308")),
+        TestAction::assert_eq("(Number.MIN_VALUE * 3).toPrecision(1)", js_str!("1e-323")),
+        TestAction::assert_eq(
+            "(Number.MIN_VALUE * 3).toPrecision(4)",
+            js_str!("1.482e-323"),
+        ),
+        // Wider fixed-point output must not change nearby rounding or large values.
+        TestAction::assert_eq("(9.5e-320).toPrecision(1)", js_str!("9e-320")),
+        TestAction::assert_eq("(9.5e-320).toPrecision(2)", js_str!("9.5e-320")),
+        TestAction::assert_eq("(1.23e-10).toPrecision(2)", js_str!("1.2e-10")),
+        TestAction::assert_eq(
+            "Number.MAX_VALUE.toPrecision(21)",
+            js_str!("1.79769313486231570815e+308"),
+        ),
+    ]);
+}

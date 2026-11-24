@@ -490,7 +490,9 @@ impl Number {
             // Due to f64 limitations, this part differs a bit from the spec,
             // but has the same effect. It manipulates the string constructed
             // by `format`: digits with an optional dot between two of them.
-            suffix = format!("{this_num:.100}");
+            // Every finite f64 is a multiple of 2^-1074, so 1074 places is the
+            // exact fixed-point expansion. 100 places never reaches a subnormal.
+            suffix = format!("{this_num:.1074}");
 
             // a: getting an exponent
             exponent = Self::flt_str_to_exp(&suffix);
