@@ -120,6 +120,15 @@ static bool invalid_utf8(BoaContext *context) {
     return has_number(context, "ran", 0.0);
 }
 
+static bool source_uses_byte_length(BoaContext *context) {
+    const char buffer[] = "var textFromView = '\xC3\xA9\0b'!";
+    // The view includes the NUL in the string literal and ends before the '!'.
+    DiplomatStringView source = {.data = buffer, .len = sizeof(buffer) - 2};
+    return has_type(context, source, JsValueType_Undefined) &&
+        has_number(context, "textFromView.length", 3.0) &&
+        has_number(context, "textFromView.charCodeAt(1)", 0.0);
+}
+
 static bool source_is_only_borrowed(BoaContext *context) {
     char source[] = "function seven() { return 3 + 4; } seven";
     JsValue *function = eval_value(context, view(source));
@@ -312,6 +321,8 @@ int main(void) {
         failure = "eval results were not distinguished";
     } else if (!invalid_utf8(context)) {
         failure = "invalid UTF-8 source was not rejected before running";
+    } else if (!source_uses_byte_length(context)) {
+        failure = "eval did not respect the source byte length";
     } else if (!source_is_only_borrowed(context)) {
         failure = "eval results depended on the source buffer";
     } else if (!state_and_limits(context)) {

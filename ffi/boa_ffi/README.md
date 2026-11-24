@@ -142,13 +142,14 @@ int main(void) {
   handle that is never `NULL`: empty source and source that only declares
   evaluate to undefined. Failure carries `err`, an owned error handle. Destroy
   whichever handle was returned, exactly once.
-- The error is Boa's own, unchanged, so the functions under [Errors](#errors)
-  apply. A value the script throws is `Opaque`, including Error objects:
-  `throw 7` holds the number 7 and `throw new Error('boom')` holds the object.
-  An error the engine raises that the script does not catch, such as a syntax
-  error or an undefined name, is `Native`; if the script catches and rethrows
-  it, it is `Opaque`. Exceeding an engine limit, such as the recursion limit,
-  is `Engine`, and the context remains usable afterward.
+- `eval` preserves Boa's error representation, which you can check with
+  `boa_JsError_get_representation()`.
+  `throw 7` and `throw new Error('boom')` both return `Opaque` errors holding
+  the thrown value. A syntax error such as `1 +` is `Native`. In a fresh
+  context, `missingName` produces a `Native` reference error. The same lookup
+  in `try { missingName } finally {}` can reach C as an `Opaque` error holding a
+  `ReferenceError` object. Exceeding the recursion limit returns an `Engine`
+  error, and the context remains usable afterward. See [Errors](#errors).
 - Source that is not valid UTF-8 fails with a `Native` type error, and nothing
   is evaluated.
 - Calls on one context see globals defined by earlier calls, including changes
