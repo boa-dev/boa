@@ -38,7 +38,7 @@ esac
 test_dir=$(mktemp -d "${TMPDIR:-/tmp}/boa-ffi-c.XXXXXX")
 trap 'rm -rf "$test_dir"' EXIT HUP INT TERM
 
-for test_name in context value error; do
+for test_name in context value error eval; do
     "${CC:-cc}" -std=c11 -Wall -Wextra -Werror -pedantic \
         -I "$script_dir/../../bindings/c" "$script_dir/$test_name.c" \
         "$library_dir/$library_name" "-Wl,-rpath,$library_dir" -lm \
