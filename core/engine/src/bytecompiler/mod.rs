@@ -45,9 +45,9 @@ use crate::{
     builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding,
-        Handler, InlineCache,
-        opcode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
+        CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, GlobalFunctionBinding, Handler,
+        InlineCache,
+        bytecode::{Address, BindingOpcode, BytecodeEmitter, RegisterOperand},
         source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
 };
@@ -626,7 +626,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         let undefined_register = register_allocator.alloc_persistent();
         debug_assert_eq!(
             undefined_register.index(),
-            CallFrame::undefined_register().index()
+            Register::undefined_register().index()
         );
         if is_async {
             let promise_register = register_allocator.alloc_persistent();
@@ -635,22 +635,22 @@ impl<'ctx> ByteCompiler<'ctx> {
 
             debug_assert_eq!(
                 promise_register.index(),
-                CallFrame::promise_capability_promise_register().index()
+                Register::promise_capability_promise_register().index()
             );
             debug_assert_eq!(
                 resolve_register.index(),
-                CallFrame::promise_capability_resolve_register().index()
+                Register::promise_capability_resolve_register().index()
             );
             debug_assert_eq!(
                 reject_register.index(),
-                CallFrame::promise_capability_reject_register().index()
+                Register::promise_capability_reject_register().index()
             );
 
             if is_generator {
                 let async_function_object_register = register_allocator.alloc_persistent();
                 debug_assert_eq!(
                     async_function_object_register.index(),
-                    CallFrame::async_generator_object_register().index()
+                    Register::async_generator_object_register().index()
                 );
             }
         }
@@ -1344,7 +1344,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         binary: &Binary,
         hoisted: Option<&HoistedOperand>,
     ) -> Option<Label> {
-        use crate::vm::opcode::BytecodeEmitter;
+        use crate::vm::bytecode::BytecodeEmitter;
 
         let emit_fn: fn(&mut BytecodeEmitter, Address, RegisterOperand, RegisterOperand) = match op
         {
@@ -2698,18 +2698,18 @@ impl<'ctx> ByteCompiler<'ctx> {
                         self.register_allocator.dealloc(value);
                         self.register_allocator.dealloc(this);
                     } else {
-                        self.push_from_register(&CallFrame::undefined_register());
+                        self.push_from_register(&Register::undefined_register());
                         self.compile_expr_to_stack(expr);
                     }
                 } else {
-                    self.push_from_register(&CallFrame::undefined_register());
+                    self.push_from_register(&Register::undefined_register());
                     self.compile_expr_to_stack(expr);
                 }
             }
             expr => {
                 let value = self.register_allocator.alloc();
                 self.compile_expr(expr, &value);
-                self.push_from_register(&CallFrame::undefined_register());
+                self.push_from_register(&Register::undefined_register());
                 self.push_from_register(&value);
                 self.register_allocator.dealloc(value);
             }

@@ -28,7 +28,6 @@ impl ConcatToString {
 }
 
 impl Operation for ConcatToString {
-    const NAME: &'static str = "ConcatToString";
     const INSTRUCTION: &'static str = "INST - ConcatToString";
     const COST: u8 = 6;
 }

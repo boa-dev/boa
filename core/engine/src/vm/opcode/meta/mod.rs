@@ -33,7 +33,6 @@ impl NewTarget {
 }
 
 impl Operation for NewTarget {
-    const NAME: &'static str = "NewTarget";
     const INSTRUCTION: &'static str = "INST - NewTarget";
     const COST: u8 = 2;
 }
@@ -95,7 +94,6 @@ impl ImportMeta {
 }
 
 impl Operation for ImportMeta {
-    const NAME: &'static str = "ImportMeta";
     const INSTRUCTION: &'static str = "INST - ImportMeta";
     const COST: u8 = 6;
 }

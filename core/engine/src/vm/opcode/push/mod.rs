@@ -34,7 +34,6 @@ macro_rules! implement_store_generics {
         }
 
         impl Operation for $name {
-            const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 1;
         }

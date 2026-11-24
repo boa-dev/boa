@@ -38,7 +38,6 @@ impl Inc {
 }
 
 impl Operation for Inc {
-    const NAME: &'static str = "Inc";
     const INSTRUCTION: &'static str = "INST - Inc";
     const COST: u8 = 3;
 }

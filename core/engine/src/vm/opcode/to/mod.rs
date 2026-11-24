@@ -22,7 +22,6 @@ impl ToPropertyKey {
 }
 
 impl Operation for ToPropertyKey {
-    const NAME: &'static str = "ToPropertyKey";
     const INSTRUCTION: &'static str = "INST - ToPropertyKey";
     const COST: u8 = 2;
 }

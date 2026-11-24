@@ -42,7 +42,6 @@ impl GetFunctionObject {
 }
 
 impl Operation for GetFunctionObject {
-    const NAME: &'static str = "GetFunctionObject";
     const INSTRUCTION: &'static str = "INST - GetFunctionObject";
     const COST: u8 = 4;
 }
@@ -80,7 +79,6 @@ impl This {
 }
 
 impl Operation for This {
-    const NAME: &'static str = "This";
     const INSTRUCTION: &'static str = "INST - This";
     const COST: u8 = 1;
 }
@@ -115,7 +113,6 @@ impl ThisForObjectEnvironmentName {
 }
 
 impl Operation for ThisForObjectEnvironmentName {
-    const NAME: &'static str = "ThisForObjectEnvironmentName";
     const INSTRUCTION: &'static str = "INST - ThisForObjectEnvironmentName";
     const COST: u8 = 1;
 }
@@ -167,7 +164,6 @@ impl SuperCall {
 }
 
 impl Operation for SuperCall {
-    const NAME: &'static str = "SuperCall";
     const INSTRUCTION: &'static str = "INST - SuperCall";
     const COST: u8 = 3;
 }
@@ -233,7 +229,6 @@ impl SuperCallSpread {
 }
 
 impl Operation for SuperCallSpread {
-    const NAME: &'static str = "SuperCallSpread";
     const INSTRUCTION: &'static str = "INST - SuperCallSpread";
     const COST: u8 = 3;
 }
@@ -288,7 +283,6 @@ impl SuperCallDerived {
 }
 
 impl Operation for SuperCallDerived {
-    const NAME: &'static str = "SuperCallDerived";
     const INSTRUCTION: &'static str = "INST - SuperCallDerived";
     const COST: u8 = 3;
 }
@@ -341,7 +335,6 @@ impl BindThisValue {
 }
 
 impl Operation for BindThisValue {
-    const NAME: &'static str = "BindThisValue";
     const INSTRUCTION: &'static str = "INST - BindThisValue";
     const COST: u8 = 6;
 }

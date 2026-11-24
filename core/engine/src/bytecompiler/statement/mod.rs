@@ -1,7 +1,7 @@
 use super::jump_control::{
     JumpControlInfo, JumpRecord, JumpRecordAction, JumpRecordKind, ReturnValueLocation,
 };
-use crate::{bytecompiler::ByteCompiler, vm::CallFrame};
+use crate::bytecompiler::{ByteCompiler, Register};
 use boa_ast::Statement;
 
 mod block;
@@ -44,14 +44,14 @@ impl ByteCompiler<'_> {
             Statement::Continue(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
                     self.bytecode
-                        .emit_set_accumulator(CallFrame::undefined_register().variable());
+                        .emit_set_accumulator(Register::undefined_register().variable());
                 }
                 self.compile_continue(*node, use_expr);
             }
             Statement::Break(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
                     self.bytecode
-                        .emit_set_accumulator(CallFrame::undefined_register().variable());
+                        .emit_set_accumulator(Register::undefined_register().variable());
                 }
                 self.compile_break(*node, use_expr);
             }
@@ -106,9 +106,9 @@ impl ByteCompiler<'_> {
                     }
                 } else if let Some(slot) = slot {
                     self.bytecode
-                        .emit_move(slot.into(), CallFrame::undefined_register().variable());
+                        .emit_move(slot.into(), Register::undefined_register().variable());
                 } else {
-                    self.push_from_register(&CallFrame::undefined_register());
+                    self.push_from_register(&Register::undefined_register());
                 }
 
                 if let Some(slot) = slot {

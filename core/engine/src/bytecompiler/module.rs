@@ -1,5 +1,5 @@
 use super::{ByteCompiler, Literal, ToJsString};
-use crate::vm::opcode::BindingOpcode;
+use crate::vm::bytecode::BindingOpcode;
 use boa_ast::{ModuleItem, ModuleItemList, declaration::ExportDeclaration};
 use boa_interner::Sym;
 

@@ -30,7 +30,6 @@ impl TemplateLookup {
 }
 
 impl Operation for TemplateLookup {
-    const NAME: &'static str = "TemplateLookup";
     const INSTRUCTION: &'static str = "INST - TemplateLookup";
     const COST: u8 = 3;
 }
@@ -115,7 +114,6 @@ impl TemplateCreate {
 }
 
 impl Operation for TemplateCreate {
-    const NAME: &'static str = "TemplateCreate";
     const INSTRUCTION: &'static str = "INST - TemplateCreate";
     const COST: u8 = 6;
 }

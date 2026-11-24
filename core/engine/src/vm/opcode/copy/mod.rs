@@ -32,7 +32,6 @@ impl CopyDataProperties {
 }
 
 impl Operation for CopyDataProperties {
-    const NAME: &'static str = "CopyDataProperties";
     const INSTRUCTION: &'static str = "INST - CopyDataProperties";
     const COST: u8 = 6;
 }

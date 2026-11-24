@@ -22,7 +22,7 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind, Stack},
+    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind, Stack, frame_layout},
 };
 use boa_gc::{Finalize, Trace, custom_trace};
 
@@ -83,7 +83,7 @@ impl GeneratorContext {
         if let Some(async_generator) = async_generator {
             stack.set_register(
                 &frame,
-                CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX,
+                frame_layout::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX,
                 async_generator.into(),
             );
         }
@@ -139,7 +139,7 @@ impl GeneratorContext {
 
         let val = self
             .stack
-            .get_register(frame, CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
+            .get_register(frame, frame_layout::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
             .js_expect("registers must have an async generator object")?;
 
         Ok(val.as_object())

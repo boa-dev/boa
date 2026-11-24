@@ -28,7 +28,6 @@ impl StoreLiteral {
 }
 
 impl Operation for StoreLiteral {
-    const NAME: &'static str = "StoreLiteral";
     const INSTRUCTION: &'static str = "INST - StoreLiteral";
     const COST: u8 = 1;
 }
@@ -56,7 +55,6 @@ impl StoreRegexp {
 }
 
 impl Operation for StoreRegexp {
-    const NAME: &'static str = "StoreRegexp";
     const INSTRUCTION: &'static str = "INST - StoreRegexp";
     const COST: u8 = 5;
 }

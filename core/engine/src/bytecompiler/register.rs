@@ -1,4 +1,4 @@
-use crate::vm::opcode::RegisterOperand;
+use crate::vm::{bytecode::RegisterOperand, frame_layout};
 use std::mem::forget;
 
 bitflags::bitflags! {
@@ -41,6 +41,26 @@ pub(crate) struct Register {
 }
 
 impl Register {
+    pub(crate) fn undefined_register() -> Register {
+        Register::persistent(frame_layout::UNDEFINED_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_promise_register() -> Register {
+        Register::persistent(frame_layout::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_resolve_register() -> Register {
+        Register::persistent(frame_layout::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn promise_capability_reject_register() -> Register {
+        Register::persistent(frame_layout::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32)
+    }
+
+    pub(crate) fn async_generator_object_register() -> Register {
+        Register::persistent(frame_layout::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX as u32)
+    }
+
     /// The index of the [`Register`].
     pub(crate) fn index(&self) -> u32 {
         self.index

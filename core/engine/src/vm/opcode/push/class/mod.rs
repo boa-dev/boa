@@ -74,7 +74,6 @@ impl StoreClassPrototype {
 }
 
 impl Operation for StoreClassPrototype {
-    const NAME: &'static str = "StoreClassPrototype";
     const INSTRUCTION: &'static str = "INST - StoreClassPrototype";
     const COST: u8 = 6;
 }

@@ -27,7 +27,6 @@ impl Case {
 }
 
 impl Operation for Case {
-    const NAME: &'static str = "Case";
     const INSTRUCTION: &'static str = "INST - Case";
     const COST: u8 = 2;
 }

@@ -55,7 +55,6 @@ impl Generator {
 }
 
 impl Operation for Generator {
-    const NAME: &'static str = "Generator";
     const INSTRUCTION: &'static str = "INST - Generator";
     const COST: u8 = 4;
 }
@@ -101,7 +100,6 @@ impl AsyncGenerator {
 }
 
 impl Operation for AsyncGenerator {
-    const NAME: &'static str = "AsyncGenerator";
     const INSTRUCTION: &'static str = "INST - AsyncGenerator";
     const COST: u8 = 4;
 }
@@ -156,7 +154,6 @@ impl AsyncGeneratorClose {
 }
 
 impl Operation for AsyncGeneratorClose {
-    const NAME: &'static str = "AsyncGeneratorClose";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorClose";
     const COST: u8 = 8;
 }

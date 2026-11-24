@@ -28,7 +28,6 @@ impl TypeOf {
 }
 
 impl Operation for TypeOf {
-    const NAME: &'static str = "TypeOf";
     const INSTRUCTION: &'static str = "INST - TypeOf";
     const COST: u8 = 1;
 }
@@ -55,7 +54,6 @@ impl Pos {
 }
 
 impl Operation for Pos {
-    const NAME: &'static str = "Pos";
     const INSTRUCTION: &'static str = "INST - Pos";
     const COST: u8 = 3;
 }
@@ -86,7 +84,6 @@ impl Neg {
 }
 
 impl Operation for Neg {
-    const NAME: &'static str = "Neg";
     const INSTRUCTION: &'static str = "INST - Neg";
     const COST: u8 = 3;
 }
@@ -119,7 +116,6 @@ impl BitNot {
 }
 
 impl Operation for BitNot {
-    const NAME: &'static str = "BitNot";
     const INSTRUCTION: &'static str = "INST - BitNot";
     const COST: u8 = 3;
 }
@@ -148,7 +144,6 @@ impl ToInt32 {
 }
 
 impl Operation for ToInt32 {
-    const NAME: &'static str = "ToInt32";
     const INSTRUCTION: &'static str = "INST - ToInt32";
     const COST: u8 = 1;
 }

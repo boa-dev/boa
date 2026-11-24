@@ -30,7 +30,6 @@ impl GeneratorYield {
 }
 
 impl Operation for GeneratorYield {
-    const NAME: &'static str = "GeneratorYield";
     const INSTRUCTION: &'static str = "INST - GeneratorYield";
     const COST: u8 = 1;
 }
@@ -141,7 +140,6 @@ impl AsyncGeneratorYield {
 }
 
 impl Operation for AsyncGeneratorYield {
-    const NAME: &'static str = "AsyncGeneratorYield";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorYield";
     const COST: u8 = 8;
 }

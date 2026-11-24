@@ -24,7 +24,6 @@ impl GetArgument {
 }
 
 impl Operation for GetArgument {
-    const NAME: &'static str = "GetArgument";
     const INSTRUCTION: &'static str = "INST - GetArgument";
     const COST: u8 = 2;
 }

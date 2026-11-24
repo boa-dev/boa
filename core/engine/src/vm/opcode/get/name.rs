@@ -32,7 +32,6 @@ impl GetName {
 }
 
 impl Operation for GetName {
-    const NAME: &'static str = "GetName";
     const INSTRUCTION: &'static str = "INST - GetName";
     const COST: u8 = 4;
 }
@@ -116,7 +115,6 @@ impl GetNameGlobal {
 }
 
 impl Operation for GetNameGlobal {
-    const NAME: &'static str = "GetNameGlobal";
     const INSTRUCTION: &'static str = "INST - GetNameGlobal";
     const COST: u8 = 4;
 }
@@ -142,7 +140,6 @@ impl GetLocator {
 }
 
 impl Operation for GetLocator {
-    const NAME: &'static str = "GetLocator";
     const INSTRUCTION: &'static str = "INST - GetLocator";
     const COST: u8 = 4;
 }
@@ -176,7 +173,6 @@ impl GetNameAndLocator {
 }
 
 impl Operation for GetNameAndLocator {
-    const NAME: &'static str = "GetNameAndLocator";
     const INSTRUCTION: &'static str = "INST - GetNameAndLocator";
     const COST: u8 = 4;
 }
@@ -218,7 +214,6 @@ impl GetNameOrUndefined {
 }
 
 impl Operation for GetNameOrUndefined {
-    const NAME: &'static str = "GetNameOrUndefined";
     const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
     const COST: u8 = 4;
 }

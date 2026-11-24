@@ -150,7 +150,6 @@ impl Await {
 }
 
 impl Operation for Await {
-    const NAME: &'static str = "Await";
     const INSTRUCTION: &'static str = "INST - Await";
     const COST: u8 = 5;
 }
@@ -176,7 +175,6 @@ impl CreatePromiseCapability {
 }
 
 impl Operation for CreatePromiseCapability {
-    const NAME: &'static str = "CreatePromiseCapability";
     const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
     const COST: u8 = 8;
 }

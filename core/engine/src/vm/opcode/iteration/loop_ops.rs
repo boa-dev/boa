@@ -25,7 +25,6 @@ impl IncrementLoopIteration {
 }
 
 impl Operation for IncrementLoopIteration {
-    const NAME: &'static str = "IncrementLoopIteration";
     const INSTRUCTION: &'static str = "INST - IncrementLoopIteration";
     const COST: u8 = 3;
 }
