@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fmt;
 
-use crate::{JsObject, JsValue, builtins::map::ordered_map::OrderedMap};
+use crate::{JsObject, JsValue, builtins::map::Map};
 
 pub(super) fn log_map_to(
     f: &mut fmt::Formatter<'_>,
@@ -9,10 +9,8 @@ pub(super) fn log_map_to(
     print_internals: bool,
     print_children: bool,
 ) -> fmt::Result {
-    let map = v
-        .downcast_ref::<OrderedMap<JsValue>>()
-        .expect("object must be a map");
-    let size = map.len();
+    let map = v.downcast_ref::<Map>().expect("object must be a map");
+    let size = map.0.len();
 
     if size == 0 {
         return f.write_str("Map(0)");
@@ -24,7 +22,7 @@ pub(super) fn log_map_to(
 
     f.write_str("Map { ")?;
     let mut first = true;
-    for (key, value) in map.iter() {
+    for (key, value) in map.0.iter() {
         if !first {
             f.write_str(", ")?;
         }
@@ -43,10 +41,8 @@ pub(super) fn log_map_compact(
     print_internals: bool,
     encounters: &mut HashSet<usize>,
 ) -> fmt::Result {
-    let map = v
-        .downcast_ref::<OrderedMap<JsValue>>()
-        .expect("object must be a map");
-    let size = map.len();
+    let map = v.downcast_ref::<Map>().expect("object must be a map");
+    let size = map.0.len();
 
     if size == 0 {
         return f.write_str("Map(0)");
@@ -58,7 +54,7 @@ pub(super) fn log_map_compact(
 
     f.write_str("Map { ")?;
     let mut first = true;
-    for (key, value) in map.iter() {
+    for (key, value) in map.0.iter() {
         if !first {
             f.write_str(", ")?;
         }

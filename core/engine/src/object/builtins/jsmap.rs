@@ -182,13 +182,9 @@ impl JsMap {
     /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is::<OrderedMap<JsValue>>() {
-            Ok(Self { inner: object })
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("object is not a Map")
-                .into())
-        }
+        Ok(Self {
+            inner: object.require_internal_slot::<Map>()?.upcast(),
+        })
     }
 
     // Utility function to generate the default `Map` object.
@@ -200,7 +196,7 @@ impl JsMap {
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            <OrderedMap<JsValue>>::new(),
+            Map(<OrderedMap<JsValue>>::new()),
         )
         .upcast()
     }

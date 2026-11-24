@@ -22,11 +22,12 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::JsData;
 
 pub(crate) type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
 
-#[derive(Debug, Trace, Finalize)]
-pub(crate) struct WeakMap;
+#[derive(Trace, Finalize, JsData)]
+pub(crate) struct WeakMap(pub(crate) NativeWeakMap);
 
 #[cfg(test)]
 mod tests;
@@ -97,7 +98,7 @@ impl BuiltInConstructor for WeakMap {
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            NativeWeakMap::new(),
+            WeakMap(NativeWeakMap::new()),
         )
         .upcast();
 
@@ -138,7 +139,7 @@ impl WeakMap {
         let object = this.as_object();
         let mut map = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 js_error!(TypeError:
                     "WeakMap.prototype.delete: expected 'this' to be a WeakMap object",
@@ -157,7 +158,7 @@ impl WeakMap {
         // ii. Set p.[[Value]] to empty.
         // iii. Return true.
         // 6. Return false.
-        Ok(map.remove(key.inner()).into())
+        Ok(map.0.remove(key.inner()).into())
     }
 
     /// `WeakMap.prototype.get ( key )`
@@ -175,7 +176,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = this.require_internal_slot::<NativeWeakMap>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return undefined.
@@ -186,7 +187,7 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
-        if let Some(entry) = map.borrow().data().get(key.inner())
+        if let Some(entry) = map.borrow().data().0.get(key.inner())
             && let Some(val) = entry.value()
         {
             Ok(val.clone())
@@ -210,7 +211,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = this.require_internal_slot::<NativeWeakMap>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.
@@ -221,7 +222,7 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
         // 6. Return false.
-        Ok(map.borrow().data().contains_key(key.inner()).into())
+        Ok(map.borrow().data().0.contains_key(key.inner()).into())
     }
 
     /// `WeakMap.prototype.set ( key, value )`
@@ -242,7 +243,7 @@ impl WeakMap {
         let object = this.as_object();
         let mut map = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 js_error!(TypeError:
                     "WeakMap.prototype.set: expected 'this' to be a WeakMap object")
@@ -264,7 +265,7 @@ impl WeakMap {
         // ii. Return M.
         // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 7. Append p to entries.
-        map.insert(key.inner(), args.get_or_undefined(1).clone());
+        map.0.insert(key.inner(), args.get_or_undefined(1).clone());
 
         // 8. Return M.
         Ok(this.clone())
@@ -288,7 +289,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = this.require_internal_slot::<NativeWeakMap>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
         // TODO: Implement proper CanBeHeldWeakly once available. For now, only
@@ -303,7 +304,7 @@ impl WeakMap {
         };
 
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key.inner())
+        if let Some(existing) = map.borrow().data().0.get(key.inner())
             && let Some(value) = existing.value()
         {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
@@ -314,6 +315,7 @@ impl WeakMap {
         let value = args.get_or_undefined(1).clone();
         map.borrow_mut()
             .data_mut()
+            .0
             .insert(key.inner(), value.clone());
         Ok(value)
     }
@@ -336,7 +338,7 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = this.require_internal_slot::<NativeWeakMap>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. If CanBeHeldWeakly(key) is false, throw a TypeError exception.
         // TODO: Implement proper CanBeHeldWeakly once available. For now, only
@@ -358,7 +360,7 @@ impl WeakMap {
         };
 
         // 5. For each Record { [[Key]], [[Value]] } p of M.[[WeakMapData]]
-        if let Some(existing) = map.borrow().data().get(key_obj.inner())
+        if let Some(existing) = map.borrow().data().0.get(key_obj.inner())
             && let Some(value) = existing.value()
         {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
@@ -376,6 +378,7 @@ impl WeakMap {
         // 8-10. Insert or update the entry and return value.
         map.borrow_mut()
             .data_mut()
+            .0
             .insert(key_obj.inner(), value.clone());
         Ok(value)
     }

@@ -461,7 +461,7 @@ fn intersection_this_not_a_set() {
     run_test_actions([TestAction::assert_native_error(
         "Set.prototype.intersection.call({}, new Set([1, 2, 3]))",
         JsNativeErrorKind::Type,
-        "method `Set.prototype.intersection` called on incompatible receiver",
+        "object does not contain required internal slot `Set`",
     )]);
 }
 

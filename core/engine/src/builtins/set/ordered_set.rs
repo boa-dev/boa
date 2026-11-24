@@ -1,6 +1,6 @@
 //! Implements a set type that preserves insertion order.
 
-use crate::{JsData, JsValue, builtins::map::ordered_map::MapKey, object::JsObject};
+use crate::{JsData, JsValue, NativeObject, builtins::map::ordered_map::MapKey, object::JsObject};
 use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::IndexSet;
 use std::fmt::Debug;
@@ -166,17 +166,17 @@ impl OrderedSet {
     }
 }
 
-pub(crate) struct SetLock<'a>(&'a JsObject<OrderedSet>);
+pub(crate) struct SetLock<'a, A: AsMut<OrderedSet> + NativeObject>(&'a JsObject<A>);
 
-impl<'a> SetLock<'a> {
-    pub(crate) fn new(js_object: &'a JsObject<OrderedSet>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
+impl<'a, A: AsMut<OrderedSet> + NativeObject> SetLock<'a, A> {
+    pub(crate) fn new(js_object: &'a JsObject<A>) -> Self {
+        js_object.borrow_mut().data_mut().as_mut().lock();
         Self(js_object)
     }
 }
 
-impl Drop for SetLock<'_> {
+impl<A: AsMut<OrderedSet> + NativeObject> Drop for SetLock<'_, A> {
     fn drop(&mut self) {
-        self.0.borrow_mut().data_mut().unlock();
+        self.0.borrow_mut().data_mut().as_mut().unlock();
     }
 }

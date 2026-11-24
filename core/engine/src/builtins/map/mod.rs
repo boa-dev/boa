@@ -29,6 +29,8 @@ use super::{
 };
 
 mod map_iterator;
+use boa_gc::{Finalize, Trace};
+use boa_macros::JsData;
 pub(crate) use map_iterator::MapIterator;
 
 pub mod ordered_map;
@@ -37,8 +39,15 @@ use ordered_map::OrderedMap;
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Clone)]
-pub(crate) struct Map;
+/// The ECMASCript `Map`.
+#[derive(Debug, Trace, Finalize, JsData)]
+pub struct Map(pub(crate) OrderedMap<JsValue>);
+
+impl AsMut<OrderedMap<JsValue>> for Map {
+    fn as_mut(&mut self) -> &mut OrderedMap<JsValue> {
+        &mut self.0
+    }
+}
 
 impl IntrinsicObject for Map {
     fn init(realm: &Realm) {
@@ -146,7 +155,7 @@ impl BuiltInConstructor for Map {
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            <OrderedMap<JsValue>>::new(),
+            Map(<OrderedMap<JsValue>>::new()),
         )
         .upcast();
 
@@ -203,7 +212,7 @@ impl Map {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
-        let this = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 2. Return ? CreateMapIterator(M, key+value).
         Ok(MapIterator::create_map_iterator(
@@ -225,7 +234,7 @@ impl Map {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
-        let this = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 2. Return ? CreateMapIterator(M, key).
         Ok(MapIterator::create_map_iterator(
@@ -250,7 +259,7 @@ impl Map {
 
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -260,7 +269,7 @@ impl Map {
         //       i. Set p.[[Value]] to value.
         // 5. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 6. Append p to M.[[MapData]].
-        map.borrow_mut().data_mut().insert(key, value.clone());
+        map.borrow_mut().data_mut().0.insert(key, value.clone());
 
         // 7. Return M.
         Ok(this.clone())
@@ -286,9 +295,10 @@ impl Map {
         // a. If p.[[Key]] is not empty, set count to count + 1.
         // 6. Return 𝔽(count).
         Ok(this
-            .require_internal_slot::<OrderedMap<JsValue>>()?
+            .require_internal_slot::<Map>()?
             .borrow()
             .data()
+            .0
             .len()
             .into())
     }
@@ -307,7 +317,7 @@ impl Map {
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -318,7 +328,7 @@ impl Map {
         //       ii. Set p.[[Value]] to empty.
         //       iii. Return true.
         // 5. Return false.
-        Ok(map.borrow_mut().data_mut().remove(&key).is_some().into())
+        Ok(map.borrow_mut().data_mut().0.remove(&key).is_some().into())
     }
 
     /// `Map.prototype.get( key )`
@@ -334,7 +344,7 @@ impl Map {
     pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -342,7 +352,7 @@ impl Map {
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
         //    a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 5. Return undefined.
-        Ok(map.borrow().data().get(&key).cloned().unwrap_or_default())
+        Ok(map.borrow().data().0.get(&key).cloned().unwrap_or_default())
     }
 
     /// `Map.prototype.clear( )`
@@ -358,12 +368,12 @@ impl Map {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
         //    a. Set p.[[Key]] to empty.
         //    b. Set p.[[Value]] to empty.
-        map.borrow_mut().data_mut().clear();
+        map.borrow_mut().data_mut().0.clear();
 
         // 4. Return undefined.
         Ok(JsValue::undefined())
@@ -382,7 +392,7 @@ impl Map {
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -390,7 +400,7 @@ impl Map {
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
         //    a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
         // 5. Return false.
-        Ok(map.borrow().data().contains_key(&key).into())
+        Ok(map.borrow().data().0.contains_key(&key).into())
     }
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -410,7 +420,7 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback) = args.get_or_undefined(0).as_callable() else {
@@ -439,7 +449,7 @@ impl Map {
         loop {
             let arguments = {
                 let map = map.borrow();
-                let map = map.data();
+                let map = &map.data().0;
                 if index < map.full_len() {
                     map.get_index(index)
                         .map(|(k, v)| [v.clone(), k.clone(), this.clone()])
@@ -473,7 +483,7 @@ impl Map {
     {
         // See `Self::for_each` for comments on the algo.
 
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         let _lock = MapLock::new(&map);
 
@@ -481,7 +491,7 @@ impl Map {
         loop {
             let (k, v) = {
                 let map = map.borrow();
-                let map = map.data();
+                let map = &map.data().0;
                 if index >= map.full_len() {
                     return Ok(());
                 }
@@ -516,7 +526,7 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, value).
 
-        let this = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let this = this.require_internal_slot::<Self>()?;
 
         Ok(MapIterator::create_map_iterator(
             this,
@@ -545,20 +555,20 @@ impl Map {
 
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. Set key to CanonicalizeKeyedCollectionKey(key).
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
         // 4. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
-        if let Some(existing) = map.borrow().data().get(&key) {
+        if let Some(existing) = map.borrow().data().0.get(&key) {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(existing.clone());
         }
 
         // 5. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 6. Append p to M.[[MapData]].
-        map.borrow_mut().data_mut().insert(key, value.clone());
+        map.borrow_mut().data_mut().0.insert(key, value.clone());
 
         // 7. Return value.
         Ok(value.clone())
@@ -584,7 +594,7 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
 
-        let map = this.require_internal_slot::<OrderedMap<JsValue>>()?;
+        let map = this.require_internal_slot::<Self>()?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(1).as_callable() else {
@@ -597,7 +607,7 @@ impl Map {
         let key = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
         // 5. For each Record { [[Key]], [[Value]] } p of M.[[MapData]], do
-        if let Some(existing) = map.borrow().data().get(&key) {
+        if let Some(existing) = map.borrow().data().0.get(&key) {
             // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
             return Ok(existing.clone());
         }
@@ -615,6 +625,7 @@ impl Map {
         // [`OrderedMap::insert`] handles both cases
         map.borrow_mut()
             .data_mut()
+            .0
             .insert(key.clone(), value.clone());
         // 11. Return value.
         Ok(value)

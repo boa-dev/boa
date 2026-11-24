@@ -351,7 +351,7 @@ fn get_or_insert_computed_this_not_map() {
     run_test_actions([TestAction::assert_native_error(
         "Map.prototype.getOrInsertComputed.call({}, 'k', x => x)",
         JsNativeErrorKind::Type,
-        "method `Map.prototype.getOrInsertComputed` called on incompatible receiver",
+        "object does not contain required internal slot `Map`",
     )]);
 }
 

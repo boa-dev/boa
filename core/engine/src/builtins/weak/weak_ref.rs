@@ -1,4 +1,5 @@
 use boa_gc::{Finalize, Trace, WeakGc};
+use boa_macros::JsData;
 
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
@@ -22,8 +23,8 @@ use crate::{
 ///  - [ECMAScript Reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-weak-ref-objects
-#[derive(Debug, Clone, Trace, Finalize)]
-pub(crate) struct WeakRef;
+#[derive(Clone, Trace, Finalize, JsData)]
+pub(crate) struct WeakRef(pub(crate) WeakGc<ErasedVTableObject>);
 
 impl IntrinsicObject for WeakRef {
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -87,7 +88,7 @@ impl BuiltInConstructor for WeakRef {
         let weak_ref = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            WeakGc::new(target.inner()),
+            WeakRef(WeakGc::new(target.inner())),
         );
 
         // 4. Perform AddToKeptObjects(target).
@@ -108,7 +109,7 @@ impl WeakRef {
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
-        let weak_ref = this.require_internal_slot::<WeakGc<ErasedVTableObject>>()?;
+        let weak_ref = this.require_internal_slot::<Self>()?;
 
         // 3. Return WeakRefDeref(weakRef).
 
@@ -116,7 +117,7 @@ impl WeakRef {
         // https://tc39.es/ecma262/multipage/managing-memory.html#sec-weakrefderef
         // 1. Let target be weakRef.[[WeakRefTarget]].
         // 2. If target is not empty, then
-        if let Some(object) = weak_ref.borrow().data().upgrade() {
+        if let Some(object) = weak_ref.borrow().data().0.upgrade() {
             let object = JsObject::from(object);
 
             // a. Perform AddToKeptObjects(target).
@@ -221,7 +222,7 @@ mod tests {
         run_test_actions([TestAction::assert_native_error(
             "WeakRef.prototype.deref.call({})",
             JsNativeErrorKind::Type,
-            "the this object must be a WeakRef object.",
+            "object does not contain required internal slot `WeakRef`",
         )]);
     }
 
