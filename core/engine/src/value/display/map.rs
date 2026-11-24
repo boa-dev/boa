@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fmt;
 
-use crate::{JsObject, JsValue, builtins::map::Map};
+use crate::{JsObject, builtins::map::Map};
 
 pub(super) fn log_map_to(
     f: &mut fmt::Formatter<'_>,
