@@ -21,6 +21,7 @@ use crate::{
     value::PreferredType,
 };
 use boa_gc::{self, Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
+use boa_string::StaticJsStrings;
 use core::ptr::fn_addr_eq;
 use std::collections::HashSet;
 use std::{
@@ -786,6 +787,22 @@ Cannot both specify accessors and a value or writable attribute",
         let mut obj = Some(self.clone());
 
         while let Some(o) = obj {
+            if o.is_array() && *key == PropertyKey::String(StaticJsStrings::LENGTH) {
+                let o_borrow = o.borrow();
+                return Some(CompletePropertyDescriptor::Data {
+                    value: o_borrow
+                        .properties()
+                        .indexed_properties
+                        .array_length()
+                        .into(),
+                    writable: o_borrow
+                        .properties()
+                        .indexed_properties
+                        .array_length_writable(),
+                    enumerable: false,
+                    configurable: false,
+                });
+            }
             if let Some(v) = o.borrow().properties.get(key) {
                 return Some(v);
             }

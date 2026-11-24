@@ -975,6 +975,8 @@ pub(crate) fn proxy_exotic_delete(
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
+    context.slot().attributes |= SlotAttributes::NOT_CACHEABLE;
+
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
