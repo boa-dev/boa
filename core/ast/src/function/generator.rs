@@ -276,7 +276,7 @@ impl ToIndentedString for GeneratorExpression {
 impl From<GeneratorExpression> for Expression {
     #[inline]
     fn from(expr: GeneratorExpression) -> Self {
-        Self::GeneratorExpression(expr)
+        Self::GeneratorExpression(Box::new(expr))
     }
 }
 

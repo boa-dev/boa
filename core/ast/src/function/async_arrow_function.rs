@@ -134,7 +134,7 @@ impl ToIndentedString for AsyncArrowFunction {
 
 impl From<AsyncArrowFunction> for Expression {
     fn from(decl: AsyncArrowFunction) -> Self {
-        Self::AsyncArrowFunction(decl)
+        Self::AsyncArrowFunction(Box::new(decl))
     }
 }
 

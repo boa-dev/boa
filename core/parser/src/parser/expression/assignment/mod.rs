@@ -113,7 +113,7 @@ where
                 {
                     return ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
-                        .map(Expression::ArrowFunction);
+                        .map(Expression::from);
                 }
             }
             //  AsyncArrowFunction[?In, ?Yield, ?Await]
