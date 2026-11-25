@@ -53,7 +53,10 @@ fn check_object_literal() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (4, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (4, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -105,7 +108,10 @@ fn check_object_short_function() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (4, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (4, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -171,7 +177,10 @@ fn check_object_short_function_arguments() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (4, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (4, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -222,7 +231,10 @@ fn check_object_getter() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (4, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (4, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -287,7 +299,10 @@ fn check_object_setter() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (4, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (4, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -325,7 +340,10 @@ fn check_object_short_function_get() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (3, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (3, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -363,7 +381,10 @@ fn check_object_short_function_set() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (3, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (3, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -407,7 +428,10 @@ fn check_object_shorthand_property_names() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((2, 7), (2, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((2, 11), (2, 16))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((2, 11), (2, 16)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -470,7 +494,10 @@ fn check_object_shorthand_multiple_properties() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((3, 7), (3, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((3, 11), (3, 20))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((3, 11), (3, 20)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -512,7 +539,10 @@ fn check_object_spread() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (1, 25))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (1, 25)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -554,7 +584,10 @@ fn check_async_method() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (3, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (3, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -596,7 +629,10 @@ fn check_async_generator_method() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (3, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (3, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -660,7 +696,10 @@ fn check_async_ordinary_method() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (3, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (3, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -697,7 +736,10 @@ fn check_async_property() {
                         interner.get_or_intern_static("x", utf16!("x")),
                         Span::new((1, 7), (1, 8)),
                     ),
-                    Some(ObjectLiteral::new(object_properties, Span::new((1, 11), (3, 2))).into()),
+                    Some(
+                        ObjectLiteral::new(object_properties, false, Span::new((1, 11), (3, 2)))
+                            .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
