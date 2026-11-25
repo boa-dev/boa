@@ -5,11 +5,10 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 
-use super::ordered_set::OrderedSet;
 use crate::{
     Context, JsData, JsResult,
     builtins::{
-        Array, BuiltInBuilder, IntrinsicObject, JsValue, iterable::create_iter_result_object,
+        Array, BuiltInBuilder, IntrinsicObject, JsValue, Set, iterable::create_iter_result_object,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -22,18 +21,18 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 #[derive(Debug, Trace)]
-struct SetIteratorLock(JsObject<OrderedSet>);
+struct SetIteratorLock(JsObject<Set>);
 
 impl SetIteratorLock {
-    fn new(js_object: JsObject<OrderedSet>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
+    fn new(js_object: JsObject<Set>) -> Self {
+        js_object.borrow_mut().data_mut().0.lock();
         Self(js_object)
     }
 }
 
 impl Finalize for SetIteratorLock {
     fn finalize(&self) {
-        self.0.borrow_mut().data_mut().unlock();
+        self.0.borrow_mut().data_mut().0.unlock();
     }
 }
 
@@ -79,7 +78,7 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createsetiterator
     pub(crate) fn create_set_iterator(
-        set: JsObject<OrderedSet>,
+        set: JsObject<Set>,
         kind: PropertyNameKind,
         context: &Context,
     ) -> JsValue {
@@ -115,7 +114,7 @@ impl SetIterator {
         if let Some(obj) = set_iterator.iterated_set.take() {
             let e = {
                 let mut entries = obj.0.borrow_mut();
-                let entries = entries.data_mut();
+                let entries = &mut entries.data_mut().0;
                 let len = entries.full_len();
                 loop {
                     let element = entries.get_index(set_iterator.next_index);

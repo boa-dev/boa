@@ -148,14 +148,9 @@ impl JsArrayBuffer {
     /// This does not clone the fields of the array buffer, it only does a shallow clone of the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        object
-            .downcast::<ArrayBuffer>()
-            .map(|inner| Self { inner })
-            .map_err(|_| {
-                JsNativeError::typ()
-                    .with_message("object is not an ArrayBuffer")
-                    .into()
-            })
+        Ok(Self {
+            inner: object.require_internal_slot::<ArrayBuffer>()?,
+        })
     }
 
     /// Returns the byte length of the array buffer.

@@ -3,7 +3,6 @@ use super::JsPromise;
 use crate::{
     Context, JsNativeError, JsResult, JsValue,
     builtins::{async_generator::AsyncGenerator, promise::PromiseCapability},
-    js_error,
     object::JsObject,
     value::TryFromJs,
 };
@@ -26,10 +25,9 @@ impl JsAsyncGenerator {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        object
-            .downcast::<AsyncGenerator>()
-            .map(|inner| Self { inner })
-            .map_err(|_| js_error!(TypeError: "object is not an AsyncGenerator object"))
+        Ok(Self {
+            inner: object.require_internal_slot::<AsyncGenerator>()?,
+        })
     }
 
     /// Calls `AsyncGenerator.prototype.next()`.

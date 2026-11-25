@@ -220,13 +220,13 @@ impl JsRequest {
         // Need to use a match as `Either::map_right` does not have an equivalent
         // `Either::map_right_ok`.
         let input = match input {
-            Either::Right(r) => {
-                if let Ok(request) = r.clone().downcast::<JsRequest>() {
-                    Either::Right(request.borrow().data().clone())
-                } else {
-                    return Err(js_error!(TypeError: "invalid input argument"));
-                }
-            }
+            Either::Right(r) => Either::Right(
+                r.clone()
+                    .require_internal_slot::<JsRequest>()?
+                    .borrow()
+                    .data()
+                    .clone(),
+            ),
             Either::Left(i) => Either::Left(i),
         };
         JsRequest::create_from_js(input, options)

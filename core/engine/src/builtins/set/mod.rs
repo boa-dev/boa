@@ -35,6 +35,8 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_engine::value::IntegerOrInfinity;
+use boa_gc::{Finalize, Trace};
+use boa_macros::JsData;
 pub(crate) use set_iterator::SetIterator;
 
 /// A record containing information about a Set-like object.
@@ -116,8 +118,15 @@ fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
     })
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct Set;
+/// The `Set` object.
+#[derive(Debug, Trace, Finalize, JsData)]
+pub struct Set(pub(crate) OrderedSet);
+
+impl AsMut<OrderedSet> for Set {
+    fn as_mut(&mut self) -> &mut OrderedSet {
+        &mut self.0
+    }
+}
 
 impl IntrinsicObject for Set {
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -223,7 +232,7 @@ impl BuiltInConstructor for Set {
         let set = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            OrderedSet::default(),
+            Set(OrderedSet::default()),
         )
         .upcast();
 
@@ -289,12 +298,7 @@ impl Set {
     pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let set = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(TypeError: "method `Set.prototype.add` called on incompatible receiver")
-            })?;
+        let set = this.require_internal_slot::<Self>()?;
 
         // 3. Set value to CanonicalizeKeyedCollectionKey(value).
         let value = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
@@ -303,7 +307,7 @@ impl Set {
         //   a. If e is not empty and SameValueZero(e, value) is true, then
         //     i. Return S.
         // 5. Append value to S.[[SetData]].
-        set.borrow_mut().data_mut().add(value.clone());
+        set.borrow_mut().data_mut().0.add(value.clone());
 
         Ok(this.clone())
         // 6. Return S.
@@ -324,15 +328,10 @@ impl Set {
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         // 3. For each element e of S.[[SetData]], do
         //        a. Replace the element of S.[[SetData]] whose value is e with an element whose value is empty.
-        this.as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.clear` called on incompatible receiver"
-                )
-            })?
+        this.require_internal_slot::<Self>()?
             .borrow_mut()
             .data_mut()
+            .0
             .clear();
 
         // 4. Return undefined.
@@ -353,14 +352,7 @@ impl Set {
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.delete` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<Self>()?;
 
         let value = canonicalize_keyed_collection_key(args.get_or_undefined(0).clone());
 
@@ -369,7 +361,7 @@ impl Set {
         // i. Replace the element of S.[[SetData]] whose value is e with an element whose value is empty.
         // ii. Return true.
         // 4. Return false.
-        Ok(this.borrow_mut().data_mut().delete(&value).into())
+        Ok(this.borrow_mut().data_mut().0.delete(&value).into())
     }
 
     /// `Set.prototype.entries( )`
@@ -387,14 +379,7 @@ impl Set {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.entries` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<Self>()?;
 
         Ok(SetIterator::create_set_iterator(
             this.clone(),
@@ -421,14 +406,7 @@ impl Set {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
 
-        let obj = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.forEach` called on incompatible receiver"
-                )
-            })?;
+        let obj = this.require_internal_slot::<Self>()?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let Some(callback_fn) = args.get_or_undefined(0).as_callable() else {
@@ -446,9 +424,9 @@ impl Set {
         let mut index = 0;
 
         // 7. Repeat, while index < numEntries,
-        while index < obj.borrow().data().full_len() {
+        while index < obj.borrow().data().0.full_len() {
             // a. Let e be entries[index].
-            let e = obj.borrow().data().get_index(index).cloned();
+            let e = obj.borrow().data().0.get_index(index).cloned();
 
             // b. Set index to index + 1.
             index += 1;
@@ -484,14 +462,7 @@ impl Set {
     {
         // See `Self::for_each` for comments on the algo.
 
-        let set = this.as_object();
-        let set = set
-            .and_then(|obj| obj.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.forEach` called on incompatible receiver"
-                )
-            })?;
+        let set = this.require_internal_slot::<Self>()?;
         let _lock = SetLock::new(&set);
 
         let mut index = 0;
@@ -500,8 +471,8 @@ impl Set {
                 let set = set.borrow();
                 let set = set.data();
 
-                if index < set.full_len() {
-                    if let Some(k) = set.get_index(index) {
+                if index < set.0.full_len() {
+                    if let Some(k) = set.0.get_index(index) {
                         k.clone()
                     } else {
                         continue;
@@ -529,14 +500,7 @@ impl Set {
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.has` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Set value to CanonicalizeKeyedCollectionKey(key).
         let value = args.get_or_undefined(0);
@@ -545,7 +509,7 @@ impl Set {
         // 4. For each element e of S.[[SetData]], do
         //    a. If e is not empty and SameValue(e, value) is true, return true.
         // 5. Return false.
-        Ok(this.borrow().data().contains(&value).into())
+        Ok(this.borrow().data().0.contains(&value).into())
     }
 
     /// `Set.prototype.values( )`
@@ -563,10 +527,7 @@ impl Set {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.values` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<Self>()?;
 
         Ok(SetIterator::create_set_iterator(
             this,
@@ -595,25 +556,22 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.isDisjointFrom` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
         let other_rec = get_set_record(other, context)?;
 
         // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
-        if this.borrow().data().len() <= other_rec.size {
+        if this.borrow().data().0.len() <= other_rec.size {
             // a. Let thisSize be the number of elements in O.[[SetData]].
-            let mut this_size = this.borrow().data().full_len();
+            let mut this_size = this.borrow().data().0.full_len();
             // b. Let index be 0.
             let mut index = 0;
             // c. Repeat, while index < thisSize,
             while index < this_size {
                 // i. Let e be O.[[SetData]][index].
-                let e = this.borrow().data().get_index(index).cloned();
+                let e = this.borrow().data().0.get_index(index).cloned();
 
                 // ii. Set index to index + 1.
                 index += 1;
@@ -630,7 +588,7 @@ impl Set {
 
                     // 3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
                     // 4. Set thisSize to the number of elements in O.[[SetData]].
-                    this_size = this.borrow().data().full_len();
+                    this_size = this.borrow().data().0.full_len();
                 }
             }
         } else {
@@ -646,7 +604,7 @@ impl Set {
                 //       1. If SetDataHas(O.[[SetData]], next) is true, then
                 let next = canonicalize_keyed_collection_key(next);
 
-                if this.borrow().data().contains(&next) {
+                if this.borrow().data().0.contains(&next) {
                     //      a. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
                     keys_iter.close(Ok(JsValue::undefined()), context)?;
 
@@ -679,28 +637,25 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.isSubsetOf` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
         let other_rec = get_set_record(other, context)?;
         // 4. If SetDataSize(O.[[SetData]]) > otherRec.[[Size]], return false.
-        if this.borrow().data().len() > other_rec.size {
+        if this.borrow().data().0.len() > other_rec.size {
             return Ok(JsValue::from(false));
         }
 
         // 5. Let thisSize be the number of elements in O.[[SetData]].
-        let mut this_size = this.borrow().data().full_len();
+        let mut this_size = this.borrow().data().0.full_len();
         // 6. Let index be 0.
         let mut index = 0;
 
         // 7. Repeat, while index < thisSize,
         while index < this_size {
             // a. Let e be O.[[SetData]][index].
-            let e = this.borrow().data().get_index(index).cloned();
+            let e = this.borrow().data().0.get_index(index).cloned();
 
             // b. Set index to index + 1.
             index += 1;
@@ -717,7 +672,7 @@ impl Set {
 
                 // iii. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
                 // iv. Set thisSize to the number of elements in O.[[SetData]].
-                this_size = this.borrow().data().full_len();
+                this_size = this.borrow().data().0.full_len();
             }
         }
 
@@ -745,17 +700,14 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.isSupersetOf` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
         let other_rec = get_set_record(other, context)?;
 
         // 4. If SetDataSize(O.[[SetData]]) < otherRec.[[Size]], return false.
-        if this.borrow().data().len() < other_rec.size {
+        if this.borrow().data().0.len() < other_rec.size {
             return Ok(JsValue::from(false));
         }
 
@@ -769,7 +721,7 @@ impl Set {
             //  b. If next is not done, then
             //     i. If SetDataHas(O.[[SetData]], next) is false, then
             let next = canonicalize_keyed_collection_key(next);
-            if !this.borrow().data().contains(&next) {
+            if !this.borrow().data().0.contains(&next) {
                 // 1. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
                 keys_iter.close(Ok(JsValue::undefined()), context)?;
                 // 2. Return false.
@@ -799,10 +751,7 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.symmetricDifference` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -812,7 +761,7 @@ impl Set {
         let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
 
         // 5. Let resultSetData be a copy of O.[[SetData]].
-        let mut result_set = this.borrow().data().clone();
+        let mut result_set = this.borrow().data().0.clone();
 
         // 6. Let next be not-started.
         // 7. Repeat, while next is not done,
@@ -827,7 +776,7 @@ impl Set {
 
             //    iv. If SetDataHas(O.[[SetData]], next) is true, then
             //  1. If alreadyInResult is true, set resultSetData[resultIndex] to empty.
-            if this.borrow().data().contains(&next) {
+            if this.borrow().data().0.contains(&next) {
                 result_set.delete(&next);
             }
             //    v. Else,
@@ -843,7 +792,7 @@ impl Set {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
-            result_set,
+            Set(result_set),
         )
         .into())
     }
@@ -867,10 +816,7 @@ impl Set {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
 
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.union` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -880,7 +826,7 @@ impl Set {
         let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
 
         // 5. Let resultSetData be a copy of O.[[SetData]].
-        let mut result_set = this.borrow().data().clone();
+        let mut result_set = this.borrow().data().0.clone();
 
         // 6. Let next be not-started.
         // 7. Repeat, while next is not done,
@@ -899,7 +845,7 @@ impl Set {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
-            result_set,
+            Set(result_set),
         )
         .into())
     }
@@ -924,10 +870,7 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| js_error!(TypeError: "method `Set.prototype.intersection` called on incompatible receiver"))?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -937,15 +880,15 @@ impl Set {
         let mut result_set = OrderedSet::new();
 
         // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
-        if this.borrow().data().len() <= other_rec.size {
+        if this.borrow().data().0.len() <= other_rec.size {
             // a. Let thisSize be the number of elements in O.[[SetData]].
-            let mut this_size = this.borrow().data().full_len();
+            let mut this_size = this.borrow().data().0.full_len();
             // b. Let index be 0.
             let mut index = 0;
             // c. Repeat, while index < thisSize,
             while index < this_size {
                 // i. Let e be O.[[SetData]][index].
-                let e = this.borrow().data().get_index(index).cloned();
+                let e = this.borrow().data().0.get_index(index).cloned();
                 // ii. Set index to index + 1.
                 index += 1;
 
@@ -966,7 +909,7 @@ impl Set {
                     result_set.add(e);
                     //  3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
                     //  4. Set thisSize to the number of elements in O.[[SetData]].
-                    this_size = this.borrow().data().full_len();
+                    this_size = this.borrow().data().0.full_len();
                 }
             }
 
@@ -983,7 +926,7 @@ impl Set {
                 let next = canonicalize_keyed_collection_key(next);
                 //     2. Let inThis be SetDataHas(O.[[SetData]], next).
                 //     3. If inThis is true, then
-                if this.borrow().data().contains(&next) {
+                if this.borrow().data().0.contains(&next) {
                     //        a. NOTE: Because other is an arbitrary object, it is possible for its "keys" iterator to produce the same value more than once.
                     //        b. If SetDataHas(resultSetData, next) is false, then
                     //           i. Append next to resultSetData.
@@ -998,7 +941,7 @@ impl Set {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
-            result_set,
+            Set(result_set),
         )
         .into())
     }
@@ -1021,26 +964,19 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
-        let this = this
-            .as_object()
-            .and_then(|o| o.downcast::<OrderedSet>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError: "method `Set.prototype.difference` called on incompatible receiver"
-                )
-            })?;
+        let this = this.require_internal_slot::<Self>()?;
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
         let other_rec = get_set_record(other, context)?;
 
         // 4. Let resultSetData be a copy of O.[[SetData]].
-        let mut result_set = this.borrow().data().clone();
+        let mut result_set = this.borrow().data().0.clone();
 
         // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
         if result_set.len() <= other_rec.size {
             // a. Let thisSize be the number of elements in O.[[SetData]].
-            let this_size = this.borrow().data().full_len();
+            let this_size = this.borrow().data().0.full_len();
             // b. Let index be 0.
             let mut index = 0;
 
@@ -1095,7 +1031,7 @@ impl Set {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().set().prototype(),
-            result_set,
+            Set(result_set),
         )
         .into())
     }
@@ -1103,7 +1039,7 @@ impl Set {
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(this
             .as_object()
-            .and_then(|o| o.downcast_ref::<OrderedSet>().map(|o| o.len()))
+            .and_then(|o| o.downcast_ref::<Self>().map(|o| o.0.len()))
             .ok_or_else(|| js_error!(TypeError: "method `get Set.prototype.size` called on incompatible receiver"))?.into())
     }
 }

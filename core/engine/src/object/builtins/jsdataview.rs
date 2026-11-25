@@ -154,14 +154,9 @@ impl JsDataView {
     /// Create a new `JsDataView` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        object
-            .downcast::<DataView>()
-            .map(|inner| Self { inner })
-            .map_err(|_| {
-                JsNativeError::typ()
-                    .with_message("object is not a DataView")
-                    .into()
-            })
+        Ok(Self {
+            inner: object.require_internal_slot::<DataView>()?,
+        })
     }
 
     /// Returns the `viewed_array_buffer` field for [`JsDataView`]

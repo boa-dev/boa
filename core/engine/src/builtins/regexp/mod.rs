@@ -1032,12 +1032,7 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
-        let this = this.as_object();
-        let obj = this
-            .and_then(|o| o.downcast::<RegExp>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("RegExp.prototype.exec called with invalid value")
-            })?;
+        let obj = this.require_internal_slot::<Self>()?;
 
         // 3. Let S be ? ToString(string).
         let arg_str = args.get_or_undefined(0).to_string(context)?;
@@ -1081,11 +1076,7 @@ impl RegExp {
         }
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
-        let Ok(this) = this.clone().downcast::<RegExp>() else {
-            return Err(JsNativeError::typ()
-                .with_message("RegExpExec called with invalid value")
-                .into());
-        };
+        let this = this.clone().require_internal_slot::<Self>()?;
 
         // 6. Return ? RegExpBuiltinExec(R, S).
         Self::abstract_builtin_exec(this, &input, context)

@@ -60,6 +60,13 @@ impl JsData for ModuleNamespace {
 
         &METHODS
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "ModuleNamespace"
+    }
 }
 
 impl ModuleNamespace {

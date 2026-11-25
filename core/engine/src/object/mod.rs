@@ -87,11 +87,7 @@ impl<T: Any + Trace + JsData> NativeObject for T {
     }
 
     fn type_name_of_value(&self) -> &'static str {
-        fn name_of_val<T: ?Sized>(_val: &T) -> &'static str {
-            std::any::type_name::<T>()
-        }
-
-        name_of_val(self)
+        T::type_name()
     }
 }
 

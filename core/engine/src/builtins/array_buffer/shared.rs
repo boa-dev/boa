@@ -225,17 +225,10 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("SharedArrayBuffer.byteLength called with invalid value")
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. Let length be ArrayBufferByteLength(O, seq-cst).
-        let len = buf.bytes(Ordering::SeqCst).len() as u64;
+        let len = buf.borrow().data().bytes(Ordering::SeqCst).len() as u64;
 
         // 5. Return 𝔽(length).
         Ok(len.into())
@@ -252,17 +245,10 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("get SharedArrayBuffer.growable called with invalid `this`")
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
-        Ok(JsValue::from(!buf.is_fixed_len()))
+        Ok(JsValue::from(!buf.borrow().data().is_fixed_len()))
     }
 
     /// [`get SharedArrayBuffer.prototype.maxByteLength`][spec].
@@ -276,21 +262,14 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let object = this.as_object();
-        let buf = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("get SharedArrayBuffer.maxByteLength called with invalid value")
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. If IsFixedLengthArrayBuffer(O) is true, then
         //     a. Let length be O.[[ArrayBufferByteLength]].
         // 5. Else,
         //     a. Let length be O.[[ArrayBufferMaxByteLength]].
         // 6. Return 𝔽(length).
-        Ok(buf.data.buffer.len().into())
+        Ok(buf.borrow().data().data.buffer.len().into())
     }
 
     /// [`SharedArrayBuffer.prototype.grow ( newLength )`][spec].
@@ -303,14 +282,7 @@ impl SharedArrayBuffer {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let Some(buf) = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-        else {
-            return Err(JsNativeError::typ()
-                .with_message("SharedArrayBuffer.grow called with non-object value")
-                .into());
-        };
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferMaxByteLength]]).
         if buf.borrow().data().is_fixed_len() {
@@ -398,13 +370,7 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<Self>().ok())
-            .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("SharedArrayBuffer.slice called with invalid `this` value")
-            })?;
+        let buf = this.require_internal_slot::<Self>()?;
 
         // 4. Let len be ArrayBufferByteLength(O, seq-cst).
         let len = buf.borrow().data().len(Ordering::SeqCst);

@@ -289,10 +289,7 @@ impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
         rest: &'a [JsValue],
         _context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
-        let inner = this
-            .as_object()
-            .and_then(|o| o.clone().downcast::<T>().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message("invalid this for class method"))?;
+        let inner = this.require_internal_slot::<T>()?;
 
         Ok((JsClass { inner }, rest))
     }

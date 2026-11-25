@@ -100,6 +100,13 @@ impl JsData for MappedArguments {
 
         &METHODS
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "MappedArguments"
+    }
 }
 
 impl MappedArguments {

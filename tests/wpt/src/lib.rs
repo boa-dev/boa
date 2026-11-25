@@ -280,7 +280,9 @@ fn execute_test_file(path: &Path) {
     // Workspace `reqwest` uses `rustls-no-provider`; install ring as the
     // process-wide CryptoProvider so `BlockingReqwestFetcher` construction
     // in `create_context` doesn't panic with `No provider set`.
-    rustls::crypto::ring::default_provider().install_default().ok();
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .ok();
     let dir = path.parent().unwrap();
     let wpt_path = PathBuf::from(
         std::env::var("WPT_ROOT").expect("Could not find the WPT_ROOT environment variable"),
