@@ -26,7 +26,9 @@ use crate::{
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
 };
 use cow_utils::CowUtils;
-use num_traits::float::FloatCore;
+use num_bigint::BigUint;
+use num_integer::Integer;
+use num_traits::{One, ToPrimitive};
 
 mod globals;
 pub(crate) use globals::{IsFinite, IsNaN, ParseFloat, ParseInt};
@@ -39,8 +41,6 @@ pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
 
 #[cfg(test)]
 mod tests;
-
-const BUF_SIZE: usize = 2200;
 
 /// `Number` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -545,130 +545,146 @@ impl Number {
         Ok(JsValue::new(js_string!(prefix + &suffix)))
     }
 
-    // https://golang.org/src/math/nextafter.go
-    fn next_after(x: f64, y: f64) -> f64 {
-        if x.is_nan() || y.is_nan() {
-            f64::NAN
-        } else if (x - y) == 0. {
-            x
-        } else if x == 0.0 {
-            f64::from_bits(1).copysign(y)
-        } else if y > x || x > 0.0 {
-            f64::from_bits(x.to_bits() + 1)
-        } else {
-            f64::from_bits(x.to_bits() - 1)
+    /// Returns the shortest digits in the given radix whose value rounds back to `value`.
+    ///
+    /// This is the free-format algorithm from Burger and Dybvig, "Printing Floating-Point
+    /// Numbers Quickly and Accurately" (1996). It works on exact integers, so the digits are
+    /// correct for every radix, not only for powers of two.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-numeric-types-number-tostring
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_js_string_radix(value: f64, radix: u8) -> JsString {
+        assert!((2..=36).contains(&radix));
+        assert!(value.is_finite());
+
+        if value == 0.0 {
+            return js_string!("0");
         }
+
+        let (digits, point) = Self::shortest_radix_digits(value.abs(), radix);
+
+        // The digits denote 0.d1d2…dk × radix^point.
+        let mut result = String::with_capacity(digits.len() + point.unsigned_abs() as usize + 3);
+        if value.is_sign_negative() {
+            result.push('-');
+        }
+        let digit = |d: &u8| {
+            std::char::from_digit(u32::from(*d), u32::from(radix)).expect("digit is below radix")
+        };
+        if point <= 0 {
+            result.push_str("0.");
+            result.extend(std::iter::repeat_n('0', point.unsigned_abs() as usize));
+            result.extend(digits.iter().map(digit));
+        } else if point as usize >= digits.len() {
+            result.extend(digits.iter().map(digit));
+            result.extend(std::iter::repeat_n('0', point as usize - digits.len()));
+        } else {
+            let (int, frac) = digits.split_at(point as usize);
+            result.extend(int.iter().map(digit));
+            result.push('.');
+            result.extend(frac.iter().map(digit));
+        }
+        js_string!(result)
     }
 
-    // https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/numbers/conversions.cc#1230
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_js_string_radix(mut value: f64, radix: u8) -> JsString {
-        assert!(radix >= 2);
-        assert!(radix <= 36);
-        assert!(value.is_finite());
-        // assert_ne!(0.0, value);
+    /// Generates the shortest digits of a positive finite `value` in `radix`, returning them
+    /// with the position `point` of the radix point, so that `value` is 0.d1d2…dk × radix^point.
+    fn shortest_radix_digits(value: f64, radix: u8) -> (Vec<u8>, i32) {
+        const HIDDEN_BIT: u64 = 1 << 52;
+        const MIN_EXPONENT: i32 = -1074;
 
-        // Character array used for conversion.
-        // Temporary buffer for the result. We start with the decimal point in the
-        // middle and write to the left for the integer part and to the right for the
-        // fractional part. 1024 characters for the exponent and 52 for the mantissa
-        // either way, with additional space for sign, decimal point and string
-        // termination should be sufficient.
-        let mut buffer: [u8; BUF_SIZE] = [0; BUF_SIZE];
-        let (int_buf, frac_buf) = buffer.split_at_mut(BUF_SIZE / 2);
-        let mut fraction_cursor = 0;
-        let negative = value.is_sign_negative();
-        if negative {
-            value = -value;
-        }
-        // Split the value into an integer part and a fractional part.
-        // let mut integer = value.trunc();
-        // let mut fraction = value.fract();
-        let mut integer = value.floor();
-        let mut fraction = value - integer;
+        let bits = value.to_bits();
+        let biased = ((bits >> 52) & 0x7ff) as i32;
+        let (f, e) = if biased == 0 {
+            (bits & (HIDDEN_BIT - 1), MIN_EXPONENT)
+        } else {
+            ((bits & (HIDDEN_BIT - 1)) | HIDDEN_BIT, biased - 1075)
+        };
 
-        // We only compute fractional digits up to the input double's precision.
-        let mut delta = 0.5 * (Self::next_after(value, f64::MAX) - value);
-        delta = Self::next_after(0.0, f64::MAX).max(delta);
-        assert!(delta > 0.0);
-        if fraction >= delta {
-            // Insert decimal point.
-            frac_buf[fraction_cursor] = b'.';
-            fraction_cursor += 1;
-            loop {
-                // Shift up by one digit.
-                fraction *= f64::from(radix);
-                delta *= f64::from(radix);
-                // Write digit.
-                let digit = fraction as u32;
-                frac_buf[fraction_cursor] = std::char::from_digit(digit, u32::from(radix))
-                    .expect("radix already checked")
-                    as u8;
-                fraction_cursor += 1;
-                // Calculate remainder.
-                fraction -= f64::from(digit);
-                // Round to even.
-                if fraction + delta > 1.0
-                    && (fraction > 0.5 || (fraction - 0.5).abs() < f64::EPSILON && digit & 1 != 0)
-                {
-                    loop {
-                        // We need to back trace already written digits in case of carry-over.
-                        fraction_cursor -= 1;
-                        if fraction_cursor == 0 {
-                            //              CHECK_EQ('.', buffer[fraction_cursor]);
-                            // Carry over to the integer part.
-                            integer += 1.;
-                        } else {
-                            let c: u8 = frac_buf[fraction_cursor];
-                            // Reconstruct digit.
-                            let digit = if c > b'9' { c - b'a' + 10 } else { c - b'0' };
-                            if digit + 1 >= radix {
-                                continue;
-                            }
-                            frac_buf[fraction_cursor] =
-                                std::char::from_digit(u32::from(digit + 1), u32::from(radix))
-                                    .expect("digit was not a valid number in the given radix")
-                                    as u8;
-                            fraction_cursor += 1;
-                        }
-                        break;
-                    }
-                    break;
-                }
-                if fraction < delta {
-                    break;
-                }
+        // `value` is f × 2^e. The rounding interval around it is (value - m- / s, value + m+ / s)
+        // after scaling, with r / s = value. The gap below is half as wide when f is a power of
+        // two, because the exponent changes there. Round-to-nearest-even includes the interval
+        // ends when f is even.
+        let f = BigUint::from(f);
+        let unequal_gaps = f == BigUint::from(HIDDEN_BIT) && e > MIN_EXPONENT;
+        let (mut r, mut s, mut m_plus, mut m_minus) = match (e >= 0, unequal_gaps) {
+            (true, false) => {
+                let be = BigUint::one() << e as usize;
+                ((&f * &be) << 1, BigUint::from(2u8), be.clone(), be)
             }
+            (true, true) => {
+                let be = BigUint::one() << e as usize;
+                ((&f * &be) << 2, BigUint::from(4u8), &be << 1, be)
+            }
+            (false, false) => (
+                &f << 1,
+                BigUint::one() << (1 - e) as usize,
+                BigUint::one(),
+                BigUint::one(),
+            ),
+            (false, true) => (
+                &f << 2,
+                BigUint::one() << (2 - e) as usize,
+                BigUint::from(2u8),
+                BigUint::one(),
+            ),
+        };
+        let inclusive = (bits & 1) == 0;
+        let radix_big = BigUint::from(radix);
+
+        // Find the smallest `point` such that value + m+ / s fits below radix^point. Start from
+        // an estimate (at most one too small) and fix it up.
+        let log2_value = f64::from(e) + f.bits() as f64 - 1.0;
+        let mut point = (log2_value / f64::from(radix).log2() - 1e-9).ceil() as i32 - 1;
+        if point >= 0 {
+            s *= radix_big.pow(point.unsigned_abs());
+        } else {
+            let scale = radix_big.pow(point.unsigned_abs());
+            r *= &scale;
+            m_plus *= &scale;
+            m_minus *= &scale;
+        }
+        let too_low = |r: &BigUint, m_plus: &BigUint, s: &BigUint| {
+            let high = r + m_plus;
+            if inclusive { high >= *s } else { high > *s }
+        };
+        while too_low(&r, &m_plus, &s) {
+            s *= &radix_big;
+            point += 1;
         }
 
-        // Compute integer digits. Fill unrepresented digits with zero.
-        let mut int_iter = int_buf.iter_mut().enumerate().rev();
-        while FloatCore::integer_decode(integer / f64::from(radix)).1 > 0 {
-            integer /= f64::from(radix);
-            *int_iter.next().expect("integer buffer exhausted").1 = b'0';
-        }
-
+        let mut digits = Vec::new();
         loop {
-            let remainder = integer % f64::from(radix);
-            *int_iter.next().expect("integer buffer exhausted").1 =
-                std::char::from_digit(remainder as u32, u32::from(radix))
-                    .expect("remainder not a digit in the given number") as u8;
-            integer = (integer - remainder) / f64::from(radix);
-            if integer <= 0f64 {
-                break;
+            r *= &radix_big;
+            m_plus *= &radix_big;
+            m_minus *= &radix_big;
+            let (digit, rest) = r.div_rem(&s);
+            r = rest;
+            let digit = digit.to_u8().expect("digit is below radix");
+
+            let low_ok = if inclusive { r <= m_minus } else { r < m_minus };
+            let high_ok = too_low(&r, &m_plus, &s);
+            match (low_ok, high_ok) {
+                (false, false) => digits.push(digit),
+                (true, false) => {
+                    digits.push(digit);
+                    break;
+                }
+                (false, true) => {
+                    digits.push(digit + 1);
+                    break;
+                }
+                (true, true) => {
+                    // Both digits round back to `value`, so pick the closer one.
+                    digits.push(if &r << 1 < s { digit } else { digit + 1 });
+                    break;
+                }
             }
         }
-        // Add sign and terminate string.
-        if negative {
-            *int_iter.next().expect("integer buffer exhausted").1 = b'-';
-        }
-        assert!(fraction_cursor < BUF_SIZE);
-
-        let integer_cursor = int_iter.next().expect("integer buffer exhausted").0 + 1;
-        let fraction_cursor = fraction_cursor + BUF_SIZE / 2;
-        js_string!(&*String::from_utf8_lossy(
-            &buffer[integer_cursor..fraction_cursor]
-        ))
+        (digits, point)
     }
 
     /// `Number.prototype.toString( [radix] )`
