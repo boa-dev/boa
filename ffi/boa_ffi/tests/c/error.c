@@ -85,10 +85,24 @@ static bool payload_matches(JsValue *value, JsValueType kind) {
     if (value == NULL || boa_JsValue_get_type(value) != kind) {
         return false;
     }
+    boa_JsValue_as_boolean_result boolean = boa_JsValue_as_boolean(value);
     boa_JsValue_as_number_result number = boa_JsValue_as_number(value);
-    return kind == JsValueType_Number
+    DiplomatWrite *write = diplomat_buffer_write_create(0);
+    boa_JsValue_as_string_result string = boa_JsValue_as_string(value, write);
+    const char *bytes = diplomat_buffer_write_get_bytes(write);
+    size_t len = diplomat_buffer_write_len(write);
+    bool string_ok = kind == JsValueType_String
+        ? string.is_ok && len == 4 && bytes != NULL && memcmp(bytes, "boom", 4) == 0
+        : !string.is_ok && string.err == JsStringError_NotAString && len == 0;
+    diplomat_buffer_write_destroy(write);
+
+    bool bool_ok = kind == JsValueType_Boolean
+        ? boolean.is_ok && boolean.ok
+        : !boolean.is_ok;
+    bool number_ok = kind == JsValueType_Number
         ? number.is_ok && number.ok == 7.0
         : !number.is_ok;
+    return bool_ok && number_ok && string_ok;
 }
 
 static bool opaque_error(JsValue *input, JsValueType kind, bool error_first) {
@@ -125,7 +139,10 @@ int main(void) {
     }
     for (size_t order = 0; order < 2; ++order) {
         bool error_first = order == 0;
-        if (!opaque_error(boa_JsValue_from_number(7.0), JsValueType_Number, error_first) ||
+        if (!opaque_error(boa_JsValue_from_boolean(true), JsValueType_Boolean, error_first) ||
+            !opaque_error(boa_JsValue_from_number(7.0), JsValueType_Number, error_first) ||
+            !opaque_error(boa_JsValue_from_string((DiplomatStringView){.data = "boom", .len = 4}),
+                          JsValueType_String, error_first) ||
             !opaque_error(boa_JsValue_from_null(), JsValueType_Null, error_first) ||
             !opaque_error(boa_JsValue_from_undefined(), JsValueType_Undefined, error_first)) {
             fputs("opaque error payload ownership failed\n", stderr);
