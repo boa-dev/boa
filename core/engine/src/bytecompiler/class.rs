@@ -79,6 +79,10 @@ impl ByteCompiler<'_> {
     /// The compilation of a class declaration and expression is mostly equal.
     /// A class declaration binds the resulting class object to it's identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
+    ///
+    /// Emits bytecode for [`ClassDefinitionEvaluation`].
+    ///
+    /// [`ClassDefinitionEvaluation`]: https://tc39.es/ecma262/#sec-runtime-semantics-classdefinitionevaluation
     pub(crate) fn compile_class(&mut self, class: ClassSpec<'_>, dst: Option<&Register>) {
         // 11.2.2 Strict Mode Code - <https://tc39.es/ecma262/#sec-strict-mode-code>
         //  - All parts of a ClassDeclaration or a ClassExpression are strict mode code.
@@ -150,7 +154,7 @@ impl ByteCompiler<'_> {
         compiler.bytecode.emit_set_accumulator(value.variable());
         compiler.register_allocator.dealloc(value);
 
-        // 17. If ClassHeritageopt is present, set F.[[ConstructorKind]] to derived.
+        // ClassDefinitionEvaluation step 18: mark a derived constructor.
         compiler.code_block_flags.set(
             CodeBlockFlags::IS_DERIVED_CONSTRUCTOR,
             class.super_ref.is_some(),
@@ -205,18 +209,10 @@ impl ByteCompiler<'_> {
         self.bytecode
             .emit_push_private_environment(class_register.variable(), name_indices);
 
+        // Step 25: defer static field initializers and static blocks.
         let mut static_elements = Vec::new();
 
-        if let Some(scope) = class.name_scope {
-            let binding = scope.get_identifier_reference(class_name.clone());
-            let index = self.insert_binding(binding);
-            self.emit_binding_access(
-                BindingAccessOpcode::PutLexicalValue,
-                &index,
-                &class_register,
-            );
-        }
-
+        // Step 26: evaluate element names and create methods and initializer closures.
         for element in class.elements {
             match element {
                 ClassElement::MethodDefinition(m) => match m.name() {
@@ -505,6 +501,12 @@ impl ByteCompiler<'_> {
                         PropertyName::Computed(name) => {
                             let name_register = self.register_allocator.alloc();
                             self.compile_expr(name, &name_register);
+                            // ClassFieldDefinitionEvaluation step 1: convert computed names
+                            // to property keys while evaluating the class elements.
+                            self.bytecode.emit_to_property_key(
+                                name_register.variable(),
+                                name_register.variable(),
+                            );
                             StaticFieldName::Register(name_register)
                         }
                     };
@@ -635,6 +637,19 @@ impl ByteCompiler<'_> {
             }
         }
 
+        // Step 28: initialize the inner class binding after element-name evaluation.
+        // Static field initializers and blocks execute in step 32 below.
+        if let Some(scope) = class.name_scope {
+            let binding = scope.get_identifier_reference(class_name.clone());
+            let index = self.insert_binding(binding);
+            self.emit_binding_access(
+                BindingAccessOpcode::PutLexicalValue,
+                &index,
+                &class_register,
+            );
+        }
+
+        // Step 32: execute the queued static fields and blocks in source order.
         for element in static_elements {
             match element {
                 StaticElement::StaticBlock(code) => {
@@ -682,8 +697,6 @@ impl ByteCompiler<'_> {
                         }
                         StaticFieldName::Register(key) => {
                             if is_anonymous_function {
-                                self.bytecode
-                                    .emit_to_property_key(key.variable(), key.variable());
                                 self.bytecode.emit_set_function_name(
                                     value.variable(),
                                     key.variable(),
@@ -713,6 +726,7 @@ impl ByteCompiler<'_> {
             self.bytecode
                 .emit_move(dst.variable(), class_register.variable());
         } else {
+            // BindingClassDeclarationEvaluation step 5 initializes the outer binding.
             self.emit_binding(BindingOpcode::InitVar, class_name, &class_register);
         }
 

@@ -2,6 +2,99 @@ use crate::{TestAction, run_test_actions};
 use boa_macros::js_str;
 use indoc::indoc;
 
+// https://github.com/boa-dev/boa/issues/5635
+#[test]
+fn computed_class_field_keys_follow_source_order() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let n = 0;
+            const key = { toString() { return "k" + ++n; } };
+            class C {
+                [key]() { return 1; }
+                static [key] = 2;
+                [key] = 3;
+            }
+            const instance = new C();
+        "#}),
+        TestAction::assert_eq("instance.k1()", 1),
+        TestAction::assert_eq("C.k2", 2),
+        TestAction::assert_eq("instance.k3", 3),
+        TestAction::assert_eq("n", 3),
+    ]);
+}
+
+#[test]
+fn computed_static_field_key_precedes_initializers() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const events = [];
+            const key = {
+                toString() {
+                    events.push("key");
+                    return "field";
+                }
+            };
+            class C {
+                static first = events.push("first");
+                static [key] = events.push("second");
+            }
+        "#}),
+        TestAction::assert_eq("events.join(',')", js_str!("key,first,second")),
+        TestAction::assert_eq("C.field", 3),
+    ]);
+}
+
+#[test]
+fn abrupt_computed_static_field_key_prevents_initializers() {
+    run_test_actions([
+        TestAction::run("let initialized = false;"),
+        TestAction::assert_opaque_error(
+            indoc! {r#"
+                class C {
+                    static first = (initialized = true);
+                    static [{ toString() { throw "key"; } }] = 1;
+                }
+            "#},
+            js_str!("key"),
+        ),
+        TestAction::assert("!initialized"),
+    ]);
+}
+
+#[test]
+fn class_name_is_uninitialized_in_computed_keys() {
+    for source in [
+        "class C { [C] = 1; }",
+        "class C { static [C] = 1; }",
+        "class C { [C]() {} }",
+        "(class C { [C] = 1; });",
+        "(class C { static [C] = 1; });",
+        "(class C { [C]() {} });",
+    ] {
+        run_test_actions([TestAction::assert_native_error(
+            source,
+            crate::JsNativeErrorKind::Reference,
+            "C is not defined",
+        )]);
+    }
+}
+
+#[test]
+fn class_name_is_initialized_before_static_initializers() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class C {
+                static self = C;
+                static { this.matches = C === this; }
+                self = C;
+            }
+        "#}),
+        TestAction::assert("C.self === C"),
+        TestAction::assert("C.matches"),
+        TestAction::assert("new C().self === C"),
+    ]);
+}
+
 #[test]
 fn class_field_initializer_name_static() {
     run_test_actions([
