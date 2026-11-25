@@ -3,19 +3,19 @@ use crate::{JsStr, JsStringKind};
 use std::ptr::NonNull;
 
 /// Sequential string implementation.
-pub mod sequence;
-pub use sequence::SequenceString;
+pub(crate) mod sequence;
+pub(crate) use sequence::SequenceString;
 
 /// Slice string implementation.
-pub mod slice;
-pub use slice::SliceString;
+pub(crate) mod slice;
+pub(crate) use slice::SliceString;
 
 pub(crate) mod r#static;
 pub use r#static::StaticString;
 
 /// Rope string implementation.
-pub mod rope;
-pub use rope::RopeString;
+pub(crate) mod rope;
+pub(crate) use rope::RopeString;
 
 /// Header for all `JsString` allocations.
 ///
@@ -26,7 +26,7 @@ pub use rope::RopeString;
 #[derive(Debug, Clone, Copy)]
 pub struct JsStringHeader {
     /// Kind tag identifying the string type. Used to index into `VTABLES`.
-    pub kind: JsStringKind,
+    pub(crate) kind: JsStringKind,
     /// Length of the string in code units.
     pub(crate) len: usize,
     /// Reference count for this string.
@@ -58,15 +58,15 @@ impl JsStringHeader {
 /// Vtables are stored by value in the global `VTABLES` array, indexed by [`JsStringKind`].
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct JsStringVTable {
+pub(crate) struct JsStringVTable {
     /// Get the string as a `JsStr`.
-    pub as_str: for<'a> fn(&'a JsStringHeader) -> JsStr<'a>,
+    pub(crate) as_str: for<'a> fn(&'a JsStringHeader) -> JsStr<'a>,
     /// Get an iterator of code points.
-    pub code_points: for<'a> fn(&'a JsStringHeader) -> CodePointsIter<'a>,
+    pub(crate) code_points: for<'a> fn(&'a JsStringHeader) -> CodePointsIter<'a>,
     /// Get the code unit at the given index.
-    pub code_unit_at: fn(&JsStringHeader, usize) -> Option<u16>,
+    pub(crate) code_unit_at: fn(&JsStringHeader, usize) -> Option<u16>,
     /// Deallocate the string.
-    pub dealloc: fn(NonNull<JsStringHeader>),
+    pub(crate) dealloc: fn(NonNull<JsStringHeader>),
 }
 
 /// Global vtable table indexed by [`JsStringKind`].

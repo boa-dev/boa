@@ -3,56 +3,25 @@ use crate::{JsStr, JsString, JsStringKind};
 use std::cell::OnceCell;
 use std::ptr::{self, NonNull};
 
+#[allow(clippy::cast_possible_truncation)]
+const fn generate_fibonacci_thresholds<const N: usize>() -> [u32; N] {
+    let mut table = [0; N];
+    let mut a: u64 = 1;
+    let mut b: u64 = 2;
+    let mut i = 0;
+    while i < N {
+        table[i] = a as u32;
+        let c = a + b;
+        a = b;
+        b = c;
+        i += 1;
+    }
+    table
+}
+
 /// Fibonacci numbers for rope balancing thresholds.
 /// `F(n) = Fib(n + 2)`. A rope of depth `n` is balanced if its length >= `F(n)`.
-static FIBONACCI_THRESHOLDS: [u32; 46] = [
-    1,
-    2,
-    3,
-    5,
-    8,
-    13,
-    21,
-    34,
-    55,
-    89,
-    144,
-    233,
-    377,
-    610,
-    987,
-    1597,
-    2584,
-    4181,
-    6765,
-    10946,
-    17711,
-    28657,
-    46368,
-    75025,
-    121_393,
-    196_418,
-    317_811,
-    514_229,
-    832_040,
-    1_346_269,
-    2_178_309,
-    3_524_578,
-    5_702_887,
-    9_227_465,
-    14_930_352,
-    24_157_817,
-    39_088_169,
-    63_245_986,
-    102_334_155,
-    165_580_141,
-    267_914_296,
-    433_494_437,
-    701_408_733,
-    1_134_903_170,
-    1_836_311_903,
-    2_971_215_073,
-];
+static FIBONACCI_THRESHOLDS: [u32; 46] = generate_fibonacci_thresholds();
 
 /// Static vtable for rope strings.
 pub(crate) static ROPE_VTABLE: JsStringVTable = JsStringVTable {
@@ -65,7 +34,7 @@ pub(crate) static ROPE_VTABLE: JsStringVTable = JsStringVTable {
 /// The flattened representation of a rope.
 #[allow(dead_code)]
 #[derive(Debug)]
-pub enum Flattened {
+pub(crate) enum Flattened {
     /// Latin1 encoded contiguous buffer.
     Latin1(Box<[u8]>),
     /// UTF-16 encoded contiguous buffer.
@@ -75,7 +44,7 @@ pub enum Flattened {
 impl Flattened {
     /// Gets the flattened string as a `JsStr`.
     #[must_use]
-    pub fn as_str(&self) -> JsStr<'_> {
+    pub(crate) fn as_str(&self) -> JsStr<'_> {
         match self {
             Self::Latin1(b) => JsStr::Latin1(b),
             Self::Utf16(b) => JsStr::Utf16(b),
@@ -86,7 +55,7 @@ impl Flattened {
 /// A rope string that is a tree of other strings.
 #[repr(C)]
 #[derive(Debug)]
-pub struct RopeString {
+pub(crate) struct RopeString {
     /// Standardized header for all strings.
     pub(crate) header: JsStringHeader,
     pub(crate) left: JsString,
@@ -251,7 +220,7 @@ fn rope_as_str(header: &JsStringHeader) -> JsStr<'_> {
 ///
 /// Panics if the string contains non-Latin1 characters but was expected to be Latin1.
 #[must_use]
-pub fn flatten_rope(header: &JsStringHeader) -> &Flattened {
+pub(crate) fn flatten_rope(header: &JsStringHeader) -> &Flattened {
     // SAFETY: The header is part of a RopeString and it's aligned.
     let this: &RopeString = unsafe { &*ptr::from_ref(header).cast::<RopeString>() };
 

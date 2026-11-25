@@ -19,8 +19,7 @@ mod display;
 mod iter;
 mod str;
 mod r#type;
-/// VTable-based string implementation details.
-pub mod vtable;
+pub(crate) mod vtable;
 
 #[cfg(test)]
 mod tests;
@@ -99,7 +98,7 @@ pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
 /// the storage kind of string.
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 #[repr(u8)]
-pub enum JsStringKind {
+pub(crate) enum JsStringKind {
     /// A sequential memory slice of Latin1 bytes. See [`SequenceString`].
     Latin1Sequence = 0,
 

@@ -87,10 +87,7 @@ impl NativeSegmenter {
                     NativeSegmentIterator::SentenceUtf16(s.as_borrowed().segment_utf16(input))
                 }
             },
-            JsStr::Rope(rope) => {
-                let flat = boa_string::vtable::rope::flatten_rope(rope.header);
-                self.segment(flat.as_str())
-            }
+            JsStr::Rope(rope) => self.segment(rope.flatten()),
         }
     }
 }

@@ -29,7 +29,7 @@ pub(crate) static UTF16_VTABLE: JsStringVTable = JsStringVTable {
 /// `Send`, although within Boa this does not make sense.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SequenceString<T: InternalStringType> {
+pub(crate) struct SequenceString<T: InternalStringType> {
     /// Standardized header for all strings.
     pub(crate) header: JsStringHeader,
     // Forces invariant contract.

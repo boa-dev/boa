@@ -8,17 +8,28 @@ use std::{
 /// A view into a rope string.
 #[derive(Debug, Clone, Copy)]
 pub struct RopeSlice<'a> {
-    pub header: &'a crate::vtable::JsStringHeader,
+    pub(crate) header: &'a crate::vtable::JsStringHeader,
     pub(crate) start: usize,
     pub(crate) end: usize,
 }
 
-impl RopeSlice<'_> {
+impl<'a> RopeSlice<'a> {
     /// Get the length of the slice.
     #[inline]
     #[must_use]
     pub const fn len(&self) -> usize {
         self.end - self.start
+    }
+
+    /// Flattens this rope slice into a contiguous [`JsStr`].
+    #[must_use]
+    pub fn flatten(&self) -> JsStr<'a> {
+        let full = crate::vtable::rope::flatten_rope(self.header).as_str();
+        if self.start == 0 && self.end == self.header.len {
+            full
+        } else {
+            full.get(self.start..self.end).unwrap_or(JsStr::EMPTY)
+        }
     }
 }
 
@@ -68,6 +79,19 @@ impl<'a> JsStr<'a> {
     #[must_use]
     pub const fn rope(slice: RopeSlice<'a>) -> Self {
         Self::Rope(slice)
+    }
+
+    /// Returns the string as a contiguous [`JsStr`].
+    ///
+    /// If this is a rope slice, it is flattened into a contiguous buffer and a view
+    /// into that buffer is returned. Otherwise, returns `*self`.
+    #[inline]
+    #[must_use]
+    pub fn flatten(&self) -> Self {
+        match self {
+            Self::Latin1(_) | Self::Utf16(_) => *self,
+            Self::Rope(rope) => rope.flatten(),
+        }
     }
 
     /// Return the inner variant of the [`JsStr`].

@@ -14,7 +14,7 @@ pub(crate) static SLICE_VTABLE: JsStringVTable = JsStringVTable {
 /// A slice of an existing string.
 #[repr(C)]
 #[derive(Debug)]
-pub struct SliceString {
+pub(crate) struct SliceString {
     /// Standardized header for all strings.
     pub(crate) header: JsStringHeader,
     // Keep this for refcounting the original string.
