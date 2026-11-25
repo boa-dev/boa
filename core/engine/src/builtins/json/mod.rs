@@ -873,11 +873,7 @@ impl Json {
             // a. Let isArray be ? IsArray(value).
             // b. If isArray is true, return ? SerializeJSONArray(state, value).
             // c. Return ? SerializeJSONObject(state, value).
-            return if obj.is_array_abstract()? {
-                Ok(Some(Self::serialize_json_array(state, &obj, context)?))
-            } else {
-                Ok(Some(Self::serialize_json_object(state, &obj, context)?))
-            };
+            return Ok(Some(Self::serialize_json_nested(state, &obj, context)?));
         }
 
         // 12. Return undefined.
@@ -951,6 +947,33 @@ impl Json {
 
         // 4. Return product.
         js_string!(&product[..])
+    }
+
+    /// Serializes a nested object or array, counting the descent as host recursion.
+    ///
+    /// `SerializeJSONObject` and `SerializeJSONArray` recurse natively, one native frame per
+    /// level of nesting, so without this the depth is bounded only by the native stack and a
+    /// deeply nested value aborts the process instead of reporting the configured recursion
+    /// limit.
+    fn serialize_json_nested(
+        state: &mut StateRecord,
+        value: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<JsString> {
+        context.vm.host_call_depth += 1;
+        let result = context
+            .check_runtime_limits()
+            .and_then(|()| value.is_array_abstract())
+            .and_then(|is_array| {
+                if is_array {
+                    Self::serialize_json_array(state, value, context)
+                } else {
+                    Self::serialize_json_object(state, value, context)
+                }
+            });
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
+
+        result
     }
 
     /// `25.5.2.4 SerializeJSONObject ( state, value )`

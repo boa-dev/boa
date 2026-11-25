@@ -118,7 +118,32 @@ impl JsValue {
         self.to_json_inner(context, &mut seen_objects)
     }
 
+    /// Counts one level of the conversion as host recursion before converting an object.
+    ///
+    /// The conversion recurses natively through nested objects and arrays, one native frame per
+    /// level, so without this the depth is bounded only by the native stack and a deeply nested
+    /// value aborts the process instead of reporting the configured recursion limit. Only objects
+    /// recurse, so only they are counted, which keeps the depth in step with
+    /// `SerializeJSONNested` and leaves a primitive leaf costing nothing.
     fn to_json_inner(
+        &self,
+        context: &mut Context,
+        seen_objects: &mut HashSet<JsObject>,
+    ) -> JsResult<Option<Value>> {
+        if !self.is_object() {
+            return self.to_json_variant(context, seen_objects);
+        }
+
+        context.vm.host_call_depth += 1;
+        let result = context
+            .check_runtime_limits()
+            .and_then(|()| self.to_json_variant(context, seen_objects));
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
+
+        result
+    }
+
+    fn to_json_variant(
         &self,
         context: &mut Context,
         seen_objects: &mut HashSet<JsObject>,
@@ -214,6 +239,32 @@ mod tests {
     use crate::{
         Context, JsObject, JsValue, TestAction, js_string, object::JsArray, run_test_actions,
     };
+
+    #[test]
+    fn to_json_deep_nesting_reports_the_recursion_limit() {
+        run_test_actions([
+            TestAction::run(indoc! {r#"
+                var root = {};
+                var node = root;
+                for (var i = 0; i < 200; i++) {
+                    node.a = {};
+                    node = node.a;
+                }
+            "#}),
+            TestAction::inspect_context(|context| {
+                context.runtime_limits_mut().set_recursion_limit(64);
+
+                let global = context.global_object();
+                let root = global.get(js_string!("root"), context).unwrap();
+                let error = root.to_json(context).unwrap_err();
+
+                assert!(
+                    error.to_string().contains("recursive calls"),
+                    "expected the recursion limit, got {error}"
+                );
+            }),
+        ]);
+    }
 
     #[test]
     fn json_conversions() {
