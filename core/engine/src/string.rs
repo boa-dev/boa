@@ -62,10 +62,10 @@ macro_rules! js_string {
         $crate::string::JsString::from($s)
     };
     ( $x:expr, $y:expr ) => {
-        $crate::string::JsString::concat($crate::string::JsStr::from($x), $crate::string::JsStr::from($y))
+        $crate::string::JsString::concat(&$crate::string::JsString::from($x), &$crate::string::JsString::from($y))
     };
     ( $( $s:expr ),+ ) => {
-        $crate::string::JsString::concat_array(&[ $( $crate::string::JsStr::from($s) ),+ ])
+        $crate::string::JsString::concat_array_strings(&[ $( $crate::string::JsString::from($s) ),+ ])
     };
 }
 
@@ -166,15 +166,15 @@ mod tests {
         let x = js_string!("hello");
         let z = js_string!("world");
 
-        let xy = js_string!(&x, &JsString::from(Y));
+        let xy = js_string!(x.clone(), JsString::from(Y));
         assert_eq!(&xy, utf16!("hello, "));
         assert_eq!(xy.refcount(), Some(1));
 
-        let xyz = js_string!(&xy, &z);
+        let xyz = js_string!(xy.clone(), z.clone());
         assert_eq!(&xyz, utf16!("hello, world"));
         assert_eq!(xyz.refcount(), Some(1));
 
-        let xyzw = js_string!(&xyz, &JsString::from(W));
+        let xyzw = js_string!(xyz.clone(), JsString::from(W));
         assert_eq!(&xyzw, utf16!("hello, world!"));
         assert_eq!(xyzw.refcount(), Some(1));
     }
