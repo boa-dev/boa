@@ -971,7 +971,7 @@ impl Json {
                     Self::serialize_json_object(state, value, context)
                 }
             });
-        context.vm.host_call_depth -= 1;
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
         result
     }

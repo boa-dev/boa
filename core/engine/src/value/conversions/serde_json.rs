@@ -118,21 +118,27 @@ impl JsValue {
         self.to_json_inner(context, &mut seen_objects)
     }
 
-    /// Counts one level of the conversion as host recursion before converting the value.
+    /// Counts one level of the conversion as host recursion before converting an object.
     ///
     /// The conversion recurses natively through nested objects and arrays, one native frame per
     /// level, so without this the depth is bounded only by the native stack and a deeply nested
-    /// value aborts the process instead of reporting the configured recursion limit.
+    /// value aborts the process instead of reporting the configured recursion limit. Only objects
+    /// recurse, so only they are counted, which keeps the depth in step with
+    /// `SerializeJSONNested` and leaves a primitive leaf costing nothing.
     fn to_json_inner(
         &self,
         context: &mut Context,
         seen_objects: &mut HashSet<JsObject>,
     ) -> JsResult<Option<Value>> {
+        if !self.is_object() {
+            return self.to_json_variant(context, seen_objects);
+        }
+
         context.vm.host_call_depth += 1;
         let result = context
             .check_runtime_limits()
             .and_then(|()| self.to_json_variant(context, seen_objects));
-        context.vm.host_call_depth -= 1;
+        context.vm.host_call_depth = context.vm.host_call_depth.saturating_sub(1);
 
         result
     }
