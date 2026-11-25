@@ -731,6 +731,54 @@ fn for_loop_continue_label() {
 }
 
 #[test]
+fn continue_outer_label_of_multi_labelled_loop() {
+    run_test_actions([
+        TestAction::assert_eq(
+            indoc! {r#"
+                var n = 0, i, guard = 0;
+                a: b: for (i = 0; i < 3; i++) {
+                    c: for (;;) {
+                        if (++guard > 100) throw new Error("continue a restarted the loop");
+                        n++;
+                        if (i == 0) continue a;
+                        if (i == 1) continue b;
+                        break a;
+                    }
+                }
+                n + "," + i
+            "#},
+            js_str!("3,2"),
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                var n = 0, guard = 0;
+                a: b: c: while (n < 3) {
+                    if (++guard > 100) throw new Error("continue a restarted the loop");
+                    n++;
+                    continue a;
+                }
+                n
+            "#},
+            3,
+        ),
+        TestAction::assert_eq(
+            indoc! {r#"
+                var str = "", guard = 0;
+                a: b: for (let x of [1, 2, 3]) {
+                    for (let y of [1, 2]) {
+                        if (++guard > 100) throw new Error("continue a restarted the loop");
+                        str += x + "" + y;
+                        continue a;
+                    }
+                }
+                str
+            "#},
+            js_str!("112131"),
+        ),
+    ]);
+}
+
+#[test]
 fn for_in_declaration() {
     run_test_actions([
         TestAction::run_harness(),
