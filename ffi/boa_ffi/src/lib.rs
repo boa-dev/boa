@@ -15,12 +15,14 @@
     reason = "Diplomat transfers opaque handle ownership to C through boxed pointers"
 )]
 pub mod ffi {
+    use std::fmt::Write as _;
+
     use boa_engine::{
         Context, JsError as BoaJsError, JsNativeError as BoaJsNativeError,
-        JsNativeErrorKind as BoaJsNativeErrorKind, JsValue as BoaJsValue, context::ContextBuilder,
-        value::Type,
+        JsNativeErrorKind as BoaJsNativeErrorKind, JsString as BoaJsString, JsValue as BoaJsValue,
+        context::ContextBuilder, value::Type,
     };
-    use diplomat_runtime::{DiplomatOption, DiplomatStr, DiplomatUtf8StrSlice};
+    use diplomat_runtime::{DiplomatOption, DiplomatStr, DiplomatUtf8StrSlice, DiplomatWrite};
 
     /// An owned Boa context, exposed as an opaque C handle.
     ///
@@ -77,6 +79,15 @@ pub mod ffi {
         Object,
     }
 
+    /// The reason a value could not be read as a UTF-8 string.
+    #[derive(Debug, PartialEq, Eq)]
+    pub enum JsStringError {
+        /// The value is not a string.
+        NotAString,
+        /// The string contains an unpaired UTF-16 surrogate, so it has no UTF-8 form.
+        InvalidEncoding,
+    }
+
     /// An owned JavaScript value, exposed as an opaque C handle.
     ///
     /// Keep it on its creating thread and destroy it exactly once with
@@ -87,10 +98,27 @@ pub mod ffi {
     pub struct JsValue(BoaJsValue);
 
     impl JsValue {
+        /// Creates an owned boolean value without requiring a context.
+        #[must_use]
+        pub fn from_boolean(value: bool) -> Box<JsValue> {
+            Box::new(Self(BoaJsValue::from(value)))
+        }
+
         /// Creates an owned number value without requiring a context.
         #[must_use]
         pub fn from_number(number: f64) -> Box<JsValue> {
             Box::new(Self(BoaJsValue::from(number)))
+        }
+
+        /// Creates an owned string value by copying UTF-8 bytes, including any NULs.
+        ///
+        /// Returns null in C if the input is not valid UTF-8. Empty input may
+        /// pass a null pointer with length 0. No context is required. Allocation
+        /// failures and unexpected panics may abort.
+        #[must_use]
+        pub fn from_string(value: &DiplomatStr) -> Option<Box<JsValue>> {
+            let text = std::str::from_utf8(value).ok()?;
+            Some(Box::new(Self(BoaJsValue::from(BoaJsString::from(text)))))
         }
 
         /// Creates an owned null value without requiring a context.
@@ -111,6 +139,15 @@ pub mod ffi {
             self.0.get_type().into()
         }
 
+        /// Returns the boolean, or an absent result for any other type.
+        ///
+        /// No conversion is performed; truthy and falsy non-boolean values return
+        /// an absent result. In C, check `is_ok` before reading `ok`.
+        #[must_use]
+        pub fn as_boolean(&self) -> DiplomatOption<bool> {
+            self.0.as_boolean().into()
+        }
+
         /// Returns the number, or an absent result for any other type.
         ///
         /// No conversion is performed. In C, check `is_ok` before reading `ok`.
@@ -118,6 +155,47 @@ pub mod ffi {
         #[must_use]
         pub fn as_number(&self) -> DiplomatOption<f64> {
             self.0.as_number().into()
+        }
+
+        /// Writes this string as UTF-8 into `write`, without coercion.
+        ///
+        /// Embedded NULs are preserved. In C, check `is_ok` before reading from
+        /// `write`, and check `write.grow_failed` for overflow when using a
+        /// fixed stack buffer (`diplomat_simple_write`). On error, nothing is
+        /// written to `write`.
+        ///
+        /// # Errors
+        ///
+        /// Returns `NotAString` for any non-string value, or `InvalidEncoding`
+        /// if the string contains an unpaired UTF-16 surrogate.
+        pub fn as_string(&self, write: &mut DiplomatWrite) -> Result<(), JsStringError> {
+            let Some(string) = self.0.as_string() else {
+                return Err(JsStringError::NotAString);
+            };
+            let Ok(utf8) = string.to_std_string() else {
+                return Err(JsStringError::InvalidEncoding);
+            };
+            // Write the entire string in one call so fixed buffers fail
+            // atomically and `diplomat_buffer_write_create` grows at most once.
+            let _ = write.write_str(&utf8);
+            Ok(())
+        }
+
+        /// Writes this string as UTF-8 into `write`, replacing unpaired UTF-16
+        /// surrogates with `U+FFFD`, or returns an absent result for any other type.
+        ///
+        /// No conversion is performed and embedded NULs are preserved. In C,
+        /// check `is_ok` before reading from `write`, and check
+        /// `write.grow_failed` for overflow when using a fixed stack buffer
+        /// (`diplomat_simple_write`).
+        #[must_use]
+        pub fn as_string_lossy(&self, write: &mut DiplomatWrite) -> Option<()> {
+            let string = self.0.as_string()?;
+            let utf8 = string.to_std_string_lossy();
+            // Write the entire string in one call so fixed buffers fail
+            // atomically and `diplomat_buffer_write_create` grows at most once.
+            let _ = write.write_str(&utf8);
+            Some(())
         }
     }
 
@@ -256,14 +334,44 @@ pub mod ffi {
     #[cfg(test)]
     mod tests {
         use super::{
-            BoaContext, BoaJsError, BoaJsNativeError, BoaJsNativeErrorKind, BoaJsValue, Context,
-            JsError, JsErrorRepresentation, JsNativeErrorKind, JsValue, JsValueType,
+            BoaContext, BoaJsError, BoaJsNativeError, BoaJsNativeErrorKind, BoaJsString,
+            BoaJsValue, Context, JsError, JsErrorRepresentation, JsNativeErrorKind, JsStringError,
+            JsValue, JsValueType,
         };
         use boa_engine::{
             Source,
             error::{EngineError, PanicError, RuntimeLimitError},
             gc, js_string,
         };
+        use diplomat_runtime::rust_interop::RustWriteVec;
+
+        fn read_string(value: &JsValue) -> Result<Vec<u8>, JsStringError> {
+            let mut buffer = RustWriteVec::with_capacity(0);
+            // SAFETY: this is the only `DiplomatWrite` in scope, so it cannot be swapped.
+            let result = value.as_string(unsafe { buffer.borrow_mut() });
+            let bytes = buffer.borrow().as_bytes().to_vec();
+            match result {
+                Ok(()) => Ok(bytes),
+                Err(error) => {
+                    assert!(bytes.is_empty(), "failed as_string should not write bytes");
+                    Err(error)
+                }
+            }
+        }
+
+        fn read_string_lossy(value: &JsValue) -> Option<Vec<u8>> {
+            let mut buffer = RustWriteVec::with_capacity(0);
+            // SAFETY: this is the only `DiplomatWrite` in scope, so it cannot be swapped.
+            let result = value.as_string_lossy(unsafe { buffer.borrow_mut() });
+            let bytes = buffer.borrow().as_bytes().to_vec();
+            if result.is_none() {
+                assert!(
+                    bytes.is_empty(),
+                    "failed as_string_lossy should not write bytes"
+                );
+            }
+            result.map(|()| bytes)
+        }
 
         #[test]
         fn initialization_failure_returns_none() {
@@ -328,13 +436,125 @@ pub mod ffi {
         }
 
         #[test]
+        fn booleans_round_trip_without_coercion() {
+            for expected in [false, true] {
+                let value = JsValue::from_boolean(expected);
+                assert_eq!(value.get_type(), JsValueType::Boolean);
+                assert_eq!(value.as_boolean().into_option(), Some(expected));
+                assert!(value.as_number().into_option().is_none());
+                assert_eq!(read_string(&value), Err(JsStringError::NotAString));
+                assert!(read_string_lossy(&value).is_none());
+            }
+
+            // Truthy and falsy non-boolean values must not coerce.
+            for value in [
+                JsValue::from_number(0.0),
+                JsValue::from_number(1.0),
+                JsValue::from_number(1.5),
+                JsValue::from_string(b"").expect("valid UTF-8"),
+                JsValue::from_string(b"true").expect("valid UTF-8"),
+            ] {
+                assert!(value.as_boolean().into_option().is_none());
+            }
+        }
+
+        #[test]
+        fn strings_round_trip_and_reject_invalid_utf8() {
+            for text in [
+                "",
+                "hello",
+                "latin1 \u{00e9}",
+                "crab \u{1f980}",
+                "before\0after",
+            ] {
+                let value = JsValue::from_string(text.as_bytes()).expect("valid UTF-8");
+                assert_eq!(value.get_type(), JsValueType::String, "{text:?}");
+                assert!(value.as_boolean().into_option().is_none());
+                assert!(value.as_number().into_option().is_none());
+                assert_eq!(
+                    read_string(&value),
+                    Ok(text.as_bytes().to_vec()),
+                    "{text:?}"
+                );
+                assert_eq!(
+                    read_string_lossy(&value),
+                    Some(text.as_bytes().to_vec()),
+                    "{text:?}"
+                );
+            }
+
+            for invalid in [&b"\xff"[..], b"\xed\xa0\x80"] {
+                assert!(JsValue::from_string(invalid).is_none(), "{invalid:?}");
+            }
+        }
+
+        #[test]
+        fn unpaired_surrogates_fail_strict_and_replace_in_lossy() {
+            for (units, expected_lossy) in [
+                (&[0xD800u16][..], "\u{fffd}"),
+                (&[0xDC00u16][..], "\u{fffd}"),
+                (
+                    &[u16::from(b'a'), 0xD800, u16::from(b'b')][..],
+                    "a\u{fffd}b",
+                ),
+            ] {
+                let value = JsValue(BoaJsValue::from(BoaJsString::from(units)));
+                assert_eq!(value.get_type(), JsValueType::String, "{units:x?}");
+                assert_eq!(
+                    read_string(&value),
+                    Err(JsStringError::InvalidEncoding),
+                    "{units:x?}"
+                );
+                assert_eq!(
+                    read_string_lossy(&value),
+                    Some(expected_lossy.as_bytes().to_vec()),
+                    "{units:x?}"
+                );
+            }
+        }
+
+        #[test]
+        fn engine_produced_strings_read_across_representations() {
+            let mut context = Context::builder()
+                .build()
+                .expect("context should initialize");
+            for (source, expected) in [
+                ("'hello world'.slice(6)", Ok(b"world".as_slice())),
+                ("'a' + '\\0' + '\\u{1F980}'", Ok("a\0\u{1f980}".as_bytes())),
+                ("'\\ud800'", Err(JsStringError::InvalidEncoding)),
+            ] {
+                let value = JsValue(
+                    context
+                        .eval(Source::from_bytes(source))
+                        .expect("valid source"),
+                );
+                assert_eq!(value.get_type(), JsValueType::String, "{source}");
+                assert_eq!(
+                    read_string(&value),
+                    expected.map(<[u8]>::to_vec),
+                    "{source}"
+                );
+                if expected.is_err() {
+                    assert_eq!(
+                        read_string_lossy(&value),
+                        Some("\u{fffd}".as_bytes().to_vec()),
+                        "{source}"
+                    );
+                }
+            }
+        }
+
+        #[test]
         fn null_and_undefined_are_distinct_non_numbers() {
             for (value, expected_type) in [
                 (JsValue::from_null(), JsValueType::Null),
                 (JsValue::from_undefined(), JsValueType::Undefined),
             ] {
                 assert_eq!(value.get_type(), expected_type);
+                assert!(value.as_boolean().into_option().is_none());
                 assert!(value.as_number().into_option().is_none());
+                assert_eq!(read_string(&value), Err(JsStringError::NotAString));
+                assert!(read_string_lossy(&value).is_none());
             }
         }
 
@@ -361,8 +581,23 @@ pub mod ffi {
                 );
                 assert_eq!(value.get_type(), expected_type, "{source}");
                 assert_eq!(
+                    value.as_boolean().into_option().is_some(),
+                    expected_type == JsValueType::Boolean,
+                    "{source}"
+                );
+                assert_eq!(
                     value.as_number().into_option().is_some(),
                     expected_type == JsValueType::Number,
+                    "{source}"
+                );
+                assert_eq!(
+                    read_string(&value).is_ok(),
+                    expected_type == JsValueType::String,
+                    "{source}"
+                );
+                assert_eq!(
+                    read_string_lossy(&value).is_some(),
+                    expected_type == JsValueType::String,
                     "{source}"
                 );
             }
