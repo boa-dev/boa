@@ -1,6 +1,7 @@
 //! The ECMAScript context.
 
 use std::any::Any;
+use std::sync::{Arc, atomic::AtomicBool};
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -601,6 +602,40 @@ impl Context {
     #[inline]
     pub fn runtime_limits_mut(&mut self) -> &mut RuntimeLimits {
         &mut self.vm.runtime_limits
+    }
+
+    /// Sets the flag that interrupts execution, or removes it with `None`.
+    ///
+    /// While the flag is `true`, every loop iteration and function call fails with
+    /// [`EngineError::Interrupted`], which ECMAScript code cannot catch. The flag can be set
+    /// from another thread while this context is running. The engine never resets it, so store
+    /// `false` to run code in this context again.
+    ///
+    /// The flag is read with [`Ordering::Relaxed`](std::sync::atomic::Ordering::Relaxed) and
+    /// does not synchronize other data. A native function that does not call back into
+    /// ECMAScript code runs to completion before the flag is checked.
+    ///
+    /// [`EngineError::Interrupted`]: crate::error::EngineError::Interrupted
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use boa_engine::{Context, Source, error::EngineError};
+    /// # use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+    /// let mut context = Context::default();
+    /// let interrupt = Arc::new(AtomicBool::new(false));
+    /// context.set_interrupt_flag(Some(interrupt.clone()));
+    ///
+    /// // Another thread, such as a timeout handler, can store `true` while a script is running.
+    /// interrupt.store(true, Ordering::Relaxed);
+    /// let error = context
+    ///     .eval(Source::from_bytes("try { while (true) {} } catch {}"))
+    ///     .unwrap_err();
+    /// assert_eq!(error.as_engine(), Some(&EngineError::Interrupted));
+    /// ```
+    #[inline]
+    pub fn set_interrupt_flag(&mut self, flag: Option<Arc<AtomicBool>>) {
+        self.vm.interrupt = flag;
     }
 
     /// Returns `true` if this context can be suspended by an `Atomics.wait` call.

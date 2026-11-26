@@ -373,6 +373,12 @@ pub enum EngineError {
     /// Error thrown when an internal panic condition is encountered.
     #[error("EnginePanic: {0}")]
     Panic(#[from] PanicError),
+
+    /// Error thrown when execution is stopped by the interrupt flag.
+    ///
+    /// See [`Context::set_interrupt_flag`].
+    #[error("InterruptedError: execution was interrupted")]
+    Interrupted,
 }
 
 impl EngineError {
@@ -390,6 +396,7 @@ impl EngineError {
                 message: err.message,
                 source: err.source.map(|err| Box::new(err.into_erased(context))),
             }),
+            EngineError::Interrupted => ErasedEngineError::Interrupted,
         }
     }
 }
@@ -1590,6 +1597,10 @@ pub enum ErasedEngineError {
     /// Error thrown when an internal panic condition is encountered.
     #[error("EnginePanic: {0}")]
     Panic(#[from] ErasedPanicError),
+
+    /// Error thrown when execution is stopped by the interrupt flag.
+    #[error("InterruptedError: execution was interrupted")]
+    Interrupted,
 }
 
 /// Erased version of [`JsError`].

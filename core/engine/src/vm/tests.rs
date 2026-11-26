@@ -1,4 +1,4 @@
-use crate::error::RuntimeLimitError;
+use crate::error::{EngineError, ErasedEngineError, RuntimeLimitError};
 use crate::vm::CallFrame;
 use crate::vm::call_frame::CallFrameLocation;
 use crate::vm::source_info::SourcePath;
@@ -7,9 +7,18 @@ use crate::{
     property::Attribute, run_test_actions, run_test_actions_with,
 };
 use boa_ast::Position;
+use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 use boa_parser::Source;
 use indoc::indoc;
+use std::{
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+    thread,
+    time::Duration,
+};
 
 #[test]
 fn typeof_string() {
@@ -433,6 +442,118 @@ fn recursion_runtime_limit() {
             RuntimeLimitError::Recursion,
         ),
     ]);
+}
+
+/// An atomic flag holds no garbage-collected values.
+#[derive(Trace, Finalize)]
+struct InterruptFlag(#[unsafe_ignore_trace] Arc<AtomicBool>);
+
+/// Creates a context whose global `interrupt()` sets the returned interrupt flag.
+fn interruptible_context() -> (Context, Arc<AtomicBool>) {
+    let flag = Arc::new(AtomicBool::new(false));
+    let mut context = Context::default();
+    context.set_interrupt_flag(Some(flag.clone()));
+    context
+        .register_global_builtin_callable(
+            js_string!("interrupt"),
+            0,
+            NativeFunction::from_copy_closure_with_captures(
+                |_, _, flag, _| {
+                    flag.0.store(true, Ordering::Relaxed);
+                    Ok(JsValue::undefined())
+                },
+                InterruptFlag(flag.clone()),
+            ),
+        )
+        .unwrap();
+    (context, flag)
+}
+
+#[test]
+fn interrupt_flag_stops_loops_and_calls() {
+    let (mut context, flag) = interruptible_context();
+    for source in [
+        "interrupt(); for (let i = 0; i < 10; ++i) { }",
+        "interrupt(); (function () { })();",
+        "try { interrupt(); for (let i = 0; i < 10; ++i) { } } catch { }",
+        "[0, 1].forEach(function (x) { if (x === 0) interrupt(); });",
+        indoc! {r#"
+            for (let i = 0; i < 3; ++i) {
+                (function () {
+                    for (let j = 0; j < 3; ++j) {
+                        if (i === 1 && j === 1) interrupt();
+                    }
+                })();
+            }
+        "#},
+    ] {
+        flag.store(false, Ordering::Relaxed);
+        let error = context.eval(Source::from_bytes(source)).unwrap_err();
+        assert_eq!(
+            error.as_engine(),
+            Some(&EngineError::Interrupted),
+            "{source}"
+        );
+    }
+}
+
+#[test]
+fn interrupt_flag_can_be_reset_or_removed() {
+    let (mut context, flag) = interruptible_context();
+    let source = "var a = 0; for (let i = 0; i < 10; ++i) { (function () { a++; })(); } a";
+
+    flag.store(true, Ordering::Relaxed);
+    let error = context.eval(Source::from_bytes(source)).unwrap_err();
+    assert_eq!(error.as_engine(), Some(&EngineError::Interrupted));
+    assert_eq!(
+        EngineError::Interrupted.to_string(),
+        "InterruptedError: execution was interrupted"
+    );
+    let erased = error.into_erased(&mut context);
+    assert_eq!(erased.as_engine(), Some(&ErasedEngineError::Interrupted));
+    assert_eq!(
+        ErasedEngineError::Interrupted.to_string(),
+        "InterruptedError: execution was interrupted"
+    );
+
+    flag.store(false, Ordering::Relaxed);
+    assert_eq!(
+        context.eval(Source::from_bytes(source)).unwrap(),
+        JsValue::new(10)
+    );
+
+    flag.store(true, Ordering::Relaxed);
+    context.set_interrupt_flag(None);
+    assert_eq!(
+        context.eval(Source::from_bytes(source)).unwrap(),
+        JsValue::new(10)
+    );
+}
+
+#[test]
+fn interrupt_flag_set_from_another_thread_stops_unbounded_code() {
+    for source in [
+        "while (true) { }",
+        "while (true) { (function () { for (let i = 0; i < 100; ++i) { } })(); }",
+        // Recursion without loops, which stays within the recursion limit.
+        "function f(n) { if (n > 0) { f(n - 1); f(n - 1); } } f(100);",
+    ] {
+        let (mut context, flag) = interruptible_context();
+        let interrupter = {
+            let flag = flag.clone();
+            thread::spawn(move || {
+                thread::sleep(Duration::from_millis(10));
+                flag.store(true, Ordering::Relaxed);
+            })
+        };
+        let error = context.eval(Source::from_bytes(source)).unwrap_err();
+        interrupter.join().unwrap();
+        assert_eq!(
+            error.as_engine(),
+            Some(&EngineError::Interrupted),
+            "{source}"
+        );
+    }
 }
 
 #[test]
