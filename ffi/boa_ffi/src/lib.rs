@@ -160,7 +160,9 @@ pub mod ffi {
         /// Writes this string as UTF-8 into `write`, without coercion.
         ///
         /// Embedded NULs are preserved. In C, check `is_ok` before reading from
-        /// `write`. On error, nothing is written to `write`.
+        /// `write`, and check `write.grow_failed` for overflow when using a
+        /// fixed stack buffer (`diplomat_simple_write`). On error, nothing is
+        /// written to `write`.
         ///
         /// # Errors
         ///
@@ -183,7 +185,9 @@ pub mod ffi {
         /// surrogates with `U+FFFD`, or returns an absent result for any other type.
         ///
         /// No conversion is performed and embedded NULs are preserved. In C,
-        /// check `is_ok` before reading from `write`.
+        /// check `is_ok` before reading from `write`, and check
+        /// `write.grow_failed` for overflow when using a fixed stack buffer
+        /// (`diplomat_simple_write`).
         #[must_use]
         pub fn as_string_lossy(&self, write: &mut DiplomatWrite) -> Option<()> {
             let string = self.0.as_string()?;
