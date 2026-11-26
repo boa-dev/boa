@@ -313,15 +313,7 @@ impl DateTimeFormat {
     ) -> JsResult<JsValue> {
         // 1. Let dtf be the this value.
         // 2. Perform ? RequireInternalSlot(dtf, [[InitializedDateTimeFormat]]).
-        let dtf = this
-            .as_object()
-            .and_then(|o| o.downcast::<Self>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError:
-                    "value was not an initialized `Intl.DateTimeFormat` object"
-                )
-            })?;
+        let dtf = this.require_internal_slot::<Self>()?;
         let date = args.get_or_undefined(0);
         // 3. If date is undefined, then
         let x = if date.is_undefined() {
@@ -353,15 +345,7 @@ impl DateTimeFormat {
 
         // 1. Let dtf be this value.
         // 2. Perform ? RequireInternalSlot(dtf, [[InitializedDateTimeFormat]]).
-        let dtf = this
-            .as_object()
-            .and_then(|o| o.downcast::<Self>().ok())
-            .ok_or_else(|| {
-                js_error!(
-                    TypeError:
-                    "value was not an initialized `Intl.DateTimeFormat` object"
-                )
-            })?;
+        let dtf = this.require_internal_slot::<Self>()?;
 
         // 3. If startDate is undefined or endDate is undefined, throw a TypeError exception.
         if start_date.is_undefined() {

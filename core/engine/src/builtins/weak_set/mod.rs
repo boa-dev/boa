@@ -19,13 +19,14 @@ use crate::{
     symbol::JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::JsData;
 
 use super::iterable::IteratorHint;
 
 pub(crate) type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
 
-#[derive(Debug, Trace, Finalize)]
-pub(crate) struct WeakSet;
+#[derive(Trace, Finalize, JsData)]
+pub(crate) struct WeakSet(pub(crate) NativeWeakSet);
 
 impl IntrinsicObject for WeakSet {
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -86,7 +87,7 @@ impl BuiltInConstructor for WeakSet {
         let weak_set = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            NativeWeakSet::new(),
+            WeakSet(NativeWeakSet::new()),
         )
         .upcast();
 
@@ -143,7 +144,7 @@ impl WeakSet {
         let object = this.as_object();
         let mut set = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakSet>)
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 js_error!(TypeError:
                     "WeakSet.prototype.add: expected 'this' to be a WeakSet object")
@@ -160,14 +161,14 @@ impl WeakSet {
 
         // 4. Let entries be the List that is S.[[WeakSetData]].
         // 5. For each element e of entries, do
-        if set.contains_key(value.inner()) {
+        if set.0.contains_key(value.inner()) {
             // a. If e is not empty and SameValue(e, value) is true, then
             // i. Return S.
             return Ok(this.clone());
         }
 
         // 6. Append value as the last element of entries.
-        set.insert(value.inner(), ());
+        set.0.insert(value.inner(), ());
 
         // 7. Return S.
         Ok(this.clone())
@@ -193,7 +194,7 @@ impl WeakSet {
         let object = this.as_object();
         let mut set = object
             .as_ref()
-            .and_then(JsObject::downcast_mut::<NativeWeakSet>)
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 js_error!(TypeError:
                     "WeakSet.prototype.delete: expected 'this' to be a WeakSet object",
@@ -212,7 +213,7 @@ impl WeakSet {
         // i. Replace the element of entries whose value is e with an element whose value is empty.
         // ii. Return true.
         // 6. Return false.
-        Ok(set.remove(value.inner()).into())
+        Ok(set.0.remove(value.inner()).into())
     }
 
     /// `WeakSet.prototype.has( value )`
@@ -232,14 +233,7 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let object = this.as_object();
-        let set = object
-            .as_ref()
-            .and_then(JsObject::downcast_ref::<NativeWeakSet>)
-            .ok_or_else(|| {
-                js_error!(TypeError:
-                    "WeakSet.prototype.has: expected 'this' to be a WeakSet object")
-            })?;
+        let set = this.require_internal_slot::<Self>()?;
 
         // 3. Let entries be the List that is S.[[WeakSetData]].
         // 4. If Type(value) is not Object, return false.
@@ -251,7 +245,7 @@ impl WeakSet {
         // 5. For each element e of entries, do
         // a. If e is not empty and SameValue(e, value) is true, return true.
         // 6. Return false.
-        Ok(set.contains_key(value.inner()).into())
+        Ok(set.borrow().data().0.contains_key(value.inner()).into())
     }
 }
 

@@ -17,7 +17,7 @@ use crate::{
 /// `JsSet` provides a wrapper for Boa's implementation of the ECMAScript `Set` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsSet {
-    inner: JsObject<OrderedSet>,
+    inner: JsObject<Set>,
 }
 
 impl JsSet {
@@ -31,7 +31,7 @@ impl JsSet {
             inner: JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 context.intrinsics().constructors().set().prototype(),
-                OrderedSet::new(),
+                Set(OrderedSet::new()),
             ),
         }
     }
@@ -42,7 +42,7 @@ impl JsSet {
     #[inline]
     #[must_use]
     pub fn size(&self) -> usize {
-        self.inner.borrow().data().len()
+        self.inner.borrow().data().0.len()
     }
 
     /// Appends value to the Set object.
@@ -70,7 +70,7 @@ impl JsSet {
     /// Same as JavaScript's `set.clear()`.
     #[inline]
     pub fn clear(&self) {
-        self.inner.borrow_mut().data_mut().clear();
+        self.inner.borrow_mut().data_mut().0.clear();
     }
 
     /// Removes the element associated to the value.
@@ -84,6 +84,7 @@ impl JsSet {
     {
         self.borrow_mut()
             .data_mut()
+            .0
             .delete(&canonicalize_keyed_collection_key(value.into()))
     }
 
@@ -98,6 +99,7 @@ impl JsSet {
     {
         self.borrow()
             .data()
+            .0
             .contains(&canonicalize_keyed_collection_key(value.into()))
     }
 
@@ -158,7 +160,7 @@ impl JsSet {
     /// Utility: Creates `JsSet` from `JsObject`, otherwise returns the original object as an `Err`.
     #[inline]
     pub fn from_object(object: JsObject) -> Result<Self, JsObject> {
-        object.downcast::<OrderedSet>().map(|o| Self { inner: o })
+        object.downcast::<Set>().map(|o| Self { inner: o })
     }
 
     /// Utility: Creates a `JsSet` from a `<IntoIterator<Item = JsValue>` convertible object.
@@ -181,14 +183,14 @@ impl JsSet {
             inner: JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 context.intrinsics().constructors().set().prototype(),
-                set,
+                Set(set),
             ),
         }
     }
 }
 
-impl From<JsObject<OrderedSet>> for JsSet {
-    fn from(value: JsObject<OrderedSet>) -> Self {
+impl From<JsObject<Set>> for JsSet {
+    fn from(value: JsObject<Set>) -> Self {
         Self { inner: value }
     }
 }
@@ -208,7 +210,7 @@ impl From<JsSet> for JsValue {
 }
 
 impl Deref for JsSet {
-    type Target = JsObject<OrderedSet>;
+    type Target = JsObject<Set>;
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.inner

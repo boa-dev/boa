@@ -46,6 +46,15 @@ pub trait JsData {
     {
         &ORDINARY_INTERNAL_METHODS
     }
+
+    #[doc(hidden)]
+    #[must_use]
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        std::any::type_name::<Self>()
+    }
 }
 
 macro_rules! default_impls {

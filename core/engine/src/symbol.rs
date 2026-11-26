@@ -254,8 +254,7 @@ impl JsSymbol {
             return wk.fn_name();
         }
         self.description()
-            .map(|s| js_string!(js_str!("["), &s, js_str!("]")))
-            .unwrap_or_default()
+            .map_or_default(|s| js_string!(js_str!("["), &s, js_str!("]")))
     }
 
     /// Returns the `Symbol`s hash.

@@ -206,6 +206,13 @@ impl JsData for OrdinaryFunction {
             &FUNCTION_METHODS
         }
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "OrdinaryFunction"
+    }
 }
 
 impl OrdinaryFunction {
@@ -1213,7 +1220,7 @@ fn function_construct(
     let context = context.context();
     context.vm.stack.set_this(
         context.vm.frames.last().js_expect("frame must exist")?,
-        this.map(JsValue::new).unwrap_or_default(),
+        this.map_or_default(JsValue::new),
     );
 
     Ok(CallValue::Ready)

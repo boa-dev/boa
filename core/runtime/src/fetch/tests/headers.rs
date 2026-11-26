@@ -132,7 +132,7 @@ fn headers_iterator_throws_on_invalid_this() {
                     throw Error("expected the call above to throw");
                 } catch (e) {
                     assert(e instanceof TypeError);
-                    assertEq(e.message, "`Headers.prototype[Symbol.iterator]` requires a `Headers` object");
+                    assertEq(e.message, "object does not contain required internal slot `JsHeaders`");
                 }
 
                 try {
@@ -140,7 +140,7 @@ fn headers_iterator_throws_on_invalid_this() {
                     throw Error("expected the call above to throw");
                 } catch (e) {
                     assert(e instanceof TypeError);
-                    assertEq(e.message, "`Headers.prototype[Symbol.iterator]` requires a `Headers` object");
+                    assertEq(e.message, "cannot downcast a value of type `number` to an object with internal slot `JsHeaders`");
                 }
             "#,
         ),

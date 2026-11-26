@@ -85,6 +85,13 @@ impl JsData for Proxy {
             &BASIC
         }
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "Proxy"
+    }
 }
 
 impl IntrinsicObject for Proxy {

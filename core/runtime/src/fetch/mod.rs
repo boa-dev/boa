@@ -137,9 +137,7 @@ async fn fetch_inner<T: Fetcher>(
         }
         Either::Right(request) => {
             // This can be a [`JsRequest`] object.
-            let Ok(request) = request.downcast::<JsRequest>() else {
-                return Err(js_error!(TypeError: "Resource must be a URL or Request object"));
-            };
+            let request = request.require_internal_slot::<JsRequest>()?;
             let Ok(request_ref) = request.try_borrow() else {
                 return Err(js_error!(TypeError: "Request object is already in use"));
             };
@@ -214,15 +212,7 @@ fn headers_symbol_iterator(
     _: &[JsValue],
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let this_object = this.as_object().ok_or_else(
-        || js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
-    )?;
-
-    let Ok(headers) = this_object.clone().downcast::<JsHeaders>() else {
-        return Err(
-            js_error!(TypeError: "`Headers.prototype[Symbol.iterator]` requires a `Headers` object"),
-        );
-    };
+    let headers = this.require_internal_slot::<JsHeaders>()?;
 
     HeadersIterator::create_headers_iterator(headers, IterationKind::KeyAndValue, context)
 }

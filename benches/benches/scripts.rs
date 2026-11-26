@@ -57,13 +57,13 @@ fn bench_scripts(c: &mut Criterion) {
 
     let scripts: Vec<_> = walkdir::WalkDir::new(&scripts_dir)
         .into_iter()
-        .filter_map(|e| e.ok())
+        .filter_map(Result::ok)
         .filter(|e| {
             let path = e.path();
             path.extension().is_some_and(|ext| ext == "js")
                 && path
                     .file_name()
-                    .is_some_and(|base| !base.display().to_string().starts_with("_"))
+                    .is_some_and(|base| !base.display().to_string().starts_with('_'))
         })
         .collect();
 

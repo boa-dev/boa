@@ -5,11 +5,10 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 
-use super::ordered_map::OrderedMap;
 use crate::{
     Context, JsData, JsResult,
     builtins::{
-        Array, BuiltInBuilder, IntrinsicObject, JsValue, iterable::create_iter_result_object,
+        Array, BuiltInBuilder, IntrinsicObject, JsValue, Map, iterable::create_iter_result_object,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -22,18 +21,18 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 #[derive(Debug, Trace)]
-struct MapIteratorLock(JsObject<OrderedMap<JsValue>>);
+struct MapIteratorLock(JsObject<Map>);
 
 impl MapIteratorLock {
-    fn new(js_object: JsObject<OrderedMap<JsValue>>) -> Self {
-        js_object.borrow_mut().data_mut().lock();
+    fn new(js_object: JsObject<Map>) -> Self {
+        js_object.borrow_mut().data_mut().0.lock();
         Self(js_object)
     }
 }
 
 impl Finalize for MapIteratorLock {
     fn finalize(&self) {
-        self.0.borrow_mut().data_mut().unlock();
+        self.0.borrow_mut().data_mut().0.unlock();
     }
 }
 
@@ -79,7 +78,7 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createmapiterator
     pub(crate) fn create_map_iterator(
-        map: JsObject<OrderedMap<JsValue>>,
+        map: JsObject<Map>,
         kind: PropertyNameKind,
         context: &mut Context,
     ) -> JsValue {
@@ -116,7 +115,7 @@ impl MapIterator {
         if let Some(obj) = map_iterator.iterated_map.take() {
             let e = {
                 let mut entries = obj.0.borrow_mut();
-                let entries = entries.data_mut();
+                let entries = &mut entries.data_mut().0;
                 let len = entries.full_len();
                 loop {
                     let element = entries

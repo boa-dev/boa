@@ -2101,12 +2101,8 @@ impl Promise {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
-        let promise = this;
-
         // 2. If IsPromise(promise) is false, throw a TypeError exception.
-        let promise = promise.as_promise_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Promise.prototype.then: this is not a promise")
-        })?;
+        let promise = this.require_internal_slot::<Promise>()?;
 
         let on_fulfilled = args
             .get_or_undefined(0)

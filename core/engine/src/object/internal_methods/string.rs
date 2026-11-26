@@ -17,6 +17,13 @@ impl JsData for JsString {
 
         &METHODS
     }
+
+    fn type_name() -> &'static str
+    where
+        Self: Sized,
+    {
+        "JsString"
+    }
 }
 
 /// Gets own property of 'String' exotic object

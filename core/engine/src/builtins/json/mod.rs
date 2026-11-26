@@ -757,8 +757,7 @@ impl Json {
         // 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).
         Ok(
             Self::serialize_json_property(&mut state, js_string!(), &wrapper, context)?
-                .map(Into::into)
-                .unwrap_or_default(),
+                .map_or_default(Into::into),
         )
     }
 

@@ -711,8 +711,8 @@ impl From<CompletePropertyDescriptor> for PropertyDescriptor {
                 configurable,
                 enumerable,
             } => PropertyDescriptor::builder()
-                .get(get.map(JsValue::new).unwrap_or_default())
-                .set(set.map(JsValue::new).unwrap_or_default())
+                .get(get.map_or_default(JsValue::new))
+                .set(set.map_or_default(JsValue::new))
                 .configurable(configurable)
                 .enumerable(enumerable)
                 .build(),
