@@ -124,7 +124,13 @@ fn is_valid_reason_phrase(s: &str) -> bool {
 // another API operation.
 #[derive(Clone, Debug, Trace, Finalize, JsData)]
 pub struct JsResponse {
-    url: JsString,
+    /// The response's URL list.
+    ///
+    /// Unless stated otherwise, it is the empty list. The response's URL is the last
+    /// item in its URL list if the list is not empty, or null otherwise.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#concept-response-url-list>.
+    url_list: Vec<JsString>,
 
     #[unsafe_ignore_trace]
     r#type: ResponseType,
@@ -149,6 +155,14 @@ impl JsResponse {
     /// Create a new instance from the HTTP response and the URL that requested it.
     #[must_use]
     pub fn basic(url: JsString, inner: http::Response<Vec<u8>>) -> Self {
+        Self::basic_with_url_list(vec![url], inner)
+    }
+
+    /// Create a new instance from the HTTP response and its URL list.
+    ///
+    /// See <https://fetch.spec.whatwg.org/#concept-response-url-list>.
+    #[must_use]
+    pub fn basic_with_url_list(url_list: Vec<JsString>, inner: http::Response<Vec<u8>>) -> Self {
         let (parts, body) = inner.into_parts();
         let status = parts.status.as_u16();
         let status_text = JsString::from(parts.status.canonical_reason().unwrap_or(""));
@@ -156,7 +170,7 @@ impl JsResponse {
         let body = Rc::new(body);
 
         Self {
-            url,
+            url_list,
             r#type: ResponseType::Basic,
             status,
             status_text,
@@ -171,7 +185,7 @@ impl JsResponse {
     #[must_use]
     pub fn error() -> Self {
         Self {
-            url: js_string!(""),
+            url_list: Vec::new(),
             r#type: ResponseType::Error,
             // A network error's status is always 0.
             // See https://fetch.spec.whatwg.org/#concept-network-error
@@ -264,7 +278,7 @@ fn initialize_response(
     };
 
     Ok(JsResponse {
-        url: js_string!(""),
+        url_list: Vec::new(),
         r#type: ResponseType::Default,
         status,
         status_text,
@@ -358,7 +372,7 @@ impl JsResponse {
         );
 
         Ok(Self {
-            url: js_string!(""),
+            url_list: Vec::new(),
             r#type: ResponseType::Default,
             status: status_code.as_u16(),
             status_text: JsString::from(status_code.canonical_reason().unwrap_or("")),
@@ -469,8 +483,12 @@ impl JsResponse {
     fn url(&self) -> JsString {
         // The spec says: return the empty string if this's response's URL is null;
         // otherwise this's response's URL, serialized with exclude fragment set to true.
-        // See https://fetch.spec.whatwg.org/#dom-response-url
-        let s = self.url.to_std_string_escaped();
+        // A response's URL is the last item in its URL list, or null if the list is empty.
+        // See https://fetch.spec.whatwg.org/#concept-response-url
+        let Some(url) = self.url_list.last() else {
+            return js_string!("");
+        };
+        let s = url.to_std_string_escaped();
         let without_fragment = s.find('#').map_or(s.as_str(), |i| &s[..i]);
         JsString::from(without_fragment)
     }
@@ -479,17 +497,15 @@ impl JsResponse {
     ///
     /// See <https://fetch.spec.whatwg.org/#dom-response-redirected>
     #[boa(getter)]
-    #[allow(clippy::unused_self)]
     fn redirected(&self) -> bool {
         // The spec says: return true if this's response's URL list's size is greater than 1.
-        // TODO: track the full URL list to implement this properly.
-        false
+        self.url_list.len() > 1
     }
 
     #[boa(rename = "clone")]
     fn clone_response(&self) -> Self {
         Self {
-            url: self.url.clone(),
+            url_list: self.url_list.clone(),
             r#type: self.r#type,
             status: self.status,
             status_text: self.status_text.clone(),
