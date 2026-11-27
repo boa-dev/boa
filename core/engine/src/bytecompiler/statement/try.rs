@@ -89,6 +89,20 @@ impl ByteCompiler<'_> {
 
                 let no_throw = self.jump();
                 self.patch_handler(catch_handler);
+
+                // Take the exception thrown from the catch block (if any) out of the
+                // VM, so that it does not stay pending while the finally block runs.
+                // Otherwise an abrupt completion of the finally block (e.g. `return`)
+                // would observe it, and nested handlers inside the finally block
+                // would consume it.
+                //
+                // There is no pending exception when `return()` was called on a
+                // generator, in which case we must rethrow the empty exception after
+                // the finally block runs.
+                let has_exception = self.register_allocator.alloc();
+                let exception = self.register_allocator.alloc();
+                self.bytecode
+                    .emit_maybe_exception(has_exception.variable(), exception.variable());
                 self.bytecode.emit_store_true(finally_re_throw.variable());
 
                 self.patch_jump(no_throw);
@@ -102,8 +116,13 @@ impl ByteCompiler<'_> {
                 self.compile_finally_stmt(f);
                 self.register_allocator.dealloc(error);
                 let do_not_throw_exit = self.jump_if_false(&finally_re_throw);
+                let is_generator_exit = self.jump_if_false(&has_exception);
+                self.bytecode.emit_throw(exception.variable());
+                self.patch_jump(is_generator_exit);
                 self.bytecode.emit_re_throw();
                 self.patch_jump(do_not_throw_exit);
+                self.register_allocator.dealloc(exception);
+                self.register_allocator.dealloc(has_exception);
                 self.pop_try_with_finally_control_info(finally_start);
                 self.register_allocator.dealloc(finally_re_throw);
                 self.register_allocator.dealloc(finally_jump_index);
