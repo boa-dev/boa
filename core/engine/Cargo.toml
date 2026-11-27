@@ -26,6 +26,8 @@ embedded_lz4 = ["boa_macros/embedded_lz4", "lz4_flex"]
 jsvalue-enum = []
 deser = ["boa_interner/serde", "boa_ast/serde"]
 either = ["dep:either", "boa_gc/either"]
+# Enable collection of GC statistics
+gc-stats = ["boa_gc/gc-stats"]
 
 # Enables the `Intl` builtin object and bundles a default ICU4X data provider.
 # Prefer this over `intl` if you just want to enable `Intl` without dealing with the
