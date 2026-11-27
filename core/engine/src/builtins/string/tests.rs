@@ -177,6 +177,33 @@ fn repeat_generic() {
 }
 
 #[test]
+fn repeat_moderate_count_succeeds() {
+    run_test_actions([TestAction::assert_eq("'ab'.repeat(1000).length", 2000)]);
+}
+
+#[test]
+fn repeat_respects_lowered_allocation_limit() {
+    run_test_actions([
+        TestAction::inspect_context(|context| {
+            context.runtime_limits_mut().set_max_allocation(1024);
+        }),
+        TestAction::assert_runtime_limit_error(
+            "'x'.repeat(1000)",
+            crate::error::RuntimeLimitError::Allocation,
+        ),
+    ]);
+}
+
+#[test]
+fn pad_start_and_pad_end() {
+    run_test_actions([
+        TestAction::assert_eq("'x'.padStart(5, 'ab')", js_str!("ababx")),
+        TestAction::assert_eq("'x'.padEnd(5, 'ab')", js_str!("xabab")),
+        TestAction::assert_eq("'x'.padStart(3)", js_str!("  x")),
+    ]);
+}
+
+#[test]
 fn replace() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"

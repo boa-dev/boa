@@ -1420,7 +1420,7 @@ impl JsValue {
         let len = obj.length_of_array_like(context)?;
 
         // 4. Let list be a new empty List.
-        let mut list = Vec::with_capacity(len as usize);
+        let mut list = context.try_vec_with_len(len)?;
 
         // 5. Let index be 0.
         // 6. Repeat, while index < len,

@@ -34,7 +34,7 @@ pub(crate) use {
     inline_cache::InlineCache,
 };
 
-pub use runtime_limits::RuntimeLimits;
+pub use runtime_limits::{DEFAULT_MAX_ALLOCATION, RuntimeLimits};
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
     code_block::CodeBlock,

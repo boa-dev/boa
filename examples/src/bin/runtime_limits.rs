@@ -81,4 +81,18 @@ fn main() {
     // Run exceeding limit by 1 and assert that it fails.
     let result = context.eval(Source::from_bytes("factorial(11)"));
     assert!(result.is_err());
+
+    // -----------------------------------------
+    //  Allocation Limit
+    // -----------------------------------------
+
+    // Huge JS-controlled lengths used to abort the process on `Vec::with_capacity`.
+    // The default cap rejects them as an uncatchable runtime-limit error.
+    let result = context.eval(Source::from_bytes(r#""a".repeat(0xFFFFFFFF)"#));
+    assert!(result.is_err());
+
+    // Embedders can lower the cap further.
+    context.runtime_limits_mut().set_max_allocation(1024);
+    let result = context.eval(Source::from_bytes(r#""x".repeat(1000)"#));
+    assert!(result.is_err());
 }
