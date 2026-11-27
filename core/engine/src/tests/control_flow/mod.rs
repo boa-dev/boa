@@ -292,6 +292,126 @@ fn nested_finally_break_discards_inner_return() {
 }
 
 #[test]
+fn async_finally_abrupt_completion_overrides_catch_throw() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            const results = {};
+            function record(name, p) {
+                p.then(
+                    (v) => { results[name] = "ok " + v; },
+                    (e) => { results[name] = "rejected " + e; },
+                );
+            }
+
+            record("rethrow", (async function () {
+                try { throw 1; } catch (e) { throw e; } finally { return 2; }
+            })());
+            record("throw_new", (async function () {
+                try { throw 1; } catch (e) { throw 9; } finally { return 2; }
+            })());
+            record("arrow", (async () => {
+                try { throw 1; } catch (e) { throw e; } finally { return 2; }
+            })());
+            record("nested_finally", (async function () {
+                try { throw 1; } catch (e) { throw e; } finally { try { return 2; } finally {} }
+            })());
+            record("await_then_return", (async function () {
+                try { throw 1; } catch (e) { throw e; } finally { await null; return 2; }
+            })());
+            record("break", (async function () {
+                for (;;) { try { throw 1; } catch (e) { throw e; } finally { break; } }
+                return 3;
+            })());
+            record("continue", (async function () {
+                let i = 0;
+                while (i++ < 2) { try { throw 1; } catch (e) { throw e; } finally { continue; } }
+                return 4;
+            })());
+            record("no_override", (async function () {
+                try { throw 1; } catch (e) { throw e; } finally { }
+            })());
+        "#}),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
+        TestAction::assert_eq("results.rethrow", js_str!("ok 2")),
+        TestAction::assert_eq("results.throw_new", js_str!("ok 2")),
+        TestAction::assert_eq("results.arrow", js_str!("ok 2")),
+        TestAction::assert_eq("results.nested_finally", js_str!("ok 2")),
+        TestAction::assert_eq("results.await_then_return", js_str!("ok 2")),
+        TestAction::assert_eq("results.break", js_str!("ok 3")),
+        TestAction::assert_eq("results.continue", js_str!("ok 4")),
+        TestAction::assert_eq("results.no_override", js_str!("rejected 1")),
+    ]);
+}
+
+#[test]
+fn catch_throw_preserved_when_finally_handles_exception() {
+    run_test_actions([
+        TestAction::assert_opaque_error(
+            indoc! {r#"
+                function f() {
+                    try { throw "x"; } catch (e) { throw e; } finally { try { throw "y"; } catch {} }
+                }
+                f();
+            "#},
+            js_str!("x"),
+        ),
+        TestAction::run(indoc! {r#"
+            let awaited;
+            (async function () {
+                try { throw "x"; } catch (e) { throw e; } finally { await null; }
+            })().then((v) => { awaited = "ok " + v; }, (e) => { awaited = "rejected " + e; });
+            let caught;
+            (async function () {
+                try { throw "x"; } catch (e) { throw e; } finally { try { await Promise.reject("y"); } catch {} }
+            })().then((v) => { caught = "ok " + v; }, (e) => { caught = "rejected " + e; });
+        "#}),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
+        TestAction::assert_eq("awaited", js_str!("rejected x")),
+        TestAction::assert_eq("caught", js_str!("rejected x")),
+    ]);
+}
+
+#[test]
+fn generator_return_runs_catch_finally() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let log = [];
+            function* g() {
+                try { yield 1; } catch (e) { log.push("catch"); } finally { log.push("finally"); }
+                log.push("after");
+            }
+            const it = g();
+            it.next();
+            const r = it.return(5);
+        "#}),
+        TestAction::assert_eq("log.join()", js_str!("finally")),
+        TestAction::assert_eq("r.value", 5),
+        TestAction::assert("r.done"),
+        TestAction::assert("it.next().done"),
+        TestAction::run(indoc! {r#"
+            function* g2() {
+                try { yield 1; } catch (e) { } finally { return 7; }
+            }
+            const it2 = g2();
+            it2.next();
+            const r2 = it2.return(5);
+        "#}),
+        TestAction::assert_eq("r2.value", 7),
+        TestAction::assert("r2.done"),
+        TestAction::run(indoc! {r#"
+            function* g3() {
+                try { yield 1; } catch (e) { throw e; } finally { log.push("f3"); }
+            }
+            const it3 = g3();
+            it3.next();
+            let thrown;
+            try { it3.throw("boom"); } catch (e) { thrown = e; }
+        "#}),
+        TestAction::assert_eq("thrown", js_str!("boom")),
+    ]);
+}
+
+#[test]
 fn single_case_switch() {
     run_test_actions([TestAction::assert_eq(
         indoc! {r#"
