@@ -241,6 +241,15 @@ fn process_expanded_apis() {
             self.env.borrow_mut().remove(&key.to_std_string_escaped());
             Ok(())
         }
+        fn platform(&self) -> JsString {
+            js_string!("mock-platform")
+        }
+        fn arch(&self) -> JsString {
+            js_string!("mock-arch")
+        }
+        fn argv(&self) -> impl IntoIterator<Item = JsString> {
+            vec![js_string!("mock-arg0"), js_string!("mock-arg1")]
+        }
     }
 
     let provider = MockProvider {

@@ -44,71 +44,28 @@ pub trait ProcessProvider: Trace {
     fn exit(&self, code: i32) -> JsResult<()>;
 
     /// Get environment variables so as to allow env property (`process.env`)
-    fn env(&self) -> impl IntoIterator<Item = (JsString, JsString)> {
-        std::env::vars().map(|(k, v)| (js_string!(k), js_string!(v)))
-    }
+    fn env(&self) -> impl IntoIterator<Item = (JsString, JsString)>;
 
     /// Get the operating system platform (`process.platform`)
-    fn platform(&self) -> JsString {
-        let platform = match std::env::consts::OS {
-            "windows" => "win32",
-            "macos" => "darwin",
-            "linux" => "linux",
-            "freebsd" => "freebsd",
-            "openbsd" => "openbsd",
-            "android" => "android",
-            "solaris" => "sunos",
-            "aix" => "aix",
-            other => other,
-        };
-        js_string!(platform)
-    }
+    fn platform(&self) -> JsString;
 
     /// Get the CPU architecture (`process.arch`)
-    fn arch(&self) -> JsString {
-        let arch = match std::env::consts::ARCH {
-            "x86_64" => "x64",
-            "x86" => "ia32",
-            "aarch64" => "arm64",
-            "arm" => "arm",
-            "riscv64" => "riscv64",
-            "powerpc64" => "ppc64",
-            "s390x" => "s390x",
-            "mips" => "mips",
-            "mips64" => "mipsel",
-            other => other,
-        };
-        js_string!(arch)
-    }
+    fn arch(&self) -> JsString;
 
     /// Get command-line arguments (`process.argv`)
-    fn argv(&self) -> impl IntoIterator<Item = JsString> {
-        std::env::args().map(|arg| js_string!(arg))
-    }
+    fn argv(&self) -> impl IntoIterator<Item = JsString>;
 
     /// Set an environment variable on the host.
     ///
     /// # Errors
     /// Returns an error if the environment variable cannot be set.
-    fn set_env(&self, key: &JsString, value: &JsString) -> JsResult<()> {
-        // SAFETY: Single-threaded JS context execution in default StdProcessProvider
-        unsafe {
-            std::env::set_var(key.to_std_string_escaped(), value.to_std_string_escaped());
-        }
-        Ok(())
-    }
+    fn set_env(&self, key: &JsString, value: &JsString) -> JsResult<()>;
 
     /// Remove an environment variable from the host.
     ///
     /// # Errors
     /// Returns an error if the environment variable cannot be removed.
-    fn remove_env(&self, key: &JsString) -> JsResult<()> {
-        // SAFETY: Single-threaded JS context execution in default StdProcessProvider
-        unsafe {
-            std::env::remove_var(key.to_std_string_escaped());
-        }
-        Ok(())
-    }
+    fn remove_env(&self, key: &JsString) -> JsResult<()>;
 }
 
 /// The default std implementation of the process provider.
@@ -142,6 +99,57 @@ impl ProcessProvider for StdProcessProvider {
 
     fn env(&self) -> impl IntoIterator<Item = (JsString, JsString)> {
         std::env::vars().map(|(k, v)| (js_string!(k), js_string!(v)))
+    }
+
+    fn platform(&self) -> JsString {
+        let platform = match std::env::consts::OS {
+            "windows" => "win32",
+            "macos" => "darwin",
+            "linux" => "linux",
+            "freebsd" => "freebsd",
+            "openbsd" => "openbsd",
+            "android" => "android",
+            "solaris" => "sunos",
+            "aix" => "aix",
+            other => other,
+        };
+        js_string!(platform)
+    }
+
+    fn arch(&self) -> JsString {
+        let arch = match std::env::consts::ARCH {
+            "x86_64" => "x64",
+            "x86" => "ia32",
+            "aarch64" => "arm64",
+            "arm" => "arm",
+            "riscv64" => "riscv64",
+            "powerpc64" => "ppc64",
+            "s390x" => "s390x",
+            "mips" => "mips",
+            "mips64" => "mipsel",
+            other => other,
+        };
+        js_string!(arch)
+    }
+
+    fn argv(&self) -> impl IntoIterator<Item = JsString> {
+        std::env::args().map(|arg| js_string!(arg))
+    }
+
+    fn set_env(&self, key: &JsString, value: &JsString) -> JsResult<()> {
+        // SAFETY: Single-threaded JS context execution in default StdProcessProvider
+        unsafe {
+            std::env::set_var(key.to_std_string_escaped(), value.to_std_string_escaped());
+        }
+        Ok(())
+    }
+
+    fn remove_env(&self, key: &JsString) -> JsResult<()> {
+        // SAFETY: Single-threaded JS context execution in default StdProcessProvider
+        unsafe {
+            std::env::remove_var(key.to_std_string_escaped());
+        }
+        Ok(())
     }
 }
 
