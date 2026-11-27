@@ -196,3 +196,87 @@ fn process_env_iteration() {
         },
     );
 }
+#[test]
+fn process_expanded_apis() {
+    use crate::process::{Process, ProcessProvider};
+    use boa_engine::{Context, Finalize, JsResult, JsString, Source, Trace, js_string};
+    use std::{cell::RefCell, collections::HashMap, rc::Rc};
+
+    #[derive(Clone, Trace, Finalize)]
+    struct MockProvider {
+        #[unsafe_ignore_trace]
+        cwd: Rc<RefCell<String>>,
+        #[unsafe_ignore_trace]
+        exit_code: Rc<RefCell<Option<i32>>>,
+        #[unsafe_ignore_trace]
+        env: Rc<RefCell<HashMap<String, String>>>,
+    }
+
+    impl ProcessProvider for MockProvider {
+        fn cwd(&self) -> JsResult<JsString> {
+            Ok(js_string!(self.cwd.borrow().clone()))
+        }
+        fn chdir(&self, dir: &JsString) -> JsResult<()> {
+            *self.cwd.borrow_mut() = dir.to_std_string_escaped();
+            Ok(())
+        }
+        fn exit(&self, code: i32) -> JsResult<()> {
+            *self.exit_code.borrow_mut() = Some(code);
+            Ok(())
+        }
+        fn env(&self) -> impl IntoIterator<Item = (JsString, JsString)> {
+            self.env
+                .borrow()
+                .iter()
+                .map(|(k, v)| (js_string!(k.clone()), js_string!(v.clone())))
+                .collect::<Vec<_>>()
+        }
+        fn set_env(&self, key: &JsString, value: &JsString) -> JsResult<()> {
+            self.env
+                .borrow_mut()
+                .insert(key.to_std_string_escaped(), value.to_std_string_escaped());
+            Ok(())
+        }
+        fn remove_env(&self, key: &JsString) -> JsResult<()> {
+            self.env.borrow_mut().remove(&key.to_std_string_escaped());
+            Ok(())
+        }
+        fn platform(&self) -> JsString {
+            js_string!("mock-platform")
+        }
+        fn arch(&self) -> JsString {
+            js_string!("mock-arch")
+        }
+        fn argv(&self) -> impl IntoIterator<Item = JsString> {
+            vec![js_string!("mock-arg0"), js_string!("mock-arg1")]
+        }
+    }
+
+    let provider = MockProvider {
+        cwd: Rc::new(RefCell::new("/initial".to_string())),
+        exit_code: Rc::new(RefCell::new(None)),
+        env: Rc::new(RefCell::new(HashMap::from([("INIT".into(), "1".into())]))),
+    };
+
+    let mut context = Context::default();
+    Process::register_with_provider(&mut context, provider.clone()).unwrap();
+
+    let code = r#"
+        if (typeof process.platform !== "string" || process.platform.length === 0) throw new Error("platform");
+        if (typeof process.arch !== "string" || process.arch.length === 0) throw new Error("arch");
+        if (!Array.isArray(process.argv)) throw new Error("argv");
+        if (process.cwd() !== "/initial") throw new Error("initial cwd");
+        process.chdir("/tmp");
+        if (process.cwd() !== "/tmp") throw new Error("updated cwd");
+        if (process.env.INIT !== "1") throw new Error("init env");
+        process.env.NEW_VAR = "hello";
+        if (process.env.NEW_VAR !== "hello") throw new Error("set env");
+        delete process.env.NEW_VAR;
+        if (process.env.NEW_VAR !== undefined) throw new Error("delete env");
+        process.exit(42);
+    "#;
+
+    context.eval(Source::from_bytes(code)).unwrap();
+    assert_eq!(*provider.exit_code.borrow(), Some(42));
+    assert!(!provider.env.borrow().contains_key("NEW_VAR"));
+}
