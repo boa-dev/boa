@@ -144,7 +144,7 @@ For more information see: [`getrandom` WebAssembly Support][getrandom-webassembl
 
 ### Example
 
-![Example](docs/img/latestDemo.gif)
+![Boa REPL](docs/img/latestDemo.gif)
 
 ### Command-line Options
 
